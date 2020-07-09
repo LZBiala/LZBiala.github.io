@@ -1,7 +1,6 @@
 # LZBiala portfolio webpage
 
-# Data Project 2:
-Aggregated Tornado data in the United States from 1950 to 2018.
+# [Data Project 2: Aggregated Tornado data in the United States from 1950 to 2018](https://github.com/LZBiala/dataproject2)
 
 Heroku demo: https://tornado-visualization.herokuapp.com/
 
@@ -9,8 +8,7 @@ Heroku demo: https://tornado-visualization.herokuapp.com/
 * Leaflet interactive map displaying year and state with descriptions of the magnitude of the tornado and the distance
 * Plotly graphs displaying some inferences and trends
   
-# ETL Project:
-ETL process on job demand in data science
+# [ETL Project: ETL process on job demand in data science](https://github.com/LZBiala/ETL_group_project)
 
 * Create a database called “DataSciDB in the MongoDB environment.
 * Create a collection called “DS_Job_Categories” and insert data reflecting data science job categories into this collection
@@ -18,9 +16,8 @@ ETL process on job demand in data science
 * Create a collection called “Ml_Tools” and insert data reflecting current tools used for machine learning into this collection
 * Create a collection called “Ml_Methods and insert data reflecting most widely used machine learning models for mapping and modelling of data into this collection
 
-# Data Project 3:
+# [Data Project 3: Develop 3 classifiers to predict potential breast cancer using our dataset](https://github.com/LZBiala/dataproject3)
 
-<b>Project goal:</b> Develop 3 classifiers to predict potential breast cancer using our dataset. 
 Classifiers used were: 
 <br>
 * Deep Learning Model <br>
