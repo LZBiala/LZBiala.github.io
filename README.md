@@ -15,9 +15,7 @@ Heroku demo: https://tornado-visualization.herokuapp.com/
 
 # [Data Project 3: Develop 3 classifiers to predict potential breast cancer using our dataset](https://github.com/LZBiala/dataproject3)
 
-We compared the accuracy of the three classifiers because we believe we’ll find some good inferences from these models from our dataset.
-
-Classifiers used were: 
+Implemented Machine Learning Regressions to predict if a person's breast cancer tumor is malignant or benign. After we compared the accuracy of the three classifiers and found some good inferences from these models. Models used were: 
 <br>
 * Deep Learning Model <br>
 * Logistic Regression Model <br>
