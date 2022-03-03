@@ -25,4 +25,3 @@ Implemented Machine Learning Regressions to predict if a person's breast cancer 
 <br>
 
 Tableau Public Project Link: https://public.tableau.com/profile/eddie2497#!/vizhome/breastcancer_15645961932540/MachineLearningResults?publish=yes
-
