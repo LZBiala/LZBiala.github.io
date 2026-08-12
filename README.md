@@ -1,27 +1,15 @@
-# LZBiala portfolio webpage
+# lzbiala.github.io
 
-# [Data Project 2: Aggregated Tornado data in the United States from 1950 to 2018](https://github.com/LZBiala/dataproject2)
+Personal site of **Lito Zarate Biala** — Site Reliability → AI Reliability →
+Forward Deployed.
 
-Heroku demo: https://tornado-visualization.herokuapp.com/
+One static file (`index.html`), no frameworks, no trackers, no external
+requests — built the same way as the four projects it presents:
 
-* Cost impact of tornado based on tornado magnitude interactive D3 bubble chart
-* Leaflet interactive map displaying year and state with descriptions of the magnitude of the tornado and the distance
-* Plotly graphs displaying some inferences and trends
-  
-# [ETL Project: ETL process on job demand in data science](https://github.com/LZBiala/ETL_group_project)
+- [wiki-memory-lab](https://github.com/LZBiala/wiki-memory-lab) — the memory layer
+- [agent-mutation-lab](https://github.com/LZBiala/agent-mutation-lab) — the evaluation layer
+- [adversarial-chambers](https://github.com/LZBiala/adversarial-chambers) — decision calibration
+- [memory-repair-lab](https://github.com/LZBiala/memory-repair-lab) — the control loop
 
-* ETL process on job demand and data science roles in 2019.
-* Created a database called “DataSciDB" in the MongoDB environment.
-
-# [Data Project 3: Develop 3 classifiers to predict potential breast cancer using our dataset](https://github.com/LZBiala/dataproject3)
-
-Implemented Machine Learning Regressions to predict if a person's breast cancer tumor is malignant or benign. After we compared the accuracy of the three classifiers and found some good inferences from these models. Models used were: 
-<br>
-* Deep Learning Model <br>
-* Logistic Regression Model <br>
-* Support Vector Machine Model <br>
-
-
-<br>
-
-Tableau Public Project Link: https://public.tableau.com/profile/eddie2497#!/vizhome/breastcancer_15645961932540/MachineLearningResults?publish=yes
+Every measured number those repos publish regenerates in CI with zero API
+keys; the build fails if a claim drifts.

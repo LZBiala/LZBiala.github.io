@@ -1,153 +1,250 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lito Zarate Biala</title>
+<meta name="description" content="Site Reliability → AI Reliability. I build AI systems that publish their own measurements — four open-source evaluation and memory harnesses with CI that fails when a claim drifts.">
+<style>
+  :root {
+    --paper: #f7f8f5; --ink: #16211c; --muted: #5a6b62; --line: #dde3dd;
+    --teal: #0f766e; --teal-soft: #0f766e14; --amber: #b45309; --red: #b91c1c;
+    --card: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #101613; --ink: #e6ebe7; --muted: #93a69b; --line: #26332c;
+      --teal: #2dd4bf; --teal-soft: #2dd4bf14; --amber: #fbbf24; --red: #f87171;
+      --card: #17201b;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper); color: var(--ink); line-height: 1.65;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 22px; }
+  a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 2px; }
 
-<html>
-	<head>
-		<title>Lito's Portfolio Webpage</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="assets/css/main.css" />
-	</head>
-	<body class="is-preload">
+  header.hero { padding: 64px 0 40px; }
+  .hero-row { display: flex; gap: 26px; align-items: center; flex-wrap: wrap; }
+  .hero img.face { width: 96px; height: 96px; border-radius: 50%; object-fit: cover;
+    border: 2px solid var(--line); }
+  .eyebrow { font-family: ui-monospace, Consolas, monospace; font-size: 0.72rem;
+    letter-spacing: 0.16em; color: var(--teal); text-transform: uppercase; }
+  h1 { font-size: 2.4rem; line-height: 1.1; letter-spacing: -0.015em; text-wrap: balance; margin: 6px 0 4px; }
+  .arrowline { font-family: ui-monospace, Consolas, monospace; font-size: 0.95rem;
+    color: var(--muted); margin-bottom: 4px; }
+  .arrowline b { color: var(--teal); font-weight: 700; }
+  .thesis { font-size: 1.1rem; max-width: 44em; color: var(--ink); margin: 20px 0 0; }
+  .thesis em { color: var(--muted); font-style: italic; }
+  .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .links a { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem;
+    text-decoration: none; border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 16px; color: var(--ink); background: var(--card); }
+  .links a:hover { border-color: var(--teal); color: var(--teal); }
 
-		<!-- Header -->
-			<div id="header">
-				<span class="logo icon fa-paper-plane"></span>
-				<h1>Welcome to Lito Zarate Biala's Portfolio</h1>
-				<p> Data Science | AI/ML | Psychology
-					<br>
-					Becoming the best version of myself each day and enjoying the journey. </p>
-				<!-- <br />
-				and released for free under the <a href="http://html5up.net/license">Creative Commons license</a>.</p> -->
-			</div>
-		<!--Tech Icons-->
-		<div class="w3-row w3-center bg1 w3-padding-16">
-			<div class="w3-third w3-section">
-				<img class="icon" src="assets/icons/python.svg">
-				<img class="icon" src="assets/icons/css.svg">
-				<img class="icon" src="assets/icons/javascript.svg">
-				<!-- <img class="icon" src="assets/icons/html5.svg"> -->
-			<!-- </div>
-			<div class="w3-third w3-section"> -->
-				<!-- <img class="icon" src="assets/icons/sass.svg"> -->
-				<img class="icon" src="assets/icons/django.svg">
-				<img class="icon" src="assets/icons/tableau.svg">
-			<!-- </div>
-			<div class="w3-third w3-section"> -->
-				<img class="icon" src="assets/icons/mongodb.svg">
-				<img class="icon" src="assets/icons/mysql.svg">
-				<!-- <img class="icon" src="assets/icons/github.svg"> -->
-		</div>
+  section { padding: 44px 0 10px; border-top: 1px solid var(--line); }
+  section h2 { font-size: 1.5rem; letter-spacing: -0.01em; margin-bottom: 6px; text-wrap: balance; }
+  .lead { color: var(--muted); max-width: 50em; margin-bottom: 24px; }
 
-		<!-- Main -->
-			<div id="main">
+  .stackline { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem;
+    color: var(--muted); background: var(--teal-soft); border: 1px solid var(--line);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 22px; overflow-x: auto; white-space: nowrap; }
+  .stackline b { color: var(--teal); }
 
-				<header class="major container medium">
-					<h2>My Projects
-					
-					</h2>
-					<!--
-					<p>Tellus erat mauris ipsum fermentum<br />
-					etiam vivamus nunc nibh morbi.</p>
-					-->
-				</header>
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 22px; display: flex; flex-direction: column; gap: 8px; }
+  .card .layer { font-family: ui-monospace, Consolas, monospace; font-size: 0.7rem;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); }
+  .card h3 { font-size: 1.12rem; }
+  .card h3 a { text-decoration: none; color: var(--ink); }
+  .card h3 a:hover { color: var(--teal); }
+  .card p.pitch { font-size: 0.93rem; }
+  .card .num { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem;
+    color: var(--teal); }
+  .card .loss { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem;
+    color: var(--red); }
+  .card .go { margin-top: auto; padding-top: 8px; font-family: ui-monospace, Consolas, monospace;
+    font-size: 0.8rem; display: flex; gap: 14px; flex-wrap: wrap; }
+  .cardnote { font-size: 0.85rem; color: var(--muted); margin-top: 16px; max-width: 52em; }
 
-				<div class="box alt container">
-					<section class="feature left">
-						<a href="https://tornado-visualization.herokuapp.com/" class="image icon solid fa-signal"><img src="images/pic01.jpg" alt="" /></a>
-						<div class="content">
-							<h3><a href="https://tornado-visualization.herokuapp.com/"> U.S. Tornado Data Project</a></h3>
-							<p>
-								Aggregated Tornado data in the United States from 1950 to 2018. A Cost impact of tornado based on tornado magnitude interactive D3 bubble chart and Plotly graphs displaying some inferences and trends. Used a Leaflet interactive map displaying year and state with descriptions of the magnitude of the tornado and the distance.
-							</p>
-						</div>
-					</section>
-					<section class="feature right">
-						<a href="https://github.com/LZBiala/ETL_group_project" class="image icon solid fa-database"><img src="images/pic02.jpg" alt="" /></a>
-						<div class="content">
-							<h3><a href="https://github.com/LZBiala/ETL_group_project"> ETL Project On Data Science Jobs</a></h3>
-							<p>"Extract, Transfer, Load" process on job demand and data science roles in 2019.</p>
-						</div>
-					</section>
-					<section class="feature left">
-						<a href="https://public.tableau.com/profile/eddie2497#!/vizhome/breastcancer_15645961932540/MachineLearningResults?publish=yes" class="image icon solid fa-address-card"><img src="images/pic03.jpg" alt="" /></a>
-						<div class="content">
-							<h3><a href="https://public.tableau.com/profile/eddie2497#!/vizhome/breastcancer_15645961932540/MachineLearningResults?publish=yes"> ML Breast Cancer Data Project</a></h3>
-							<p>Implemented Machine Learning Regressions to predict if a person's breast cancer tumor is malignant or benign. After we compared the accuracy of the three classifiers and found some good inferences from these models. Models used were: 
-								<br>* Deep Learning Model <br>
-									* Logistic Regression Model <br>
-									* Support Vector Machine Model</p>
-						</div>
-					</section>
-				</div>
+  .laws { display: grid; gap: 12px; max-width: 56em; }
+  .law { border-left: 3px solid var(--teal); padding: 4px 0 4px 18px; }
+  .law h3 { font-size: 1rem; }
+  .law p { font-size: 0.93rem; color: var(--muted); }
 
-				<footer class="major container medium">
-					<h3>Interested in learning more?</h3>
-					<p> Feel free to connect with me through the links below:</p>
-					<ul class="actions special">
-						<li><a href="https://github.com/LZBiala/" class="button">Lito's Github</a></li>
-						<li><a href="https://www.linkedin.com/in/lzbiala/" class="button">Lito's LinkedIn</a></li>
-					</ul>
-				</footer>
+  .bg2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; }
+  @media (max-width: 720px) { .bg2 { grid-template-columns: 1fr; } }
+  .bg2 p { font-size: 0.97rem; margin-bottom: 14px; max-width: 46em; }
+  .facts { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; align-self: start; }
+  .facts dt { font-family: ui-monospace, Consolas, monospace; font-size: 0.7rem;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-top: 12px; }
+  .facts dt:first-child { margin-top: 0; }
+  .facts dd { font-size: 0.9rem; margin: 2px 0 0; }
 
-			</div>
+  footer { padding: 44px 0 64px; border-top: 1px solid var(--line); color: var(--muted);
+    font-size: 0.9rem; }
+  footer .mono { font-size: 0.8rem; }
+</style>
+</head>
+<body>
 
-		<!-- Footer -->
-			<div id="footer">
-				<div class="container medium">
+<header class="hero"><div class="wrap">
+  <div class="hero-row">
+    <img class="face" src="images/Profile.jpg" alt="Portrait of Lito Zarate Biala"
+         onerror="this.remove()">
+    <div>
+      <div class="eyebrow">Forward-deployable AI engineering · Minneapolis–St. Paul</div>
+      <h1>Lito Zarate Biala</h1>
+      <div class="arrowline">Site Reliability <b>→</b> AI Reliability <b>→</b> Forward Deployed</div>
+    </div>
+  </div>
+  <p class="thesis">I make complicated systems trustworthy — five and a half years leading
+  site reliability for digital banking at Wells Fargo, and now for AI. The through-line
+  of my career is one question: <em>how do we know this is actually working?</em> So I
+  build AI systems that answer it themselves: four open-source evaluation and memory
+  harnesses whose every published number regenerates in CI — <b>the build fails if a
+  claim drifts</b> — and whose READMEs publish where the designs <em>lose</em>, above
+  the fold.</p>
+  <div class="links">
+    <a href="https://github.com/LZBiala">GitHub</a>
+    <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>
+    <a href="#work">The four projects</a>
+    <a href="#how">How I work</a>
+  </div>
+</div></header>
 
-					<header class="major last">
-						<h2>Questions or comments?</h2>
-					</header>
-				
-					<p>Feel free to leave me a message and I'll get back to you as soon as possible!</p>
-					<img src="images/Profile.jpg" alt="" />
-					<br>
-					<div class="w3-col m8 w3-panel">
-						<div class="w3-large w3-margin-bottom">
-							<i class="fa fa-map-marker fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> Minneapolis, US
-							<br>
-							<i class="fa fa-envelope fa-fw w3-hover-text-black w3-xlarge w3-margin-right"></i> Email: LZBiala@gmail.com
-							<br>
-						</div>
+<section id="work"><div class="wrap">
+  <h2>Four projects, one architecture</h2>
+  <p class="lead">Not a pile of demos — a stack. Each layer answers a different form of
+  the trust question, every repo runs in seconds with zero API keys, and each ships an
+  interactive walkthrough a non-engineer can click through.</p>
+  <div class="stackline"><b>memory</b> → <b>evaluation</b> → <b>decision calibration</b> → <b>the control loop</b> that closes over the memory layer</div>
+  <div class="cards">
+    <div class="card">
+      <div class="layer">Memory layer</div>
+      <h3><a href="https://github.com/LZBiala/wiki-memory-lab">wiki-memory-lab</a></h3>
+      <p class="pitch">Agent long-term memory as a human-readable markdown wiki —
+      index-first selective recall, extend-before-create, and prune-with-a-written-reason:
+      an audit log for what your agent believes.</p>
+      <div class="num">selective recall: 0.61× the context tokens of loading everything</div>
+      <div class="loss">published loss: on a small hot corpus, stuffing wins 1.27×</div>
+      <div class="go"><a href="https://lzbiala.github.io/wiki-memory-lab/docs/">walkthrough</a>
+        <a href="https://github.com/LZBiala/wiki-memory-lab">source</a></div>
+    </div>
+    <div class="card">
+      <div class="layer">Evaluation layer</div>
+      <h3><a href="https://github.com/LZBiala/agent-mutation-lab">agent-mutation-lab</a></h3>
+      <p class="pitch">Mutation testing where the subject under test is an AI code
+      reviewer: plant one documented defect, mix in byte-identical clean controls, score
+      at the planted line — crying wolf scores zero.</p>
+      <div class="num">9/10 planted defects flagged at the planted line; 0 false alarms</div>
+      <div class="loss">published loss: one deliberate blind spot, so the scorecard shows a real miss</div>
+      <div class="go"><a href="https://lzbiala.github.io/agent-mutation-lab/docs/">walkthrough</a>
+        <a href="https://github.com/LZBiala/agent-mutation-lab">source</a></div>
+    </div>
+    <div class="card">
+      <div class="layer">Decision calibration</div>
+      <h3><a href="https://github.com/LZBiala/adversarial-chambers">adversarial-chambers</a></h3>
+      <p class="pitch">Generator, dedicated refuter, and judge as structurally separated
+      roles, a kill ledger where every verdict carries its cause of death — and the flip
+      test, which cross-examines the judge itself.</p>
+      <div class="num">flip test: evidence-driven judge 0/8; deferential judge 3/8 — exactly the ambiguous items</div>
+      <div class="loss">case study (labeled, not a benchmark): 3 of 4 real verdicts flipped on one instruction change</div>
+      <div class="go"><a href="https://lzbiala.github.io/adversarial-chambers/docs/">walkthrough</a>
+        <a href="https://github.com/LZBiala/adversarial-chambers">source</a></div>
+    </div>
+    <div class="card">
+      <div class="layer">The control loop</div>
+      <h3><a href="https://github.com/LZBiala/memory-repair-lab">memory-repair-lab</a></h3>
+      <p class="pitch">The model never learns; the notes do. Retrieval failures are filed
+      as typed notes, repairs cite the failure that motivated them, and generations are
+      re-measured against a held-out split sealed before generation zero.</p>
+      <div class="num">held-out recall 8/10 → 10/10; blind placebo arm, same budget: unchanged</div>
+      <div class="loss">published on purpose: a Goodhart arm that games recall and pays for it in tokens</div>
+      <div class="go"><a href="https://lzbiala.github.io/memory-repair-lab/docs/">walkthrough</a>
+        <a href="https://github.com/LZBiala/memory-repair-lab">source</a></div>
+    </div>
+  </div>
+  <p class="cardnote">Every number above is regenerated by each repo's own CI on Windows
+  and Linux — the committed artifacts are the claims, and the drift gate proves they
+  regenerate. Live-model results are kept out of drift-gated READMEs by design; the
+  bundled agents are deterministic, so the numbers characterize the harnesses, never a
+  model.</p>
+</div></section>
 
-					<form method="post" action="https://formspree.io/mjvapdkb">
-						<div class="row">
-							<div class="col-6 col-12-mobilep">
-								<input type="text" name="name" placeholder="Name" />
-							</div>
-							<div class="col-6 col-12-mobilep">
-								<input type="email" name="email" placeholder="Email" />
-							</div>
-							<div class="col-12">
-								<textarea name="message" placeholder="Message" rows="6"></textarea>
-							</div>
-							<div class="col-12">
-								<ul class="actions special">
-									<li><input type="submit" value="Send Message" /></li>
-								</ul>
-							</div>
-						</div>
-					</form>
+<section id="how"><div class="wrap">
+  <h2>How I work</h2>
+  <p class="lead">The habits are the résumé. These are the laws every repo above obeys —
+  and they are the same instincts that ran a bank's digital reliability, pointed at AI.</p>
+  <div class="laws">
+    <div class="law"><h3>Claims are treated like SLOs.</h3>
+      <p>Each published number ships with its measurement command and its honest caveat
+      in the same table row, rendered from metrics — never typed by hand. If
+      regeneration disagrees, the build fails loudly.</p></div>
+    <div class="law"><h3>Losses publish above the fold.</h3>
+      <p>The crossover where the design loses, the deliberate blind spot, the flipped
+      verdicts — leading with the boundary is what makes the rest of the page
+      believable.</p></div>
+    <div class="law"><h3>Every deletion carries its reason.</h3>
+      <p>Kill ledgers, prune records, repair citations: an unrecorded decision gets
+      re-litigated in a month by someone who never saw it die. Audit trails are a
+      product feature, not paperwork.</p></div>
+    <div class="law"><h3>Demos run where the customer is.</h3>
+      <p>Every project installs with nothing, runs in seconds with zero API keys, and
+      carries a walkthrough a stakeholder can click through — because the room where
+      engineering meets the customer is where systems earn trust or lose it.</p></div>
+    <div class="law"><h3>Hard things get explained simply.</h3>
+      <p>Recipe boxes, smoke alarms, courtrooms, sealed envelopes: if I can't explain
+      the system to the person who depends on it, the system isn't finished.</p></div>
+  </div>
+</div></section>
 
-					<ul class="icons">
-<!-- 						<li><a href="https://twitter.com/OptimisticLito" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li> -->
-						<li><a href="https://github.com/LZBiala/" class="icon brands fa-github"><span class="label">Github</span></a></li>
-						<li><a href="https://www.linkedin.com/in/lzbiala/" class="icon brands fa-linkedin"><span class="label">LinkedIn</span></a></li>
-					</ul>
+<section id="background"><div class="wrap">
+  <h2>Background</h2>
+  <div class="bg2">
+    <div>
+      <p>I'm a Vice President and Lead Digital Product Service Manager at Wells Fargo,
+      where I've spent 5+ years applying site-reliability practice to digital banking:
+      monitoring that catches negative trends before customers feel them, data-integrity
+      ownership, and risk escalation that balances safety with shipping. Regulated
+      industry, real stakes, enterprise reality.</p>
+      <p>AI made my favorite question urgent again. Agents fail silently and sound
+      confident doing it — so I built the tooling I wished existed, in public, with the
+      same discipline I used for uptime: measured, auditable, and honest about where it
+      breaks. I run my own knowledge system the same way — a markdown wiki my AI agents
+      read and write as long-term memory, which is where the memory-layer projects
+      came from.</p>
+      <p>Before engineering leadership: a psychology degree and years managing a busy
+      bar — which is to say, translating between systems and the humans who depend on
+      them has always been the job. That's the part of me that fits forward-deployed
+      work: I like the room where the demo has to run, the question has to land, and
+      the system has to earn its keep in someone else's environment.</p>
+    </div>
+    <dl class="facts">
+      <dt>Now</dt><dd>VP, Lead Digital Product Service Manager, Wells Fargo</dd>
+      <dt>Focus</dt><dd>AI agent evaluation · LLM observability · agent memory · multi-agent orchestration</dd>
+      <dt>Foundation</dt><dd>Site reliability · monitoring (Splunk, Grafana) · data integrity · risk management</dd>
+      <dt>Education</dt><dd>Data Analytics Boot Camp, University of Minnesota · B.A. Psychology, Metropolitan State University</dd>
+      <dt>Building with</dt><dd>Python · Claude Code &amp; Claude API workflows · GPT-5.6 via Codex · GitHub Actions CI</dd>
+    </dl>
+  </div>
+</div></section>
 
-					<!-- <ul class="copyright">
-						<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
-					</ul> -->
+<footer><div class="wrap">
+  <p>Let's build something trustworthy. Reach me on
+  <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a> or through
+  <a href="https://github.com/LZBiala">GitHub</a>.</p>
+  <p class="mono" style="margin-top:10px">This page: one static file, no frameworks, no
+  trackers, no external requests — the same way the projects are built.</p>
+</div></footer>
 
-				</div>
-			</div>
-
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/browser.min.js"></script>
-			<script src="assets/js/breakpoints.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js"></script>
-
-	</body>
+</body>
 </html>
