@@ -57,6 +57,7 @@
   .mut { color:var(--muted); }
   .fx-shake { animation:shk .3s; } @keyframes shk { 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
   .fx-flash { animation:fls .35s; } @keyframes fls { 50%{filter:brightness(2.2)} }
+  .fx-enc { animation:enc .38s; } @keyframes enc { 30%{filter:brightness(0);transform:scale(1.03)} 65%{filter:brightness(0)} }
   @media (prefers-reduced-motion: reduce) { .fx-shake, .fx-flash, .bscene canvas { animation:none !important; } }
   .hudtop { display:flex; gap:10px; flex-wrap:wrap; font-size:.76rem; margin:6px 0; width:min(94vw,672px); align-items:center; }
   .hudtop b { color:var(--teal); }
@@ -129,33 +130,405 @@ function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
 let rng = mulberry32(1);
 
 // ================= DATA: palette & sprites =================
-const PAL = { k:"#10151a", w:"#e8f4ee", r:"#f87171", g:"#34d399", b:"#60a5fa", y:"#fbbf24",
-  t:"#2dd4bf", o:"#fb923c", p:"#c084fc", s:"#f3c89b", d:"#334155", m:"#94a3b8", n:"#a16207", ".":null };
+const PAL = { ".":null, k:"#10151a", w:"#e8f4ee", s:"#f3c89b", h:"#8a5a2b",
+  t:"#2dd4bf", T:"#0f766e", g:"#4ade80", G:"#166534", b:"#60a5fa", B:"#1d4ed8",
+  r:"#f87171", R:"#b91c1c", y:"#fbbf24", Y:"#a16207", o:"#fb923c", O:"#c2410c",
+  p:"#c084fc", P:"#7e22ce", m:"#94a3b8", M:"#475569", d:"#334155", n:"#a16207", N:"#713f12" };
 const SPR = {
-hero:["...kk...","..kkkk..","..ksks..","..ssss..",".ttttttw","t.tttt.w","..tttt..",".kk..kk."],
-sentinel:[".dddd...",".dksks..","..ssss..",".oooooo.","o.oooo.b","..oooo.b","..k..k..",".kk..kk."],
-wiki:["..pppp..",".pppppp.","..ksks..","..ssss..",".yyyyyy.","y.ywwy.y","..k..k..",".kk..kk."],
-mender:["..kkkk..","..ksks..","..ssss..",".gwwggg.","g.gwgg.g","..gggg..","..k..k..",".kk..kk."],
-refuter:["..kkkk..","..ksks..","..ssss..",".ppppppm","p.pppp.m","..pppp.m","..k..k..",".kk..kk."],
-elder:["..kkkk..","..kwkw..","..wwww..",".twttwt.","t.tttt.t","..tttt..","..k..k..",".kk..kk."],
-rowan:["..kkkk..","..kwkw..","..wwww..",".dwddwd.","d.dddd.d","..dddd..","..k..k..",".kk..kk."],
-peg:["..kkkk..","..ksks..","..ssss..",".nnnnnn.","n.nyyn.n","..nnnn..","..k..k..",".kk..kk."],
-kid:["........","..kkkk..","..ksks..","..ssss..",".bbbbbb.","..bbbb..","..k..k..","..k..k.."],
-dummy:["..mmmm..",".m.mm.m.","..mmmm..","..dmmd..",".d.mm.d.","...mm...","..d..d..",".dd..dd."],
-slime:["........","..rrrr..",".rrrrrr.","rrkrrkrr","rrrrrrrr",".rrrrrr.","..r..r..","........"],
-gremlin:["r......r",".r.rr.r.","..rrrr..",".rkrrkr.","..rrrr..",".r.rr.r.","r..rr..r","..r..r.."],
-creep:["....gg..","...gggg.","..gggggg",".ggkggkg","gggggggg",".gggggg.","..g..g..",".g....g."],
-golem:[".mmmmmm.","mm.mm.mm","mmmmmmmm","m.mmmm.m","mmmkkmmm",".mmmmmm.",".mm..mm.","mm....mm"],
-wyrm:["....bbb.","..bbbbbb",".bbkbbkb","bbbbbbbb","bb.bbbb.",".bbbb...","bbb.bb..",".b...bb."],
-leak:["..pp..pp",".pkpppkp","..pppp..","...pp...","..pppp..",".pp..pp.","p......p",".p....p."],
-chorus:["..dddd..",".dwddwd.","..dddd..","dd.dd.dd",".dddddd.","d.dddd.d","..d..d..",".dd..dd."],
-flaky:["..oo..oo",".okoooko","..oooo..","oo.oo.oo","..oooo..",".o.oo.o.","o..oo..o",".o....o."],
-drift:[".pppppp.","pp.pp.pp","pppppppp","p.pppp.p","pppkkppp",".pppppp.",".pp..pp.","pp....pp"],
-monolith:["pppppppp","p.p..p.p","pprrrrpp","p.rkkr.p","p.rkkr.p","pprrrrpp","p.p..p.p","pppppppp"],
-hydra:["r..rr..r",".rrrrrr.","rkrrrrkr","rrrrrrrr",".rrrrrr.","..rrrr..",".rr..rr.","rr....rr"],
-unknown:["k.p..p.k",".k.pp.k.","p.kkkk.p",".kwkkwk.","p.kkkk.p",".k.pp.k.","k.p..p.k",".k....k."],
-chest:["........",".yyyyyy.",".ykkkky.",".yyyyyy.",".yykyyy.",".yyyyyy.","........","........"]
+hero:[
+"................",
+".....kkkkkk.....",
+"....khhhhhhk....",
+"....khhhhhhk....",
+"....kssssssk....",
+"....kskssksk....",
+"....kssssssk....",
+".....kssssk.....",
+"....kttttttk....",
+"...ksttttttsk...",
+"...kstTTTTtsk...",
+"....kttttttk....",
+"....kkYYYYkk....",
+".....kddddk.....",
+".....kd..dk.....",
+".....kk..kk....."],
+sentinel:[
+"................",
+".....kkkkkk.....",
+"....kGGGGGGk....",
+"...kGGGGGGGGk...",
+"...kGkssssкGk...".replace("к","k"),
+"....kskssksk....",
+"....kssssssk....",
+".....kssssk.....",
+"....kooooook....",
+"...ksoooooosk...",
+"...ksoOOOOosk...",
+"....kooooook....",
+"....kkNNNNkk....",
+".....kddddk.....",
+".....kd..dk.....",
+".....kk..kk....."],
+wiki:[
+"......kppk......",
+".....kppppk.....",
+"....kPppppPk....",
+"..kppppppppppk..",
+"....kssssssk....",
+"....kskssksk....",
+"....kssssssk....",
+".....kssssk..p..",
+"....kyyyyyyk.n..",
+"...ksyyyyyysk.n.",
+"...ksyYYYYysk.n.",
+"....kyyyyyyk.n..",
+"....kkYYYYkk.n..",
+".....kyyyyk..n..",
+".....kyyyyk.....",
+".....kkkkkk....."],
+mender:[
+"................",
+".....kkkkkk.....",
+"....kggggggk....",
+"...kggggggggk...",
+"...kgkssssкgk...".replace("к","k"),
+"....kskssksk....",
+"....kssssssk....",
+".....kssssk.....",
+"....kggggggk....",
+"...ksggwwggsk...",
+"...ksgGwwGgsk...",
+"....kggggggk....",
+"....kkGGGGkk....",
+".....kggggk.....",
+".....kggggk.....",
+".....kkkkkk....."],
+refuter:[
+"................",
+".....kkkkkk.....",
+"....khhhhhhk....",
+"....khhhhhhk....",
+"....kssssssk....",
+"....kskssksk....",
+"....kssssssk....",
+".....kssssk.....",
+".kmmkppppppk....",
+"kmMmkppppppsk...",
+"kmMmkpPPPPpsk...",
+"kmMmkppppppk....",
+".kmmkkPPPPkk....",
+".....kddddk.....",
+".....kd..dk.....",
+".....kk..kk....."],
+elder:[
+"................",
+".....kkkkkk.....",
+"....kwwwwwwk....",
+"....kwwwwwwk....",
+"....kssssssk....",
+"....kskssksk....",
+"....kwwwwwwk....",
+".....kwwwwk.....",
+"....kttttttk....",
+"...ksttttttsk...",
+"...kstTwwTtsk...",
+"....kttttttk....",
+"....kttttttk....",
+".....kttttk.....",
+".....kttttk.....",
+".....kkkkkk....."],
+rowan:[
+"................",
+".....kkkkkk.....",
+"....kmmmmmmk....",
+"....kmmmmmmk....",
+"....kssssssk....",
+"....kskssksk....",
+"....kmmmmmmk....",
+".....kmmmmk.....",
+"....kddddddk....",
+"...ksddddddsk...",
+"...ksdMMMMdsk...",
+"....kddddddk....",
+"....kddddddk....",
+".....kddddk.....",
+".....kddddk.....",
+".....kkkkkk....."],
+peg:[
+"................",
+".....kkkkkk.....",
+"....khhhhhhk....",
+"....khhhhhhk....",
+"....kssssssk....",
+"....kskssksk....",
+"....kssssssk....",
+".....kssssk.....",
+"....kyyyyyyk....",
+"...ksynnnnysk...",
+"...ksynNNnysk...",
+"....kynnnnyk....",
+"....kknnnnkk....",
+".....kddddk.....",
+".....kd..dk.....",
+".....kk..kk....."],
+kid:[
+"................",
+"................",
+"................",
+"......kkkk......",
+".....khhhhk.....",
+".....kssssk.....",
+".....ksksk k....".replace(" ","k").replace("kk....","k....."),
+"......kssk......",
+".....kbbbbk.....",
+"....ksbbbbsk....",
+"....ksbBBbsk....",
+".....kbbbbk.....",
+".....kkBBkk.....",
+"......kddk......",
+"......kddk......",
+"......kkkk......"],
+dummy:[
+"................",
+".....kkkkkk.....",
+"....kmmmmmmk....",
+"....kmkmmkmk....",
+"....kmmmmmmk....",
+".....kmmmmk.....",
+"......knnk......",
+"....kmmmmmmk....",
+"...kmmmmmmmmk...",
+"...kmMmmmmMmk...",
+"....kmmmmmmk....",
+"......knnk......",
+"......knnk......",
+"......knnk......",
+".....knnnnk.....",
+"....kkkkkkkk...."],
+slime:[
+"................",
+"................",
+"......kkkk......",
+"....kkrrrrkk....",
+"...krrrrrrrrk...",
+"..krrwrrrrrrk...".replace("..k","..kr").slice(0,16),
+"..krrkrrkrrrrk..",
+".krrrkrrkrrrrrk.",
+".krrrrrrrrrrrrk.",
+".krrrRkkRrrrrrk.",
+".krrrrRRrrrrrrk.",
+"..krrrrrrrrrrk..",
+"..krRrrrrrrRrk..",
+"...krrrrrrrrk...",
+"....kkkkkkkk....",
+"................"],
+gremlin:[
+"..k..........k..",
+"..kk........kk..",
+"...krk....krk...",
+"...krrkkkkrrk...",
+"....krrrrrrk....",
+"...krrrrrrrrk...",
+"...krkrrrrkrk...",
+"...krrwrrwrrk...",
+"...krrrrrrrrk...",
+"....krRkkRrk....",
+"...krrrkkrrrk...",
+"..krrk.rr.krrk..",
+"..krk..rr..krk..",
+"...k..krrk..k...",
+"......krrk......",
+".....kk..kk....."],
+creep:[
+"................",
+"......kgk.......",
+"....kgkgkgk.....",
+"...kgggggggk....",
+"..kggkggkggk....",
+"..kgggggggggk...",
+".kggkGGGGkggk...",
+".kgggGkkGgggk...",
+".kggGGGGGGggk...",
+".kggggggggggk...",
+"..kgGgggggGk....",
+"..kggkgggkggk...",
+".kgk..kgk..kgk..",
+".kg...kg....gk..",
+"..k...kk....k...",
+"................"],
+golem:[
+"................",
+"...kkkkkkkkk....",
+"..kmmmmmmmmmk...",
+"..kmMmmmmmMmk...",
+"..kmkmmkmmkmk...",
+"..kmmkkkkmmmk...",
+"...kmmmmmmmk....",
+"..kmmmmmmmmmk...",
+".kmmkmmmmkmmmk..",
+".kmMkmmmmkMmmk..",
+".kmmkmMMmkmmmk..",
+".kmmkmmmmkmmmk..",
+"..kkmmmmmmkk....",
+"...kmmk.kmmk....",
+"..kmmk...kmmk...",
+"..kkkk...kkkk..."],
+wyrm:[
+"................",
+".........kkkk...",
+"........kbbbbk..",
+".......kbkbkbk..",
+".......kbbbbbbk.",
+"......kbbrbbbbk.",
+".....kbbbbbbbk..",
+"....kbbbbbbbk...",
+"...kbbBBbbbk....",
+"..kbbbbbBBk.....",
+".kbbbbbbbk......",
+".kbBbbbbk.......",
+".kbbbbbk........",
+"..kbbbbbkk......",
+"...kbbbbbbk.....",
+"....kkkkkkk....."],
+leak:[
+"......kk........",
+".....kppk.......",
+".....kppk.......",
+"....kppppk......",
+"....kpkpkpk.....",
+"...kpppppppk....",
+"...kpkppppkpk...",
+"...kppwppwppk...",
+"..kpppppppppk...",
+"..kppPppppPpk...",
+"..kpppppppppk...",
+"...kpPpppPpk....",
+"....kpppppk.....",
+".....kpppk......",
+"....kp.kp.k.....",
+"....k...k......."],
+chorus:[
+"................",
+".kkkk.kkkk.kkkk.",
+"kddddkddddkddddk",
+"kdwwdkdwwdkdwwdk",
+"kddddkddddkddddk",
+"kdkdkkdkdkkdkdkk",
+"kddddkddddkddddk",
+".kkkk.kkkk.kkkk.",
+"..kddddddddddk..",
+".kdddddddddddkk.",
+".kdMddddddMddk..",
+".kdddddddddddk..",
+"..kddddddddak...".replace("a","d"),
+"...kdd.dd.ddk...",
+"...kd..dd..dk...",
+"...kk..kk..kk..."],
+flaky:[
+"................",
+"..kokokokokok...",
+".kokokokokokok..",
+".kkokokokokokk..",
+".kowkokokwokok..",
+".kokokokokokok..",
+".kokoOOOokokok..",
+".kokoOkkOokook..",
+".kokoOOOOokook..",
+".kokokokokokok..",
+".kkokokokokokk..",
+"..kokokokokok...",
+"...kok...kok....",
+"...ko.....ok....",
+"...kk.....kk....",
+"................"],
+drift:[
+"................",
+"...kkkkkkkkk....",
+"..kpppPpppppk...",
+"..kpPpppPpppk...",
+"..kpkppkppkpk...",
+"..kppPpppPppk...",
+"...kpppppppk....",
+"..kpPpppppPpk...",
+".kppkpppppkppk..",
+".kpPkpPPpkPppk..",
+".kppkpppppkppk..",
+"..kkpppppppkk...",
+"...kppk.kppk....",
+"..kppk...kppk...",
+"..kkkk...kkkk...",
+"................"],
+monolith:[
+"....kkkkkkkk....",
+"...kppppppppk...",
+"...kpPppppPpk...",
+"...kprrrrrrpk...",
+"...kprkkkkrpk...",
+"...kprkwwkrpk...",
+"...kprkwwkrpk...",
+"...kprkkkkrpk...",
+"...kprrrrrrpk...",
+"...kpPppppPpk...",
+"...kppppppppk...",
+"...kpPppppPpk...",
+"...kppppppppk...",
+"...kpPppppPpk...",
+"...kppppppppk...",
+"...kkkkkkkkkk..."],
+hydra:[
+".kkk...kkk..kkk.",
+"krrrk.krrrkkrrrk",
+"krkrk.krkrkkrkrk",
+"krrrk.krrrkkrrrk",
+".krrk.krrk..krrk",
+".krrkkkrrkkkrrk.",
+"..krrkrrrkrrrk..",
+"...krrrrrrrrk...",
+"..krrrrrrrrrrk..",
+".krrrRRRRrrrrrk.",
+".krrrrrrrrrrrrk.",
+".krRrrrrrrrRrrk.",
+"..krrrrrrrrrrk..",
+"...krrk..krrk...",
+"..krrk....krrk..",
+"..kkkk....kkkk.."],
+unknown:[
+"k..p........p..k",
+".k..k..pp..k..k.",
+"..p.kkkkkkkk.p..",
+"...kkPkkkkPkk...",
+"..kkkkwkkwkkkk..",
+".pkkkkkkkkkkkkp.",
+"..kkPkkkkkkPkk..",
+"...kkkkwwkkkk...",
+"..kkkkkkkkkkkk..",
+".p.kkPkkkkPkk.p.",
+"....kkkkkkkk....",
+"...k.kkkkkk.k...",
+"..p...kkkk...p..",
+".k.....kk.....k.",
+"k......kk......k",
+".......kk......."],
+chest:[
+"................",
+"................",
+"...kkkkkkkkkk...",
+"..kyyyyyyyyyyk..",
+"..kyYyyyyyyYyk..",
+"..kkkkkkkkkkkk..",
+"..kyyyyykkyyyk..".replace("kk","kk"),
+"..kyyyykyykyyk..",
+"..kyyyyykkyyyk..",
+"..kyYyyyyyyYyk..",
+"..kyyyyyyyyyyk..",
+"..kkkkkkkkkkkk..",
+"................",
+"................",
+"................",
+"................"]
 };
+// normalize: guarantee every sprite row is exactly 16 chars (pad/trim defensively)
+Object.keys(SPR).forEach(k=>{ SPR[k]=SPR[k].map(r=>(r+"................").slice(0,16)); });
 
 // ================= DATA: party classes =================
 const MEMBERS = {
@@ -275,8 +648,10 @@ const EN = {
 // ================= DATA: world =================
 const Z = [
 { name:"Reliability Village", ground:"#1b3a2a", maps:[
-"tttttttttttt","t.h......h.t","t..........t","t....s.....t","t...........","t..........t","t.h......h.t","t..........t","tttttttttttt"],
+"tttttttttttt","t.h.f..f.h.t","t..........t","t.f..s..f..t","t...........","t.b......b.t","t.h.f..f.h.t","t....ff....t","tttttttttttt"],
  exits:{right:1}, inn:"2,1", shop:"9,1",
+ loot:{"2,5":{tok:6, text:"An old supply barrel — someone stashed <b>6 ⛁</b> of budget in here!"},
+       "9,5":{item:"patch", text:"A barrel by Peg's shop — a spare <b>Patch Kit</b>!"}},
  npcs:[
  {x:6,y:2,spr:"elder",name:"THE GUIDE",lines:[
   "THE GUIDE: You came. Good. I'm Lito — SRE by trade, AI builder by conviction. Last night the pager went off at 2 AM... and it hasn't stopped.",
@@ -294,26 +669,35 @@ const Z = [
  {x:9,y:4,spr:"dummy",name:"STAGING DUMMY",fight:"dummy"}],
  signs:{"5,3":"⚑ Reliability Village · INN: NW house (Mara — rest & save) · SUPPLY CLOSET: NE house (Peg) · east: Prompt Plains"} },
 { name:"Prompt Plains", ground:"#234a2e", maps:[
-"tttttttttttt","t...t......t","t.t....E...t","t......t...t","pppppBpppBpp","t..t.......t","t.....t....t","t..t.....c.t","tttttttttttt"],
+"tttttttttttt","t.ggg..gg..t","tgggg..Egg.t","t.gg...t.g.t","pppppBpppBpp","t.g.gg..g..t","tb...g.gg..t","t..t.gg..c.t","tttttttttttt"],
  exits:{left:0,right:2}, battles:{"5,4":"vague","9,4":"gremlin"}, elites:{"7,2":"flakytest"},
+ enc:{tile:"g", pool:["vague","gremlin"], rate:0.16},
+ loot:{"1,6":{tok:8, text:"A traveler's barrel hidden in the grass — <b>8 ⛁</b>!"}},
  recruitAfter:{"9,4":{ id:"sentinel",
   lines:["SENTINEL the Ranger joins the party!","SENTINEL: 'I plant one known defect and mix in byte-identical controls — crying wolf scores zero. 9/10 caught, 0 false alarms.'","★ SENTINEL fights with MUTAGEN and TRUE STRIKE — and learns AUDIT at LV 5."]}},
  chest:{key:"9,7", text:"🏆 ARTIFACT: agent-mutation-lab — mutation testing for AI code reviewers. 9/10 planted defects caught, 0 false alarms. github.com/LZBiala/agent-mutation-lab  (+1 Coffee, +15 ⛁)", give:"coffee", tok:15} },
 { name:"Context Caverns", ground:"#26323a", maps:[
-"rrrrrrrrrrrr","r....r.....r","r.rr...rr..r","r..........r","pppppBpppBpp","r...rr.....r","r.r......c.r","r..........r","rrrrrrrrrrrr"],
+"rrrrrrrrrrrr","r.,,.r..,,.r","r.rr,..rr,.r","r..,,,.,,..r","pppppBpppBpp","r.,.rr.,,..r","r.r,.....c.r","rb.,,......r","rrrrrrrrrrrr"],
  exits:{left:1,right:3}, battles:{"5,4":"creep","9,4":"golem"},
+ enc:{tile:",", pool:["creep","gremlin"], rate:0.16},
+ loot:{"1,7":{item:"cache", text:"A miner's barrel — a warm <b>Cache Warmer</b>!"}},
  recruitAfter:{"5,4":{ id:"wiki",
   lines:["WIKI the Wizard joins the party!","WIKI: 'Memory should be auditable — every belief a readable note, every deletion carrying its reason.'","★ WIKI casts CONTEXA — and learns INDEX STORM at LV 5."]}},
  chest:{key:"9,6", text:"🏆 ARTIFACT: wiki-memory-lab — agent memory as an auditable markdown wiki. 0.61x selective recall; the 1.27x losing case published beside it. github.com/LZBiala/wiki-memory-lab  (+1 Runbook, +15 ⛁)", give:"runbook", tok:15} },
 { name:"Loop Labyrinth", ground:"#2a2a3a", maps:[
-"rrrrrr.rrrrr","r....r.r...r","r.ww.r.ww..r","r....B.....r","pppppp...E.r","r..w...w...r","r....B...c.r","r..........r","rrrrrrrrrrrr"],
+"rrrrrr.rrrrr","r.,..r.r,..r","r.ww.r.ww,.r","r,...B..,..r","pppppp...E.r","r.,w...w,..r","r....B..,c.r","rb,......,.r","rrrrrrrrrrrr"],
  exits:{left:2,up:4}, battles:{"5,6":"wyrm","5,3":"leak"}, elites:{"9,4":"configdrift"},
+ enc:{tile:",", pool:["wyrm","leak"], rate:0.15},
+ loot:{"1,7":{item:"snooze", text:"An abandoned barrel — a <b>Pager Snooze</b>! Bless whoever left this."}},
  recruitAfter:{"5,6":{ id:"mender",
   lines:["MENDER the Cleric joins the party!","MENDER: 'The model never learns; the notes do. Improvement must beat its own placebo.'","★ MENDER carries CONTROL ARM and REPAIR — and learns WARD at LV 6."]}},
  chest:{key:"9,6", text:"🏆 ARTIFACT: memory-repair-lab — placebo-controlled memory repair: 8/10 → 10/10 on a sealed held-out split. github.com/LZBiala/memory-repair-lab  (+1 Coffee, +15 ⛁)", give:"coffee", tok:15} },
 { name:"Graph Citadel", ground:"#33283a", maps:[
-"rrrrrrrrrrrr","r....M.....r","r..........r","r....B.....r","r..........r","r.c........r","r..........r","r..........r","rrrrrr.rrrrr"],
+"rrrrrrrrrrrr","r....M.....r","r.,......,.r","r....B.....r","r.,......,.r","r.c........r","r...,,,....r","rb.......b.r","rrrrrr.rrrrr"],
  exits:{down:3}, battles:{"5,3":"chorus"}, boss:"5,1",
+ enc:{tile:",", pool:["chorus"], rate:0.12},
+ loot:{"1,7":{item:"postmortem", text:"A ceremonial barrel — a full <b>Post-Incident Review</b>!"},
+       "9,7":{tok:20, text:"The Citadel's tithe barrel — <b>20 ⛁</b>!"}},
  recruitAfter:{"5,3":{ id:"refuter",
   lines:["REFUTER the Tank joins the party!","REFUTER: 'My only job is attack — and OBJECTION. Ideas that survive me have earned it.'","★ REFUTER wields FLIP TEST and OBJECTION! — the enemy will learn to fear the taunt.","REFUTER: 'The Monolith waits above. And behind it... I smell a SEV-1. Ready the party.'"]}},
  chest:{key:"2,5", text:"🏆 ARTIFACT: adversarial-chambers — the judge on trial. Instruction-flip test: 0/8 vs 3/8. github.com/LZBiala/adversarial-chambers  (+1 Runbook, +20 ⛁)", give:"runbook", tok:20} }
@@ -361,7 +745,7 @@ const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   items:{coffee:2, runbook:1, patch:1}, equip:{weapon:null,badge:null,charm:null}, stage:0,
   cleared:{}, opened:{}, won:false, superWon:false, deaths:0, bridgeMiss:0, playMs:0, seed:1 });
 let S = NEWS();
-let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0 };
+let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0 };
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
 const ov=document.getElementById("overlay"), box=document.getElementById("box");
 const BW=document.getElementById("battle");
@@ -403,11 +787,8 @@ function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRe
   if(a.defending) d=Math.ceil(d/2); return d; }
 
 // ================= RENDER =================
-function drawSprTo(g,name,tx,ty,s,outline){ const spr=SPR[name];
-  if(outline){ g.fillStyle="#0a0d14";
-    for(let r=0;r<8;r++)for(let q=0;q<8;q++){ if(PAL[spr[r][q]]){
-      g.fillRect(tx+q*s-1,ty+r*s,s+2,s); g.fillRect(tx+q*s,ty+r*s-1,s,s+2); } } }
-  for(let r=0;r<8;r++)for(let q=0;q<8;q++){ const c=spr[r][q]; if(PAL[c]){ g.fillStyle=PAL[c]; g.fillRect(tx+q*s,ty+r*s,s,s);} } }
+function drawSprTo(g,name,tx,ty,s){ const spr=SPR[name]; const n=spr.length;
+  for(let r=0;r<n;r++)for(let q=0;q<n;q++){ const c=spr[r][q]; if(PAL[c]){ g.fillStyle=PAL[c]; g.fillRect(tx+q*s,ty+r*s,s,s);} } }
 function drawTile(chr,tx,ty,zone){
   ctx.fillStyle=zone.ground; ctx.fillRect(tx,ty,T,T);
   if(((tx/T)+(ty/T))%2===0){ ctx.fillStyle="#00000018"; ctx.fillRect(tx,ty,T,T); }
@@ -420,20 +801,31 @@ function drawTile(chr,tx,ty,zone){
   if(chr==="s"){ ctx.fillStyle="#78350f"; ctx.fillRect(tx+14,ty+14,4,12); ctx.fillStyle="#d9c58b"; ctx.fillRect(tx+6,ty+6,20,10); }
   if(chr==="B"){ ctx.fillStyle="#7f1d1d"; ctx.fillRect(tx+4,ty+4,24,24); ctx.fillStyle="#f87171"; ctx.fillRect(tx+12,ty+8,8,16); ctx.fillRect(tx+8,ty+12,16,8); }
   if(chr==="E"){ ctx.fillStyle="#7c2d12"; ctx.fillRect(tx+4,ty+4,24,24); ctx.fillStyle="#fbbf24"; ctx.font="bold 18px monospace"; ctx.fillText("E",tx+11,ty+23); }
-  if(chr==="M"){ drawSprTo(ctx, S.won?"unknown":"monolith",tx,ty,4,true); }
-  if(chr==="c"){ drawSprTo(ctx,"chest",tx,ty,4,true); }
+  if(chr==="g"){ ctx.fillStyle="#15803d"; ctx.fillRect(tx+2,ty+16,4,12); ctx.fillRect(tx+9,ty+12,4,16);
+    ctx.fillRect(tx+16,ty+18,4,10); ctx.fillRect(tx+23,ty+13,4,15); ctx.fillStyle="#4ade80";
+    ctx.fillRect(tx+3,ty+16,2,8); ctx.fillRect(tx+10,ty+12,2,10); ctx.fillRect(tx+24,ty+13,2,9); }
+  if(chr===","){ ctx.fillStyle="#00000030"; ctx.fillRect(tx+4,ty+20,7,5); ctx.fillRect(tx+18,ty+8,6,5);
+    ctx.fillRect(tx+12,ty+24,5,4); ctx.fillStyle="#ffffff10"; ctx.fillRect(tx+20,ty+18,5,4); }
+  if(chr==="f"){ ctx.fillStyle="#166534"; ctx.fillRect(tx+14,ty+18,4,10); ctx.fillStyle="#f87171";
+    ctx.fillRect(tx+12,ty+12,8,8); ctx.fillStyle="#fbbf24"; ctx.fillRect(tx+14,ty+14,4,4); }
+  if(chr==="b"){ ctx.fillStyle="#713f12"; ctx.fillRect(tx+6,ty+8,20,20); ctx.fillStyle="#a16207";
+    ctx.fillRect(tx+6,ty+12,20,4); ctx.fillRect(tx+6,ty+20,20,4); ctx.fillStyle="#10151a";
+    ctx.fillRect(tx+6,ty+8,20,2); ctx.fillRect(tx+6,ty+26,20,2); }
+  if(chr==="M"){ drawSprTo(ctx, S.won?"unknown":"monolith",tx,ty,2); }
+  if(chr==="c"){ drawSprTo(ctx,"chest",tx,ty,2); }
 }
+function tileAtRaw(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; return zone.maps[y][x]; }
 function tileAt(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; let chr=zone.maps[y][x];
   const k=x+","+y;
   if((chr==="B"||chr==="E") && S.cleared[S.z+":"+k]) chr=".";
-  if(chr==="c" && S.opened[S.z+":"+k]) chr=".";
+  if((chr==="c"||chr==="b") && S.opened[S.z+":"+k]) chr=".";
   return chr; }
-function solid(chr){ return "trwhs".includes(chr)||chr==="M"; }
+function solid(chr){ return "trwhsb".includes(chr)||chr==="M"; }
 function render(){
   const zone=Z[S.z];
   for(let y=0;y<9;y++)for(let x=0;x<12;x++) drawTile(tileAt(zone,x,y),x*T,y*T,zone);
-  (zone.npcs||[]).forEach(n=>drawSprTo(ctx,n.spr,n.x*T,n.y*T,4,true));
-  drawSprTo(ctx,"hero",S.x*T,S.y*T,4,true);
+  (zone.npcs||[]).forEach(n=>drawSprTo(ctx,n.spr,n.x*T,n.y*T,2));
+  drawSprTo(ctx,"hero",S.x*T,S.y*T,2);
   document.getElementById("zonename").innerHTML="<b>"+zone.name+"</b>";
   const h=hero();
   document.getElementById("hhero").innerHTML="<b>HERO</b> LV "+h.lv+" · "+h.hp+"/"+h.maxhp+" HP · "+h.mp+"/"+h.maxmp+" MP"+(S.party.length?" · +"+S.party.length+" allies":"");
@@ -513,7 +905,7 @@ function drawB(){ const b=M.b;
   document.getElementById("bstatus").textContent=statusLine();
   document.getElementById("bfoehp").style.width=Math.max(0,b.hp/b.maxhp*100)+"%";
   const fc=document.getElementById("foecv"), g=fc.getContext("2d");
-  g.clearRect(0,0,120,104); drawSprTo(g,b.def.spr,12,4,12,true);
+  g.clearRect(0,0,120,104); drawSprTo(g,b.def.spr,12,4,6);
   const pr=document.getElementById("pmrow"); pr.innerHTML="";
   const ids=["hero",...S.party];
   ids.forEach((pid,i)=>{ const a=S.actors[pid]; if(!a) return; const m=MEMBERS[pid];
@@ -840,8 +1232,18 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
   if(npc||solid(chr)||chr==="c") return;
   S.x=nx; S.y=ny; render();
   const key=nx+","+ny;
-  if(chr==="B" && zone.battles && zone.battles[key] && !S.cleared[S.z+":"+key]) startBattle(zone.battles[key], key);
-  if(chr==="E" && zone.elites && zone.elites[key] && !S.cleared[S.z+":"+key]) startBattle(zone.elites[key], key); }
+  if(chr==="B" && zone.battles && zone.battles[key] && !S.cleared[S.z+":"+key]){ battleTransition(()=>startBattle(zone.battles[key], key)); return; }
+  if(chr==="E" && zone.elites && zone.elites[key] && !S.cleared[S.z+":"+key]){ battleTransition(()=>startBattle(zone.elites[key], key)); return; }
+  if(zone.enc && chr===zone.enc.tile){
+    if(M.encGuard>0){ M.encGuard--; return; }
+    if(rng()<zone.enc.rate){ M.encGuard=4;
+      const foe=zone.enc.pool[Math.floor(rng()*zone.enc.pool.length)];
+      battleTransition(()=>{ startBattle(foe, null); blog("⚡ "+EN[foe].name+" ambushes you from the "+(zone.enc.tile==="g"?"tall grass":"rubble")+"!"); }); } } }
+function battleTransition(cb){
+  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){ cb(); return; }
+  M.state="enc";
+  const st=document.getElementById("stage"); st.classList.add("fx-enc"); sfx("hurt");
+  setTimeout(()=>{ st.classList.remove("fx-enc"); cb(); }, 300); }
 function interact(){ if(M.state==="dialog"){ advDlg(); return; }
   if(M.state!=="explore") return;
   const zone=Z[S.z];
@@ -857,6 +1259,10 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
         say(["♪ The whole party rests. HP/MP restored. Game saved.","MARA: 'The Guide stayed up all night again. Twelve years I've watched that light. Go easy on him.'"]); } }); return; }
     if(zone.shop===key){ openShop(); return; }
     const chr=tileAt(zone,x,y);
+    if((chr==="b"||tileAtRaw(zone,x,y)==="b") && zone.loot && zone.loot[key] && !S.opened[S.z+":"+key]){ S.opened[S.z+":"+key]=true;
+      const L=zone.loot[key];
+      if(L.tok){ S.tokens+=L.tok; } if(L.item){ S.items[L.item]=(S.items[L.item]||0)+1; }
+      sfx("coin"); say(["🛢 "+L.text], ()=>saveGame(0)); return; }
     if(chr==="c" && zone.chest && zone.chest.key===key){ S.opened[S.z+":"+key]=true;
       if(zone.chest.give) S.items[zone.chest.give]=(S.items[zone.chest.give]||0)+1;
       if(zone.chest.tok){ S.tokens+=zone.chest.tok; sfx("coin"); }
@@ -983,6 +1389,12 @@ const TESTS = [
  ["shop catalog integrity (15 items)", ()=>SHOP_STOCK.length===15 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
  ["5 classes, 14 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===5 && Object.keys(SP).length===14
     && EN.monolith.hp===130 && EN.h5.multi===true && EN.unknown.multi3===true; }],
+ ["all sprites normalized to 16x16", ()=>Object.values(SPR).every(s=>s.length===16 && s.every(r=>r.length===16))],
+ ["encounter pools reference real enemies", ()=>Z.every(z=>!z.enc || (z.enc.pool.every(id=>EN[id]) && z.enc.rate>0 && z.enc.rate<0.3))],
+ ["encounter rate statistically in band", ()=>{ const r2=mulberry32(1234); let hits=0;
+    for(let i=0;i<1000;i++){ if(r2()<0.16) hits++; } return hits>110 && hits<220; }],
+ ["barrel loot defined on every b tile", ()=>Z.every(z=>{ let ok=true;
+    z.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{ if(ch==="b" && !(z.loot && z.loot[x+","+y])) ok=false; }); }); return ok; })],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
