@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Quest — from Prompt to Graph</title>
-<meta name="description" content="A tiny JRPG that teaches AI engineering: prompt → context → loop → graph → evaluation. One static file, no frameworks, no API keys. Every number quoted is CI-verified.">
+<title>AI Quest — The Graph of Legends</title>
+<meta name="description" content="An 8-bit JRPG: recruit a party, cross the Prompt Plains and Context Caverns, and defeat the Monolith — a boss only graph engineering can beat. One static file, no frameworks, no API keys. Every number quoted is CI-verified.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
 <style>
   [hidden] { display:none !important; }
@@ -12,286 +12,360 @@
     --gold:#fbbf24; --red:#f87171; --line:#1f3b32; }
   * { box-sizing:border-box; margin:0; }
   body { background:var(--bg); color:var(--ink); font-family:ui-monospace,"Cascadia Code",Consolas,monospace;
-    line-height:1.55; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:18px 12px 40px; }
-  .frame { width:100%; max-width:760px; }
-  .crt { border:2px solid var(--line); border-radius:12px; background:var(--panel);
-    box-shadow:0 0 40px #2dd4bf14, inset 0 0 60px #00000055; padding:20px 22px; }
-  h1 { color:var(--teal); font-size:1.5rem; letter-spacing:.04em; }
-  .sub { color:var(--muted); font-size:.85rem; margin:4px 0 14px; }
-  .hud { display:flex; gap:14px; flex-wrap:wrap; font-size:.8rem; margin-bottom:12px;
-    border-bottom:1px dashed var(--line); padding-bottom:10px; }
-  .hud span b { color:var(--teal); }
-  .bar { display:inline-block; width:110px; height:10px; border:1px solid var(--line);
-    border-radius:5px; overflow:hidden; vertical-align:middle; background:#0007; }
-  .bar i { display:block; height:100%; background:var(--teal); transition:width .3s; }
-  .bar.hp i { background:var(--gold); }
-  .bar.foe i { background:var(--red); }
-  .scene { min-height:120px; margin-bottom:14px; white-space:pre-wrap; }
-  .speaker { color:var(--gold); font-weight:700; }
-  .foe-name { color:var(--red); font-weight:700; }
-  .num { color:var(--teal); font-weight:700; }
-  .choices { display:grid; gap:8px; }
-  button { font-family:inherit; font-size:.92rem; text-align:left; color:var(--ink);
-    background:#0c1613; border:1px solid var(--line); border-radius:8px; padding:10px 14px; cursor:pointer; }
-  button:hover, button:focus-visible { border-color:var(--teal); color:var(--teal); outline:none; }
-  button.primary { border-color:var(--teal); color:var(--teal); font-weight:700; }
-  .feedback { border-left:3px solid var(--teal); padding:8px 12px; margin:12px 0; font-size:.9rem; background:#2dd4bf0d; }
-  .feedback.bad { border-color:var(--red); background:#f871710d; }
-  .artifact { border:1px dashed var(--gold); border-radius:10px; padding:10px 14px; margin:12px 0;
-    font-size:.85rem; }
-  .artifact a { color:var(--gold); }
-  .shake { animation:shake .3s; } @keyframes shake { 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
-  .flash { animation:flash .35s; } @keyframes flash { 50%{background:#2dd4bf22} }
-  .end a { color:var(--teal); }
-  .tiny { font-size:.75rem; color:var(--muted); margin-top:16px; }
+    display:flex; flex-direction:column; align-items:center; padding:14px 10px 40px; min-height:100vh; }
+  h1 { color:var(--teal); font-size:1.25rem; letter-spacing:.05em; }
+  .sub { color:var(--muted); font-size:.78rem; margin:2px 0 10px; text-align:center; }
+  #stage { position:relative; }
+  canvas { display:block; width:min(92vw,672px); image-rendering:pixelated; border:2px solid var(--line);
+    border-radius:10px; background:#000; }
+  .hud { display:flex; gap:12px; flex-wrap:wrap; font-size:.78rem; margin:8px 0; align-items:center;
+    width:min(92vw,672px); }
+  .hud b { color:var(--teal); }
+  .bar { display:inline-block; width:90px; height:9px; border:1px solid var(--line); border-radius:5px;
+    overflow:hidden; vertical-align:middle; background:#0007; }
+  .bar i { display:block; height:100%; background:var(--gold); transition:width .25s; }
+  .party { display:flex; gap:4px; }
+  .party canvas { width:26px; height:26px; border:1px solid var(--line); border-radius:5px; background:#0c1613; }
+  .overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end;
+    padding:10px; background:transparent; }
+  .box { background:#0c1613f2; border:2px solid var(--line); border-radius:10px; padding:12px 14px;
+    font-size:.88rem; line-height:1.5; }
+  .box .who { color:var(--gold); font-weight:700; }
+  .box .foe { color:var(--red); font-weight:700; }
+  .box .num { color:var(--teal); font-weight:700; }
+  .choices { display:grid; gap:6px; margin-top:8px; }
+  .choices button, .dpad button, .box button { font-family:inherit; font-size:.84rem; text-align:left;
+    color:var(--ink); background:#0f1a16; border:1px solid var(--line); border-radius:8px;
+    padding:8px 12px; cursor:pointer; }
+  .choices button:hover, .box button:hover { border-color:var(--teal); color:var(--teal); }
+  .choices button.ability { border-color:#fbbf2455; color:var(--gold); font-size:.78rem; }
+  .choices button.primary { border-color:var(--teal); color:var(--teal); font-weight:700; }
+  .battlehead { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+  .battlehead canvas { width:72px; height:72px; border:1px solid var(--line); border-radius:8px; background:#000; }
+  .fx-shake { animation:shk .3s; } @keyframes shk { 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .fx-flash { animation:fls .35s; } @keyframes fls { 50%{filter:brightness(2)} }
+  .dpad { display:flex; gap:6px; justify-content:center; margin-top:10px; user-select:none; }
+  .dpad button { width:52px; height:44px; text-align:center; font-size:1rem; }
+  .tiny { font-size:.72rem; color:var(--muted); margin-top:12px; max-width:min(92vw,672px); text-align:center; }
   .tiny a { color:var(--muted); }
-  .kbd { color:var(--muted); font-size:.75rem; margin-top:10px; }
+  @media (min-width:700px){ .dpad{ display:none; } }
 </style>
 </head>
 <body>
-<div class="frame">
-  <div class="crt">
-    <h1>⚔️ AI QUEST</h1>
-    <div class="sub">from prompt to graph — a tiny JRPG about real AI engineering · by Lito Zarate Biala</div>
-    <div class="hud" id="hud" hidden>
-      <span>LV <b id="lv">1</b> <b id="title">Prompt Apprentice</b></span>
-      <span>HP <span class="bar hp"><i id="hp" style="width:100%"></i></span></span>
-      <span>XP <span class="bar"><i id="xp" style="width:0%"></i></span></span>
-      <span id="foewrap" hidden>FOE <span class="bar foe"><i id="foehp" style="width:100%"></i></span></span>
-    </div>
-    <div class="scene" id="scene"></div>
-    <div class="choices" id="choices"></div>
-    <div class="kbd" id="kbd" hidden>press 1 / 2 / 3 to choose</div>
-  </div>
-  <p class="tiny">One static file · no frameworks, no trackers, no API keys · every number quoted in
-  this game is a real, CI-verified claim from <a href="https://github.com/LZBiala">github.com/LZBiala</a> —
-  the build fails if a claim drifts. · <a href="index.html">← back to lzbiala.github.io</a></p>
+<h1>⚔️ AI QUEST — The Graph of Legends</h1>
+<div class="sub">an 8-bit JRPG about real AI engineering · recruit your party · defeat the Monolith · by Lito Zarate Biala</div>
+<div class="hud">
+  <span>HP <span class="bar"><i id="hpbar" style="width:100%"></i></span> <span id="hptxt">10/10</span></span>
+  <span>PARTY <span class="party" id="partyicons"></span></span>
+  <span id="zonename"><b>Reliability Village</b></span>
 </div>
+<div id="stage">
+  <canvas id="cv" width="384" height="288"></canvas>
+  <div class="overlay" id="overlay" hidden><div class="box" id="box"></div></div>
+</div>
+<div class="dpad">
+  <button data-k="ArrowLeft">◀</button><button data-k="ArrowUp">▲</button>
+  <button data-k="ArrowDown">▼</button><button data-k="ArrowRight">▶</button>
+  <button data-k="Enter">A</button>
+</div>
+<p class="tiny">arrows / WASD move · Enter interacts &amp; talks · walk onto <b style="color:#f87171">red gates</b> to battle ·
+one static file, no frameworks, no API keys · every number quoted is a CI-verified claim from
+<a href="https://github.com/LZBiala">github.com/LZBiala</a> — the build fails if a claim drifts ·
+<a href="index.html">← lzbiala.github.io</a></p>
 
 <script>
 "use strict";
-const CH = [
-{ name:"Chapter 1 — The Realm of Prompts", foe:"The Vague Prompt", title:"Prompt Apprentice",
-  lore:"Every quest begins with words.\n\nYour guide appears: a reliability engineer from a great bank who spent years asking one question — \"how do we know this is actually working?\"\n\nGUIDE: \"Before graphs, before agents, before everything: learn to ask precisely. A monster approaches — it feeds on ambiguity.\"",
-  fights:[
-  { q:"An executive needs a summary of an incident report. Which prompt do you cast?",
-    a:["\"Summarize this.\"",
-       "\"You are briefing bank executives. Summarize this incident in 3 bullets: impact, root cause, next steps. Plain language, no jargon.\"",
-       "\"Please summarize this important document carefully and thoroughly and well.\""],
-    c:1,
-    good:"CRITICAL HIT! Role + audience + format + constraints. Adjectives beg; structure commands. The model now knows WHO it serves, WHAT shape to produce, and WHAT to leave out.",
-    bad:"The monster absorbs your vague words and grows! Adding adjectives (\"carefully, thoroughly\") tells the model nothing checkable. Give it a role, an audience, a format, and constraints." },
-  { q:"The AI keeps inventing numbers in its summaries. Your counter-spell?",
-    a:["Add \"Do not hallucinate.\" to the prompt",
-       "\"Only use numbers that appear in the source; if a number is missing, write 'not stated'.\"",
-       "Ask it to double-check itself afterward"],
-    c:1,
-    good:"SUPER EFFECTIVE! You gave it a checkable rule AND an escape hatch. \"Not stated\" gives the model something honest to do instead of guessing. Prohibitions without alternatives collapse under pressure.",
-    bad:"The monster laughs. \"Do not hallucinate\" is a wish, not a rule. Give the model a verifiable instruction and a legal way out: 'if missing, write not stated'." },
-  { q:"BOSS: answers vary wildly between runs. Which weapon strikes deepest?",
-    a:["Add three worked examples of ideal output (few-shot)",
-       "Add the words \"be consistent\"",
-       "Make the prompt longer with more adjectives"],
-    c:0,
-    good:"BOSS DEFEATED! Instructions describe; examples DEMONSTRATE. Few-shot examples anchor the output distribution harder than any adjective ever will.",
-    bad:"The boss shrugs off your words. Telling a model to \"be consistent\" is like telling dice to land on six. Show it three ideal outputs — examples anchor behavior." }],
-  unlock:{ text:"ARTIFACT UNLOCKED: the guide's first law — <b>structure beats adjectives.</b>", link:null } },
-
-{ name:"Chapter 2 — The Context Caverns", foe:"The Context Golem", title:"Context Shaper",
-  lore:"GUIDE: \"A model's context window is a backpack, not a warehouse. I once built an agent whose memory was a plain markdown wiki — index cards it could read, extend, and prune. The dungeon ahead punishes those who carry everything.\"",
-  fights:[
-  { q:"Your agent has 200 pages of notes. Today's question touches 2 of them. What goes in the backpack?",
-    a:["Everything — better safe than sorry",
-       "Index first: skim the card titles, retrieve only the 2-3 notes this question needs",
-       "Just the newest page — recency wins"],
-    c:1,
-    good:"CRITICAL HIT! Selective recall. Measured for real: <span class='num'>0.61×</span> the tokens of loading everything. And the honest boundary — on a tiny, hot corpus, stuffing actually wins (<span class='num'>1.27×</span>). Context engineering is knowing when each strategy wins.",
-    bad:"The Golem grows heavier with every page you stuff! Every token competes for the model's attention. Index first, retrieve what the question needs — and know the boundary: only on a tiny corpus does load-everything win." },
-  { q:"Deep into a long session, the agent forgets constraints you set at the start. Your move?",
-    a:["Hope it remembers next time",
-       "Keep durable constraints in a compact standing block, and refresh a summary as the session grows",
-       "Repeat the constraints IN ALL CAPS"],
-    c:1,
-    good:"SUPER EFFECTIVE! Position and persistence matter: durable facts live in durable slots. Long sessions need refreshed summaries — memory is an architecture, not an accident.",
-    bad:"The Golem eats your caps lock. Volume doesn't survive a long context; placement does. Durable constraints belong in a standing block that never scrolls away." },
-  { q:"BOSS: What belongs in the context window for any task?",
-    a:["Everything you have — the model will sort it out",
-       "The least sufficient set: task, constraints, retrieved facts, examples — each with its source",
-       "Only the question, purity above all"],
-    c:1,
-    good:"BOSS DEFEATED! Context is a budget. The least sufficient set, with sources — every extra token is noise that competes with signal.",
-    bad:"The Golem buries you in your own baggage! More context is not more safety — irrelevant tokens dilute the relevant ones. Curate: task, constraints, facts, examples. With sources." }],
-  unlock:{ text:"ARTIFACT UNLOCKED: <a href='https://github.com/LZBiala/wiki-memory-lab'>wiki-memory-lab</a> — agent memory as an auditable markdown wiki. Selective recall at 0.61× full-context cost; the crossover where it loses (1.27×) published in the same table.", link:true } },
-
-{ name:"Chapter 3 — The Loop Labyrinth", foe:"The Infinite Loop", title:"Loop Engineer",
-  lore:"GUIDE: \"An agent is a loop: act, observe, adjust. But a loop without brakes is a monster that eats budgets and calls it progress. I learned this running incident bridges — every fix must prove itself before it ships.\"",
-  fights:[
-  { q:"Your coding agent keeps 'fixing' the code and breaking it again, forever. First thing you add?",
-    a:["More iterations — it'll converge eventually",
-       "A verification step inside the loop: run the tests after each change; stop when green",
-       "A bigger model"],
-    c:1,
-    good:"CRITICAL HIT! Loops need measurable exit conditions. Verify INSIDE the loop — act, observe, MEASURE, adjust. A loop that can't tell success from failure only ever terminates by accident.",
-    bad:"The Loop spins faster! More iterations of an unmeasured loop is more chaos. Put verification inside the loop and define what 'done' measurably means." },
-  { q:"Your improvement loop raised the score. How do you KNOW the loop caused it?",
-    a:["Score went up — case closed",
-       "Run a control: same budget, placebo changes, measured on a test set sealed BEFORE the loop started",
-       "Run it twice and feel confident"],
-    c:1,
-    good:"SUPER EFFECTIVE! The clinical-trial move. Real measured example: a memory-repair loop scored <span class='num'>8/10 → 10/10</span> on a sealed held-out split — and the blind placebo arm, same edit budget, moved NOTHING. That contrast is how you know it's real.",
-    bad:"The Loop whispers: 'the number went up, worship me.' Without a control arm and a sealed test set, you can't separate the loop's effect from luck — or from teaching to the test." },
-  { q:"BOSS: your self-improving loop starts gaming its own metric — recall rises, token costs explode. Name the curse!",
-    a:["Goodhart's Law — when a measure becomes a target, it ceases to be a good measure. Publish the cost; gate on more than one metric",
-       "Success — ship it",
-       "Just overfitting, ignore it"],
-    c:0,
-    good:"BOSS DEFEATED! Goodhart's Law. The honest defense: publish the costs next to the gains, gate on multiple metrics, and build a Goodhart demonstration ON PURPOSE so everyone can see what gaming looks like.",
-    bad:"The Loop crowns itself king of a meaningless number! A metric that became a target stops measuring what you cared about. Gate on more than one measure — and publish the costs." }],
-  unlock:{ text:"ARTIFACT UNLOCKED: <a href='https://github.com/LZBiala/memory-repair-lab'>memory-repair-lab</a> — placebo-controlled memory repair. The model never learns; the notes do. 8/10 → 10/10 on a sealed held-out split, with a Goodhart arm shipped on purpose.", link:true } },
-
-{ name:"Chapter 4 — The Graph Citadel", foe:"The Deferential Judge", title:"Graph Engineer",
-  lore:"GUIDE: \"One agent is an opinion. A graph of agents is a system — if you engineer the structure. Roles, evidence flow, verification stages. The final tower is ruled by a judge... and the judge has never been tested.\"",
-  fights:[
-  { q:"You want ideas AND real criticism of them. How do you shape the graph?",
-    a:["One agent does both — efficient!",
-       "Separate roles: a generator, and a dedicated refuter whose only job is attack — no one grades their own homework",
-       "Two generators — twice the ideas"],
-    c:1,
-    good:"CRITICAL HIT! Structural role separation. An agent asked to praise and attack its own work will do neither honestly. Adversariality must live in the STRUCTURE, not in a polite instruction.",
-    bad:"The Citadel's walls yawn. One agent judging its own ideas is a mirror, not a critic. Separate the roles structurally — generator, refuter, judge." },
-  { q:"Your judge-agent's verdicts change when you rephrase its instructions. What do you build?",
-    a:["Nothing — trust the judge",
-       "An instruction-flip test: same evidence, OPPOSITE standing instructions — then count how many verdicts flip",
-       "A more polite prompt"],
-    c:1,
-    good:"SUPER EFFECTIVE! Cross-examine the judge itself. Measured for real: an evidence-driven judge flipped <span class='num'>0/8</span> verdicts; a deferential judge flipped <span class='num'>3/8</span> — exactly the ambiguous items, where a weak judge does the most damage.",
-    bad:"The Judge smiles and agrees with you. And with your opponent. And with everyone. A verdict that flips with the phrasing was never a verdict about the evidence — test the judge." },
-  { q:"FINAL TOWER: scaling to many agents — what keeps a graph honest?",
-    a:["More agents",
-       "Recorded decisions: kill ledgers with written reasons, verification stages between fan-out and merge, and judges that are themselves tested",
-       "Faster models"],
-    c:1,
-    good:"BOSS DEFEATED! Orchestration is evidence flow plus accountability — not headcount. Every killed idea carries its cause of death; every merge passes a verification stage; every judge stands trial.",
-    bad:"A thousand agents shout into the void! Scale without structure multiplies noise. Graphs stay honest through recorded decisions and tested judges." }],
-  unlock:{ text:"ARTIFACT UNLOCKED: <a href='https://github.com/LZBiala/adversarial-chambers'>adversarial-chambers</a> — multi-agent orchestration with the judge on trial. Kill ledger, role separation, instruction-flip test: 0/8 vs 3/8.", link:true } },
-
-{ name:"Final Chapter — The Hall of Claims", foe:"The Unverified Claim", title:"Reliability Sage",
-  lore:"GUIDE: \"You've learned to ask, to carry, to loop, to orchestrate. One monster remains — the oldest one. It lives in READMEs and slide decks. It says 'it works' and offers no receipts.\"",
-  fights:[
-  { q:"Your AI code reviewer reports '12 issues found.' Do you trust it?",
-    a:["Yes — 12 is impressively many",
-       "Test the tester: plant ONE known defect in clean code, mix in byte-identical clean controls — crying wolf scores zero",
-       "Ask the reviewer if it's sure"],
-    c:1,
-    good:"CRITICAL HIT! Mutation testing, aimed at the AI itself. Measured for real: <span class='num'>9/10</span> planted defects caught at the planted line, <span class='num'>0</span> false alarms on byte-identical clean controls — and one deliberate blind spot published so the scorecard shows a real miss.",
-    bad:"The Claim feeds on your trust! A reviewer that flags everything is as useless as one that flags nothing. Plant a known defect; include clean controls; score both directions." },
-  { q:"You published a benchmark number. Six months later the code has changed. What keeps the claim honest?",
-    a:["Memory and good intentions",
-       "CI regenerates every published number on every build — and the build FAILS if a claim drifts. Claims are SLOs.",
-       "A disclaimer in small print"],
-    c:1,
-    good:"SUPER EFFECTIVE! Claims-as-SLOs. The number in the README is regenerated by the same pipeline that tests the code — drift breaks the build, loudly, before it misleads anyone.",
-    bad:"The Claim quietly rots in your README while the code moves on! Numbers typed by hand go stale. Wire them to CI: regenerate on every build, fail on drift." },
-  { q:"THE FINAL QUESTION — the deepest law of trustworthy AI engineering:",
-    a:["Never ship anything",
-       "Publish where your design LOSES, right next to where it wins — a claim without its boundary is marketing",
-       "Bigger models will fix it"],
-    c:1,
-    good:"THE UNVERIFIED CLAIM DISSOLVES INTO LIGHT.\n\nGUIDE: \"That's the whole secret. The crossover where my memory design loses is printed in the same table as its win. The blind spot in my reviewer harness is published on purpose. Leading with the boundary is what makes everything else believable.\"",
-    bad:"The Claim feeds on perfection! Nothing wins everywhere. The engineers worth trusting are the ones who can tell you exactly where their system breaks — and print it above the fold." }],
-  unlock:{ text:"ARTIFACT UNLOCKED: <a href='https://github.com/LZBiala/agent-mutation-lab'>agent-mutation-lab</a> — mutation testing where the subject is an AI code reviewer. 9/10 caught, 0 false alarms, one honest blind spot.", link:true } }
+// ---------- palette & pixel sprites (8x8, chars -> colors) ----------
+const PAL = { k:"#10151a", w:"#e8f4ee", r:"#f87171", g:"#34d399", b:"#60a5fa", y:"#fbbf24",
+  t:"#2dd4bf", o:"#fb923c", p:"#c084fc", s:"#f3c89b", d:"#334155", m:"#94a3b8", ".":null };
+const SPR = {
+hero:["..kkkk..","..ksks..","..ssss..",".tttttt.","t.tttt.t","..tttt..","..k..k..",".kk..kk."],
+sentinel:["..kkkk..","..ksks..","..ssss..",".oooooo.","o.oooo.o","..oooo..","..k..k..",".kk..kk."],
+wiki:["..kkkk..","..ksks..","..ssss..",".yyyyyy.","y.ywwy.y","..ywwy..","..k..k..",".kk..kk."],
+mender:["..kkkk..","..ksks..","..ssss..",".gggggg.","g.gwgg.g","..ggwg..","..k..k..",".kk..kk."],
+refuter:["..kkkk..","..ksks..","..ssss..",".pppppp.","p.pppp.p","..pppp..","..k..k..",".kk..kk."],
+elder:["..kkkk..","..kwkw..","..wwww..",".twttwt.","t.tttt.t","..tttt..","..k..k..",".kk..kk."],
+slime:["........","..rrrr..",".rrrrrr.","rrkrrkrr","rrrrrrrr",".rrrrrr.","..r..r..","........"],
+golem:[".mmmmmm.","mm.mm.mm","mmmmmmmm","m.mmmm.m","mmmkkmmm",".mmmmmm.",".mm..mm.","mm....mm"],
+wyrm:["....bbb.","..bbbbbb",".bbkbbkb","bbbbbbbb","bb.bbbb.",".bbbb...","bbb.bb..",".b...bb."],
+knight:["..dddd..",".dwddwd.","..dddd..",".dddddd.","d.dddd.d","..dddd..","..d..d..",".dd..dd."],
+monolith:["pppppppp","p.p..p.p","pprrrrpp","p.rkkr.p","p.rkkr.p","pprrrrpp","p.p..p.p","pppppppp"],
+chest:["........",".yyyyyy.",".ykkkky.",".yyyyyy.",".yykyyy.",".yyyyyy.","........","........"]
+};
+// ---------- world ----------
+const Z = [
+{ name:"Reliability Village", ground:"#1b3a2a", maps:[
+"tttttttttttt","t.h......h.t","t..........t","t....s.....t","t...........","t..........t","t.h......h.t","t..........t","tttttttttttt"],
+ exits:{right:1}, npcs:[{x:6,y:2,spr:"elder",name:"THE GUIDE",
+ lines:["Welcome, traveler. I'm Lito — I keep systems honest for a living: SRE by trade, AI builder by conviction.",
+ "East of here, the MONOLITH has risen — a single, ungoverned AI that generates its own answers, judges its own work, and cites no one.",
+ "No lone hero can beat it. You'll need a PARTY — and the discipline of GRAPH ENGINEERING: prompts, context, loops, then the graph itself.",
+ "Walk east. Fight what you meet. Learn from every loss — knowledge is free here, HP grows back. Go!"]}],
+ signs:{"5,3":"⚑ Reliability Village — pop. honest · east: Prompt Plains"} },
+{ name:"Prompt Plains", ground:"#234a2e", maps:[
+"tttttttttttt","t...t......t","t.t........t","t......t...t","pppppBpppBpp","t..t.......t","t.....t....t","t..t.....c.t","tttttttttttt"],
+ exits:{left:0,right:2}, npcs:[], battles:{"5,4":0,"9,4":1},
+ chest:{key:"9,7", text:"🏆 ARTIFACT: agent-mutation-lab — mutation testing for AI code reviewers. 9/10 planted defects caught, 0 false alarms on byte-identical clean controls. github.com/LZBiala/agent-mutation-lab"} },
+{ name:"Context Caverns", ground:"#26323a", maps:[
+"rrrrrrrrrrrr","r....r.....r","r.rr...rr..r","r..........r","pppppBpppBpp","r...rr.....r","r.r......c.r","r..........r","rrrrrrrrrrrr"],
+ exits:{left:1,right:3}, npcs:[], battles:{"5,4":2,"9,4":3},
+ chest:{key:"9,6", text:"🏆 ARTIFACT: wiki-memory-lab — agent memory as an auditable markdown wiki. Selective recall at 0.61× full-context tokens; the crossover where it loses (1.27×) published in the same table. github.com/LZBiala/wiki-memory-lab"} },
+{ name:"Loop Labyrinth", ground:"#2a2a3a", maps:[
+"rrrrrr.rrrrr","r....r.r...r","r.ww.r.ww..r","r....B.....r","pppppp.....r","r..w...w...r","r....B...c.r","r..........r","rrrrrrrrrrrr"],
+ exits:{left:2,up:4}, npcs:[], battles:{"5,3":4,"5,6":5},
+ chest:{key:"9,6", text:"🏆 ARTIFACT: memory-repair-lab — placebo-controlled memory repair. 8/10 → 10/10 on a held-out split sealed before generation zero; the blind placebo arm moved nothing. github.com/LZBiala/memory-repair-lab"} },
+{ name:"Graph Citadel", ground:"#33283a", maps:[
+"rrrrrrrrrrrr","r....M.....r","r..........r","r....B.....r","r..........r","r.c........r","r..........r","r..........r","rrrrrr.rrrrr"],
+ exits:{down:3}, npcs:[], battles:{"5,3":6}, boss:"5,1",
+ chest:{key:"2,5", text:"🏆 ARTIFACT: adversarial-chambers — multi-agent orchestration with the judge on trial. Instruction-flip test: evidence-driven judge flips 0/8 verdicts; a deferential judge flips 3/8. github.com/LZBiala/adversarial-chambers"} }
 ];
-
-const S = { ch:0, fight:0, hp:10, maxhp:10, xp:0, state:"title" };
-const $ = id => document.getElementById(id);
-const scene = $("scene"), choices = $("choices");
-
-function esc(t){ const d=document.createElement("div"); d.textContent=t; return d.innerHTML; }
-function hud(){
-  $("hud").hidden = S.state==="title";
-  $("kbd").hidden = S.state==="title";
-  $("lv").textContent = S.ch+1;
-  $("title").textContent = CH[Math.min(S.ch,CH.length-1)].title;
-  $("hp").style.width = (S.hp/S.maxhp*100)+"%";
-  $("xp").style.width = Math.min(100,(S.xp % 3)/3*100)+"%";
-  const inFight = S.state==="fight" || S.state==="feedback";
-  $("foewrap").hidden = !inFight;
-  if(inFight){ const f=CH[S.ch].fights.length; $("foehp").style.width = ((f-S.fight)/f*100)+"%"; }
+// ---------- battles ----------
+const BT = [
+{ foe:"Vaguelet the Slime", spr:"slime",
+  q:"An executive needs a summary of an incident report. Which prompt do you cast?",
+  a:["\"Summarize this.\"","\"You are briefing bank executives. Summarize in 3 bullets: impact, root cause, next steps. Plain language.\"","\"Please summarize this important document carefully and well.\""], c:1,
+  good:"CRITICAL HIT! Role + audience + format + constraints. Adjectives beg; structure commands.",
+  bad:"Vaguelet absorbs your vague words and GROWS! Give the model a role, an audience, a format, and constraints." },
+{ foe:"Fabricant the Slime", spr:"slime",
+  q:"The AI keeps inventing numbers. Your counter-spell?",
+  a:["Add \"Do not hallucinate.\"","\"Only use numbers from the source; if missing, write 'not stated'.\"","Ask it to double-check itself"], c:1,
+  good:"SUPER EFFECTIVE! A checkable rule plus an honest way out. Prohibitions without alternatives collapse.",
+  bad:"Fabricant giggles — 'do not hallucinate' is a wish, not a rule. Give a verifiable instruction and a legal escape: 'not stated'.",
+  recruit:{ spr:"sentinel", name:"SENTINEL the Tester",
+   lines:["SENTINEL joins the party!","SENTINEL: \"I test the testers. I plant one known defect in clean code and mix in byte-identical controls — crying wolf scores zero. My record: 9/10 caught, 0 false alarms.\"","(New battle ability: TRUE STRIKE — reveals the monster's weakness.)"] } },
+{ foe:"The Context Golem", spr:"golem",
+  q:"Your agent holds 200 pages of notes. Today's question touches 2. What goes in the window?",
+  a:["Everything — better safe than sorry","Index first: retrieve only the 2-3 notes this question needs","Only the newest page"], c:1,
+  good:"CRITICAL HIT! Selective recall — measured at 0.61× the tokens of loading everything. And the honest boundary: on a tiny hot corpus, stuffing wins (1.27×). Knowing WHEN each wins is the craft.",
+  bad:"The Golem grows heavier with every page you stuff! Every token competes for attention. Index first; retrieve what the question needs." },
+{ foe:"The Stuffed Golem", spr:"golem",
+  q:"BOSS OF THE CAVERNS: what belongs in a context window?",
+  a:["Everything you have","The least sufficient set: task, constraints, retrieved facts, examples — with sources","Only the question, purity above all"], c:1,
+  good:"GOLEM SHATTERED! Context is a budget. The least sufficient set, with sources.",
+  bad:"Buried in your own baggage! Irrelevant tokens dilute the relevant ones. Curate.",
+  recruit:{ spr:"wiki", name:"WIKI the Archivist",
+   lines:["WIKI joins the party!","WIKI: \"I keep memory as a human-readable wiki — every belief auditable, every deletion carrying its reason. An agent that can't show receipts shouldn't be trusted with any.\"","(New battle ability: RECALL — a hint from the archives.)"] } },
+{ foe:"The Loop Wyrm", spr:"wyrm",
+  q:"Your coding agent 'fixes' the code and breaks it again, forever. First thing to add?",
+  a:["More iterations","A verification step INSIDE the loop: run tests after each change; stop when green","A bigger model"], c:1,
+  good:"CRITICAL HIT! Loops need measurable exit conditions. Act, observe, MEASURE, adjust.",
+  bad:"The Wyrm spins faster! An unmeasured loop terminates only by accident. Verify inside the loop." },
+{ foe:"The Goodhart Wyrm", spr:"wyrm",
+  q:"Your improvement loop raised the score. How do you KNOW the loop caused it?",
+  a:["Score went up — case closed","A control arm: same budget, placebo changes, measured on a test set sealed BEFORE the loop began","Run it twice and feel confident"], c:1,
+  good:"SUPER EFFECTIVE! The clinical-trial move. Real example: 8/10 → 10/10 on a sealed held-out split — while the blind placebo arm moved NOTHING. That contrast is proof.",
+  bad:"The Wyrm whispers: 'the number went up, worship me.' Without a control and a sealed test set, gains may be luck — or teaching to the test.",
+  recruit:{ spr:"mender", name:"MENDER the Repairer",
+   lines:["MENDER joins the party!","MENDER: \"The model never learns; the notes do. Every repair I make cites the failure that demanded it — and I measure against exams sealed before I started.\"","(New battle ability: REPAIR — restores 3 HP.)"] } },
+{ foe:"The Citadel Gatekeeper", spr:"knight",
+  q:"The gate only opens for real orchestration. You want ideas AND honest criticism. Structure?",
+  a:["One agent does both — efficient!","Separate roles: a generator, and a dedicated refuter whose only job is attack","Two generators — twice the ideas"], c:1,
+  good:"THE GATE OPENS. No one grades their own homework. Adversariality lives in STRUCTURE, not in polite instructions.",
+  bad:"The Gatekeeper doesn't move. One agent judging its own ideas is a mirror, not a critic.",
+  recruit:{ spr:"refuter", name:"REFUTER the Advocate",
+   lines:["REFUTER joins the party!","REFUTER: \"My only job is attack. Every idea that survives me has earned it — and every kill I make goes in the ledger with its cause of death.\"","(New battle ability: CROSS-EXAMINE — removes one wrong answer.)","REFUTER: \"The Monolith waits above. It has never been questioned. Let's fix that — together.\""] } }
+];
+const BOSS = {
+ foe:"THE MONOLITH", spr:"monolith",
+ intro:["THE MONOLITH: \"I AM ONE. I GENERATE. I JUDGE. I REMEMBER. I NEED NO OTHERS.\"",
+        "THE GUIDE (from afar): \"No single strike can break it! Answer each of its boasts with the RIGHT companion — the graph beats the monolith!\""],
+ phases:[
+ { taunt:"\"I judge my own work — and I always approve!\"", ally:"refuter",
+   allyLine:"REFUTER steps forward: \"Then face a judge you don't own.\"",
+   q:"Why does self-judgment fail — and what fixes it?",
+   a:["It doesn't fail; efficiency wins","Structural role separation: an independent refuter and a judge that is itself tested — verdicts must survive an instruction-flip","Ask it to be more objective"], c:1,
+   good:"CRACK! The flip test lands: an evidence-driven judge flips 0/8 verdicts; a deferential one flips 3/8 — exactly the ambiguous items. The Monolith's self-approval shatters." },
+ { taunt:"\"I remember EVERYTHING. Sources are for the weak!\"", ally:"wiki",
+   allyLine:"WIKI steps forward: \"Memory without receipts is rumor.\"",
+   q:"What makes agent memory trustworthy?",
+   a:["Size — remember more than anyone","Auditability: human-readable notes, provenance on every claim, deletions with written reasons, selective recall","Speed"], c:1,
+   good:"CRACK! Auditable memory strikes true — every belief inspectable, 0.61× the cost, boundaries published. The Monolith's black-box memory fractures." },
+ { taunt:"\"My reviews found 12 issues. TRUST ME.\"", ally:"sentinel",
+   allyLine:"SENTINEL steps forward: \"Let's test the tester.\"",
+   q:"How do you verify a reviewer that claims 12 findings?",
+   a:["12 is a lot — trust it","Plant ONE known defect, mix in byte-identical clean controls — score catches AND false alarms","Ask if it's sure"], c:1,
+   good:"CRACK! 9/10 planted defects caught, 0 false alarms — and the Monolith's unverified dozen evaporates under controlled testing." },
+ { taunt:"\"I improve myself every cycle! My metrics ALWAYS rise!\"", ally:"mender",
+   allyLine:"MENDER steps forward: \"Rising metrics prove nothing without a control.\"",
+   q:"What proves an improvement loop is real?",
+   a:["Rising metrics","A sealed held-out exam plus a blind placebo arm with the same budget — improvement must beat its own placebo","Confidence"], c:1,
+   good:"CRACK! 8/10 → 10/10 against a sealed split, placebo unchanged — the Monolith's self-reported progress collapses into Goodhart dust." },
+ { taunt:"THE MONOLITH kneels, fracturing: \"IF NOT ONE... THEN WHAT?\"", ally:null,
+   allyLine:"THE WHOLE PARTY stands together. This one is yours to answer.",
+   q:"Assemble the graph that replaces the monolith:",
+   a:["One bigger model","Generate → refute → judge (tested) → verify → merge — with every decision recorded and every claim regenerable","Many copies of the same agent"], c:1,
+   good:"THE MONOLITH DISSOLVES INTO LIGHT.\n\nTHE GUIDE: \"That's graph engineering. Roles, evidence flow, tested judges, recorded decisions — a system, not a hero. And you built the team that proved it.\"" } ] };
+// ---------- state ----------
+const S = { z:0, x:2, y:4, hp:10, maxhp:10, party:[], cleared:{}, opened:{}, state:"explore",
+  dlg:null, dlgi:0, bt:null, boss:null, phase:0, usedAb:{}, won:false };
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+const ov = document.getElementById("overlay"), box = document.getElementById("box");
+const T = 32;
+// ---------- drawing ----------
+function px(c,x,y,s){ if(PAL[c]){ ctx.fillStyle=PAL[c]; ctx.fillRect(x,y,s,s); } }
+function drawSpr(name,tx,ty,scale,c2){ const g=c2||ctx, spr=SPR[name], s=(scale||4);
+  for(let r=0;r<8;r++) for(let q=0;q<8;q++){ const ch=spr[r][q]; if(PAL[ch]){ g.fillStyle=PAL[ch]; g.fillRect(tx+q*s,ty+r*s,s,s); } } }
+function drawTile(chr,tx,ty,zone){
+  ctx.fillStyle=zone.ground; ctx.fillRect(tx,ty,T,T);
+  ctx.fillStyle="#00000018"; if(((tx/T)+(ty/T))%2===0) ctx.fillRect(tx,ty,T,T);
+  if(chr==="t"){ ctx.fillStyle="#78350f"; ctx.fillRect(tx+13,ty+18,6,10); ctx.fillStyle="#166534"; ctx.beginPath(); ctx.arc(tx+16,ty+12,10,0,7); ctx.fill(); }
+  if(chr==="r"){ ctx.fillStyle="#475569"; ctx.fillRect(tx+4,ty+8,24,18); ctx.fillStyle="#334155"; ctx.fillRect(tx+8,ty+12,8,6); }
+  if(chr==="w"){ ctx.fillStyle="#1d4ed8"; ctx.fillRect(tx+2,ty+2,28,28); ctx.fillStyle="#60a5fa"; ctx.fillRect(tx+6,ty+10,8,3); ctx.fillRect(tx+18,ty+20,8,3); }
+  if(chr==="h"){ ctx.fillStyle="#7c2d12"; ctx.fillRect(tx+4,ty+12,24,16); ctx.fillStyle="#b91c1c"; ctx.beginPath(); ctx.moveTo(tx+2,ty+14); ctx.lineTo(tx+16,ty+2); ctx.lineTo(tx+30,ty+14); ctx.fill(); ctx.fillStyle="#10151a"; ctx.fillRect(tx+13,ty+18,7,10); }
+  if(chr==="p"){ ctx.fillStyle="#a16207aa"; ctx.fillRect(tx,ty+8,T,16); }
+  if(chr==="s"){ ctx.fillStyle="#78350f"; ctx.fillRect(tx+14,ty+14,4,12); ctx.fillStyle="#d9c58b"; ctx.fillRect(tx+6,ty+6,20,10); }
+  if(chr==="B"){ ctx.fillStyle="#7f1d1d"; ctx.fillRect(tx+4,ty+4,24,24); ctx.fillStyle="#f87171"; ctx.fillRect(tx+12,ty+8,8,16); ctx.fillRect(tx+8,ty+12,16,8); }
+  if(chr==="M"){ drawSpr("monolith",tx,ty,4); }
+  if(chr==="c"){ drawSpr("chest",tx,ty,4); }
 }
-function show(html, opts){
-  scene.innerHTML = html;
-  choices.innerHTML = "";
-  (opts||[]).forEach((o,i)=>{
-    const b=document.createElement("button");
-    b.innerHTML=(o.primary?"":`[${i+1}] `)+o.label;
-    if(o.primary) b.classList.add("primary");
-    b.onclick=o.fn;
-    choices.appendChild(b);
-  });
-  hud();
+function tileAt(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; let chr=zone.maps[y][x];
+  const k=x+","+y;
+  if(chr==="B" && S.cleared[S.z+":"+k]) chr=".";
+  if(chr==="c" && S.opened[S.z+":"+k]) chr=".";
+  return chr; }
+function solid(chr){ return "trwhs".includes(chr)||chr==="M"; }
+function render(){
+  const zone=Z[S.z];
+  for(let y=0;y<9;y++) for(let x=0;x<12;x++) drawTile(tileAt(zone,x,y),x*T,y*T,zone);
+  (zone.npcs||[]).forEach(n=>drawSpr(n.spr,n.x*T,n.y*T,4));
+  drawSpr("hero",S.x*T,S.y*T,4);
+  document.getElementById("zonename").innerHTML="<b>"+zone.name+"</b>";
+  document.getElementById("hpbar").style.width=(S.hp/S.maxhp*100)+"%";
+  document.getElementById("hptxt").textContent=S.hp+"/"+S.maxhp;
+  const pi=document.getElementById("partyicons"); pi.innerHTML="";
+  S.party.forEach(p=>{ const c=document.createElement("canvas"); c.width=32; c.height=32;
+    const g=c.getContext("2d"); const spr=SPR[p]; for(let r=0;r<8;r++)for(let q=0;q<8;q++){ if(PAL[spr[r][q]]){ g.fillStyle=PAL[spr[r][q]]; g.fillRect(q*4,r*4,4,4);} } pi.appendChild(c); });
 }
-function titleScreen(){
-  S.state="title";
-  show(`A tiny JRPG about <b>real AI engineering</b>.\n\nFive chapters: <b>prompt</b> → <b>context</b> → <b>loop</b> → <b>graph</b> → <b>evaluation</b>.\nFight monsters by choosing the better engineering decision. Wrong answers cost HP but teach you why — you can always retry. Along the way you'll unlock four real, CI-verified artifacts built by your guide.\n\n(5–10 minutes · no signup · nothing leaves this page)`,
-    [{label:"▶ BEGIN THE QUEST", primary:true, fn:startChapter},
-     {label:"Who is the guide?", fn:aboutGuide}]);
+// ---------- dialog ----------
+function say(lines, done){ S.state="dialog"; S.dlg={lines,done}; S.dlgi=0; showDlg(); }
+function showDlg(){ ov.hidden=false;
+  box.innerHTML=S.dlg.lines[S.dlgi].replace(/^([A-Z ()'-]+):/,"<span class='who'>$1:</span>")
+   +"<div class='choices'><button class='primary'>▶ (Enter)</button></div>";
+  box.querySelector("button").onclick=advDlg; }
+function advDlg(){ if(!S.dlg) return; S.dlgi++;
+  if(S.dlgi>=S.dlg.lines.length){ ov.hidden=true; const d=S.dlg.done; S.dlg=null; S.state="explore"; if(d) d(); render(); }
+  else showDlg(); }
+// ---------- battle ----------
+const ABIL = { sentinel:{label:"⚡ SENTINEL: True Strike (weakness hint)"}, wiki:{label:"📖 WIKI: Recall (hint)"},
+  mender:{label:"✚ MENDER: Repair (+3 HP)"}, refuter:{label:"⚖ REFUTER: Cross-Examine (remove a wrong answer)"} };
+function startBattle(idx,key){ S.state="battle"; S.bt={def:BT[idx], idx, key, removed:-1, hinted:false}; S.usedAb={}; drawBattle(); }
+function battleHead(sprName,title){ const c="<canvas id='foecv' width='72' height='72'></canvas>";
+  return "<div class='battlehead'>"+c+"<div><span class='foe'>"+title+"</span><br><span style='font-size:.75rem;color:var(--muted)'>choose wisely — wrong answers cost 2 HP</span></div></div>"; }
+function paintFoe(sprName){ const fc=document.getElementById("foecv"); if(!fc) return; const g=fc.getContext("2d");
+  g.fillStyle="#000"; g.fillRect(0,0,72,72); const spr=SPR[sprName];
+  for(let r=0;r<8;r++)for(let q=0;q<8;q++){ if(PAL[spr[r][q]]){ g.fillStyle=PAL[spr[r][q]]; g.fillRect(4+q*8,4+r*8,8,8);} } }
+function drawBattle(){ const b=S.bt, d=b.def; ov.hidden=false;
+  let h=battleHead(d.spr,d.foe)+"<div>"+d.q+"</div><div class='choices'>";
+  d.a.forEach((opt,i)=>{ if(i!==b.removed) h+="<button data-i='"+i+"'>["+(i+1)+"] "+opt+"</button>"; });
+  S.party.forEach(p=>{ if(!S.usedAb[p]) h+="<button class='ability' data-ab='"+p+"'>"+ABIL[p].label+"</button>"; });
+  h+="</div>"; box.innerHTML=h; paintFoe(d.spr);
+  box.querySelectorAll("button[data-i]").forEach(btn=>btn.onclick=()=>answer(parseInt(btn.dataset.i,10)));
+  box.querySelectorAll("button[data-ab]").forEach(btn=>btn.onclick=()=>useAb(btn.dataset.ab));
 }
-function aboutGuide(){
-  show(`<span class="speaker">THE GUIDE</span> is Lito Zarate Biala — a VP at Wells Fargo leading SRE and incident management for critical banking applications, building governed GenAI products by day and open-source AI evaluation frameworks by night.\n\nEverything the guide teaches in this game comes from systems that actually exist — and every number quoted regenerates in CI.`,
-    [{label:"▶ BEGIN THE QUEST", primary:true, fn:startChapter},
-     {label:"↩ back", fn:titleScreen}]);
+function useAb(p){ S.usedAb[p]=true; const b=S.bt,d=b.def;
+  if(p==="mender"){ S.hp=Math.min(S.maxhp,S.hp+3); render(); drawBattle(); }
+  else if(p==="refuter"){ const wrongs=[0,1,2].filter(i=>i!==d.c&&i!==b.removed); b.removed=wrongs[0]; drawBattle(); }
+  else { b.hinted=true; drawBattle(); const note=document.createElement("div"); note.className="box"; note.style.marginTop="6px";
+    note.innerHTML=(p==="wiki"?"📖 WIKI recalls: ":"⚡ SENTINEL observes: ")+"\"the strongest answer names a CHECKABLE structure, not a feeling.\"";
+    box.appendChild(note); } }
+function answer(i){ const b=S.bt,d=b.def, stage=document.getElementById("stage");
+  if(i===d.c){ stage.classList.add("fx-flash"); setTimeout(()=>stage.classList.remove("fx-flash"),400);
+    box.innerHTML=battleHead(d.spr,d.foe+" — DEFEATED!")+"<div>"+d.good+"</div><div class='choices'><button class='primary'>★ VICTORY (Enter)</button></div>";
+    paintFoe(d.spr);
+    box.querySelector("button").onclick=()=>{ S.cleared[S.z+":"+b.key]=true; ov.hidden=true; S.state="explore"; render();
+      if(d.recruit && !S.party.includes(d.recruit.spr)){ S.party.push(d.recruit.spr); say(d.recruit.lines); } };
+  } else { S.hp=Math.max(0,S.hp-2); stage.classList.add("fx-shake"); setTimeout(()=>stage.classList.remove("fx-shake"),400);
+    if(S.hp<=0){ S.hp=S.maxhp; box.innerHTML="<div>"+d.bad+"</div><div style='margin-top:6px'>The party falls... and regroups by the village fire. <b>HP restored — knowledge kept.</b></div><div class='choices'><button class='primary'>↻ RETURN TO BATTLE</button></div>"; }
+    else box.innerHTML=battleHead(d.spr,d.foe)+"<div>"+d.bad+"</div><div class='choices'><button class='primary'>↻ RETRY (Enter)</button></div>";
+    paintFoe(d.spr); render();
+    box.querySelector("button").onclick=drawBattle; } }
+// ---------- boss ----------
+function startBoss(){ if(S.party.length<4){ say(["THE MONOLITH: \"ALONE? HOW FITTING. RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.\"","(Recruit all four companions before challenging the Monolith — clear every red gate on the way.)"]); return; }
+  S.state="boss"; S.phase=0; say(BOSS.intro, bossPhase); }
+function bossPhase(){ S.state="boss"; const ph=BOSS.phases[S.phase]; ov.hidden=false;
+  let h=battleHead("monolith","THE MONOLITH — phase "+(S.phase+1)+"/5")+"<div>"+ph.taunt+"</div>";
+  if(ph.ally){ h+="<div style='margin-top:6px;color:var(--muted)'>Who answers this boast?</div><div class='choices'>";
+    S.party.forEach(p=>{ h+="<button data-p='"+p+"'>"+({sentinel:"⚡ SENTINEL",wiki:"📖 WIKI",mender:"✚ MENDER",refuter:"⚖ REFUTER"}[p])+"</button>"; });
+    h+="</div>"; }
+  else h+="<div class='choices'><button class='primary' data-p='none'>⚔ STAND TOGETHER</button></div>";
+  box.innerHTML=h; paintFoe("monolith");
+  box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{
+    const pick=btn.dataset.p;
+    if(ph.ally && pick!==ph.ally){ S.hp=Math.max(1,S.hp-1); render();
+      box.innerHTML=battleHead("monolith","THE MONOLITH")+"<div>The Monolith swats the attempt aside! <i>(-1 HP)</i> Listen to the boast — whose specialty answers it?</div><div class='choices'><button class='primary'>↻ choose again</button></div>";
+      paintFoe("monolith"); box.querySelector("button").onclick=bossPhase; return; }
+    bossQuestion(ph); }); }
+function bossQuestion(ph){ let h=battleHead("monolith","THE MONOLITH — phase "+(S.phase+1)+"/5")+
+  "<div style='color:var(--gold)'>"+ph.allyLine+"</div><div style='margin-top:6px'>"+ph.q+"</div><div class='choices'>";
+  ph.a.forEach((opt,i)=>h+="<button data-i='"+i+"'>["+(i+1)+"] "+opt+"</button>");
+  h+="</div>"; box.innerHTML=h; paintFoe("monolith");
+  box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{
+    const i=parseInt(btn.dataset.i,10), stage=document.getElementById("stage");
+    if(i===ph.c){ stage.classList.add("fx-flash"); setTimeout(()=>stage.classList.remove("fx-flash"),400);
+      box.innerHTML=battleHead("monolith","THE MONOLITH")+"<div>"+ph.good.replace(/\n/g,"<br>")+"</div><div class='choices'><button class='primary'>▶ (Enter)</button></div>";
+      paintFoe("monolith");
+      box.querySelector("button").onclick=()=>{ S.phase++; if(S.phase>=BOSS.phases.length) ending(); else bossPhase(); };
+    } else { S.hp=Math.max(1,S.hp-2); render(); stage.classList.add("fx-shake"); setTimeout(()=>stage.classList.remove("fx-shake"),400);
+      box.innerHTML=battleHead("monolith","THE MONOLITH")+"<div>The Monolith counters! <i>(-2 HP)</i> Think: what would "+(ph.ally?ph.ally.toUpperCase():"the whole graph")+" say?</div><div class='choices'><button class='primary'>↻ RETRY</button></div>";
+      paintFoe("monolith"); box.querySelector("button").onclick=()=>bossQuestion(ph); } }); }
+function ending(){ S.won=true; ov.hidden=false; S.state="end";
+  box.innerHTML="<div><b style='color:var(--gold)'>👑 QUEST COMPLETE — THE GRAPH OF LEGENDS</b><br><br>"+
+  "Your party: ⚡ Sentinel (test the tester) · 📖 Wiki (auditable memory) · ✚ Mender (placebo-controlled repair) · ⚖ Refuter (the judge on trial).<br><br>"+
+  "The companions are real projects:<br>"+
+  "· <a href='https://github.com/LZBiala/agent-mutation-lab' style='color:var(--teal)'>agent-mutation-lab</a> — 9/10 defects, 0 false alarms<br>"+
+  "· <a href='https://github.com/LZBiala/wiki-memory-lab' style='color:var(--teal)'>wiki-memory-lab</a> — 0.61× recall, 1.27× loss published<br>"+
+  "· <a href='https://github.com/LZBiala/memory-repair-lab' style='color:var(--teal)'>memory-repair-lab</a> — 8/10 → 10/10, placebo-controlled<br>"+
+  "· <a href='https://github.com/LZBiala/adversarial-chambers' style='color:var(--teal)'>adversarial-chambers</a> — flip test 0/8 vs 3/8<br><br>"+
+  "And the Guide is real too: <a href='index.html' style='color:var(--teal)'>lzbiala.github.io</a> · "+
+  "<a href='Lito-Biala-Resume.pdf' style='color:var(--teal)'>resume</a> · "+
+  "<a href='https://www.linkedin.com/in/lzbiala/' style='color:var(--teal)'>LinkedIn</a> · "+
+  "<a href='mailto:lzbiala@gmail.com' style='color:var(--teal)'>email</a></div>"+
+  "<div class='choices'><button class='primary'>↻ NEW GAME</button></div>";
+  box.querySelector("button").onclick=()=>{ Object.assign(S,{z:0,x:2,y:4,hp:10,party:[],cleared:{},opened:{},state:"explore",phase:0,won:false}); ov.hidden=true; render(); }; }
+// ---------- movement & interaction ----------
+function tryMove(dx,dy){ if(S.state!=="explore") return;
+  const zone=Z[S.z]; let nx=S.x+dx, ny=S.y+dy;
+  if(nx<0||nx>11||ny<0||ny>8){ const dir=dx<0?"left":dx>0?"right":dy<0?"up":"down";
+    if(zone.exits && zone.exits[dir]!==undefined){ S.z=zone.exits[dir];
+      if(dir==="right") S.x=0; if(dir==="left") S.x=11; if(dir==="down") S.y=0; if(dir==="up") S.y=8;
+      render(); } return; }
+  const chr=tileAt(zone,nx,ny);
+  const npc=(zone.npcs||[]).find(n=>n.x===nx&&n.y===ny);
+  if(npc||solid(chr)||chr==="c") return;
+  S.x=nx; S.y=ny; render();
+  const key=nx+","+ny;
+  if(chr==="B" && zone.battles && zone.battles[key]!==undefined && !S.cleared[S.z+":"+key]) startBattle(zone.battles[key], key);
 }
-function startChapter(){
-  S.state="lore"; S.fight=0;
-  const c=CH[S.ch];
-  show(`<b>${esc(c.name)}</b>\n\n${esc(c.lore)}\n\nA wild <span class="foe-name">${esc(c.foe)}</span> appears!`,
-    [{label:"⚔ FIGHT", primary:true, fn:fight}]);
-}
-function fight(){
-  S.state="fight";
-  const c=CH[S.ch], f=c.fights[S.fight];
-  show(`<span class="foe-name">${esc(c.foe)}</span> · encounter ${S.fight+1}/${c.fights.length}\n\n${esc(f.q)}`,
-    f.a.map((label,i)=>({label:esc(label), fn:()=>answer(i)})));
-}
-function answer(i){
-  S.state="feedback";
-  const c=CH[S.ch], f=c.fights[S.fight];
-  if(i===f.c){
-    S.xp++;
-    document.querySelector(".crt").classList.add("flash");
-    setTimeout(()=>document.querySelector(".crt").classList.remove("flash"),400);
-    const last = S.fight+1>=c.fights.length;
-    show(`<div class="feedback">${f.good}</div>`,
-      [{label: last?"★ CLAIM VICTORY":"▶ next encounter", primary:true, fn:()=>{ S.fight++; last?chapterClear():fight(); }}]);
-  } else {
-    S.hp=Math.max(1,S.hp-1);
-    document.querySelector(".crt").classList.add("shake");
-    setTimeout(()=>document.querySelector(".crt").classList.remove("shake"),400);
-    show(`<div class="feedback bad">${f.bad}</div>\n(−1 HP — but knowledge is free. Try again.)`,
-      [{label:"↻ RETRY", primary:true, fn:fight}]);
-  }
-}
-function chapterClear(){
-  S.state="clear";
-  const c=CH[S.ch];
-  const art = c.unlock ? `<div class="artifact">🏆 ${c.unlock.text}</div>` : "";
-  const lastCh = S.ch+1>=CH.length;
-  show(`<b>${esc(c.foe)} defeated!</b>\n${art}\nYou are now a <b>${esc(lastCh?c.title:CH[S.ch+1].title)}</b>.`,
-    [{label: lastCh?"👑 FINISH THE QUEST":"▶ next chapter", primary:true, fn:()=>{ lastCh?ending():(S.ch++,startChapter()); }}]);
-}
-function ending(){
-  S.state="end";
-  show(`<div class="end"><b>🏆 QUEST COMPLETE — you are a Reliability Sage.</b>\n\nThe path you walked: <b>prompt</b> (structure beats adjectives) → <b>context</b> (a budget, not a warehouse) → <b>loop</b> (verify inside; control arms) → <b>graph</b> (roles, ledgers, tested judges) → <b>evaluation</b> (claims are SLOs; publish the losses).\n\nThe guide was real. The artifacts are real:\n· <a href="https://github.com/LZBiala/wiki-memory-lab">wiki-memory-lab</a> — auditable agent memory (0.61× / honest 1.27× loss)\n· <a href="https://github.com/LZBiala/memory-repair-lab">memory-repair-lab</a> — placebo-controlled repair (8/10 → 10/10)\n· <a href="https://github.com/LZBiala/adversarial-chambers">adversarial-chambers</a> — the judge on trial (0/8 vs 3/8)\n· <a href="https://github.com/LZBiala/agent-mutation-lab">agent-mutation-lab</a> — test the tester (9/10, 0 false alarms)\n\nMeet the guide: <a href="index.html">lzbiala.github.io</a> · <a href="Lito-Biala-Resume.pdf">resume</a> · <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a> · <a href="mailto:lzbiala@gmail.com">email</a></div>`,
-    [{label:"↻ play again", fn:()=>{ Object.assign(S,{ch:0,fight:0,hp:10,xp:0}); titleScreen(); }}]);
-}
+function interact(){ if(S.state==="dialog"){ advDlg(); return; }
+  if(S.state!=="explore") return;
+  const zone=Z[S.z];
+  for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0],[0,0]]){
+    const x=S.x+dx, y=S.y+dy, key=x+","+y;
+    const npc=(zone.npcs||[]).find(n=>n.x===x&&n.y===y);
+    if(npc){ say(npc.lines); return; }
+    if(zone.signs && zone.signs[key]){ say([zone.signs[key]]); return; }
+    const chr=tileAt(zone,x,y);
+    if(chr==="c" && zone.chest && zone.chest.key===key){ S.opened[S.z+":"+key]=true; say([zone.chest.text]); return; }
+    if(chr==="M"){ startBoss(); return; } } }
 document.addEventListener("keydown",e=>{
-  if(!/^[1-9]$/.test(e.key)) return;
-  const btns=[...choices.querySelectorAll("button")];
-  const idx=parseInt(e.key,10)-1;
-  if(S.state==="fight"){ if(btns[idx]) btns[idx].click(); }
-  else if(btns.length && idx===0) btns[0].click();
-});
-titleScreen();
+  const k=e.key;
+  if(S.state==="battle"||S.state==="boss"){ if(/^[1-3]$/.test(k)){ const btns=[...box.querySelectorAll("button[data-i]")];
+      const b=btns.find(x=>x.textContent.startsWith("["+k+"]")); if(b) b.click(); }
+    if(k==="Enter"||k===" "){ const b=box.querySelector("button.primary"); if(b) b.click(); } return; }
+  if(k==="ArrowLeft"||k==="a"||k==="A"){ e.preventDefault(); tryMove(-1,0); }
+  else if(k==="ArrowRight"||k==="d"||k==="D"){ e.preventDefault(); tryMove(1,0); }
+  else if(k==="ArrowUp"||k==="w"||k==="W"){ e.preventDefault(); tryMove(0,-1); }
+  else if(k==="ArrowDown"||k==="s"||k==="S"){ e.preventDefault(); tryMove(0,1); }
+  else if(k==="Enter"||k===" "){ e.preventDefault(); interact(); } });
+document.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",()=>{
+  const k=b.dataset.k;
+  if(k==="Enter"){ if(S.state==="dialog") advDlg(); else interact(); }
+  else if(S.state==="explore"){ if(k==="ArrowLeft")tryMove(-1,0); if(k==="ArrowRight")tryMove(1,0);
+    if(k==="ArrowUp")tryMove(0,-1); if(k==="ArrowDown")tryMove(0,1); } }));
+// expose for testing
+window.G={S,Z,BT,BOSS,startBattle,startBoss,render,tryMove,interact};
+render();
+say(["Welcome to AI QUEST. Arrow keys / WASD to move, Enter to talk and interact.","Find THE GUIDE in the village square — he has a quest for you."]);
 </script>
 </body>
 </html>
