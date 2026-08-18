@@ -6,6 +6,11 @@
 <title>AI Quest: SEV-1</title>
 <meta name="description" content="An 8-bit JRPG where AI engineering is magic and the final boss is a major incident. Recruit a party, learn spells like Promptia and Five-Why, level up, and defeat the SEV-1 Hydra. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
+<meta property="og:title" content="AI Quest: SEV-1 — the 8-bit JRPG of AI engineering">
+<meta property="og:description" content="Spells are AI techniques. Bosses are incidents. The final boss is a SEV-1. Recruit a party, level up, earn your MTTx grade.">
+<meta property="og:image" content="https://lzbiala.github.io/assets/og-game.png">
+<meta property="og:url" content="https://lzbiala.github.io/game.html">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   [hidden] { display:none !important; }
   :root { --blue:#1830a0; --blue2:#101c66; --ink:#f2f6ff; --gold:#fbbf24; --red:#f87171;
@@ -466,7 +471,9 @@ function ending(){ S.won=true; tickClock();
     "MTTx GRADE: <b style='color:var(--gold);font-size:1.2em'>"+grade+"</b> — "+min+":"+pad(sec)+
     " · "+S.deaths+" defeat"+(S.deaths===1?"":"s")+" · "+S.bridgeMiss+" bridge misstep"+(S.bridgeMiss===1?"":"s")+
     (better?" · <span style='color:var(--teal)'>NEW RECORD!</span>":"<br>Best: <b>"+best.grade+"</b> ("+bmin+":"+pad(bsec)+")")+
-    "<br><span style='color:var(--muted)'>Think you can pull an S? NEW GAME+ awaits.</span></div>";
+    "<br><span style='color:var(--muted)'>Think you can pull an S? NEW GAME+ awaits.</span>"+
+    "<br><button id='sharebtn' style='margin-top:6px;font-family:inherit;font-size:.8rem;color:var(--ink);background:var(--blue);border:2px solid #fff;border-radius:6px;padding:4px 12px;cursor:pointer'>📋 COPY RESULT</button></div>";
+  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+" in "+min+":"+pad(sec)+" · "+S.deaths+" defeats · spells are AI techniques, the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
   saveGame(); ov.hidden=false; M.state="end"; sfx("level");
   box.innerHTML="<b style='color:var(--gold)'>👑 INCIDENT RESOLVED — MTTx: LEGENDARY</b><br>"+stats+"<br>"+
   "The SEV-1 Hydra dissolves. The bridge goes quiet. Somewhere, a postmortem doc opens itself — <i>blameless</i>.<br><br>"+
@@ -479,7 +486,12 @@ function ending(){ S.won=true; tickClock();
   "And the Guide is real: a VP at Wells Fargo who runs incident bridges and builds governed GenAI — aiming his craft at a frontier AI lab.<br>"+
   "<a href='index.html' style='color:var(--teal)'>lzbiala.github.io</a> · <a href='Lito-Biala-Resume.pdf' style='color:var(--teal)'>resume</a> · <a href='https://www.linkedin.com/in/lzbiala/' style='color:var(--teal)'>LinkedIn</a> · <a href='mailto:lzbiala@gmail.com' style='color:var(--teal)'>email</a><br><br>"+
   "<div class='choices'><button>↻ NEW GAME+</button></div>";
-  box.querySelector("button").onclick=()=>{ try{ localStorage.removeItem("aiquest"); }catch(e){} S=NEWS(); M.resumeAt=Date.now(); M.state="explore"; ov.hidden=true; render(); }; }
+  box.querySelector(".choices button").onclick=()=>{ try{ localStorage.removeItem("aiquest"); }catch(e){} S=NEWS(); M.resumeAt=Date.now(); M.state="explore"; ov.hidden=true; render(); };
+  const sb=document.getElementById("sharebtn");
+  if(sb) sb.onclick=()=>{ const t=M.shareText;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t).then(()=>{ sb.textContent="✅ COPIED — go brag!"; },()=>{ window.prompt("Copy your result:", t); }); }
+    else window.prompt("Copy your result:", t); }; }
 // ================= save =================
 function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }
 function saveGame(){ try{ tickClock(); localStorage.setItem("aiquest", JSON.stringify(S)); }catch(e){} }
