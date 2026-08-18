@@ -61,6 +61,7 @@
 <div class="hudtop">
   <span>LV <b id="hlv">1</b></span><span>HP <b id="hhp">12/12</b></span><span>MP <b id="hmp">6/6</b></span>
   <span>XP <b id="hxp">0</b></span><span id="zonename"><b>Reliability Village</b></span>
+  <button id="sndbtn" style="margin-left:auto;font-family:inherit;font-size:.72rem;color:var(--ink);background:var(--blue2);border:2px solid #fff;border-radius:6px;padding:2px 10px;cursor:pointer">♪ …</button>
 </div>
 <div id="stage">
   <canvas id="cv" width="384" height="288"></canvas>
@@ -232,7 +233,8 @@ const BRIDGE = [
    bad:"Engineers go quiet (-2 HP). Fear hides the next incident. Blameless postmortems keep truth flowing." } ];
 // ================= state =================
 const NEWS = () => ({ z:0, x:2, y:4, lv:1, xp:0, hp:12, maxhp:12, mp:6, maxmp:6, atk:3,
-  party:[], spells:["promptia"], items:{coffee:3, runbook:2}, cleared:{}, opened:{}, won:false });
+  party:[], spells:["promptia"], items:{coffee:3, runbook:2}, cleared:{}, opened:{}, won:false,
+  deaths:0, bridgeMiss:0, playMs:0 });
 let S = NEWS();
 let M = { state:"explore", dlg:null, dlgi:0, done:null, b:null };
 const XPCURVE = [0,10,25,45,70,100,140,190];
@@ -288,10 +290,25 @@ function ask(text,opts,cb){ M.state="dialog"; ov.hidden=false;
   opts.forEach((o,i)=>h+="<button data-i='"+i+"'>["+(i+1)+"] "+o+"</button>");
   box.innerHTML=h+"</div>";
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ ov.hidden=true; M.state="explore"; cb(parseInt(b.dataset.i,10)); }); }
+// ================= sound (WebAudio chiptune, no assets) =================
+const AU={ ctx:null, on:(function(){ try{ return localStorage.getItem("aiquest_snd")!=="off"; }catch(e){ return true; } })() };
+function sfx(kind){ if(!AU.on) return;
+  try{ AU.ctx=AU.ctx||new (window.AudioContext||window.webkitAudioContext)();
+    const c=AU.ctx; if(c.state==="suspended") c.resume();
+    const seqs={ blip:[[660,.05]], hit:[[220,.06],[180,.06]], crit:[[880,.05],[1174,.09]],
+      hurt:[[130,.09],[98,.1]], heal:[[523,.07],[659,.07],[784,.1]],
+      level:[[523,.09],[659,.09],[784,.09],[1046,.16]],
+      win:[[392,.09],[523,.09],[659,.09],[784,.18]], lose:[[196,.12],[147,.12],[110,.22]] };
+    let at=c.currentTime;
+    (seqs[kind]||[]).forEach(([f,d])=>{ const o=c.createOscillator(), g=c.createGain();
+      o.type="square"; o.frequency.value=f;
+      g.gain.setValueAtTime(.05,at); g.gain.exponentialRampToValueAtTime(.001,at+d);
+      o.connect(g).connect(c.destination); o.start(at); o.stop(at+d); at+=d*.85; });
+  }catch(e){} }
 // ================= leveling =================
-function gainXP(n,after){ S.xp+=n;
-  let leveled=false, msgs=["You gain <b>"+n+" XP</b>!"];
-  while(S.lv<XPCURVE.length && S.xp>=XPCURVE[S.lv]){ S.lv++; leveled=true;
+function gainXP(n,after,pre){ S.xp+=n;
+  let leveled=false, msgs=(pre||[]).concat(["You gain <b>"+n+" XP</b>!"]);
+  while(S.lv<XPCURVE.length && S.xp>=XPCURVE[S.lv]){ S.lv++; leveled=true; sfx("level");
     S.maxhp+=3; S.maxmp+=2; S.atk+=1; S.hp=S.maxhp; S.mp=S.maxmp;
     let m="⭐ LEVEL UP! You are now LV "+S.lv+" — HP+3, MP+2, ATK+1 (fully restored).";
     if(LEARN[S.lv] && !S.spells.includes(LEARN[S.lv])){ S.spells.push(LEARN[S.lv]);
@@ -316,18 +333,21 @@ function drawB(){ const b=M.b;
     "<b>LV "+S.lv+"</b>  HERO"+(S.party.length?" +"+S.party.length:"")+"\nHP  <b>"+S.hp+"/"+S.maxhp+"</b>\nMP  <b>"+S.mp+"/"+S.maxmp+"</b>\nXP  "+S.xp;
   drawMenu(); }
 function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); let h="";
-  if(b.menu==="main"){ h="<button data-a='fight'>FIGHT</button><button data-a='spell'>SPELL</button><button data-a='item'>ITEM</button>"+(b.def.flee?"<button data-a='flee'>FLEE</button>":""); }
+  if(b.menu==="main"){ h="<button data-a='fight'>FIGHT</button><button data-a='spell'>SPELL</button><button data-a='item'>ITEM</button>"+(b.def.flee?"<button data-a='flee'>FLEE</button>":"")+(S.mp<3?"<button data-a='grit'>GRIT (+2 MP)</button>":""); }
   else if(b.menu==="spell"){ S.spells.forEach(id=>{ h+="<button data-s='"+id+"'>"+SP[id].name+" ("+SP[id].mp+")</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="item"){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0) h+="<button data-it='"+k+"'>"+ITEMS[k].name+" ×"+S.items[k]+"</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="next"){ h="<button data-a='next'>▶ (Enter)</button>"; }
   else if(b.menu==="won"){ h="<button data-a='won'>★ VICTORY (Enter)</button>"; }
+  else if(b.menu==="dead"){ h=""; }
   m.innerHTML=h;
-  m.querySelectorAll("button").forEach(btn=>btn.onclick=()=>menuPick(btn.dataset)); }
+  m.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ if(M.lock) return; M.lock=true;
+    setTimeout(()=>M.lock=false,160); sfx("blip"); menuPick(btn.dataset); }); }
 function menuPick(d){ const b=M.b;
   if(d.a==="back"){ b.menu="main"; drawMenu(); return; }
   if(d.a==="next"){ b.menu="main"; enemyTurn(); return; }
   if(d.a==="won"){ winBattle(); return; }
   if(d.a==="flee"){ BW.hidden=true; M.state="explore"; render(); say(["You retreat to fight another day. (Incidents wait for no one — but so does learning.)"]); return; }
+  if(d.a==="grit"){ S.mp=Math.min(S.maxmp,S.mp+2); blog("You steady your breathing. Incident commanders endure. <span class='num'>+2 MP</span>."); b.menu="next"; drawB(); return; }
   if(d.a==="fight") return playerHit(S.atk+ (b.doubled?S.atk:0), b.doubled?"You strike at the ROOT CAUSE — double damage!":"You attack!");
   if(d.a==="spell"){ b.menu="spell"; drawMenu(); return; }
   if(d.a==="item"){ b.menu="item"; drawMenu(); return; }
@@ -340,13 +360,16 @@ function playerHit(dmg,txt){ const b=M.b;
   if(b.def.regen && !b.verified){ blog(txt+"<br>It takes "+dmg+"... <span class='red'>and REGENERATES! Unverified fixes come back. (Cast CONTROL ARM, then strike.)</span>"); b.menu="next"; drawMenu(); return; }
   if(b.def.regen && b.verified){ b.verified=false; txt+=" <span class='gold'>(verified fix — it stays down!)</span>"; }
   dealt(dmg,txt); }
-function dealt(dmg,txt){ const b=M.b; b.hp-=dmg;
+function dealt(dmg,txt){ const b=M.b;
+  if(Math.random()<0.15){ dmg=Math.round(dmg*2); txt+=" <span class='gold'>CRITICAL HIT!</span>"; sfx("crit"); }
+  else sfx("hit");
+  b.hp-=dmg;
   document.getElementById("bscene").classList.add("fx-flash");
   setTimeout(()=>document.getElementById("bscene").classList.remove("fx-flash"),350);
-  if(b.hp<=0){ blog(txt+"<br>It takes <span class='num'>"+dmg+"</span> damage... <span class='gold'>"+b.def.name+" is defeated!</span>"); b.menu="won"; drawB(); return; }
+  if(b.hp<=0){ blog(txt+"<br>It takes <span class='num'>"+dmg+"</span> damage... <span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; }
   blog(txt+"<br>It takes <span class='num'>"+dmg+"</span> damage!"); b.menu="next"; drawB(); }
 function castSpell(id){ const b=M.b, sp=SP[id];
-  if(S.mp<sp.mp){ blog("<span class='red'>Not enough MP!</span> (Coffee won't help — but the INN will.)"); b.menu="main"; drawMenu(); return; }
+  if(S.mp<sp.mp){ blog("<span class='red'>Not enough MP!</span> (Coffee restores 2 MP — or GRIT it out.)"); b.menu="main"; drawMenu(); return; }
   S.mp-=sp.mp;
   const weakHit = b.def.weak===id || b.def.weak===id+"2";
   if(id==="fivewhy"){ b.revealed=true; b.doubled=true;
@@ -355,60 +378,73 @@ function castSpell(id){ const b=M.b, sp=SP[id];
     blog(t); b.menu="next"; drawB(); return; }
   if(id==="contexa"){ b.focused=true;
     const t="You cast CONTEXA — selective recall pulls exactly the right evidence!"+(b.def.foggy?" <span class='gold'>The fog lifts!</span>":"");
+    if(!b.revealed){ blog(t+"<br><span class='red'>But the damage glances off — you're treating symptoms! (FIVE-WHY exposes the core.)</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && !b.verified){ blog(t+"<br><span class='red'>It regenerates instantly — unverified fixes come back! (CONTROL ARM first.)</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen) b.verified=false;
     return dealt((SP.contexa.dmgF(S.lv))*(weakHit?2:1), t+(weakHit?" <span class='gold'>It's super effective!</span>":"")); }
-  if(id==="mutagen"){ b.dot=3;
+  if(id==="mutagen"){
+    if(!b.revealed){ blog("You cast MUTAGEN — <span class='red'>but the defect lands in a symptom, not the core! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
+    if(!b.focused){ blog("You cast MUTAGEN — <span class='red'>the defect vanishes into the fog! (CONTEXA reveals what matters.)</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && !b.verified){ blog("You cast MUTAGEN — <span class='red'>the head regenerates around it! (CONTROL ARM first.)</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen) b.verified=false;
+    b.dot=3;
     return dealt(weakHit?6:2, "You cast MUTAGEN — a controlled defect is planted!"+(weakHit?" <span class='gold'>The false alarms have nowhere to hide — super effective!</span>":" It will take damage each turn.")); }
   if(id==="controlarm"){ b.shield=true; b.verified=true;
     blog("You raise the CONTROL ARM — a placebo-controlled shield shimmers. The next enemy attack is blocked, and your next strike is <b>verified</b>."); b.menu="next"; drawB(); return; }
-  if(id==="rollback"){ S.hp=Math.min(S.maxhp,S.hp+7);
+  if(id==="rollback"){ S.hp=Math.min(S.maxhp,S.hp+7); sfx("heal");
     blog("You cast ROLLBACK — last known good state restored! <span class='num'>+7 HP</span>."); b.menu="next"; drawB(); return; }
-  if(id==="hitl"){ S.hp=Math.min(S.maxhp,S.hp+12); b.drained=false;
+  if(id==="hitl"){ S.hp=Math.min(S.maxhp,S.hp+12); b.noDrain=true; sfx("heal");
     blog("HUMAN-IN-THE-LOOP! The strongest magic — judgment, context, care. <span class='num'>+12 HP</span>, drains cleared."); b.menu="next"; drawB(); return; }
   if(id==="promptia"||id==="fliptest"){ const base=SP[id].dmgF(S.lv);
     return playerHit(weakHit?base*2:base, "You cast "+sp.name+"!"+(weakHit?" <span class='gold'>It's super effective!</span>":"")); }
 }
 function useItem(k){ const b=M.b; S.items[k]--;
-  if(k==="coffee"){ S.hp=Math.min(S.maxhp,S.hp+5); S.mp=Math.min(S.maxmp,S.mp+2); blog("☕ Coffee! <span class='num'>+5 HP, +2 MP</span>. The incident-bridge special."); }
+  if(k==="coffee"){ S.hp=Math.min(S.maxhp,S.hp+5); S.mp=Math.min(S.maxmp,S.mp+2); sfx("heal"); blog("☕ Coffee! <span class='num'>+5 HP, +2 MP</span>. The incident-bridge special."); }
   if(k==="runbook"){ b.revealed=true;
     blog("📖 You consult the Runbook…<br><i>"+(b.def.tip||"Fight well; verify everything.")+"</i>"+(b.def.weak?"<br><span class='gold'>Weakness: "+SP[b.def.weak.replace("2","")].name+"</span>":"")); }
   b.menu="next"; drawB(); }
 function enemyTurn(){ const b=M.b;
-  if(b.dot>0){ b.dot--; b.hp-=2;
-    if(b.hp<=0){ blog("The planted defect fires! <span class='num'>2</span> damage… <span class='gold'>"+b.def.name+" is defeated!</span>"); b.menu="won"; drawB(); return; } }
   const mv=b.def.moves[Math.floor(Math.random()*b.def.moves.length)];
-  let dmg=mv[1]+(b.def.grow?Math.floor(Math.random()*2):0);
-  let extra=b.def.dot>0?"":"";
-  let t="<b>"+b.def.name+"</b> "+mv[0]+"!";
+  let dmg=mv[1];
+  if(b.def.grow){ b.growN=Math.min(4,(b.growN||0)+1); dmg+=b.growN-1; }
+  let t="<b>"+b.def.name+"</b> "+mv[0]+"!"+(b.def.grow&&b.growN>1?" <span class='red'>(it has grown!)</span>":"");
   if(b.def.twice){ dmg+=b.def.atk; t+=" (twice!)"; }
   if(b.shield){ b.shield=false; t+="<br><span class='gold'>The Control Arm absorbs it! 0 damage.</span>"; dmg=0; }
-  else if(dmg>0){ S.hp=Math.max(0,S.hp-dmg); t+="<br>You take <span class='red'>"+dmg+"</span> damage.";
+  else if(dmg>0){ S.hp=Math.max(0,S.hp-dmg); t+="<br>You take <span class='red'>"+dmg+"</span> damage."; sfx("hurt");
     document.getElementById("stage").classList.add("fx-shake");
     setTimeout(()=>document.getElementById("stage").classList.remove("fx-shake"),350); }
   else t+="<br>No damage.";
-  if(b.def.drain && S.mp>0){ S.mp--; t+=" <span class='red'>It drains 1 MP!</span>"; }
-  if(b.dot>0){ b.hp-=2; t+="<br>The planted defect deals <span class='num'>2</span>!";
-    if(b.hp<=0){ blog(t+"<br><span class='gold'>"+b.def.name+" is defeated!</span>"); b.menu="won"; drawB(); return; } }
-  if(S.hp<=0){ blog(t+"<br><span class='red'>The party falls…</span>"); b.menu="main";
-    setTimeout(()=>{ BW.hidden=true; S.hp=S.maxhp; S.mp=S.maxmp; S.z=0; S.x=2; S.y=4; M.state="explore"; render();
-      say(["You wake at the village INN. The innkeeper: 'Incidents don't end careers — hiding from them does.'","(HP/MP restored. Progress kept. Go again.)"]); },900);
-    blog(t+"<br><span class='red'>The party falls…</span>"); return; }
+  if(b.def.drain && !b.noDrain && S.mp>0){ S.mp--; t+=" <span class='red'>It drains 1 MP!</span>"; }
+  if(b.dot>0){ b.dot--;
+    if(b.def.regen && !b.verified){ t+="<br>The planted defect fires… <span class='red'>but the regenerating head patches it instantly!</span>"; }
+    else { b.hp-=2; t+="<br>The planted defect fires: <span class='num'>2</span> damage!";
+      if(b.hp<=0){ blog(t+"<br><span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; } } }
+  if(S.hp<=0){ S.deaths=(S.deaths||0)+1; b.menu="dead"; sfx("lose");
+    blog(t+"<br><span class='red'>The party falls…</span>"); drawB();
+    setTimeout(()=>{ BW.hidden=true; S.hp=S.maxhp; S.mp=S.maxmp; S.z=0; S.x=2; S.y=4; M.state="explore"; saveGame(); render();
+      say(["You wake at the village INN. The innkeeper: 'Incidents don't end careers — hiding from them does.'","(HP/MP restored. Levels and recruits kept. Boss gauntlets restart — such is the pager.)"]); },900);
+    return; }
   blog(t); b.menu="main"; drawB(); }
 function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore";
   if(b.key) S.cleared[S.z+":"+b.key]=true;
   const zone=Z[S.z];
+  let pre=[];
+  if(/^h\d/.test(b.id)){ S.mp=Math.min(S.maxmp,S.mp+3); S.hp=Math.min(S.maxhp,S.hp+3);
+    pre.push("The bridge steadies the party: <span style='color:var(--teal)'>+3 HP, +3 MP</span>."); }
   const afterXP=()=>{
     const rec=zone.recruitAfter && b.key && zone.recruitAfter[b.key];
     const chainNext=b.chain && b.chain.length ? b.chain : null;
     if(rec && !S.party.includes(rec.spr)){ S.party.push(rec.spr);
       if(!S.spells.includes(rec.spell)) S.spells.push(rec.spell);
       say(rec.lines, ()=>{ saveGame(); if(chainNext) runChain(chainNext); }); return; }
-    if(chainNext){ runChain(chainNext); return; }
+    if(chainNext){ saveGame(); runChain(chainNext); return; }
     saveGame(); };
-  render(); gainXP(b.def.xp, afterXP); }
+  render(); gainXP(b.def.xp, afterXP, pre); }
 function runChain(chain){ const step=chain[0], rest=chain.slice(1);
   if(step.bridge!==undefined){ const br=BRIDGE[step.bridge];
-    ask(br.t, br.a, i=>{ if(i===br.c){ say([br.good], ()=>{ S.xp+=12; render(); runChain(rest); }); }
-      else { S.hp=Math.max(1,S.hp-2); say([br.bad], ()=>{ render(); runChain(rest); }); } }); return; }
+    ask(br.t, br.a, i=>{ if(i===br.c){ say([br.good], ()=>{ gainXP(12, ()=>{ render(); runChain(rest); }); }); }
+      else { S.hp=Math.max(1,S.hp-2); S.bridgeMiss=(S.bridgeMiss||0)+1; say([br.bad], ()=>{ render(); runChain(rest); }); } }); return; }
+  // (bridge success grants XP through gainXP so level-ups land immediately)
   if(step.en){ startBattle(step.en, null, rest); return; }
   if(step.end){ ending(); return; } }
 // ================= boss sequence =================
@@ -416,8 +452,23 @@ function startFinale(){ if(S.party.length<4){ say(["THE MONOLITH: 'ALONE? RETURN
   say(["THE MONOLITH: 'I AM ONE. I GENERATE. I JUDGE. I NEED NO OTHERS.'",
        "THE GUIDE (distant): 'Break it — then brace. When a monolith falls, production shakes…'"],
     ()=>runChain([{en:"monolith"},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{en:"h5"},{end:true}]) ); }
-function ending(){ S.won=true; saveGame(); ov.hidden=false; M.state="end";
-  box.innerHTML="<b style='color:var(--gold)'>👑 INCIDENT RESOLVED — MTTx: LEGENDARY</b><br><br>"+
+function ending(){ S.won=true; tickClock();
+  const pad=n=>String(n).padStart(2,"0");
+  const min=Math.floor(S.playMs/60000), sec=Math.floor(S.playMs/1000)%60;
+  const score=(S.deaths*2)+S.bridgeMiss+(min>=18?2:min>=12?1:0);
+  const grade=score===0?"S":score<=2?"A":score<=4?"B":"C";
+  let best=null; try{ best=JSON.parse(localStorage.getItem("aiquest_best")); }catch(e){}
+  const better=!best||score<best.score||(score===best.score&&S.playMs<best.ms);
+  if(better){ best={score:score, grade:grade, ms:S.playMs};
+    try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
+  const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
+  const stats="<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
+    "MTTx GRADE: <b style='color:var(--gold);font-size:1.2em'>"+grade+"</b> — "+min+":"+pad(sec)+
+    " · "+S.deaths+" defeat"+(S.deaths===1?"":"s")+" · "+S.bridgeMiss+" bridge misstep"+(S.bridgeMiss===1?"":"s")+
+    (better?" · <span style='color:var(--teal)'>NEW RECORD!</span>":"<br>Best: <b>"+best.grade+"</b> ("+bmin+":"+pad(bsec)+")")+
+    "<br><span style='color:var(--muted)'>Think you can pull an S? NEW GAME+ awaits.</span></div>";
+  saveGame(); ov.hidden=false; M.state="end"; sfx("level");
+  box.innerHTML="<b style='color:var(--gold)'>👑 INCIDENT RESOLVED — MTTx: LEGENDARY</b><br>"+stats+"<br>"+
   "The SEV-1 Hydra dissolves. The bridge goes quiet. Somewhere, a postmortem doc opens itself — <i>blameless</i>.<br><br>"+
   "Your spells were real disciplines: precise prompting, selective context, root-cause analysis, planted-defect testing, placebo-controlled verification, rollback, flip-tested judgment, and the strongest magic — human-in-the-loop.<br><br>"+
   "Your party was a real portfolio:<br>"+
@@ -428,9 +479,10 @@ function ending(){ S.won=true; saveGame(); ov.hidden=false; M.state="end";
   "And the Guide is real: a VP at Wells Fargo who runs incident bridges and builds governed GenAI — aiming his craft at a frontier AI lab.<br>"+
   "<a href='index.html' style='color:var(--teal)'>lzbiala.github.io</a> · <a href='Lito-Biala-Resume.pdf' style='color:var(--teal)'>resume</a> · <a href='https://www.linkedin.com/in/lzbiala/' style='color:var(--teal)'>LinkedIn</a> · <a href='mailto:lzbiala@gmail.com' style='color:var(--teal)'>email</a><br><br>"+
   "<div class='choices'><button>↻ NEW GAME+</button></div>";
-  box.querySelector("button").onclick=()=>{ localStorage.removeItem("aiquest"); S=NEWS(); M.state="explore"; ov.hidden=true; render(); }; }
+  box.querySelector("button").onclick=()=>{ try{ localStorage.removeItem("aiquest"); }catch(e){} S=NEWS(); M.resumeAt=Date.now(); M.state="explore"; ov.hidden=true; render(); }; }
 // ================= save =================
-function saveGame(){ try{ localStorage.setItem("aiquest", JSON.stringify(S)); }catch(e){} }
+function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }
+function saveGame(){ try{ tickClock(); localStorage.setItem("aiquest", JSON.stringify(S)); }catch(e){} }
 function loadGame(){ try{ const d=localStorage.getItem("aiquest"); if(d){ S=Object.assign(NEWS(), JSON.parse(d)); return true; } }catch(e){} return false; }
 // ================= movement & interaction =================
 function tryMove(dx,dy){ if(M.state!=="explore") return;
@@ -462,7 +514,11 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 // ================= input =================
 document.addEventListener("keydown",e=>{ const k=e.key;
   if(M.state==="battle"){
-    if(k==="Enter"||k===" "){ const btn=document.querySelector("#bmenu button"); if(M.b.menu==="next"||M.b.menu==="won"){ if(btn) btn.click(); } }
+    if(e.repeat) return;
+    const btns=[...document.querySelectorAll("#bmenu button")];
+    if(k==="Enter"||k===" "){ e.preventDefault(); if(btns[0]) btns[0].click(); }
+    else if(/^[1-9]$/.test(k)){ const b2=btns[parseInt(k,10)-1]; if(b2) b2.click(); }
+    else if(k==="Escape"||k==="Backspace"){ const back=btns.find(x=>x.dataset.a==="back"); if(back) back.click(); }
     return; }
   if(k==="ArrowLeft"||k==="a"||k==="A"){ e.preventDefault(); tryMove(-1,0); }
   else if(k==="ArrowRight"||k==="d"||k==="D"){ e.preventDefault(); tryMove(1,0); }
@@ -477,6 +533,11 @@ document.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",
   else if(M.state==="explore"){ if(k==="ArrowLeft")tryMove(-1,0); if(k==="ArrowRight")tryMove(1,0);
     if(k==="ArrowUp")tryMove(0,-1); if(k==="ArrowDown")tryMove(0,1); } }));
 // ================= boot =================
+const sndbtn=document.getElementById("sndbtn");
+function sndLabel(){ sndbtn.textContent=AU.on?"♪ ON":"♪ OFF"; }
+sndbtn.onclick=()=>{ AU.on=!AU.on; try{ localStorage.setItem("aiquest_snd", AU.on?"on":"off"); }catch(e){} sndLabel(); if(AU.on) sfx("blip"); };
+sndLabel();
+M.resumeAt=Date.now();
 window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, startBattle, startFinale, render, tryMove, interact, menuPick, saveGame };
 render();
 if(loadGame()){ render(); say(["Save found — welcome back, LV "+S.lv+" hero!","(Talk to the INN keeper any time to save again.)"]); }

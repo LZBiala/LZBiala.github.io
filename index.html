@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lito Zarate Biala — Platform Engineering · AI Reliability</title>
 <meta name="description" content="SRE → AI reliability → next: forward deployed. I ship GenAI to production inside a regulated enterprise and build AI systems that publish their own measurements — four open-source evaluation frameworks and memory harnesses with CI that fails when a claim drifts.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
 <style>
   :root {
     --paper: #f7f8f5; --ink: #16211c; --muted: #5a6b62; --line: #dde3dd;
@@ -73,6 +74,18 @@
   .card .go { margin-top: auto; padding-top: 8px; font-family: ui-monospace, Consolas, monospace;
     font-size: 0.8rem; display: flex; gap: 14px; flex-wrap: wrap; }
   .cardnote { font-size: 0.85rem; color: var(--muted); margin-top: 16px; max-width: 52em; }
+
+  .gamecard { display: flex; gap: 18px; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; background: #0b1210; border: 2px solid var(--teal); border-radius: 14px;
+    padding: 20px 22px; margin-top: 6px; }
+  .gamecard .gc-left div { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem;
+    color: #7fa294; line-height: 1.7; }
+  .gamecard .gc-left div:first-child { color: #f87171; }
+  .gamecard .gc-left div:last-child { color: #fbbf24; }
+  .gc-play { font-family: ui-monospace, Consolas, monospace; font-size: 1rem; font-weight: 700;
+    text-decoration: none; color: #0b1210; background: var(--teal); padding: 12px 26px;
+    border-radius: 10px; letter-spacing: 0.06em; }
+  .gc-play:hover { filter: brightness(1.12); }
 
   .laws { display: grid; gap: 12px; max-width: 56em; }
   .law { border-left: 3px solid var(--teal); padding: 4px 0 4px 18px; }
@@ -184,6 +197,25 @@
   regenerate. Live-model results are kept out of drift-gated READMEs by design; the
   bundled agents are deterministic, so the numbers characterize the harnesses, never a
   model.</p>
+</div></section>
+
+<section id="gamesec"><div class="wrap">
+  <h2>⚔️ Play the portfolio — AI Quest: SEV-1</h2>
+  <p class="lead">An 8-bit JRPG where AI engineering is magic and the final boss is a major
+  incident. Recruit a party of four — each companion is one of the projects above — learn
+  spells like <span class="mono">FIVE-WHY</span> and <span class="mono">CONTROL ARM</span>,
+  level up, and run the incident bridge that takes down the SEV-1 Hydra.</p>
+  <div class="gamecard">
+    <div class="gc-left">
+      <div>&gt; THE SEV-1 HYDRA rises!</div>
+      <div>&gt; You cast FIVE-WHY… the root cause is exposed!</div>
+      <div>&gt; MTTx GRADE: S — think you can beat it?</div>
+    </div>
+    <a class="gc-play" href="game.html">▶ PLAY NOW</a>
+  </div>
+  <p class="cardnote">~10 minutes · saves at the INN · speedrun grading · plays on your phone ·
+  one static file, no frameworks, no API keys — and every number quoted in-game is a
+  CI-verified claim from the repos above.</p>
 </div></section>
 
 <section id="how"><div class="wrap">
