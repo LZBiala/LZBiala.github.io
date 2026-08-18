@@ -13,15 +13,17 @@
 <meta name="twitter:card" content="summary_large_image">
 <style>
   :root {
-    --paper: #f7f8f5; --ink: #16211c; --muted: #5a6b62; --line: #dde3dd;
-    --teal: #0f766e; --teal-soft: #0f766e14; --amber: #b45309; --red: #b91c1c;
-    --card: #ffffff;
+    --paper: #f6f5ef; --ink: #16211c; --muted: #5a6b62; --line: #ddE0d6;
+    --teal: #0f766e; --teal-soft: #0f766e12; --amber: #a3540a; --red: #b91c1c;
+    --card: #fffefb;
+    --term: #0c1512; --term-ink: #dcefe7; --term-mut: #7fa294; --term-line: #23372e;
+    --term-teal: #2dd4bf; --term-amber: #fbbf24;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper: #101613; --ink: #e6ebe7; --muted: #93a69b; --line: #26332c;
-      --teal: #2dd4bf; --teal-soft: #2dd4bf14; --amber: #fbbf24; --red: #f87171;
-      --card: #17201b;
+      --paper: #0e1411; --ink: #e6ebe7; --muted: #93a69b; --line: #24312a;
+      --teal: #2dd4bf; --teal-soft: #2dd4bf12; --amber: #fbbf24; --red: #f87171;
+      --card: #151d18;
     }
   }
   * { box-sizing: border-box; margin: 0; }
@@ -31,121 +33,193 @@
     font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   }
   .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
-  .wrap { max-width: 900px; margin: 0 auto; padding: 0 22px; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 22px; }
   a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
   a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 2px; }
 
-  header.hero { padding: 64px 0 40px; }
-  .hero-row { display: flex; gap: 26px; align-items: center; flex-wrap: wrap; }
-  .hero img.face { width: 96px; height: 96px; border-radius: 50%; object-fit: cover;
-    border: 2px solid var(--line); }
+  /* ---------- the terminal hero ---------- */
+  .term { background: var(--term); color: var(--term-ink);
+    border-bottom: 1px solid var(--term-line); }
+  .termbar { display: flex; align-items: center; gap: 8px; padding: 12px 0 0;
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.74rem;
+    color: var(--term-mut); }
+  .termbar .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--term-line); }
+  .termbar .dot:first-child { background: #f87171aa; }
+  .termbar .dot:nth-child(2) { background: #fbbf24aa; }
+  .termbar .dot:nth-child(3) { background: #34d399aa; }
+  .termbar .path { margin-left: 8px; }
+  header.hero { padding: 30px 0 40px; }
+  .hero-grid { display: flex; gap: 30px; align-items: flex-start; }
+  .hero-main { flex: 1; min-width: 0; }
+  .hero img.face { width: 118px; height: 118px; border-radius: 14px; object-fit: cover;
+    border: 2px solid var(--term-teal); margin-top: 14px; box-shadow: 0 8px 30px #0008; }
+  @media (max-width: 640px) { .hero img.face { display: none; } }
   .eyebrow { font-family: ui-monospace, Consolas, monospace; font-size: 0.72rem;
-    letter-spacing: 0.16em; color: var(--teal); text-transform: uppercase; }
-  h1 { font-size: 2.4rem; line-height: 1.1; letter-spacing: -0.015em; text-wrap: balance; margin: 6px 0 4px; }
-  .arrowline { font-family: ui-monospace, Consolas, monospace; font-size: 0.95rem;
-    color: var(--muted); margin-bottom: 4px; }
-  .arrowline b { color: var(--teal); font-weight: 700; }
-  .thesis { font-size: 1.1rem; max-width: 44em; color: var(--ink); margin: 20px 0 0; }
-  .thesis em { color: var(--muted); font-style: italic; }
-  .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
-  .links a { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem;
-    text-decoration: none; border: 1px solid var(--line); border-radius: 999px;
-    padding: 7px 16px; color: var(--ink); background: var(--card); }
-  .links a:hover { border-color: var(--teal); color: var(--teal); }
+    letter-spacing: 0.2em; color: var(--term-teal); text-transform: uppercase; margin-top: 22px; }
+  .heroname { font-family: ui-monospace, Consolas, monospace; font-size: 0.95rem;
+    color: var(--term-ink); margin-top: 6px; }
+  h1 { font-size: clamp(2.2rem, 6vw, 3.3rem); line-height: 1.06; letter-spacing: -0.02em;
+    text-wrap: balance; margin: 10px 0 8px; color: #fff; font-weight: 650; }
+  .arrowline { font-family: ui-monospace, Consolas, monospace; font-size: 0.92rem;
+    color: var(--term-mut); margin-bottom: 4px; }
+  .arrowline b { color: var(--term-teal); font-weight: 700; }
+  .thesis { font-size: 1.06rem; max-width: 46em; color: var(--term-ink); margin: 20px 0 0; }
+  .thesis em { color: var(--term-mut); font-style: italic; }
+  .thesis b { color: var(--term-teal); }
 
-  section { padding: 44px 0 10px; border-top: 1px solid var(--line); }
-  section h2 { font-size: 1.5rem; letter-spacing: -0.01em; margin-bottom: 6px; text-wrap: balance; }
-  .lead { color: var(--muted); max-width: 50em; margin-bottom: 24px; }
+  /* signature: the verification strip */
+  .verify { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; align-items: center; }
+  .chip { font-family: ui-monospace, Consolas, monospace; font-size: 0.78rem;
+    border: 1px solid var(--term-line); border-radius: 8px; padding: 5px 11px;
+    color: var(--term-teal); background: #ffffff06; opacity: 0; transform: translateY(4px);
+    animation: tick .45s ease-out forwards; }
+  .chip.amber { color: var(--term-amber); }
+  .chip:nth-child(1){ animation-delay:.15s } .chip:nth-child(2){ animation-delay:.4s }
+  .chip:nth-child(3){ animation-delay:.65s } .chip:nth-child(4){ animation-delay:.9s }
+  .chip:nth-child(5){ animation-delay:1.15s }
+  @keyframes tick { to { opacity: 1; transform: none; } }
+  .verifyline { font-family: ui-monospace, Consolas, monospace; font-size: 0.74rem;
+    color: var(--term-mut); margin-top: 10px; opacity: 0; animation: tick .5s 1.5s ease-out forwards; }
+  .verifyline b { color: var(--term-teal); }
+  @media (prefers-reduced-motion: reduce) {
+    .chip, .verifyline { animation: none; opacity: 1; transform: none; }
+  }
+  .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+  .links a { font-family: ui-monospace, Consolas, monospace; font-size: 0.84rem;
+    text-decoration: none; border: 1px solid var(--term-line); border-radius: 999px;
+    padding: 8px 17px; color: var(--term-ink); background: #ffffff08; transition: all .15s; }
+  .links a:hover { border-color: var(--term-teal); color: var(--term-teal); transform: translateY(-1px); }
+  .links a.primary { background: var(--term-teal); color: #0c1512; border-color: var(--term-teal); font-weight: 700; }
+  .links a.primary:hover { filter: brightness(1.1); color: #0c1512; }
+
+  /* ---------- timeline sections on paper ---------- */
+  section { padding: 52px 0 16px; }
+  section + section { border-top: 1px solid var(--line); }
+  .stamp { font-family: ui-monospace, Consolas, monospace; font-size: 0.7rem;
+    letter-spacing: 0.22em; color: var(--teal); text-transform: uppercase; margin-bottom: 8px; }
+  .stamp::before { content: "— "; color: var(--line); }
+  section h2 { font-size: 1.7rem; letter-spacing: -0.015em; margin-bottom: 8px; text-wrap: balance; }
+  .lead { color: var(--muted); max-width: 52em; margin-bottom: 26px; font-size: 1.02rem; }
 
   .stackline { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem;
     color: var(--muted); background: var(--teal-soft); border: 1px solid var(--line);
     border-radius: 10px; padding: 12px 16px; margin-bottom: 22px; overflow-x: auto; white-space: nowrap; }
   .stackline b { color: var(--teal); }
 
-  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 20px 22px; display: flex; flex-direction: column; gap: 8px; }
-  .card .layer { font-family: ui-monospace, Consolas, monospace; font-size: 0.7rem;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); }
-  .card h3 { font-size: 1.12rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px 24px; display: flex; flex-direction: column; gap: 8px; position: relative;
+    transition: transform .18s, box-shadow .18s, border-color .18s; }
+  .card::before { content: ""; position: absolute; inset: 0 auto auto 0; height: 3px; width: 44px;
+    background: var(--teal); border-radius: 14px 0 6px 0; }
+  .card:hover { transform: translateY(-3px); border-color: var(--teal);
+    box-shadow: 0 14px 34px -18px #0f766e66; }
+  @media (prefers-reduced-motion: reduce) { .card, .links a { transition: none; }
+    .card:hover, .links a:hover { transform: none; } }
+  .card .layer { font-family: ui-monospace, Consolas, monospace; font-size: 0.68rem;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); }
+  .card h3 { font-size: 1.16rem; }
   .card h3 a { text-decoration: none; color: var(--ink); }
   .card h3 a:hover { color: var(--teal); }
   .card p.pitch { font-size: 0.93rem; }
-  .card .num { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem;
+  .card .num { font-family: ui-monospace, Consolas, monospace; font-size: 0.84rem;
     color: var(--teal); }
+  .card .num::before { content: "✓ "; }
   .card .loss { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem;
-    color: var(--red); }
-  .card .go { margin-top: auto; padding-top: 8px; font-family: ui-monospace, Consolas, monospace;
+    color: var(--amber); }
+  .card .loss::before { content: "▲ "; }
+  .card .go { margin-top: auto; padding-top: 10px; font-family: ui-monospace, Consolas, monospace;
     font-size: 0.8rem; display: flex; gap: 14px; flex-wrap: wrap; }
-  .cardnote { font-size: 0.85rem; color: var(--muted); margin-top: 16px; max-width: 52em; }
+  .cardnote { font-size: 0.85rem; color: var(--muted); margin-top: 18px; max-width: 54em; }
 
   .gamecard { display: flex; gap: 18px; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; background: #0b1210; border: 2px solid var(--teal); border-radius: 14px;
-    padding: 20px 22px; margin-top: 6px; }
+    flex-wrap: wrap; background: var(--term); border: 1px solid var(--term-line);
+    border-radius: 14px; padding: 22px 24px; margin-top: 6px;
+    box-shadow: 0 16px 40px -24px #000c; }
   .gamecard .gc-left div { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem;
-    color: #7fa294; line-height: 1.7; }
+    color: var(--term-mut); line-height: 1.7; }
   .gamecard .gc-left div:first-child { color: #f87171; }
-  .gamecard .gc-left div:last-child { color: #fbbf24; }
+  .gamecard .gc-left div:last-child { color: var(--term-amber); }
   .gc-play { font-family: ui-monospace, Consolas, monospace; font-size: 1rem; font-weight: 700;
-    text-decoration: none; color: #0b1210; background: var(--teal); padding: 12px 26px;
+    text-decoration: none; color: #0c1512; background: var(--term-teal); padding: 13px 28px;
     border-radius: 10px; letter-spacing: 0.06em; }
   .gc-play:hover { filter: brightness(1.12); }
 
-  .laws { display: grid; gap: 12px; max-width: 56em; }
-  .law { border-left: 3px solid var(--teal); padding: 4px 0 4px 18px; }
+  .laws { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
+  @media (max-width: 720px) { .laws { grid-template-columns: 1fr; } }
+  .law { border-left: 3px solid var(--teal); padding: 6px 0 6px 18px; background: var(--teal-soft);
+    border-radius: 0 10px 10px 0; }
   .law h3 { font-size: 1rem; }
-  .law p { font-size: 0.93rem; color: var(--muted); }
+  .law p { font-size: 0.92rem; color: var(--muted); }
+  .laws .law:last-child { grid-column: 1 / -1; max-width: 46em; }
 
-  .bg2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; }
+  .bg2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 30px; }
   @media (max-width: 720px) { .bg2 { grid-template-columns: 1fr; } }
   .bg2 p { font-size: 0.97rem; margin-bottom: 14px; max-width: 46em; }
-  .facts { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 18px 20px; align-self: start; }
-  .facts dt { font-family: ui-monospace, Consolas, monospace; font-size: 0.7rem;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-top: 12px; }
+  .facts { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px 22px; align-self: start; position: sticky; top: 18px; }
+  .facts dt { font-family: ui-monospace, Consolas, monospace; font-size: 0.68rem;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); margin-top: 13px; }
   .facts dt:first-child { margin-top: 0; }
   .facts dd { font-size: 0.9rem; margin: 2px 0 0; }
 
-  footer { padding: 44px 0 64px; border-top: 1px solid var(--line); color: var(--muted);
-    font-size: 0.9rem; }
-  footer .mono { font-size: 0.8rem; }
+  footer { padding: 48px 0 70px; border-top: 1px solid var(--line); color: var(--muted);
+    font-size: 0.92rem; }
+  footer .stamp { color: var(--teal); }
+  footer .mono { font-size: 0.78rem; }
 </style>
 </head>
 <body>
 
+<div class="term">
+<div class="wrap">
+  <div class="termbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <span class="path">lito@prod:~/verify — every claim on this page regenerates in CI</span></div>
+</div>
 <header class="hero"><div class="wrap">
-  <div class="hero-row">
+  <div class="hero-grid">
+    <div class="hero-main">
+      <div class="eyebrow">T+0 · Signal — Digital platform &amp; AI reliability engineering · Minneapolis–St. Paul</div>
+      <div class="heroname">Lito Zarate Biala</div>
+      <h1>AI systems you can audit.</h1>
+      <div class="arrowline">Site Reliability <b>→</b> AI Reliability <b>→</b> next: Forward Deployed</div>
+      <p class="thesis">I make complicated systems trustworthy. At Wells Fargo I lead SRE and
+      incident-management work for critical banking applications — and I build governed GenAI
+      there today: two AI products in delivery (incident-notification quality and Daily 5-Why QA),
+      designed with human review and explicit approval gates before any production
+      connectivity — GenAI built to pass a bank's risk gates, not around them. The through-line of my
+      career is one question: <em>how do we know this is actually working?</em> So I also
+      build AI systems that answer it themselves: four open-source evaluation frameworks and
+      memory harnesses whose every published number regenerates in CI — <b>the build fails if a
+      claim drifts</b> — and whose READMEs publish where the designs <em>lose</em>, above
+      the fold.</p>
+      <div class="verify" aria-label="CI-verified claims">
+        <span class="chip">✓ 0.61× selective recall</span>
+        <span class="chip">✓ 9/10 · 0 false alarms</span>
+        <span class="chip">✓ flip test 0/8 vs 3/8</span>
+        <span class="chip">✓ 8/10 → 10/10 placebo-controlled</span>
+        <span class="chip amber">▲ losses published (1.27×)</span>
+      </div>
+      <div class="verifyline">$ drift-gate status → <b>all checks passing</b> · windows + linux</div>
+      <div class="links">
+        <a class="primary" href="Lito-Biala-Resume.pdf">Resume (PDF)</a>
+        <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>
+        <a href="https://github.com/LZBiala">GitHub</a>
+        <a href="game.html">Play: AI Quest 🎮</a>
+        <a href="mailto:lzbiala@gmail.com">Email</a>
+        <a href="#work">The four projects</a>
+        <a href="#how">How I work</a>
+      </div>
+    </div>
     <img class="face" src="images/Profile.jpg" alt="Portrait of Lito Zarate Biala"
          onerror="this.remove()">
-    <div>
-      <div class="eyebrow">Digital platform &amp; AI reliability engineering · Minneapolis–St. Paul</div>
-      <h1>Lito Zarate Biala</h1>
-      <div class="arrowline">Site Reliability <b>→</b> AI Reliability <b>→</b> next: Forward Deployed</div>
-    </div>
-  </div>
-  <p class="thesis">I make complicated systems trustworthy. At Wells Fargo I lead SRE and
-  incident-management work for critical banking applications — and I build governed GenAI
-  there today: two AI products in delivery (incident-notification quality and Daily 5-Why QA),
-  designed with human review and explicit approval gates before any production
-  connectivity — GenAI built to pass a bank's risk gates, not around them. The through-line of my
-  career is one question: <em>how do we know this is actually working?</em> So I also
-  build AI systems that answer it themselves: four open-source evaluation frameworks and
-  memory harnesses whose every published number regenerates in CI — <b>the build fails if a
-  claim drifts</b> — and whose READMEs publish where the designs <em>lose</em>, above
-  the fold.</p>
-  <div class="links">
-    <a href="https://github.com/LZBiala">GitHub</a>
-    <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>
-    <a href="Lito-Biala-Resume.pdf">Resume (PDF)</a>
-    <a href="game.html">Play: AI Quest 🎮</a>
-    <a href="mailto:lzbiala@gmail.com">Email</a>
-    <a href="#work">The four projects</a>
-    <a href="#how">How I work</a>
   </div>
 </div></header>
+</div>
 
 <section id="work"><div class="wrap">
+  <div class="stamp">T+1 · Evidence</div>
   <h2>Four projects, one architecture</h2>
   <p class="lead">Not a pile of demos — a stack. Each layer answers a different form of
   the trust question, every repo runs in seconds with zero API keys, and each ships an
@@ -205,6 +279,7 @@
 </div></section>
 
 <section id="gamesec"><div class="wrap">
+  <div class="stamp">T+2 · Simulation</div>
   <h2>⚔️ Play the portfolio — AI Quest: SEV-1</h2>
   <p class="lead">An 8-bit JRPG where AI engineering is magic and the final boss is a major
   incident. Recruit a party of four — each companion is one of the projects above — learn
@@ -218,12 +293,13 @@
     </div>
     <a class="gc-play" href="game.html">▶ PLAY NOW</a>
   </div>
-  <p class="cardnote">~10 minutes · saves at the INN · speedrun grading · plays on your phone ·
-  one static file, no frameworks, no API keys — and every number quoted in-game is a
-  CI-verified claim from the repos above.</p>
+  <p class="cardnote">~10 minutes · saves at the INN · shops, gear &amp; a party of four ·
+  speedrun grading · plays on your phone · one static file, no frameworks, no API keys —
+  and every real-world number quoted in-game is a CI-verified claim from the repos above.</p>
 </div></section>
 
 <section id="how"><div class="wrap">
+  <div class="stamp">T+3 · Method</div>
   <h2>How I work</h2>
   <p class="lead">The habits are the résumé. These are the laws every repo above obeys —
   and they are the same instincts that keep a bank's critical applications reliable, pointed at AI.</p>
@@ -251,6 +327,7 @@
 </div></section>
 
 <section id="background"><div class="wrap">
+  <div class="stamp">T+4 · Origin</div>
   <h2>Background</h2>
   <div class="bg2">
     <div>
@@ -288,6 +365,7 @@
 </div></section>
 
 <footer><div class="wrap">
+  <div class="stamp">Resolved ✓</div>
   <p>Let's build something trustworthy. Reach me by
   <a href="mailto:lzbiala@gmail.com">email</a>, on
   <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>, or through
