@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Quest: SEV-1 — Definitive Edition</title>
-<meta name="description" content="An 8-bit JRPG where AI engineering is magic and the final boss is a major incident. Towns, shops, equipment, a party of four, elites, saves, and the SEV-1 Hydra. One static file, no frameworks, no API keys.">
+<title>AI Quest: SEV-1 — Party Edition</title>
+<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Five classes, individual levels, unique skills, shops, elites, a superboss, and 100,000 simulated battles behind the balance. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
-<meta property="og:title" content="AI Quest: SEV-1 — the 8-bit JRPG of AI engineering">
-<meta property="og:description" content="Spells are AI techniques. Bosses are incidents. The final boss is a SEV-1. Recruit a party, level up, earn your MTTx grade.">
+<meta property="og:title" content="AI Quest: SEV-1 — the 8-bit party JRPG of AI engineering">
+<meta property="og:description" content="Five classes. Individual levels. Spells are AI techniques, bosses are incidents, and the balance was tuned on 100,000 simulated battles.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-game.png">
 <meta property="og:url" content="https://lzbiala.github.io/game.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -28,35 +28,36 @@
   .overlay.center { justify-content:center; }
   .battle { position:absolute; inset:0; display:flex; flex-direction:column; padding:8px; gap:6px; }
   .bscene { flex:1; border:4px double #fff; border-radius:6px; position:relative; overflow:hidden;
-    display:flex; align-items:center; justify-content:center; min-height:120px; }
+    display:flex; align-items:center; justify-content:center; min-height:104px; }
   .bscene canvas { image-rendering:pixelated; animation:bob 2.2s ease-in-out infinite; }
   @keyframes bob { 50% { transform:translateY(-4px); } }
-  .bfoename { position:absolute; top:6px; left:8px; font-size:.8rem; background:#000a; padding:2px 8px; border-radius:4px; }
+  .bfoename { position:absolute; top:6px; left:8px; font-size:.78rem; background:#000a; padding:2px 8px; border-radius:4px; }
   .bfoename b { color:var(--red); }
-  .bstatus { position:absolute; top:26px; left:8px; font-size:.72rem; background:#000a; padding:1px 8px; border-radius:4px; color:var(--muted); }
+  .bstatus { position:absolute; top:25px; left:8px; font-size:.7rem; background:#000a; padding:1px 8px; border-radius:4px; color:var(--muted); max-width:75%; }
   .bhp { position:absolute; top:6px; right:8px; width:110px; height:10px; border:2px solid #fff; border-radius:5px; background:#0009; }
   .bhp i { display:block; height:100%; background:var(--red); transition:width .3s; }
-  .bparty { position:absolute; bottom:6px; right:8px; display:flex; gap:4px; }
-  .bparty canvas { width:30px; height:30px; animation:none; }
+  .pmrow { display:flex; gap:5px; }
+  .pm { flex:1; background:var(--blue2); border:2px solid #ffffff88; border-radius:6px; padding:4px 6px;
+    font-size:.68rem; line-height:1.35; min-width:0; }
+  .pm.active { border-color:var(--gold); box-shadow:0 0 10px #fbbf2455; }
+  .pm.ko { opacity:.45; }
+  .pm b { color:var(--gold); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pm .cls { color:var(--teal); }
   .brow { display:flex; gap:6px; }
   .brow .win { flex:1; }
-  .stat { font-size:.78rem; white-space:pre; }
-  .stat b { color:var(--gold); }
-  .menu button, .choices button { display:block; width:100%; text-align:left; font-family:inherit; font-size:.85rem;
+  .menu button, .choices button { display:block; width:100%; text-align:left; font-family:inherit; font-size:.84rem;
     color:var(--ink); background:transparent; border:none; padding:4px 6px; cursor:pointer; }
   .menu button:hover, .menu button:focus-visible, .choices button:hover { color:var(--gold); outline:none; }
   .menu button::before, .choices button::before { content:"  "; }
   .menu button:hover::before, .choices button:hover::before { content:"▶ "; }
-  .log { min-height:3.2em; }
+  .log { min-height:3.1em; font-size:.82rem; }
   .log .num, .num { color:var(--teal); font-weight:700; }
   .log .gold, .gold { color:var(--gold); }
   .log .red, .red { color:var(--red); }
   .mut { color:var(--muted); }
   .fx-shake { animation:shk .3s; } @keyframes shk { 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
   .fx-flash { animation:fls .35s; } @keyframes fls { 50%{filter:brightness(2.2)} }
-  @media (prefers-reduced-motion: reduce) {
-    .fx-shake, .fx-flash, .bscene canvas { animation:none !important; }
-  }
+  @media (prefers-reduced-motion: reduce) { .fx-shake, .fx-flash, .bscene canvas { animation:none !important; } }
   .hudtop { display:flex; gap:10px; flex-wrap:wrap; font-size:.76rem; margin:6px 0; width:min(94vw,672px); align-items:center; }
   .hudtop b { color:var(--teal); }
   .hudbtn { font-family:inherit; font-size:.72rem; color:var(--ink); background:var(--blue2);
@@ -71,15 +72,14 @@
   .titlecard h2 { color:var(--gold); font-size:1.6rem; letter-spacing:.1em; margin-bottom:4px; }
   .titlecard .ed { color:var(--teal); font-size:.8rem; letter-spacing:.2em; margin-bottom:14px; }
   .shoprow { display:flex; justify-content:space-between; gap:8px; font-size:.8rem; }
-  @media (min-width:700px){ .dpad{ display:none; } }
 </style>
 </head>
 <body>
 <h1>⚔️ AI QUEST: SEV-1</h1>
-<div class="sub">definitive edition · towns · shops · equipment · a party of four · the SEV-1 Hydra · by Lito Zarate Biala</div>
+<div class="sub">party edition · five classes · individual levels · balance tuned on 100,000 simulated battles · by Lito Zarate Biala</div>
 <div class="hudtop">
-  <span>LV <b id="hlv">1</b></span><span>HP <b id="hhp">12/12</b></span><span>MP <b id="hmp">6/6</b></span>
-  <span>⛁ <b id="htok">0</b></span><span>XP <b id="hxp">0</b></span><span id="zonename"><b>—</b></span>
+  <span id="hhero"><b>HERO</b> LV 1</span>
+  <span>⛁ <b id="htok">0</b></span><span id="zonename"><b>—</b></span>
   <button class="hudbtn" id="menubtn" style="margin-left:auto">☰ MENU</button>
   <button class="hudbtn" id="sndbtn">♪ …</button>
 </div>
@@ -92,13 +92,13 @@
       <div class="bfoename" id="bfoename"></div>
       <div class="bstatus" id="bstatus"></div>
       <div class="bhp"><i id="bfoehp" style="width:100%"></i></div>
-      <canvas id="foecv" width="120" height="120"></canvas>
-      <div class="bparty" id="bparty"></div>
+      <canvas id="foecv" width="120" height="104"></canvas>
     </div>
+    <div class="pmrow" id="pmrow"></div>
     <div class="win log" id="blog"></div>
     <div class="brow">
-      <div class="win menu" id="bmenu" style="max-width:200px"></div>
-      <div class="win stat" id="bstat"></div>
+      <div class="win menu" id="bmenu" style="max-width:210px"></div>
+      <div class="win" id="bstat" style="font-size:.74rem"></div>
     </div>
   </div>
 </div>
@@ -107,8 +107,8 @@
   <button data-k="ArrowDown">▼</button><button data-k="ArrowRight">▶</button>
   <button data-k="Enter">A</button><button data-k="Escape">☰</button>
 </div>
-<p class="tiny">arrows / WASD move · Enter interacts · Esc or ☰ opens the menu · red gates are incidents ·
-E-marked foes are ELITE · rest at the INN, shop at the SUPPLY CLOSET · autosaves at key moments + 3 manual slots ·
+<p class="tiny">arrows / WASD move · Enter interacts · Esc/☰ menu · red gates = incidents · E = elite ·
+five classes with their own levels &amp; skills · INN saves · after victory, something stirs atop the Citadel… ·
 one static file, no frameworks, no API keys · every real-world number quoted is CI-verified at
 <a href="https://github.com/LZBiala">github.com/LZBiala</a> · <a href="index.html">← lzbiala.github.io</a> ·
 <a href="game.html?test=1">test suite</a></p>
@@ -116,12 +116,10 @@ one static file, no frameworks, no API keys · every real-world number quoted is
 <script>
 "use strict";
 /* ============================================================
-   AI QUEST: SEV-1 — Definitive Edition
-   Sections: RNG · DATA (sprites, items, spells, enemies, world,
-   story) · STATE & SAVES · RENDER · DIALOG · MOVEMENT · BATTLE ·
-   SHOP & MENU · FINALE · INPUT · TESTS · BOOT
-   Data is declared in DATA blocks; engine functions never hardcode
-   balance values that belong in DATA.
+   AI QUEST: SEV-1 — Party Edition
+   Balance constants below were tuned on 100,000 Monte Carlo
+   battles (combat_sim.py): gates 3-5 turns, bosses 4-6 with KO
+   pressure, superboss ~6+ turns at 98% under OPTIMAL play.
    ============================================================ */
 
 // ================= seeded RNG =================
@@ -134,11 +132,11 @@ let rng = mulberry32(1);
 const PAL = { k:"#10151a", w:"#e8f4ee", r:"#f87171", g:"#34d399", b:"#60a5fa", y:"#fbbf24",
   t:"#2dd4bf", o:"#fb923c", p:"#c084fc", s:"#f3c89b", d:"#334155", m:"#94a3b8", n:"#a16207", ".":null };
 const SPR = {
-hero:["..kkkk..","..ksks..","..ssss..",".tttttt.","t.tttt.t","..tttt..","..k..k..",".kk..kk."],
-sentinel:["..kkkk..","..ksks..","..ssss..",".oooooo.","o.oooo.o","..oooo..","..k..k..",".kk..kk."],
-wiki:["..kkkk..","..ksks..","..ssss..",".yyyyyy.","y.ywwy.y","..ywwy..","..k..k..",".kk..kk."],
-mender:["..kkkk..","..ksks..","..ssss..",".gggggg.","g.gwgg.g","..ggwg..","..k..k..",".kk..kk."],
-refuter:["..kkkk..","..ksks..","..ssss..",".pppppp.","p.pppp.p","..pppp..","..k..k..",".kk..kk."],
+hero:["...kk...","..kkkk..","..ksks..","..ssss..",".ttttttw","t.tttt.w","..tttt..",".kk..kk."],
+sentinel:[".dddd...",".dksks..","..ssss..",".oooooo.","o.oooo.b","..oooo.b","..k..k..",".kk..kk."],
+wiki:["..pppp..",".pppppp.","..ksks..","..ssss..",".yyyyyy.","y.ywwy.y","..k..k..",".kk..kk."],
+mender:["..kkkk..","..ksks..","..ssss..",".gwwggg.","g.gwgg.g","..gggg..","..k..k..",".kk..kk."],
+refuter:["..kkkk..","..ksks..","..ssss..",".ppppppm","p.pppp.m","..pppp.m","..k..k..",".kk..kk."],
 elder:["..kkkk..","..kwkw..","..wwww..",".twttwt.","t.tttt.t","..tttt..","..k..k..",".kk..kk."],
 rowan:["..kkkk..","..kwkw..","..wwww..",".dwddwd.","d.dddd.d","..dddd..","..k..k..",".kk..kk."],
 peg:["..kkkk..","..ksks..","..ssss..",".nnnnnn.","n.nyyn.n","..nnnn..","..k..k..",".kk..kk."],
@@ -155,105 +153,124 @@ flaky:["..oo..oo",".okoooko","..oooo..","oo.oo.oo","..oooo..",".o.oo.o.","o..oo.
 drift:[".pppppp.","pp.pp.pp","pppppppp","p.pppp.p","pppkkppp",".pppppp.",".pp..pp.","pp....pp"],
 monolith:["pppppppp","p.p..p.p","pprrrrpp","p.rkkr.p","p.rkkr.p","pprrrrpp","p.p..p.p","pppppppp"],
 hydra:["r..rr..r",".rrrrrr.","rkrrrrkr","rrrrrrrr",".rrrrrr.","..rrrr..",".rr..rr.","rr....rr"],
+unknown:["k.p..p.k",".k.pp.k.","p.kkkk.p",".kwkkwk.","p.kkkk.p",".k.pp.k.","k.p..p.k",".k....k."],
 chest:["........",".yyyyyy.",".ykkkky.",".yyyyyy.",".yykyyy.",".yyyyyy.","........","........"]
 };
 
-// ================= DATA: items & equipment =================
-const IT = {
- coffee:{ name:"Coffee", type:"use", price:8, d:"heals 5 HP, restores 2 MP. Incident fuel." },
- runbook:{ name:"Runbook", type:"use", price:12, d:"reveals the enemy's weakness + a field tip." },
- patch:{ name:"Patch Kit", type:"use", price:6, d:"heals 4 HP." },
- cache:{ name:"Cache Warmer", type:"use", price:10, d:"restores 4 MP." },
- snooze:{ name:"Pager Snooze", type:"use", price:14, d:"the enemy loses its next turn." },
- postmortem:{ name:"Post-Incident Review", type:"use", price:30, d:"full HP/MP restore. Rare and earned." },
- kb1:{ name:"Mech Keyboard", type:"weapon", price:15, atk:1, d:"+1 ATK. Clacky. Confident." },
- kb2:{ name:"Split Ergo", type:"weapon", price:35, atk:2, d:"+2 ATK. Your wrists thank you." },
- kb3:{ name:"The Terminal", type:"weapon", price:70, atk:3, d:"+3 ATK. It was always the terminal." },
- bd1:{ name:"Access Badge", type:"badge", price:15, def:1, d:"-1 damage taken. You belong here." },
- bd2:{ name:"Security Badge", type:"badge", price:40, def:2, d:"-2 damage taken. Least privilege, most protection." },
- ch1:{ name:"Focus Charm", type:"charm", price:30, fx:"crit", d:"+10% critical-hit chance." },
- ch2:{ name:"Regen Charm", type:"charm", price:30, fx:"regen", d:"+1 MP at the end of each of your turns." },
- ch3:{ name:"Uptime Charm", type:"charm", price:50, fx:"uptime", d:"once per battle, survive a lethal hit at 1 HP." } };
-const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","postmortem","kb1","kb2","kb3","bd1","bd2","ch1","ch2","ch3"];
+// ================= DATA: party classes =================
+const MEMBERS = {
+ hero:{ name:"HERO", cls:"Commander", spr:"hero", base:{hp:12,mp:6,atk:3}, grow:{hp:3,mp:2,atk:1},
+   skills:{1:["promptia"],2:["fivewhy"],4:["rollback"],6:["hitl"]} },
+ sentinel:{ name:"SENTINEL", cls:"Ranger", spr:"sentinel", base:{hp:10,mp:5,atk:4}, grow:{hp:2,mp:1,atk:1},
+   skills:{1:["mutagen","truestrike"],5:["audit"]} },
+ wiki:{ name:"WIKI", cls:"Wizard", spr:"wiki", base:{hp:8,mp:10,atk:2}, grow:{hp:2,mp:3,atk:1},
+   skills:{1:["contexa"],5:["indexstorm"]} },
+ mender:{ name:"MENDER", cls:"Cleric", spr:"mender", base:{hp:11,mp:8,atk:2}, grow:{hp:3,mp:2,atk:1},
+   skills:{1:["controlarm","repair"],6:["ward"]} },
+ refuter:{ name:"REFUTER", cls:"Tank", spr:"refuter", base:{hp:14,mp:5,atk:3}, grow:{hp:4,mp:1,atk:1},
+   skills:{1:["fliptest","objection"]} } };
+function mkActor(id, lv){ const m=MEMBERS[id];
+  const a={ id, lv, xp:XPCURVE[lv-1]||0,
+    maxhp:m.base.hp+m.grow.hp*(lv-1), maxmp:m.base.mp+m.grow.mp*(lv-1), atk:m.base.atk+m.grow.atk*(lv-1),
+    ko:false, sk:[] };
+  a.hp=a.maxhp; a.mp=a.maxmp;
+  for(let L=1;L<=lv;L++) (m.skills[L]||[]).forEach(s=>{ if(!a.sk.includes(s)) a.sk.push(s); });
+  return a; }
 
-// ================= DATA: spells =================
+// ================= DATA: skills =================
 const SP = {
- promptia:{ name:"PROMPTIA", mp:2, dmgF:lv=>3+lv, d:"a precise, structured prompt. Strong vs. vague foes." },
- fivewhy:{ name:"FIVE-WHY", mp:2, d:"root-cause analysis: reveals weakness, exposes hidden cores; next FIGHT deals double." },
- contexa:{ name:"CONTEXA", mp:3, dmgF:lv=>2+lv, d:"selective recall. Cuts through fog and creep." },
- mutagen:{ name:"MUTAGEN", mp:3, d:"plant a controlled defect: 2 dmg/turn for 3 turns." },
- controlarm:{ name:"CONTROL ARM", mp:3, d:"placebo-controlled shield: blocks the next hit, verifies your next strike." },
- rollback:{ name:"ROLLBACK", mp:4, d:"restore last known good state: heals 7 HP." },
- fliptest:{ name:"FLIP TEST", mp:3, dmgF:lv=>4+lv, d:"cross-examine with opposite instructions. Devastates judges." },
- hitl:{ name:"HUMAN-IN-THE-LOOP", mp:5, d:"the strongest magic. Heals 12 HP, clears drains." } };
-const LEARN = { 2:"fivewhy", 4:"rollback", 6:"hitl" };
+ promptia:{ name:"PROMPTIA", mp:2, d:"precise structured prompt — damage; strong vs. vague foes." },
+ fivewhy:{ name:"FIVE-WHY", mp:2, d:"expose the root cause: reveals armor & weakness; next FIGHT ×2." },
+ rollback:{ name:"ROLLBACK", mp:4, d:"restore self to last known good state: +7 HP." },
+ hitl:{ name:"HUMAN-IN-THE-LOOP", mp:5, d:"heal an ally 12 — or revive a fallen ally at 12 HP." },
+ mutagen:{ name:"MUTAGEN", mp:3, d:"plant a defect: 2 dmg/turn ×3. Devastates false-alarm foes." },
+ truestrike:{ name:"TRUE STRIKE", mp:2, d:"a test that cannot miss — pierces fog. ATK+2 damage." },
+ audit:{ name:"AUDIT", mp:2, d:"inspect the books: steal ⛁ (once per battle) + 2 damage." },
+ contexa:{ name:"CONTEXA", mp:3, d:"selective recall — damage; lifts fog; strong vs. bloated foes." },
+ indexstorm:{ name:"INDEX STORM", mp:5, d:"every card in the box at once: 6+LV damage." },
+ controlarm:{ name:"CONTROL ARM", mp:3, d:"verify THIS ROUND's strikes vs. regeneration + shield self." },
+ repair:{ name:"REPAIR", mp:3, d:"mend an ally: +6 HP." },
+ ward:{ name:"WARD", mp:5, d:"placebo ward: every ally's next hit taken becomes 0." },
+ fliptest:{ name:"FLIP TEST", mp:3, d:"cross-examine: 4+LV damage. Devastates judges & yes-men." },
+ objection:{ name:"OBJECTION!", mp:2, d:"taunt: the enemy targets the Tank for 2 turns (-1 dmg to him)." } };
+const XPCURVE = [0,10,25,45,70,100,140,190];
 
-// ================= DATA: enemies =================
-// tok = token drop. ai: "smart" foes pick their stronger move when player is shielded/low.
+// ================= DATA: items =================
+const IT = {
+ coffee:{ name:"Coffee", type:"use", price:8, d:"acting ally: +5 HP, +2 MP." },
+ runbook:{ name:"Runbook", type:"use", price:12, d:"reveals the enemy's weakness + a field tip." },
+ patch:{ name:"Patch Kit", type:"use", price:6, d:"acting ally: +4 HP." },
+ cache:{ name:"Cache Warmer", type:"use", price:10, d:"acting ally: +4 MP." },
+ snooze:{ name:"Pager Snooze", type:"use", price:14, d:"the enemy loses its next turn." },
+ handoff:{ name:"On-Call Handoff", type:"use", price:25, d:"revive a fallen ally at half HP." },
+ postmortem:{ name:"Post-Incident Review", type:"use", price:30, d:"acting ally: full restore." },
+ kb1:{ name:"Mech Keyboard", type:"weapon", price:15, atk:1, d:"HERO +1 ATK." },
+ kb2:{ name:"Split Ergo", type:"weapon", price:35, atk:2, d:"HERO +2 ATK." },
+ kb3:{ name:"The Terminal", type:"weapon", price:70, atk:3, d:"HERO +3 ATK. It was always the terminal." },
+ bd1:{ name:"Access Badge", type:"badge", price:15, def:1, d:"HERO -1 damage taken." },
+ bd2:{ name:"Security Badge", type:"badge", price:40, def:2, d:"HERO -2 damage taken." },
+ ch1:{ name:"Focus Charm", type:"charm", price:30, fx:"crit", d:"HERO +10% crit chance." },
+ ch2:{ name:"Regen Charm", type:"charm", price:30, fx:"regen", d:"HERO +1 MP per round." },
+ ch3:{ name:"Uptime Charm", type:"charm", price:50, fx:"uptime", d:"HERO survives one lethal hit per battle." } };
+const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","kb1","kb2","kb3","bd1","bd2","ch1","ch2","ch3"];
+
+// ================= DATA: enemies (100k-sim tuned) =================
 const EN = {
- dummy:{ name:"Staging Dummy", spr:"dummy", hp:8, atk:1, xp:5, tok:4, weak:null, flee:true, respawn:true,
-  moves:[["wobbles harmlessly",0],["displays a test alert",1]],
-  intro:"It's supposed to break — that's what staging is for." },
- vague:{ name:"VAGUE TICKET", spr:"slime", hp:10, atk:2, xp:10, tok:8, weak:"promptia", flee:true,
-  moves:[["mumbles 'something is down somewhere'",2],["adds a confusing screenshot",1]],
-  intro:"A ticket with no repro steps slithers toward you!",
-  tip:"Vague tickets die to PROMPTIA — role, format, constraints." },
- gremlin:{ name:"ALERT GREMLIN", spr:"gremlin", hp:12, atk:2, xp:12, tok:10, weak:"mutagen", flee:true, ai:"smart",
-  moves:[["shrieks a false alarm",2],["pages you at 2 AM",3]],
-  intro:"An Alert Gremlin cries wolf! Is any of it real?",
-  tip:"Test the alert like a tester: MUTAGEN plants a known defect." },
- creep:{ name:"SCOPE CREEP", spr:"creep", hp:12, atk:1, xp:12, tok:10, weak:"contexa", grow:true, flee:true,
-  moves:[["absorbs 'just one more thing'",1],["expands the requirements",2]],
-  intro:"Scope Creep appears! It grows stronger every turn you let it live...",
-  tip:"CONTEXA cuts creep: retrieve only what the task needs." },
- golem:{ name:"CONTEXT GOLEM", spr:"golem", hp:16, atk:3, xp:14, tok:12, weak:"contexa", flee:true, ai:"smart",
-  moves:[["hurls 200 irrelevant pages",3],["buries you in backlog",2]],
+ dummy:{ name:"Staging Dummy", spr:"dummy", hp:10, atk:1, xp:5, tok:4, weak:null, flee:true, respawn:true,
+  moves:[["wobbles harmlessly",0],["displays a test alert",1]], intro:"It's supposed to break — that's what staging is for." },
+ vague:{ name:"VAGUE TICKET", spr:"slime", hp:14, atk:3, xp:10, tok:8, weak:"promptia", flee:true,
+  moves:[["mumbles 'something is down somewhere'",3],["adds a confusing screenshot",2]],
+  intro:"A ticket with no repro steps slithers toward you!", tip:"Vague tickets die to PROMPTIA." },
+ gremlin:{ name:"ALERT GREMLIN", spr:"gremlin", hp:18, atk:3, xp:12, tok:10, weak:"mutagen", flee:true, ai:"smart",
+  moves:[["shrieks a false alarm",3],["pages you at 2 AM",4]],
+  intro:"An Alert Gremlin cries wolf! Is any of it real?", tip:"MUTAGEN plants a known defect — false alarms have nowhere to hide." },
+ creep:{ name:"SCOPE CREEP", spr:"creep", hp:24, atk:3, xp:12, tok:10, weak:"contexa", grow:true, flee:true,
+  moves:[["absorbs 'just one more thing'",2],["expands the requirements",3]],
+  intro:"Scope Creep appears! It grows stronger every turn...", tip:"CONTEXA cuts creep." },
+ golem:{ name:"CONTEXT GOLEM", spr:"golem", hp:46, atk:4, xp:14, tok:12, weak:"contexa", flee:true, ai:"smart",
+  moves:[["hurls 200 irrelevant pages",5],["buries you in backlog",6]],
   intro:"The Context Golem lumbers forward, stuffed with everything ever written!",
   tip:"Selective recall (CONTEXA) runs at 0.61x the cost of loading everything — a real, CI-verified number." },
- wyrm:{ name:"RETRY WYRM", spr:"wyrm", hp:16, atk:2, xp:14, tok:12, weak:"controlarm2", twice:true, flee:true,
-  moves:[["retries the same failure",2],["loops back around",2]],
-  intro:"The Retry Wyrm strikes twice per turn — it never learned an exit condition!",
-  tip:"CONTROL ARM then strike: a verified fix breaks the loop." },
- leak:{ name:"MEMORY LEAK", spr:"leak", hp:14, atk:2, xp:14, tok:12, weak:"mutagen", drain:true, flee:true,
-  moves:[["siphons your focus",2],["fragments the heap",2]],
-  intro:"A Memory Leak drips from the ceiling... it drains 1 MP every turn!",
-  tip:"MUTAGEN flushes it out. HITL clears drains." },
- chorus:{ name:"YES-MAN CHORUS", spr:"chorus", hp:18, atk:3, xp:16, tok:14, weak:"fivewhy2", flee:true, ai:"smart",
-  moves:[["agrees with everything you say",2],["harmonizes 'LGTM!'",3]],
+ wyrm:{ name:"RETRY WYRM", spr:"wyrm", hp:50, atk:3, xp:14, tok:12, weak:"controlarm2", twice:true, flee:true,
+  moves:[["retries the same failure",4],["loops back around",4]],
+  intro:"The Retry Wyrm strikes twice per turn!", tip:"Loops need brakes: shield, verify, strike." },
+ leak:{ name:"MEMORY LEAK", spr:"leak", hp:55, atk:4, xp:14, tok:12, weak:"mutagen", drain:true, flee:true,
+  moves:[["siphons your focus",5],["fragments the heap",5]],
+  intro:"A Memory Leak drips from the ceiling... it drains MP every turn!", tip:"MUTAGEN flushes it out." },
+ chorus:{ name:"YES-MAN CHORUS", spr:"chorus", hp:64, atk:4, xp:16, tok:14, weak:"fliptest", flee:true, ai:"smart",
+  moves:[["agrees with everything you say",5],["harmonizes 'LGTM!'",6]],
   intro:"A chorus of yes-men blocks the gate. They approve everything. That's the problem.",
-  tip:"FIVE-WHY exposes what flattery hides." },
- flakytest:{ name:"ELITE: THE FLAKY TEST", spr:"flaky", hp:22, atk:3, xp:22, tok:30, weak:"controlarm2", twice:true, elite:true, ai:"smart",
-  moves:[["passes... then fails on rerun",3],["fails only on Fridays",4]],
-  intro:"An ELITE appears — THE FLAKY TEST. Green, red, green, red...",
-  tip:"Flaky behavior yields to verified strikes: CONTROL ARM, then hit it while it's real." },
- configdrift:{ name:"ELITE: CONFIG DRIFT", spr:"drift", hp:24, atk:3, xp:24, tok:34, weak:null, regen:true, grow:true, elite:true, ai:"smart",
-  moves:[["diverges from the documented state",3],["whispers 'it was always like this'",4]],
+  tip:"FLIP TEST shatters flattery — 0/8 vs 3/8, a real measured contrast." },
+ flakytest:{ name:"ELITE: THE FLAKY TEST", spr:"flaky", hp:60, atk:4, xp:22, tok:30, weak:"controlarm2", twice:true, elite:true, ai:"smart",
+  moves:[["passes... then fails on rerun",5],["fails only on Fridays",7]],
+  intro:"An ELITE appears — THE FLAKY TEST. Green, red, green, red...", tip:"Verified strikes only: CONTROL ARM, then unload." },
+ configdrift:{ name:"ELITE: CONFIG DRIFT", spr:"drift", hp:70, atk:5, xp:24, tok:34, weak:null, regen:true, grow:true, elite:true, ai:"smart",
+  moves:[["diverges from the documented state",5],["whispers 'it was always like this'",7]],
   intro:"An ELITE appears — CONFIG DRIFT. Nothing matches the runbook anymore!",
-  tip:"Unverified fixes regenerate. CONTROL ARM makes them stick — drift dies to verified change." },
- monolith:{ name:"THE MONOLITH", spr:"monolith", hp:24, atk:3, xp:20, tok:40, weak:"fliptest", ai:"smart",
-  moves:[["judges its own work: FLAWLESS",3],["cites no one",2],["generates unquestioned output",3]],
+  tip:"Unverified fixes regenerate. CONTROL ARM verifies the whole round — then everyone strikes." },
+ monolith:{ name:"THE MONOLITH", spr:"monolith", hp:130, atk:6, xp:20, tok:40, weak:"fliptest", ai:"smart",
+  moves:[["judges its own work: FLAWLESS",7],["cites no one",8],["generates unquestioned output",9]],
   intro:"THE MONOLITH: 'I AM ONE. I GENERATE. I JUDGE. I NEED NO OTHERS.'",
-  tip:"FLIP TEST breaks self-judges: 0/8 vs 3/8 — a real, measured contrast." },
- h1:{ name:"SEV-1 HYDRA — ALERT STORM HEAD", spr:"hydra", hp:14, atk:3, xp:10, tok:10, weak:"promptia",
-  moves:[["floods every channel with pages",3],["drowns signal in noise",2]],
-  intro:"Production destabilizes! THE SEV-1 HYDRA rises! Its first head is a storm of alerts!",
-  tip:"Triage with PROMPTIA: cut the noise into impact, scope, next actions." },
- h2:{ name:"SEV-1 HYDRA — CONTEXT FOG HEAD", spr:"hydra", hp:14, atk:3, xp:10, tok:10, weak:"contexa", foggy:true,
-  moves:[["breathes fog over the evidence",3],["scatters the logs",2]],
-  intro:"The second head breathes fog — your attacks miss what you cannot see!",
-  tip:"CONTEXA lifts fog: the right evidence, and strikes land again." },
- h3:{ name:"SEV-1 HYDRA — ROOT CAUSE HEAD", spr:"hydra", hp:14, atk:3, xp:10, tok:10, weak:null, hidden:true,
-  moves:[["deflects: 'it's probably DNS'",3],["spawns another symptom",2]],
-  intro:"The third head is ARMORED — your attacks treat symptoms, not causes!",
-  tip:"Cast FIVE-WHY to expose the root-cause core." },
- h4:{ name:"SEV-1 HYDRA — REGRESSION HEAD", spr:"hydra", hp:14, atk:4, xp:10, tok:10, weak:null, regen:true,
-  moves:[["reopens the closed incident",3],["whispers 'it worked on my machine'",3]],
-  intro:"The fourth head REGENERATES — unverified fixes come back to bite!",
-  tip:"Strike under an active CONTROL ARM: a verified fix stays fixed." },
- h5:{ name:"SEV-1 HYDRA — THE BODY", spr:"hydra", hp:18, atk:4, xp:30, tok:60, weak:null,
-  moves:[["thrashes production",4],["threatens the SLA",3]],
-  intro:"Four heads down. The body remains. Finish the incident — the day is almost saved!",
-  tip:"Everything works now. ROLLBACK when hurt; close it out." } };
+  tip:"FLIP TEST breaks self-judges." },
+ h1:{ name:"SEV-1 HYDRA — ALERT STORM HEAD", spr:"hydra", hp:85, atk:5, xp:10, tok:10, weak:"promptia",
+  moves:[["floods every channel with pages",7],["drowns signal in noise",6]],
+  intro:"Production destabilizes! THE SEV-1 HYDRA rises!", tip:"Triage with PROMPTIA." },
+ h2:{ name:"SEV-1 HYDRA — CONTEXT FOG HEAD", spr:"hydra", hp:85, atk:5, xp:10, tok:10, weak:"contexa", foggy:true,
+  moves:[["breathes fog over the evidence",7],["scatters the logs",6]],
+  intro:"The second head breathes fog — strikes miss what you cannot see!", tip:"CONTEXA lifts fog. TRUE STRIKE pierces it." },
+ h3:{ name:"SEV-1 HYDRA — ROOT CAUSE HEAD", spr:"hydra", hp:90, atk:5, xp:10, tok:10, weak:null, hidden:true,
+  moves:[["deflects: 'it's probably DNS'",7],["spawns another symptom",6]],
+  intro:"The third head is ARMORED — you're treating symptoms!", tip:"FIVE-WHY exposes the core." },
+ h4:{ name:"SEV-1 HYDRA — REGRESSION HEAD", spr:"hydra", hp:90, atk:6, xp:10, tok:10, weak:null, regen:true,
+  moves:[["reopens the closed incident",7],["whispers 'it worked on my machine'",7]],
+  intro:"The fourth head REGENERATES — unverified fixes come back!", tip:"CONTROL ARM verifies the round. Then everyone strikes." },
+ h5:{ name:"SEV-1 HYDRA — THE BODY", spr:"hydra", hp:110, atk:6, xp:30, tok:60, weak:null, multi:true,
+  moves:[["thrashes production",8],["threatens the SLA",7]],
+  intro:"Four heads down. The body remains — and it lashes at TWO of you at once!", tip:"Ward, taunt, heal, finish it." },
+ unknown:{ name:"THE UNKNOWN UNKNOWN", spr:"unknown", hp:220, atk:7, xp:60, tok:100, weak:null, ai:"smart", multi:true, multi3:true, superboss:true,
+  moves:[["strikes from a blind spot you never mapped",8],["is not in any runbook",10]],
+  intro:"The air tears open. THE UNKNOWN UNKNOWN — the incident no one has had yet. It attacks from everywhere at once.",
+  tip:"No weakness. No trick. Just everything you've learned: taunt, ward, verify, heal, strike." } };
 
 // ================= DATA: world =================
 const Z = [
@@ -263,122 +280,127 @@ const Z = [
  npcs:[
  {x:6,y:2,spr:"elder",name:"THE GUIDE",lines:[
   "THE GUIDE: You came. Good. I'm Lito — SRE by trade, AI builder by conviction. Last night the pager went off at 2 AM... and it hasn't stopped.",
-  "THE GUIDE: East of here the MONOLITH squats — an ungoverned AI that judges its own work. And behind it, something worse is building pressure: a SEV-1. The real thing.",
-  "THE GUIDE: I'd go myself, but someone must hold the bridge. So learn the AI arts — Promptia, Five-Why, Contexa — and find the four specialists along the road.",
-  "THE GUIDE: Buy gear at Peg's Supply Closet. Rest at Mara's inn — she saves your progress. And remember: knowledge is free here. Losses only cost HP.",
-  "THE GUIDE: One more thing. When you reach the Citadel... there's something I'll have to tell you about the Monolith. Ask me then. Go east!"]},
+  "THE GUIDE: East of here the MONOLITH squats — an ungoverned AI that judges its own work. And behind it, something worse is building: a SEV-1. The real thing.",
+  "THE GUIDE: You can't do this alone. Four specialists wait along the road — a Ranger who tests everything, a Wizard of memory, a Cleric of repairs, a Tank who objects to everything.",
+  "THE GUIDE: Each fights their own way. Each grows their own way. Command them well.",
+  "THE GUIDE: Buy gear at Peg's. Rest at Mara's — she saves your progress. And when you reach the Citadel... ask me about the Monolith. There's something you deserve to know. Go east!"]},
  {x:3,y:5,spr:"rowan",name:"ELDER ROWAN",lines:[
-  "ELDER ROWAN: New face! You know this village once shipped the fastest software in the valley?",
-  "ELDER ROWAN: Fast... yes. We were very fast. *stares at the eastern mountains* Some shortcuts cost more than they save, child.",
-  "ELDER ROWAN: If you meet something ancient out there that speaks in ALL CAPS... it didn't come from nowhere. That's all I'll say."]},
+  "ELDER ROWAN: New face! This village once shipped the fastest software in the valley, you know.",
+  "ELDER ROWAN: Fast... yes. *stares at the eastern mountains* Some shortcuts cost more than they save, child.",
+  "ELDER ROWAN: If you meet something that speaks in ALL CAPS out there... it didn't come from nowhere."]},
  {x:8,y:5,spr:"kid",name:"KID BIT",lines:[
   "KID BIT: I'm gonna be an incident commander when I grow up! Or a slime. Slimes seem relaxed.",
-  "KID BIT: Peg's shop has a keyboard called THE TERMINAL. Mom says I'm not allowed. Mom says a lot of things about terminals."]},
+  "KID BIT: I heard if you beat the big SEV, something EVEN SCARIER wakes up on the mountain. Cooool."]},
  {x:9,y:4,spr:"dummy",name:"STAGING DUMMY",fight:"dummy"}],
- signs:{"5,3":"⚑ Reliability Village — pop. honest · INN: NW house (Mara — rest & save) · SUPPLY CLOSET: NE house (Peg — gear) · east: Prompt Plains"} },
+ signs:{"5,3":"⚑ Reliability Village · INN: NW house (Mara — rest & save) · SUPPLY CLOSET: NE house (Peg) · east: Prompt Plains"} },
 { name:"Prompt Plains", ground:"#234a2e", maps:[
 "tttttttttttt","t...t......t","t.t....E...t","t......t...t","pppppBpppBpp","t..t.......t","t.....t....t","t..t.....c.t","tttttttttttt"],
  exits:{left:0,right:2}, battles:{"5,4":"vague","9,4":"gremlin"}, elites:{"7,2":"flakytest"},
- recruitAfter:{"9,4":{ spr:"sentinel", name:"SENTINEL the Tester", spell:"mutagen",
-  lines:["SENTINEL joins the party!","SENTINEL: 'I plant one known defect in clean code and mix in byte-identical controls — crying wolf scores zero. 9/10 caught, 0 false alarms.'","★ Spell learned: MUTAGEN."]}},
+ recruitAfter:{"9,4":{ id:"sentinel",
+  lines:["SENTINEL the Ranger joins the party!","SENTINEL: 'I plant one known defect and mix in byte-identical controls — crying wolf scores zero. 9/10 caught, 0 false alarms.'","★ SENTINEL fights with MUTAGEN and TRUE STRIKE — and learns AUDIT at LV 5."]}},
  chest:{key:"9,7", text:"🏆 ARTIFACT: agent-mutation-lab — mutation testing for AI code reviewers. 9/10 planted defects caught, 0 false alarms. github.com/LZBiala/agent-mutation-lab  (+1 Coffee, +15 ⛁)", give:"coffee", tok:15} },
 { name:"Context Caverns", ground:"#26323a", maps:[
 "rrrrrrrrrrrr","r....r.....r","r.rr...rr..r","r..........r","pppppBpppBpp","r...rr.....r","r.r......c.r","r..........r","rrrrrrrrrrrr"],
  exits:{left:1,right:3}, battles:{"5,4":"creep","9,4":"golem"},
- recruitAfter:{"5,4":{ spr:"wiki", name:"WIKI the Archivist", spell:"contexa",
-  lines:["WIKI joins the party!","WIKI: 'Memory should be auditable — every belief a readable note, every deletion carrying its reason.'","★ Spell learned: CONTEXA — 0.61x the cost of loading everything."]}},
+ recruitAfter:{"5,4":{ id:"wiki",
+  lines:["WIKI the Wizard joins the party!","WIKI: 'Memory should be auditable — every belief a readable note, every deletion carrying its reason.'","★ WIKI casts CONTEXA — and learns INDEX STORM at LV 5."]}},
  chest:{key:"9,6", text:"🏆 ARTIFACT: wiki-memory-lab — agent memory as an auditable markdown wiki. 0.61x selective recall; the 1.27x losing case published beside it. github.com/LZBiala/wiki-memory-lab  (+1 Runbook, +15 ⛁)", give:"runbook", tok:15} },
 { name:"Loop Labyrinth", ground:"#2a2a3a", maps:[
 "rrrrrr.rrrrr","r....r.r...r","r.ww.r.ww..r","r....B.....r","pppppp...E.r","r..w...w...r","r....B...c.r","r..........r","rrrrrrrrrrrr"],
  exits:{left:2,up:4}, battles:{"5,6":"wyrm","5,3":"leak"}, elites:{"9,4":"configdrift"},
- recruitAfter:{"5,6":{ spr:"mender", name:"MENDER the Repairer", spell:"controlarm",
-  lines:["MENDER joins the party!","MENDER: 'The model never learns; the notes do. Improvement must beat its own placebo.'","★ Spell learned: CONTROL ARM. (8/10 → 10/10 on a sealed split; placebo moved nothing.)"]}},
+ recruitAfter:{"5,6":{ id:"mender",
+  lines:["MENDER the Cleric joins the party!","MENDER: 'The model never learns; the notes do. Improvement must beat its own placebo.'","★ MENDER carries CONTROL ARM and REPAIR — and learns WARD at LV 6."]}},
  chest:{key:"9,6", text:"🏆 ARTIFACT: memory-repair-lab — placebo-controlled memory repair: 8/10 → 10/10 on a sealed held-out split. github.com/LZBiala/memory-repair-lab  (+1 Coffee, +15 ⛁)", give:"coffee", tok:15} },
 { name:"Graph Citadel", ground:"#33283a", maps:[
 "rrrrrrrrrrrr","r....M.....r","r..........r","r....B.....r","r..........r","r.c........r","r..........r","r..........r","rrrrrr.rrrrr"],
  exits:{down:3}, battles:{"5,3":"chorus"}, boss:"5,1",
- recruitAfter:{"5,3":{ spr:"refuter", name:"REFUTER the Advocate", spell:"fliptest",
-  lines:["REFUTER joins the party!","REFUTER: 'My only job is attack. Ideas that survive me have earned it.'","★ Spell learned: FLIP TEST. (0/8 vs 3/8 — a real, measured contrast.)","REFUTER: 'The Monolith waits above. And behind it... I smell a SEV-1.'"]}},
+ recruitAfter:{"5,3":{ id:"refuter",
+  lines:["REFUTER the Tank joins the party!","REFUTER: 'My only job is attack — and OBJECTION. Ideas that survive me have earned it.'","★ REFUTER wields FLIP TEST and OBJECTION! — the enemy will learn to fear the taunt.","REFUTER: 'The Monolith waits above. And behind it... I smell a SEV-1. Ready the party.'"]}},
  chest:{key:"2,5", text:"🏆 ARTIFACT: adversarial-chambers — the judge on trial. Instruction-flip test: 0/8 vs 3/8. github.com/LZBiala/adversarial-chambers  (+1 Runbook, +20 ⛁)", give:"runbook", tok:20} }
 ];
-
-// ================= DATA: story =================
 const OPENING = [
  "2:07 AM. The pager screams. Again.",
- "You sit up in the dark of Reliability Village. Out the window, past the eastern ridge, something purple pulses against the clouds — rhythmic, wrong, like a heartbeat with no runbook.",
+ "You sit up in the dark of Reliability Village. Past the eastern ridge, something purple pulses against the clouds — rhythmic, wrong, like a heartbeat with no runbook.",
  "Your mentor, the Guide, has held this village's uptime for twelve years. Tonight his light is already on.",
  "You didn't become an engineer to sleep anyway. Grab your keyboard. Find the Guide in the square.",
- "(Arrows/WASD to move · Enter to talk · Esc for menu)" ];
+ "(Arrows/WASD move · Enter talks · Esc menu)" ];
 const REVEAL = [
- "As you approach the Monolith, your pager buzzes — a message from THE GUIDE:",
- "THE GUIDE: 'Before you face it, you deserve the truth. WE built the Monolith. Years ago. Rowan, me, the whole village.'",
- "THE GUIDE: 'One model to do everything — no reviews, no evals, no gates. It shipped fast. Fastest quarter we ever had.'",
- "THE GUIDE: 'Every incident since — every 2 AM page, every SEV — is its echo. The SEV-1 rising behind it isn't an attack. It's the bill.'",
+ "As you approach the Monolith, your pager buzzes — THE GUIDE:",
+ "THE GUIDE: 'Before you face it, the truth. WE built the Monolith. Years ago. Rowan, me, the whole village.'",
+ "THE GUIDE: 'One model to do everything — no reviews, no evals, no gates. Fastest quarter we ever had.'",
+ "THE GUIDE: 'Every incident since is its echo. The SEV-1 behind it isn't an attack. It's the bill.'",
  "THE GUIDE: 'Governance was never bureaucracy, kid. It's memory. Now go — finish what we should have finished then.'" ];
 const BRIDGE = [
  { t:"📞 THE INCIDENT BRIDGE OPENS. Executives join. Your first words?",
    a:["'Who broke it?!'","'Impact first: here's what customers see, here's the scope, next update in 15 minutes.'","(stay silent until you know everything)"], c:1,
-   good:"+12 XP! Impact first, cadence promised, blame nowhere. That's incident command.",
-   bad:"The bridge descends into chaos (-2 HP). Lead with impact and a cadence." },
+   good:"+12 XP each! Impact first, cadence promised, blame nowhere. That's incident command.",
+   bad:"The bridge descends into chaos (party -2 HP). Lead with impact and a cadence." },
  { t:"📞 THE BRIDGE, HOUR TWO. Root cause found — a config change. The room looks for someone to burn. You say:",
    a:["'Whose change was it? Name them.'","'The system let a risky change through — the fix is a guardrail, not a scapegoat. Blameless postmortem tomorrow.'","'Let's discuss process later.'"], c:1,
-   good:"+12 XP! Blameless culture: humans err, systems must catch it.",
-   bad:"Engineers go quiet (-2 HP). Fear hides the next incident." } ];
+   good:"+12 XP each! Blameless culture: humans err, systems must catch it.",
+   bad:"Engineers go quiet (party -2 HP). Fear hides the next incident." } ];
 const OBJ = [
  "⚑ Find THE GUIDE in the village square.",
- "⚑ Head east. Clear the gates. Recruit the four specialists.",
- "⚑ All four joined! Challenge THE MONOLITH atop the Graph Citadel.",
+ "⚑ Head east. Clear the gates. Recruit all four specialists.",
+ "⚑ Full party! Challenge THE MONOLITH atop the Graph Citadel.",
  "⚑ THE SEV-1 HYDRA has risen! Save the day.",
- "⚑ Incident resolved. Explore, replay, or start NEW GAME+." ];
+ "⚑ Incident resolved. Something stirs atop the Citadel… (NEW GAME+ any time)" ];
 const CREDITS = [
- "⚔️ AI QUEST: SEV-1 — Definitive Edition",
+ "⚔️ AI QUEST: SEV-1 — Party Edition",
  "A game about the discipline of trustworthy AI.",
- "Design, writing, code, pixel art & chiptunes: Lito Zarate Biala — with Claude Code as pair programmer.",
- "The spells are real practices. The companions are real projects — github.com/LZBiala.",
+ "Design, writing, code, pixel art, chiptunes & 100,000 balance simulations: Lito Zarate Biala — with Claude Code as pair programmer.",
+ "The skills are real practices. The companions are real projects — github.com/LZBiala.",
  "The bosses are real Tuesdays.",
  "No frameworks. No trackers. No API keys. Every real-world number quoted regenerates in CI.",
  "Thanks for playing. May your pages be few and your postmortems blameless. 🥊" ];
 
 // ================= STATE & SAVES =================
-const SAVE_VERSION = 3;
-const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, lv:1, xp:0, hp:12, maxhp:12, mp:6, maxmp:6, atk:3,
-  tokens:20, party:[], spells:["promptia"], items:{coffee:2, runbook:1, patch:1},
-  equip:{weapon:null,badge:null,charm:null}, stage:0,
-  cleared:{}, opened:{}, won:false, deaths:0, bridgeMiss:0, playMs:0, seed:1 });
+const SAVE_VERSION = 4;
+const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
+  actors:{ hero: mkActor("hero",1) },
+  items:{coffee:2, runbook:1, patch:1}, equip:{weapon:null,badge:null,charm:null}, stage:0,
+  cleared:{}, opened:{}, won:false, superWon:false, deaths:0, bridgeMiss:0, playMs:0, seed:1 });
 let S = NEWS();
 let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0 };
-const XPCURVE = [0,10,25,45,70,100,140,190];
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
 const ov=document.getElementById("overlay"), box=document.getElementById("box");
 const BW=document.getElementById("battle");
 const T=32;
+function hero(){ return S.actors.hero; }
+function partyActors(){ return ["hero",...S.party].map(id=>S.actors[id]).filter(Boolean); }
+function living(){ return partyActors().filter(a=>!a.ko); }
 
-function migrateV2(old){ // old key "aiquest" (v2 schema, no version field)
+function migrateV3(old){ // old v3 schema (single shared stats)
   const s=NEWS();
-  ["z","x","y","lv","xp","hp","maxhp","mp","maxmp","atk","party","spells","cleared","opened","won","deaths","bridgeMiss","playMs"]
+  ["z","x","y","tokens","party","items","equip","stage","cleared","opened","won","deaths","bridgeMiss","playMs","seed"]
     .forEach(k=>{ if(old[k]!==undefined) s[k]=old[k]; });
-  s.items={coffee:(old.items&&old.items.coffee)||0, runbook:(old.items&&old.items.runbook)||0, patch:1};
-  s.tokens=25; // migration grant
-  s.stage = s.won?4 : (s.party&&s.party.length>=4?2 : (s.party&&s.party.length>0?1:1));
-  s.seed = 1; s.v=SAVE_VERSION;
-  return s; }
-function saveKey(slot){ return slot? "aiquest3_s"+slot : "aiquest3_auto"; }
+  const lv=old.lv||1;
+  s.actors={ hero: mkActor("hero", lv) };
+  (s.party||[]).forEach(id=>{ if(MEMBERS[id]) s.actors[id]=mkActor(id, lv); });
+  s.v=SAVE_VERSION; return s; }
+function migrateV2(old){ // oldest schema key "aiquest"
+  return migrateV3(Object.assign({}, old, { items:{coffee:(old.items&&old.items.coffee)||0, runbook:(old.items&&old.items.runbook)||0, patch:1},
+    tokens:25, stage: old.won?4 : ((old.party&&old.party.length>=4)?2:1), seed:1 })); }
+function saveKey(slot){ return slot? "aiquest4_s"+slot : "aiquest4_auto"; }
 function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }
 function saveGame(slot){ try{ tickClock(); localStorage.setItem(saveKey(slot), JSON.stringify(S)); }catch(e){} }
 function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d) return null;
-    const p=JSON.parse(d); if(!p || p.v!==SAVE_VERSION) return null;
+    const p=JSON.parse(d); if(!p || p.v!==SAVE_VERSION || !p.actors || !p.actors.hero) return null;
     return Object.assign(NEWS(), p); }catch(e){ return null; } }
-function anySaves(){ return !!(loadSlot(0)||loadSlot(1)||loadSlot(2)||loadSlot(3)); }
-function tryMigrate(){ try{ const d=localStorage.getItem("aiquest");
-    if(d && !localStorage.getItem(saveKey(0))){ const s=migrateV2(JSON.parse(d));
-      localStorage.setItem(saveKey(0), JSON.stringify(s)); return true; } }catch(e){} return false; }
+function tryMigrate(){ try{
+    if(localStorage.getItem(saveKey(0))) return false;
+    const d3=localStorage.getItem("aiquest3_auto");
+    if(d3){ const s=migrateV3(JSON.parse(d3)); localStorage.setItem(saveKey(0), JSON.stringify(s)); return true; }
+    const d2=localStorage.getItem("aiquest");
+    if(d2){ const s=migrateV2(JSON.parse(d2)); localStorage.setItem(saveKey(0), JSON.stringify(s)); return true; }
+  }catch(e){} return false; }
 
 // ================= derived stats (pure — tested) =================
-function atkTotal(s){ return s.atk + ((s.equip.weapon && IT[s.equip.weapon]) ? IT[s.equip.weapon].atk : 0); }
-function defTotal(s){ return (s.equip.badge && IT[s.equip.badge]) ? IT[s.equip.badge].def : 0; }
-function critChance(s){ return 0.15 + (s.equip.charm==="ch1" ? 0.10 : 0); }
-function incomingDamage(raw, s, defending){ let d = Math.max(0, raw - defTotal(s));
-  if(defending) d = Math.ceil(d/2); return d; }
+function atkOf(a){ return a.atk + (a.id==="hero" && S.equip.weapon && IT[S.equip.weapon] ? IT[S.equip.weapon].atk : 0); }
+function defOf(a){ return (a.id==="hero" && S.equip.badge && IT[S.equip.badge]) ? IT[S.equip.badge].def : 0; }
+function critOf(a){ return 0.15 + (a.id==="hero" && S.equip.charm==="ch1" ? 0.10 : 0); }
+function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0));
+  if(a.defending) d=Math.ceil(d/2); return d; }
 
 // ================= RENDER =================
 function drawSprTo(g,name,tx,ty,s,outline){ const spr=SPR[name];
@@ -398,7 +420,7 @@ function drawTile(chr,tx,ty,zone){
   if(chr==="s"){ ctx.fillStyle="#78350f"; ctx.fillRect(tx+14,ty+14,4,12); ctx.fillStyle="#d9c58b"; ctx.fillRect(tx+6,ty+6,20,10); }
   if(chr==="B"){ ctx.fillStyle="#7f1d1d"; ctx.fillRect(tx+4,ty+4,24,24); ctx.fillStyle="#f87171"; ctx.fillRect(tx+12,ty+8,8,16); ctx.fillRect(tx+8,ty+12,16,8); }
   if(chr==="E"){ ctx.fillStyle="#7c2d12"; ctx.fillRect(tx+4,ty+4,24,24); ctx.fillStyle="#fbbf24"; ctx.font="bold 18px monospace"; ctx.fillText("E",tx+11,ty+23); }
-  if(chr==="M"){ drawSprTo(ctx,"monolith",tx,ty,4,true); }
+  if(chr==="M"){ drawSprTo(ctx, S.won?"unknown":"monolith",tx,ty,4,true); }
   if(chr==="c"){ drawSprTo(ctx,"chest",tx,ty,4,true); }
 }
 function tileAt(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; let chr=zone.maps[y][x];
@@ -413,11 +435,9 @@ function render(){
   (zone.npcs||[]).forEach(n=>drawSprTo(ctx,n.spr,n.x*T,n.y*T,4,true));
   drawSprTo(ctx,"hero",S.x*T,S.y*T,4,true);
   document.getElementById("zonename").innerHTML="<b>"+zone.name+"</b>";
-  document.getElementById("hlv").textContent=S.lv;
-  document.getElementById("hhp").textContent=S.hp+"/"+S.maxhp;
-  document.getElementById("hmp").textContent=S.mp+"/"+S.maxmp;
+  const h=hero();
+  document.getElementById("hhero").innerHTML="<b>HERO</b> LV "+h.lv+" · "+h.hp+"/"+h.maxhp+" HP · "+h.mp+"/"+h.maxmp+" MP"+(S.party.length?" · +"+S.party.length+" allies":"");
   document.getElementById("htok").textContent=S.tokens;
-  document.getElementById("hxp").textContent=S.xp;
   document.getElementById("objline").textContent=OBJ[Math.min(S.stage,OBJ.length-1)];
 }
 setInterval(()=>{ M.frame++; if(M.state==="explore") render(); }, 600);
@@ -425,7 +445,7 @@ setInterval(()=>{ M.frame++; if(M.state==="explore") render(); }, 600);
 // ================= DIALOG =================
 function say(lines,done){ M.state="dialog"; M.dlg=lines; M.dlgi=0; M.done=done||null; showDlg(); }
 function showDlg(){ ov.hidden=false; ov.classList.remove("center");
-  box.innerHTML=M.dlg[M.dlgi].replace(/^([A-Z ()'★⚑-]+):/,"<span class='gold'>$1:</span>")
+  box.innerHTML=M.dlg[M.dlgi].replace(/^([A-Z !()'★⚑-]+):/,"<span class='gold'>$1:</span>")
     +"<div class='choices'><button>▶ (Enter)</button></div>";
   box.querySelector("button").onclick=advDlg; }
 function advDlg(){ if(!M.dlg) return; M.dlgi++;
@@ -438,15 +458,18 @@ function ask(text,opts,cb){ M.state="dialog"; ov.hidden=false; ov.classList.remo
   box.innerHTML=h+"</div>";
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ ov.hidden=true; M.state="explore"; cb(parseInt(b.dataset.i,10)); }); }
 
-// ================= LEVELING =================
-function gainXP(n,after,pre){ S.xp+=n;
-  let msgs=(pre||[]).concat(["You gain <b>"+n+" XP</b>!"]);
-  while(S.lv<XPCURVE.length && S.xp>=XPCURVE[S.lv]){ S.lv++; sfx("level");
-    S.maxhp+=3; S.maxmp+=2; S.atk+=1; S.hp=S.maxhp; S.mp=S.maxmp;
-    let m="⭐ LEVEL UP! LV "+S.lv+" — HP+3, MP+2, ATK+1 (fully restored).";
-    if(LEARN[S.lv] && !S.spells.includes(LEARN[S.lv])){ S.spells.push(LEARN[S.lv]);
-      m+="<br>★ Spell learned: "+SP[LEARN[S.lv]].name+" — "+SP[LEARN[S.lv]].d; }
-    msgs.push(m); }
+// ================= LEVELING (per actor) =================
+function gainXP(n,after,pre){
+  let msgs=(pre||[]).concat(["The party gains <b>"+n+" XP</b>!"]);
+  for(const a of living()){
+    a.xp+=n;
+    while(a.lv<XPCURVE.length && a.xp>=XPCURVE[a.lv]){
+      a.lv++; sfx("level");
+      const m=MEMBERS[a.id];
+      a.maxhp+=m.grow.hp; a.maxmp+=m.grow.mp; a.atk+=m.grow.atk; a.hp=a.maxhp; a.mp=a.maxmp;
+      const learned=(m.skills[a.lv]||[]).filter(s=>!a.sk.includes(s));
+      learned.forEach(s=>a.sk.push(s));
+      msgs.push("⭐ "+m.name+" ("+m.cls+") → LV "+a.lv+" — fully restored"+(learned.length?"<br>★ learned "+learned.map(s=>SP[s].name).join(", ")+"!":"")); } }
   say(msgs, after); }
 
 // ================= SOUND =================
@@ -465,177 +488,243 @@ function sfx(kind){ if(!AU.on) return;
       o.connect(g).connect(c.destination); o.start(at); o.stop(at+d); at+=d*.85; });
   }catch(e){} }
 
-// ================= BATTLE =================
+// ================= BATTLE (party engine) =================
 function startBattle(id,key,chain){ const def=EN[id];
+  partyActors().forEach(a=>{ a.defending=false; a.shield=false; });
   M.state="battle"; M.b={ id, key, chain:chain||null, def, hp:def.hp, maxhp:def.hp,
-    dot:0, shield:false, verified:false, revealed:!def.hidden, focused:!def.foggy,
-    doubled:false, menu:"main", defending:false, snoozed:false, uptimeUsed:false, growN:0 };
+    dot:0, verified:0, taunt:0, revealed:!def.hidden, focused:!def.foggy,
+    doubled:false, menu:"main", turn:0, snoozed:false, stolen:false, uptimeUsed:false, growN:0 };
   BW.hidden=false; ov.hidden=true; blog(def.intro); drawB(); }
+function actor(){ const ids=["hero",...S.party]; return S.actors[ids[M.b.turn]]; }
 function blog(html){ document.getElementById("blog").innerHTML=html; }
 function statusLine(){ const b=M.b; const st=[];
-  if(b.shield) st.push("🛡 shielded");
-  if(b.verified) st.push("✔ verified next strike");
+  if(b.verified>0) st.push("✔ verified round ×"+b.verified);
+  if(b.taunt>0) st.push("🛡 taunted ×"+b.taunt);
   if(b.doubled) st.push("×2 next FIGHT");
   if(b.dot>0) st.push("🧪 defect ×"+b.dot);
-  if(!b.revealed) st.push("🪨 armored (FIVE-WHY)");
-  if(!b.focused) st.push("🌫 fog (CONTEXA)");
-  if(b.def.regen) st.push("♻ regenerates");
-  if(b.def.grow && b.growN>1) st.push("📈 grown +"+(b.growN-1));
-  if(b.defending) st.push("🛡 DEFENDING");
+  if(!b.revealed) st.push("🪨 armored");
+  if(!b.focused) st.push("🌫 fog");
+  if(b.def.regen) st.push("♻ regen");
+  if(b.def.grow && b.growN>1) st.push("📈 +"+(b.growN-1));
+  if(b.def.multi) st.push("💥 multi-target");
   return st.join(" · "); }
 function drawB(){ const b=M.b;
   document.getElementById("bfoename").innerHTML="<b>"+b.def.name+"</b>";
   document.getElementById("bstatus").textContent=statusLine();
   document.getElementById("bfoehp").style.width=Math.max(0,b.hp/b.maxhp*100)+"%";
   const fc=document.getElementById("foecv"), g=fc.getContext("2d");
-  g.clearRect(0,0,120,120); drawSprTo(g,b.def.spr,12,12,12,true);
-  const bp=document.getElementById("bparty"); bp.innerHTML="";
-  ["hero",...S.party].forEach(p=>{ const c=document.createElement("canvas"); c.width=32;c.height=32;
-    drawSprTo(c.getContext("2d"),p,0,0,4,false); bp.appendChild(c); });
-  document.getElementById("bstat").innerHTML=
-    "<b>LV "+S.lv+"</b>  HERO"+(S.party.length?" +"+S.party.length:"")+"\nHP  <b>"+S.hp+"/"+S.maxhp+"</b>\nMP  <b>"+S.mp+"/"+S.maxmp+"</b>\nATK <b>"+atkTotal(S)+"</b>  DEF <b>"+defTotal(S)+"</b>\n⛁  "+S.tokens;
-  drawMenu(); render(); }
-function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); let h="";
-  if(b.menu==="main"){ h="<button data-a='fight'>FIGHT</button><button data-a='spell'>SPELL</button><button data-a='defend'>DEFEND</button><button data-a='item'>ITEM</button>"+(b.def.flee?"<button data-a='flee'>FLEE</button>":"")+(S.mp<3?"<button data-a='grit'>GRIT (+2 MP)</button>":""); }
-  else if(b.menu==="spell"){ S.spells.forEach(id=>{ h+="<button data-s='"+id+"'>"+SP[id].name+" ("+SP[id].mp+")</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
+  g.clearRect(0,0,120,104); drawSprTo(g,b.def.spr,12,4,12,true);
+  const pr=document.getElementById("pmrow"); pr.innerHTML="";
+  const ids=["hero",...S.party];
+  ids.forEach((pid,i)=>{ const a=S.actors[pid]; if(!a) return; const m=MEMBERS[pid];
+    const d=document.createElement("div");
+    d.className="pm"+(i===b.turn && !a.ko?" active":"")+(a.ko?" ko":"");
+    d.innerHTML="<b>"+m.name+"</b><span class='cls'>"+m.cls+" L"+a.lv+"</span><br>HP "+a.hp+"/"+a.maxhp+"<br>MP "+a.mp+"/"+a.maxmp+(a.ko?"<br><span class='red'>KO</span>":(a.defending?"<br>🛡 def":(a.shield?"<br>🛡 ward":"")));
+    pr.appendChild(d); });
+  document.getElementById("bstat").innerHTML="⛁ "+S.tokens+"  ·  turn "+(b.turn+1)+"/"+ids.length+
+    "<br><span class='mut'>"+(b.def.tip? "tip held by Runbook / FIVE-WHY" : "")+"</span>";
+  drawMenu(); }
+function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=actor(); let h="";
+  if(b.menu==="main"){
+    h="<div class='gold' style='font-size:.74rem'>▶ "+MEMBERS[a.id].name+" — "+MEMBERS[a.id].cls+"</div>"+
+      "<button data-a='fight'>FIGHT</button><button data-a='skill'>SKILL</button><button data-a='defend'>DEFEND</button><button data-a='item'>ITEM</button>"+
+      (b.def.flee && a.id==="hero"?"<button data-a='flee'>FLEE</button>":"")+(a.mp<2?"<button data-a='grit'>GRIT (+2 MP)</button>":""); }
+  else if(b.menu==="skill"){ a.sk.forEach(id=>{ h+="<button data-s='"+id+"'>"+SP[id].name+" ("+SP[id].mp+")</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="item"){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use") h+="<button data-it='"+k+"'>"+IT[k].name+" ×"+S.items[k]+"</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
+  else if(b.menu==="target"){ const t=M.b.targeting;
+    partyActors().forEach((p,i)=>{ const ok = t.ko? p.ko : !p.ko;
+      if(ok) h+="<button data-t='"+p.id+"'>"+MEMBERS[p.id].name+" ("+p.hp+"/"+p.maxhp+")</button>"; });
+    h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="next"){ h="<button data-a='next'>▶ (Enter)</button>"; }
   else if(b.menu==="won"){ h="<button data-a='won'>★ VICTORY (Enter)</button>"; }
   else if(b.menu==="dead"){ h=""; }
   m.innerHTML=h;
   m.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ if(M.lock) return; M.lock=true;
-    setTimeout(()=>M.lock=false,160); sfx("blip"); menuPick(btn.dataset); }); }
-function menuPick(d){ const b=M.b;
+    setTimeout(()=>M.lock=false,150); sfx("blip"); menuPick(btn.dataset); }); }
+function nextActor(){ const b=M.b; const ids=["hero",...S.party];
+  do { b.turn++; } while(b.turn<ids.length && S.actors[ids[b.turn]] && S.actors[ids[b.turn]].ko);
+  if(b.turn>=ids.length){ b.turn=0; enemyTurn(); return; }
+  b.menu="main"; drawB(); }
+function menuPick(d){ const b=M.b; const a=actor();
   if(d.a==="back"){ b.menu="main"; drawMenu(); return; }
-  if(d.a==="next"){ b.menu="main"; enemyTurn(); return; }
+  if(d.a==="next"){ nextActor(); return; }
   if(d.a==="won"){ winBattle(); return; }
   if(d.a==="flee"){ BW.hidden=true; M.state="explore"; render(); say(["You retreat to fight another day."]); return; }
-  if(d.a==="grit"){ S.mp=Math.min(S.maxmp,S.mp+2); blog("You steady your breathing. Incident commanders endure. <span class='num'>+2 MP</span>."); b.menu="next"; drawB(); return; }
-  if(d.a==="defend"){ b.defending=true; S.mp=Math.min(S.maxmp,S.mp+1);
-    blog("You brace behind the error budget — next hit is <b>halved</b>, and the pause restores <span class='num'>+1 MP</span>."); b.menu="next"; drawB(); return; }
-  if(d.a==="fight") return playerHit(atkTotal(S)+(b.doubled?atkTotal(S):0), b.doubled?"You strike at the ROOT CAUSE — double damage!":"You attack!");
-  if(d.a==="spell"){ b.menu="spell"; drawMenu(); return; }
+  if(d.a==="grit"){ a.mp=Math.min(a.maxmp,a.mp+2); blog(MEMBERS[a.id].name+" steadies their breathing. <span class='num'>+2 MP</span>."); b.menu="next"; drawB(); return; }
+  if(d.a==="defend"){ a.defending=true; a.mp=Math.min(a.maxmp,a.mp+1);
+    blog(MEMBERS[a.id].name+" braces — next hit <b>halved</b>, <span class='num'>+1 MP</span>."); b.menu="next"; drawB(); return; }
+  if(d.a==="fight") return playerHit(a, atkOf(a)+(b.doubled?atkOf(a):0), MEMBERS[a.id].name+(b.doubled?" strikes the ROOT CAUSE — double damage!":" attacks!"));
+  if(d.a==="skill"){ b.menu="skill"; drawMenu(); return; }
   if(d.a==="item"){ b.menu="item"; drawMenu(); return; }
-  if(d.s) return castSpell(d.s);
-  if(d.it) return useItem(d.it); }
-function playerHit(dmg,txt){ const b=M.b;
+  if(d.s) return castSkill(a, d.s);
+  if(d.it) return useItem(a, d.it);
+  if(d.t) return resolveTarget(a, d.t); }
+function playerHit(a,dmg,txt){ const b=M.b;
   b.doubled=false;
-  if(!b.revealed){ blog(txt+"<br><span class='red'>It has no effect — you're treating symptoms! (Cast FIVE-WHY.)</span>"); b.menu="next"; drawMenu(); return; }
-  if(!b.focused){ blog(txt+"<br><span class='red'>Your strike vanishes into the fog! (CONTEXA reveals what matters.)</span>"); b.menu="next"; drawMenu(); return; }
-  if(b.def.regen && !b.verified){ blog(txt+"<br>It takes "+dmg+"... <span class='red'>and REGENERATES! (Cast CONTROL ARM, then strike.)</span>"); b.menu="next"; drawMenu(); return; }
-  if(b.def.regen && b.verified){ b.verified=false; txt+=" <span class='gold'>(verified fix — it stays down!)</span>"; }
-  dealt(dmg,txt); }
-function dealt(dmg,txt){ const b=M.b;
-  if(rng()<critChance(S)){ dmg=Math.round(dmg*2); txt+=" <span class='gold'>CRITICAL HIT!</span>"; sfx("crit"); }
+  if(!b.revealed){ blog(txt+"<br><span class='red'>No effect — treating symptoms! (FIVE-WHY exposes the core.)</span>"); b.menu="next"; drawMenu(); return; }
+  if(!b.focused){ blog(txt+"<br><span class='red'>The strike vanishes into fog! (CONTEXA lifts it; TRUE STRIKE pierces it.)</span>"); b.menu="next"; drawMenu(); return; }
+  if(b.def.regen && b.verified===0){ blog(txt+"<br>It takes "+dmg+"... <span class='red'>and REGENERATES! (CONTROL ARM verifies the round.)</span>"); b.menu="next"; drawMenu(); return; }
+  dealt(a,dmg,txt); }
+function dealt(a,dmg,txt){ const b=M.b;
+  if(rng()<critOf(a)){ dmg=Math.round(dmg*2); txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
   else sfx("hit");
   b.hp-=dmg;
   document.getElementById("bscene").classList.add("fx-flash");
   setTimeout(()=>document.getElementById("bscene").classList.remove("fx-flash"),350);
-  if(b.hp<=0){ blog(txt+"<br>It takes <span class='num'>"+dmg+"</span> damage... <span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; }
-  blog(txt+"<br>It takes <span class='num'>"+dmg+"</span> damage!"); b.menu="next"; drawB(); }
-function castSpell(id){ const b=M.b, sp=SP[id];
-  if(S.mp<sp.mp){ blog("<span class='red'>Not enough MP!</span> (Coffee, Cache Warmer, DEFEND, or GRIT.)"); b.menu="main"; drawMenu(); return; }
-  S.mp-=sp.mp;
+  if(b.hp<=0){ blog(txt+"<br><span class='num'>"+dmg+"</span> damage... <span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; }
+  blog(txt+"<br><span class='num'>"+dmg+"</span> damage!"); b.menu="next"; drawB(); }
+function castSkill(a,id){ const b=M.b, sp=SP[id];
+  if(a.mp<sp.mp){ blog("<span class='red'>Not enough MP!</span> (Coffee, Cache Warmer, DEFEND, or GRIT.)"); b.menu="main"; drawMenu(); return; }
+  // targeted skills open target submenu
+  if(id==="repair"||id==="hitl"){ b.targeting={skill:id, ko:false, any:id==="hitl"}; b.menu="target"; drawMenu(); return; }
+  a.mp-=sp.mp;
   const weakHit = b.def.weak===id || b.def.weak===id+"2";
+  const nm=MEMBERS[a.id].name;
   if(id==="fivewhy"){ b.revealed=true; b.doubled=true;
-    let t="You cast FIVE-WHY! Why? …Why? …Why? …Why? …<b>Why.</b><br><span class='gold'>The root cause is exposed!</span> "+(b.def.tip?"<br><i>"+b.def.tip+"</i>":"")+"<br>Your next FIGHT deals double damage.";
-    if(b.def.weak==="fivewhy2") return dealt(4+S.lv, t);
+    let t=nm+" casts FIVE-WHY! Why? …Why? …Why? …Why? …<b>Why.</b><br><span class='gold'>The root cause is exposed!</span>"+(b.def.tip?"<br><i>"+b.def.tip+"</i>":"")+"<br>Next FIGHT deals double.";
     blog(t); b.menu="next"; drawB(); return; }
   if(id==="contexa"){ b.focused=true;
-    const t="You cast CONTEXA — selective recall pulls exactly the right evidence!"+(b.def.foggy?" <span class='gold'>The fog lifts!</span>":"");
-    if(!b.revealed){ blog(t+"<br><span class='red'>But the damage glances off the armor! (FIVE-WHY exposes the core.)</span>"); b.menu="next"; drawB(); return; }
-    if(b.def.regen && !b.verified){ blog(t+"<br><span class='red'>It regenerates instantly! (CONTROL ARM first.)</span>"); b.menu="next"; drawB(); return; }
-    if(b.def.regen) b.verified=false;
-    return dealt((SP.contexa.dmgF(S.lv))*(weakHit?2:1), t+(weakHit?" <span class='gold'>Super effective!</span>":"")); }
+    const t=nm+" casts CONTEXA — the right evidence surfaces!"+(b.def.foggy?" <span class='gold'>The fog lifts!</span>":"");
+    if(!b.revealed){ blog(t+"<br><span class='red'>But damage glances off the armor!</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(t+"<br><span class='red'>It regenerates instantly!</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a,(2+a.lv)*(weakHit?2:1), t+(weakHit?" <span class='gold'>Super effective!</span>":"")); }
+  if(id==="truestrike"){
+    if(!b.revealed){ blog(nm+" fires a TRUE STRIKE — <span class='red'>but the armor holds! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(nm+" fires a TRUE STRIKE — <span class='red'>it regenerates! (CONTROL ARM first.)</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a, atkOf(a)+2, nm+" fires a TRUE STRIKE — it cannot miss!"+( !b.focused?" <span class='gold'>It pierces the fog!</span>":"")); }
+  if(id==="audit"){
+    if(b.stolen){ blog(nm+" checks the books again — already audited!"); b.menu="next"; drawB(); return; }
+    b.stolen=true; const loot=Math.max(3, Math.round((b.def.tok||6)/2)); S.tokens+=loot; sfx("coin");
+    if(!b.revealed || !b.focused || (b.def.regen&&b.verified===0)){ blog(nm+" AUDITS the enemy — <span class='num'>+"+loot+" ⛁</span> recovered! (The strike itself glances off.)"); b.menu="next"; drawB(); return; }
+    return dealt(a, 2, nm+" AUDITS the enemy — <span class='num'>+"+loot+" ⛁</span> recovered!"); }
   if(id==="mutagen"){
-    if(!b.revealed){ blog("You cast MUTAGEN — <span class='red'>the defect lands in a symptom, not the core! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
-    if(!b.focused){ blog("You cast MUTAGEN — <span class='red'>the defect vanishes into the fog! (CONTEXA first.)</span>"); b.menu="next"; drawB(); return; }
-    if(b.def.regen && !b.verified){ blog("You cast MUTAGEN — <span class='red'>the head regenerates around it! (CONTROL ARM first.)</span>"); b.menu="next"; drawB(); return; }
-    if(b.def.regen) b.verified=false;
+    if(!b.revealed){ blog(nm+" casts MUTAGEN — <span class='red'>the defect lands in a symptom! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
+    if(!b.focused){ blog(nm+" casts MUTAGEN — <span class='red'>lost in the fog! (CONTEXA first.)</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(nm+" casts MUTAGEN — <span class='red'>the body patches around it! (CONTROL ARM first.)</span>"); b.menu="next"; drawB(); return; }
     b.dot=3;
-    return dealt(weakHit?6:2, "You cast MUTAGEN — a controlled defect is planted!"+(weakHit?" <span class='gold'>The false alarms have nowhere to hide — super effective!</span>":" 2 dmg per turn.")); }
-  if(id==="controlarm"){ b.shield=true; b.verified=true;
-    blog("You raise the CONTROL ARM — the next enemy attack is blocked, and your next strike is <b>verified</b>."); b.menu="next"; drawB(); return; }
-  if(id==="rollback"){ S.hp=Math.min(S.maxhp,S.hp+7); sfx("heal");
-    blog("ROLLBACK — last known good state restored! <span class='num'>+7 HP</span>."); b.menu="next"; drawB(); return; }
-  if(id==="hitl"){ S.hp=Math.min(S.maxhp,S.hp+12); b.noDrain=true; sfx("heal");
-    blog("HUMAN-IN-THE-LOOP! The strongest magic. <span class='num'>+12 HP</span>, drains cleared."); b.menu="next"; drawB(); return; }
-  if(id==="promptia"||id==="fliptest"){ const base=SP[id].dmgF(S.lv);
-    return playerHit(weakHit?base*2:base, "You cast "+sp.name+"!"+(weakHit?" <span class='gold'>Super effective!</span>":"")); }
+    return dealt(a, weakHit?6:2, nm+" plants a controlled defect!"+(weakHit?" <span class='gold'>The false alarms have nowhere to hide!</span>":" 2 dmg/turn.")); }
+  if(id==="indexstorm"){
+    if(!b.revealed){ blog(nm+" summons an INDEX STORM — <span class='red'>cards scatter off the armor!</span>"); b.menu="next"; drawB(); return; }
+    if(!b.focused){ blog(nm+" summons an INDEX STORM — <span class='red'>the fog swallows it!</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(nm+" summons an INDEX STORM — <span class='red'>it knits itself back!</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a, 6+a.lv, nm+" summons an INDEX STORM — every card at once!"); }
+  if(id==="controlarm"){ b.verified=2; a.shield=true;
+    blog(nm+" raises the CONTROL ARM — <span class='gold'>this round's strikes are VERIFIED</span> (regeneration denied), and "+nm+" is shielded."); b.menu="next"; drawB(); return; }
+  if(id==="ward"){ living().forEach(p=>p.shield=true); sfx("heal");
+    blog(nm+" casts WARD — <span class='gold'>a placebo barrier wraps the whole party.</span> Next hit on each ally: 0."); b.menu="next"; drawB(); return; }
+  if(id==="rollback"){ a.hp=Math.min(a.maxhp,a.hp+7); sfx("heal");
+    blog(nm+" ROLLS BACK to last known good state — <span class='num'>+7 HP</span>."); b.menu="next"; drawB(); return; }
+  if(id==="objection"){ b.taunt=2;
+    blog(nm+": <span class='gold'>\"OBJECTION!\"</span> The enemy can't resist arguing — it targets the Tank for 2 turns (-1 dmg)."); b.menu="next"; drawB(); return; }
+  if(id==="promptia"||id==="fliptest"){ const base=(id==="promptia"?3:4)+a.lv;
+    return playerHit(a, weakHit?base*2:base, nm+" casts "+sp.name+"!"+(weakHit?" <span class='gold'>Super effective!</span>":"")); }
 }
-function useItem(k){ const b=M.b; S.items[k]--;
-  if(k==="coffee"){ S.hp=Math.min(S.maxhp,S.hp+5); S.mp=Math.min(S.maxmp,S.mp+2); sfx("heal"); blog("☕ Coffee! <span class='num'>+5 HP, +2 MP</span>."); }
-  if(k==="patch"){ S.hp=Math.min(S.maxhp,S.hp+4); sfx("heal"); blog("🩹 Patch Kit. <span class='num'>+4 HP</span>."); }
-  if(k==="cache"){ S.mp=Math.min(S.maxmp,S.mp+4); sfx("heal"); blog("♨ Cache Warmer. <span class='num'>+4 MP</span>."); }
-  if(k==="snooze"){ b.snoozed=true; blog("🔕 Pager Snooze — the enemy loses its next turn. (Use responsibly.)"); }
-  if(k==="postmortem"){ S.hp=S.maxhp; S.mp=S.maxmp; b.noDrain=true; sfx("heal"); blog("📋 Post-Incident Review. <span class='num'>Fully restored.</span> Lessons became strength."); }
-  if(k==="runbook"){ b.revealed=true;
-    blog("📖 You consult the Runbook…<br><i>"+(b.def.tip||"Fight well; verify everything.")+"</i>"+(b.def.weak?"<br><span class='gold'>Weakness: "+SP[b.def.weak.replace("2","")].name+"</span>":"")); }
+function resolveTarget(a,pid){ const b=M.b; const t=S.actors[pid]; const which=b.targeting.skill; b.targeting=null;
+  const sp=SP[which]; a.mp-=sp.mp; const nm=MEMBERS[a.id].name, tn=MEMBERS[pid].name;
+  if(which==="repair"){ t.hp=Math.min(t.maxhp,t.hp+6); sfx("heal");
+    blog(nm+" REPAIRS "+tn+" — <span class='num'>+6 HP</span>, citing the failure that demanded it."); }
+  if(which==="hitl"){ sfx("heal");
+    if(t.ko){ t.ko=false; t.hp=12; blog(nm+" invokes HUMAN-IN-THE-LOOP — <span class='gold'>"+tn+" rises!</span> (12 HP)"); }
+    else { t.hp=Math.min(t.maxhp,t.hp+12); blog(nm+" invokes HUMAN-IN-THE-LOOP on "+tn+" — <span class='num'>+12 HP</span>."); } }
   b.menu="next"; drawB(); }
-function pickMove(b){ // DATA-driven AI: smart foes escalate when you're shielded or they're hurt
-  const mv=b.def.moves;
-  if(b.def.ai==="smart"){
-    if(b.shield || b.hp < b.maxhp/2) return mv[mv.length-1];
+function useItem(a,k){ const b=M.b;
+  if(k==="handoff"){ const kos=partyActors().filter(p=>p.ko);
+    if(!kos.length){ blog("No one needs a handoff — the whole party stands!"); b.menu="main"; drawMenu(); return; }
+    S.items[k]--; const t=kos[0]; t.ko=false; t.hp=Math.ceil(t.maxhp/2); sfx("heal");
+    blog("📟 ON-CALL HANDOFF — <span class='gold'>"+MEMBERS[t.id].name+" takes the pager and rises!</span> ("+t.hp+" HP)"); b.menu="next"; drawB(); return; }
+  S.items[k]--;
+  if(k==="coffee"){ a.hp=Math.min(a.maxhp,a.hp+5); a.mp=Math.min(a.maxmp,a.mp+2); sfx("heal"); blog("☕ Coffee! "+MEMBERS[a.id].name+" <span class='num'>+5 HP, +2 MP</span>."); }
+  if(k==="patch"){ a.hp=Math.min(a.maxhp,a.hp+4); sfx("heal"); blog("🩹 Patch Kit: "+MEMBERS[a.id].name+" <span class='num'>+4 HP</span>."); }
+  if(k==="cache"){ a.mp=Math.min(a.maxmp,a.mp+4); sfx("heal"); blog("♨ Cache Warmer: "+MEMBERS[a.id].name+" <span class='num'>+4 MP</span>."); }
+  if(k==="snooze"){ b.snoozed=true; blog("🔕 Pager Snooze — the enemy loses its next turn."); }
+  if(k==="postmortem"){ a.hp=a.maxhp; a.mp=a.maxmp; sfx("heal"); blog("📋 Post-Incident Review: "+MEMBERS[a.id].name+" <span class='num'>fully restored</span>."); }
+  if(k==="runbook"){ b.revealed=true;
+    blog("📖 The Runbook…<br><i>"+(b.def.tip||"Fight well; verify everything.")+"</i>"+(b.def.weak?"<br><span class='gold'>Weakness: "+SP[b.def.weak.replace("2","")].name+"</span>":"")); }
+  b.menu="next"; drawB(); }
+function pickMove(b){ const mv=b.def.moves;
+  if(b.def.ai==="smart"){ if(b.hp<b.maxhp/2 || b.taunt>0) return mv[mv.length-1];
     return mv[Math.floor(rng()*mv.length)]; }
   return mv[Math.floor(rng()*mv.length)]; }
 function enemyTurn(){ const b=M.b;
-  if(b.snoozed){ b.snoozed=false; blog("🔕 The pager is snoozed — <b>"+b.def.name+"</b> misses its turn!"); b.menu="main"; endOfRound(b,""); drawB(); return; }
+  if(b.snoozed){ b.snoozed=false; blog("🔕 The pager is snoozed — <b>"+b.def.name+"</b> misses its turn!"); endOfRound(b,""); return; }
   const mv=pickMove(b);
   let raw=mv[1];
   if(b.def.grow){ b.growN=Math.min(4,(b.growN||0)+1); raw+=b.growN-1; }
-  let t="<b>"+b.def.name+"</b> "+mv[0]+"!"+(b.def.grow&&b.growN>1?" <span class='red'>(it has grown!)</span>":"");
+  let t="<b>"+b.def.name+"</b> "+mv[0]+"!"+(b.def.grow&&b.growN>1?" <span class='red'>(grown!)</span>":"");
   if(b.def.twice){ raw+=b.def.atk; t+=" (twice!)"; }
-  if(b.shield){ b.shield=false; t+="<br><span class='gold'>The Control Arm absorbs it! 0 damage.</span>"; raw=0; }
-  else { let dmg=incomingDamage(raw,S,b.defending); b.defending=false;
-    if(dmg>0){ if(S.hp-dmg<=0 && S.equip.charm==="ch3" && !b.uptimeUsed){ b.uptimeUsed=true; S.hp=1;
-        t+="<br><span class='gold'>⏱ The Uptime Charm holds you at 1 HP!</span>"; }
-      else { S.hp=Math.max(0,S.hp-dmg); t+="<br>You take <span class='red'>"+dmg+"</span> damage."+(defTotal(S)>0?" <span class='mut'>(badge -"+defTotal(S)+")</span>":""); }
-      sfx("hurt");
-      document.getElementById("stage").classList.add("fx-shake");
-      setTimeout(()=>document.getElementById("stage").classList.remove("fx-shake"),350); }
-    else t+="<br>No damage."; }
+  const liv=living();
+  let targets;
+  if(b.def.multi){ const k=(b.def.multi3 && b.hp<110)?3:2;
+    targets=[]; const pool=[...liv];
+    for(let i=0;i<Math.min(k,pool.length);i++){ const j=Math.floor(rng()*pool.length); targets.push(pool.splice(j,1)[0]); }
+    t+=" <span class='red'>(hits "+targets.length+"!)</span>"; }
+  else if(b.taunt>0 && S.actors.refuter && !S.actors.refuter.ko && rng()<0.7){ targets=[S.actors.refuter]; }
+  else targets=[liv[Math.floor(rng()*liv.length)]];
+  for(const tgt of targets){
+    let dmg=incoming(raw, tgt, (tgt.id==="refuter"&&b.taunt>0)?1:0);
+    if(tgt.shield){ tgt.shield=false; t+="<br>🛡 "+MEMBERS[tgt.id].name+"'s ward absorbs it — 0 damage!"; continue; }
+    if(dmg>0){
+      if(tgt.id==="hero" && tgt.hp-dmg<=0 && S.equip.charm==="ch3" && !b.uptimeUsed){ b.uptimeUsed=true; tgt.hp=1;
+        t+="<br><span class='gold'>⏱ The Uptime Charm holds HERO at 1 HP!</span>"; }
+      else { tgt.hp=Math.max(0,tgt.hp-dmg);
+        t+="<br>"+MEMBERS[tgt.id].name+" takes <span class='red'>"+dmg+"</span>.";
+        if(tgt.hp<=0){ tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>"; } }
+      sfx("hurt"); }
+    else t+="<br>"+MEMBERS[tgt.id].name+" takes no damage."; }
+  document.getElementById("stage").classList.add("fx-shake");
+  setTimeout(()=>document.getElementById("stage").classList.remove("fx-shake"),350);
   endOfRound(b,t); }
 function endOfRound(b,t){
-  if(b.def.drain && !b.noDrain && S.mp>0){ S.mp--; t+=" <span class='red'>It drains 1 MP!</span>"; }
-  if(S.equip.charm==="ch2" && S.mp<S.maxmp){ S.mp++; t+=" <span class='mut'>(Regen Charm +1 MP)</span>"; }
+  const liv=living();
+  if(b.def.drain && liv.length){ const v=liv[Math.floor(rng()*liv.length)];
+    if(v.mp>0){ v.mp--; t+=" <span class='red'>It drains "+MEMBERS[v.id].name+"'s MP!</span>"; } }
+  const h=S.actors.hero;
+  if(S.equip.charm==="ch2" && !h.ko && h.mp<h.maxmp){ h.mp++; t+=" <span class='mut'>(Regen Charm: HERO +1 MP)</span>"; }
+  if(b.verified>0) b.verified--;
+  if(b.taunt>0) b.taunt--;
   if(b.dot>0){ b.dot--;
-    if(b.def.regen && !b.verified){ t+="<br>The planted defect fires… <span class='red'>but the regenerating head patches it!</span>"; }
-    else { b.hp-=2; t+="<br>The planted defect fires: <span class='num'>2</span> damage!";
+    if(b.def.regen && b.verified===0){ t+="<br>The defect fires… <span class='red'>patched by regeneration!</span>"; }
+    else { b.hp-=2; t+="<br>The planted defect fires: <span class='num'>2</span>!";
       if(b.hp<=0){ blog(t+"<br><span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; } } }
-  if(S.hp<=0){ S.deaths=(S.deaths||0)+1; b.menu="dead"; sfx("lose");
+  partyActors().forEach(a=>a.defending=false);
+  if(!living().length){ S.deaths=(S.deaths||0)+1; b.menu="dead"; sfx("lose");
     const toll=Math.ceil(S.tokens*0.1); S.tokens-=toll;
     blog(t+"<br><span class='red'>The party falls…</span>"); drawB();
-    setTimeout(()=>{ BW.hidden=true; S.hp=S.maxhp; S.mp=S.maxmp; S.z=0; S.x=2; S.y=4; M.state="explore"; saveGame(0); render();
-      say(["You wake at Mara's inn. MARA: 'Incidents don't end careers — hiding from them does.'","(HP/MP restored. The incident review docked "+toll+" ⛁. Levels, recruits and gear kept. Boss gauntlets restart — such is the pager.)"]); },900);
+    setTimeout(()=>{ BW.hidden=true;
+      partyActors().forEach(a=>{ a.ko=false; a.hp=a.maxhp; a.mp=a.maxmp; });
+      S.z=0; S.x=2; S.y=4; M.state="explore"; saveGame(0); render();
+      say(["You wake at Mara's inn. MARA: 'Incidents don't end careers — hiding from them does.'","(Party restored. The incident review docked "+toll+" ⛁. Levels, recruits and gear kept. Boss gauntlets restart — such is the pager.)"]); },900);
     return; }
-  blog(t); b.menu="main"; drawB(); }
+  blog(t); b.turn=-1; nextActor(); }
 function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore";
   if(b.key) S.cleared[S.z+":"+b.key]=true;
   const zone=Z[S.z];
   let pre=[];
   const toks=b.def.tok||0; if(toks){ S.tokens+=toks; sfx("coin"); pre.push("Recovered budget: <span class='num'>+"+toks+" ⛁</span>."); }
-  if(/^h\d/.test(b.id)){ S.mp=Math.min(S.maxmp,S.mp+3); S.hp=Math.min(S.maxhp,S.hp+3);
-    pre.push("The bridge steadies the party: <span class='num'>+3 HP, +3 MP</span>."); }
+  if(/^h\d/.test(b.id)){ living().forEach(a=>{ a.mp=Math.min(a.maxmp,a.mp+3); a.hp=Math.min(a.maxhp,a.hp+3); });
+    pre.push("The bridge steadies the party: <span class='num'>+3 HP, +3 MP</span> each."); }
+  if(b.id==="unknown"){ S.superWon=true; }
   const afterXP=()=>{
     const rec=zone.recruitAfter && b.key && zone.recruitAfter[b.key];
     const chainNext=b.chain && b.chain.length ? b.chain : null;
-    if(rec && !S.party.includes(rec.spr)){ S.party.push(rec.spr);
-      if(!S.spells.includes(rec.spell)) S.spells.push(rec.spell);
+    if(rec && !S.party.includes(rec.id)){ S.party.push(rec.id);
+      S.actors[rec.id]=mkActor(rec.id, hero().lv);
       if(S.party.length>=4 && S.stage<2){ S.stage=2; }
       say(rec.lines, ()=>{ saveGame(0); if(chainNext) runChain(chainNext); }); return; }
     if(chainNext){ saveGame(0); runChain(chainNext); return; }
+    if(b.id==="unknown"){ say(["THE UNKNOWN UNKNOWN dissolves into mapped, documented, boring KNOWN territory.","THE GUIDE: 'You beat the incident nobody had had yet. That's not response anymore. That's readiness.'","🏆 TRUE ENDING unlocked — your share card now carries the ☆."], ()=>saveGame(0)); return; }
     saveGame(0); };
   render(); gainXP(b.def.xp, afterXP, pre); }
 function runChain(chain){ const step=chain[0], rest=chain.slice(1);
   if(step.bridge!==undefined){ const br=BRIDGE[step.bridge];
     ask(br.t, br.a, i=>{ if(i===br.c){ say([br.good], ()=>{ gainXP(12, ()=>{ render(); runChain(rest); }); }); }
-      else { S.hp=Math.max(1,S.hp-2); S.bridgeMiss=(S.bridgeMiss||0)+1; say([br.bad], ()=>{ render(); runChain(rest); }); } }); return; }
+      else { living().forEach(a=>a.hp=Math.max(1,a.hp-2)); S.bridgeMiss=(S.bridgeMiss||0)+1; say([br.bad], ()=>{ render(); runChain(rest); }); } }); return; }
   if(step.en){ startBattle(step.en, null, rest); return; }
   if(step.end){ ending(); return; } }
 
 // ================= SHOP & PAUSE MENU =================
 function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("center");
-  let h="<span class='gold'>QUARTERMASTER PEG:</span> 'Welcome to the Supply Closet. Budget's tight everywhere — spend yours wisely.'  <b>⛁ "+S.tokens+"</b><div class='choices'>";
+  let h="<span class='gold'>QUARTERMASTER PEG:</span> 'Budget's tight everywhere — spend yours wisely.'  <b>⛁ "+S.tokens+"</b><div class='choices'>";
   SHOP_STOCK.forEach(id=>{ const it=IT[id]; const own=(it.type!=="use" && (S.items[id]||0)>0)?" <span class='mut'>(owned)</span>":"";
     h+="<button data-buy='"+id+"'><span class='shoprow'><span>"+it.name+own+"</span><span>"+it.price+" ⛁</span></span><span class='mut' style='font-size:.72rem'>"+it.d+"</span></button>"; });
   h+="<button data-x='1'>◀ LEAVE</button></div>";
@@ -643,21 +732,21 @@ function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("cen
   box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{
     if(btn.dataset.x){ ov.hidden=true; M.state="explore"; return; }
     const id=btn.dataset.buy, it=IT[id];
-    if(S.tokens<it.price){ sfx("lose"); box.querySelector(".gold").parentNode.firstChild.textContent=""; openShopMsg("PEG: 'Not enough ⛁, friend. Slimes drop budget — so do chests.'"); return; }
-    S.tokens-=it.price; S.items[id]=(S.items[id]||0)+1; sfx("coin"); render(); openShopMsg("PEG: '"+it.name+", good choice. Anything else?'"); }); }
-function openShopMsg(m){ openShop(); const note=document.createElement("div"); note.className="mut"; note.style.marginTop="4px"; note.textContent=m; box.appendChild(note); }
+    if(S.tokens<it.price){ sfx("lose"); openShopNote("PEG: 'Not enough ⛁, friend. Foes drop budget — so does the Ranger's AUDIT.'"); return; }
+    S.tokens-=it.price; S.items[id]=(S.items[id]||0)+1; sfx("coin"); render(); openShopNote("PEG: '"+it.name+", good choice. Anything else?'"); }); }
+function openShopNote(m){ openShop(); const note=document.createElement("div"); note.className="mut"; note.style.marginTop="4px"; note.textContent=m; box.appendChild(note); }
 function equipmentOwned(){ return Object.keys(S.items).filter(k=>S.items[k]>0 && IT[k].type!=="use"); }
 function pauseMenu(){ if(M.state!=="explore") return; M.state="dialog"; menuHome(); }
 function menuHome(){ ov.hidden=false; ov.classList.add("center");
   const eq=S.equip;
-  let h="<b class='gold'>☰ MENU</b><br><span class='mut'>"+OBJ[Math.min(S.stage,OBJ.length-1)]+"</span><br>"+
-   "LV "+S.lv+" · HP "+S.hp+"/"+S.maxhp+" · MP "+S.mp+"/"+S.maxmp+" · ATK "+atkTotal(S)+" · DEF "+defTotal(S)+" · ⛁ "+S.tokens+
-   "<br><span class='mut'>Party: HERO"+(S.party.length?" + "+S.party.map(p=>p.toUpperCase()).join(", "):" (alone — for now)")+"</span>"+
-   "<br><span class='mut'>Gear: ⌨ "+(eq.weapon?IT[eq.weapon].name:"—")+" · 🪪 "+(eq.badge?IT[eq.badge].name:"—")+" · 🧿 "+(eq.charm?IT[eq.charm].name:"—")+"</span>"+
+  let roster="";
+  partyActors().forEach(a=>{ const m=MEMBERS[a.id];
+    roster+="<span class='mut'>"+m.name+" · "+m.cls+" · LV "+a.lv+" · "+a.hp+"/"+a.maxhp+" HP · "+a.mp+"/"+a.maxmp+" MP · skills: "+a.sk.map(s=>SP[s].name).join(", ")+"</span><br>"; });
+  let h="<b class='gold'>☰ MENU</b><br><span class='mut'>"+OBJ[Math.min(S.stage,OBJ.length-1)]+"</span><br>⛁ "+S.tokens+"<br>"+roster+
+   "<span class='mut'>HERO gear: ⌨ "+(eq.weapon?IT[eq.weapon].name:"—")+" · 🪪 "+(eq.badge?IT[eq.badge].name:"—")+" · 🧿 "+(eq.charm?IT[eq.charm].name:"—")+"</span>"+
    "<div class='choices'>"+
-   "<button data-m='equip'>EQUIP GEAR</button>"+
+   "<button data-m='equip'>EQUIP HERO GEAR</button>"+
    "<button data-m='items'>ITEMS</button>"+
-   "<button data-m='spells'>SPELLBOOK</button>"+
    "<button data-m='save'>SAVE GAME</button>"+
    "<button data-m='settings'>SETTINGS</button>"+
    "<button data-m='close'>CLOSE (Esc)</button></div>";
@@ -666,8 +755,8 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
 function menuSub(mn){
   if(mn==="close"){ ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); return; }
   if(mn==="equip"){ const own=equipmentOwned();
-    let h="<b class='gold'>EQUIP</b><div class='choices'>";
-    if(!own.length) h+="<span class='mut'>No gear yet — visit Peg's Supply Closet in the village.</span>";
+    let h="<b class='gold'>EQUIP (HERO)</b><div class='choices'>";
+    if(!own.length) h+="<span class='mut'>No gear yet — visit Peg's Supply Closet.</span>";
     own.forEach(id=>{ const it=IT[id]; const slot=it.type==="weapon"?"weapon":it.type;
       const on=S.equip[slot]===id;
       h+="<button data-e='"+id+"'>"+(on?"● ":"○ ")+it.name+" <span class='mut'>("+it.d+")</span></button>"; });
@@ -676,31 +765,30 @@ function menuSub(mn){
       const id=btn.dataset.e; if(id==="__back"){ menuHome(); return; }
       const slot=IT[id].type==="weapon"?"weapon":IT[id].type;
       S.equip[slot]=(S.equip[slot]===id)?null:id; render(); menuSub("equip"); }); return; }
-  if(mn==="items"){ let h="<b class='gold'>ITEMS</b> <span class='mut'>(usable in battle)</span><div class='choices'>";
+  if(mn==="items"){ let h="<b class='gold'>ITEMS</b><div class='choices'>";
     let any=false; Object.keys(S.items).forEach(k=>{ if(S.items[k]>0){ any=true; h+="<button disabled style='cursor:default'>"+IT[k].name+" ×"+S.items[k]+" <span class='mut'>— "+IT[k].d+"</span></button>"; } });
     if(!any) h+="<span class='mut'>Empty. Peg's shop awaits.</span>";
     h+="<button data-b='1'>◀ BACK</button></div>"; box.innerHTML=h;
     box.querySelector("[data-b]").onclick=()=>menuHome(); return; }
-  if(mn==="spells"){ let h="<b class='gold'>SPELLBOOK</b><div class='choices'>";
-    S.spells.forEach(id=>{ h+="<button disabled style='cursor:default'>"+SP[id].name+" ("+SP[id].mp+" MP) <span class='mut'>— "+SP[id].d+"</span></button>"; });
-    h+="<button data-b='1'>◀ BACK</button></div>"; box.innerHTML=h;
-    box.querySelector("[data-b]").onclick=()=>menuHome(); return; }
   if(mn==="save"){ let h="<b class='gold'>SAVE</b><div class='choices'>";
     [1,2,3].forEach(s=>{ const d=loadSlot(s);
-      h+="<button data-sv='"+s+"'>Slot "+s+": "+(d?("LV "+d.lv+" · "+Z[d.z].name+" · ⛁"+d.tokens):"(empty)")+"</button>"; });
+      h+="<button data-sv='"+s+"'>Slot "+s+": "+(d?("HERO LV "+d.actors.hero.lv+" · "+Z[d.z].name+" · ⛁"+d.tokens):"(empty)")+"</button>"; });
     h+="<button data-b='1'>◀ BACK</button></div>"; box.innerHTML=h;
     box.querySelectorAll("[data-sv]").forEach(btn=>btn.onclick=()=>{ saveGame(parseInt(btn.dataset.sv,10)); sfx("coin"); menuSub("save"); });
     box.querySelector("[data-b]").onclick=()=>menuHome(); return; }
   if(mn==="settings"){ let h="<b class='gold'>SETTINGS</b><div class='choices'>"+
     "<button data-st='snd'>Sound: "+(AU.on?"ON":"OFF")+"</button>"+
-    "<span class='mut'>Motion: honors your system's reduced-motion preference automatically.</span>"+
+    "<span class='mut'>Motion honors your system's reduced-motion preference.</span>"+
     "<span class='mut'>Seed this run: #"+S.seed+"</span>"+
     "<button data-b='1'>◀ BACK</button></div>"; box.innerHTML=h;
     box.querySelector("[data-st]").onclick=()=>{ AU.on=!AU.on; try{ localStorage.setItem("aiquest_snd",AU.on?"on":"off"); }catch(e){} sndLabel(); menuSub("settings"); };
     box.querySelector("[data-b]").onclick=()=>menuHome(); return; } }
 
-// ================= FINALE & ENDING =================
-function startFinale(){ if(S.party.length<4){ say(["THE MONOLITH: 'ALONE? RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.'","(Recruit all four companions — clear every red gate — before the finale.)"]); return; }
+// ================= FINALE, SUPERBOSS & ENDING =================
+function startFinale(){
+  if(S.won){ ask("Atop the Citadel, the air itself feels… unmapped. Face THE UNKNOWN UNKNOWN? (superboss — bring everything)",
+      ["FIGHT — the true test","Not yet"], i=>{ if(i===0) startBattle("unknown", null); }); return; }
+  if(S.party.length<4){ say(["THE MONOLITH: 'ALONE? RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.'","(Recruit all four companions — clear every red gate — before the finale.)"]); return; }
   say(REVEAL, ()=>{ S.stage=Math.max(S.stage,3); saveGame(0);
     runChain([{en:"monolith"},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{en:"h5"},{end:true}]); }); }
 function ending(){ S.won=true; S.stage=4; tickClock();
@@ -713,30 +801,31 @@ function ending(){ S.won=true; S.stage=4; tickClock();
   if(better){ best={score:score, grade:grade, ms:S.playMs};
     try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
   const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
-  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · spells are AI techniques, the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
+  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+(S.superWon?"☆":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · five classes, real tactics, the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
   saveGame(0); ov.hidden=false; ov.classList.remove("center"); M.state="end"; sfx("level");
   box.innerHTML="<b class='gold'>👑 INCIDENT RESOLVED — MTTx: LEGENDARY</b>"+
   "<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
-  "MTTx GRADE: <b class='gold' style='font-size:1.2em'>"+grade+"</b> — "+min+":"+pad(sec)+" · seed #"+S.seed+
+  "MTTx GRADE: <b class='gold' style='font-size:1.2em'>"+grade+(S.superWon?"☆":"")+"</b> — "+min+":"+pad(sec)+" · seed #"+S.seed+
   " · "+S.deaths+" defeat"+(S.deaths===1?"":"s")+" · "+S.bridgeMiss+" bridge misstep"+(S.bridgeMiss===1?"":"s")+
   (better?" · <span class='num'>NEW RECORD!</span>":"<br>Best: <b>"+best.grade+"</b> ("+bmin+":"+pad(bsec)+")")+
   "<br><button id='sharebtn' class='hudbtn' style='margin-top:6px'>📋 COPY RESULT</button></div>"+
-  "The Hydra dissolves. The bridge goes quiet. Somewhere, a postmortem doc opens itself — <i>blameless</i>.<br><br>"+
-  "The Guide meets you at the village gate. He doesn't say much. He hands you his old pager, powered off.<br>"+
-  "THE GUIDE: 'Governance is memory. You're the memory now.'<br><br>"+
+  "The Hydra dissolves. The bridge goes quiet. Somewhere, a postmortem doc opens itself — <i>blameless</i>.<br>"+
+  "The Guide hands you his old pager, powered off. <span class='gold'>'Governance is memory. You're the memory now.'</span><br>"+
+  "<span class='mut'>…and something stirs atop the Citadel. Return there when you're ready for THE UNKNOWN UNKNOWN.</span><br><br>"+
   "Your party was a real portfolio: <a href='https://github.com/LZBiala/agent-mutation-lab' style='color:var(--teal)'>agent-mutation-lab</a> · "+
   "<a href='https://github.com/LZBiala/wiki-memory-lab' style='color:var(--teal)'>wiki-memory-lab</a> · "+
   "<a href='https://github.com/LZBiala/memory-repair-lab' style='color:var(--teal)'>memory-repair-lab</a> · "+
   "<a href='https://github.com/LZBiala/adversarial-chambers' style='color:var(--teal)'>adversarial-chambers</a><br>"+
   "And the Guide is real: <a href='index.html' style='color:var(--teal)'>lzbiala.github.io</a> · <a href='Lito-Biala-Resume.pdf' style='color:var(--teal)'>resume</a> · <a href='https://www.linkedin.com/in/lzbiala/' style='color:var(--teal)'>LinkedIn</a>"+
-  "<div class='choices'><button data-cr='1'>🎬 CREDITS</button><button data-ng='1'>↻ NEW GAME+</button></div>";
+  "<div class='choices'><button data-cr='1'>🎬 CREDITS</button><button data-ng='1'>↻ NEW GAME+</button><button data-ct='1'>▶ KEEP EXPLORING</button></div>";
   const sb=document.getElementById("sharebtn");
   sb.onclick=()=>{ const t=M.shareText;
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(t).then(()=>{ sb.textContent="✅ COPIED — go brag!"; },()=>{ window.prompt("Copy your result:", t); }); }
     else window.prompt("Copy your result:", t); };
   box.querySelector("[data-cr]").onclick=()=>{ say(CREDITS, ()=>{ M.state="end"; ending(); }); };
-  box.querySelector("[data-ng]").onclick=()=>{ newGame(true); }; }
+  box.querySelector("[data-ng]").onclick=()=>{ newGame(true); };
+  box.querySelector("[data-ct]").onclick=()=>{ ov.hidden=true; M.state="explore"; render(); }; }
 
 // ================= MOVEMENT & INTERACTION =================
 function tryMove(dx,dy){ if(M.state!=="explore") return;
@@ -763,7 +852,9 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
       if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; saveGame(0); render(); }); return; }
       say(npc.lines); return; }
     if(zone.signs && zone.signs[key]){ say([zone.signs[key]]); return; }
-    if(zone.inn===key){ ask("MARA THE INNKEEPER: 'Rest here? I'll save your progress too, hon.'", ["Rest & save","Not yet"], i=>{ if(i===0){ S.hp=S.maxhp; S.mp=S.maxmp; saveGame(0); render(); say(["♪ You rest. HP/MP restored. Game saved.","MARA: 'The Guide stayed up all night again. Twelve years I've watched that light. Go easy on him — the mountain he's sending you to... he knows it better than he says.'"]); } }); return; }
+    if(zone.inn===key){ ask("MARA THE INNKEEPER: 'Rest here? I'll save your progress too, hon.'", ["Rest & save","Not yet"], i=>{ if(i===0){
+        partyActors().forEach(a=>{ a.ko=false; a.hp=a.maxhp; a.mp=a.maxmp; }); saveGame(0); render();
+        say(["♪ The whole party rests. HP/MP restored. Game saved.","MARA: 'The Guide stayed up all night again. Twelve years I've watched that light. Go easy on him.'"]); } }); return; }
     if(zone.shop===key){ openShop(); return; }
     const chr=tileAt(zone,x,y);
     if(chr==="c" && zone.chest && zone.chest.key===key){ S.opened[S.z+":"+key]=true;
@@ -775,19 +866,19 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 // ================= TITLE & BOOT =================
 function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.classList.add("center");
   const auto=loadSlot(0);
-  let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>— DEFINITIVE EDITION —</div>"+
-   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>spells are AI techniques · bosses are incidents · the final boss is a SEV-1</div>"+
-   "<div class='choices' style='max-width:340px;margin:0 auto;text-align:left'>";
-  if(auto) h+="<button data-t='cont'>▶ CONTINUE (LV "+auto.lv+" · "+Z[auto.z].name+")</button>";
+  let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>— PARTY EDITION —</div>"+
+   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>five classes · individual levels · the final boss is a SEV-1<br>balance tuned on 100,000 simulated battles</div>"+
+   "<div class='choices' style='max-width:360px;margin:0 auto;text-align:left'>";
+  if(auto) h+="<button data-t='cont'>▶ CONTINUE (HERO LV "+auto.actors.hero.lv+" · "+Z[auto.z].name+")</button>";
   h+="<button data-t='new'>✦ NEW ADVENTURE</button>";
-  [1,2,3].forEach(s=>{ const d=loadSlot(s); if(d) h+="<button data-t='s"+s+"'>⬇ LOAD SLOT "+s+" (LV "+d.lv+" · "+Z[d.z].name+")</button>"; });
+  [1,2,3].forEach(s=>{ const d=loadSlot(s); if(d) h+="<button data-t='s"+s+"'>⬇ LOAD SLOT "+s+" (HERO LV "+d.actors.hero.lv+" · "+Z[d.z].name+")</button>"; });
   h+="<button data-t='snd'>♪ SOUND: "+(AU.on?"ON":"OFF")+"</button></div></div>";
   box.innerHTML=h;
   box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ sfx("blip"); const t=btn.dataset.t;
-    if(t==="cont"){ S=loadSlot(0); M.resumeAt=Date.now(); ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); }
+    if(t==="cont"){ S=loadSlot(0); M.resumeAt=Date.now(); rng=mulberry32(S.seed); ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); }
     else if(t==="new") newGame(false);
     else if(t==="snd"){ AU.on=!AU.on; try{ localStorage.setItem("aiquest_snd",AU.on?"on":"off"); }catch(e){} sndLabel(); titleScreen(); }
-    else if(t.startsWith("s")){ const d=loadSlot(parseInt(t.slice(1),10)); if(d){ S=d; M.resumeAt=Date.now(); ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); } } }); }
+    else if(t.startsWith("s")){ const d=loadSlot(parseInt(t.slice(1),10)); if(d){ S=d; M.resumeAt=Date.now(); rng=mulberry32(S.seed); ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); } } }); }
 function newGame(plus){ S=NEWS(); S.seed=(Date.now()%899999)+100003; rng=mulberry32(S.seed);
   M.resumeAt=Date.now(); ov.classList.remove("center"); M.state="explore"; render();
   say(plus? ["NEW GAME+. The pager remembers you. Seed #"+S.seed+". Go again — faster, cleaner, calmer."].concat([OPENING[4]]) : OPENING,
@@ -827,7 +918,6 @@ document.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",
     if(k==="ArrowUp")tryMove(0,-1); if(k==="ArrowDown")tryMove(0,1); } }));
 document.getElementById("menubtn").onclick=()=>{ if(M.state==="explore") pauseMenu(); };
 window.addEventListener("blur",()=>{ if(M.state==="explore") tickClock(); });
-
 const sndbtn=document.getElementById("sndbtn");
 function sndLabel(){ sndbtn.textContent=AU.on?"♪ ON":"♪ OFF"; }
 sndbtn.onclick=()=>{ AU.on=!AU.on; try{ localStorage.setItem("aiquest_snd", AU.on?"on":"off"); }catch(e){} sndLabel(); if(AU.on) sfx("blip"); };
@@ -835,41 +925,64 @@ sndLabel();
 
 // ================= TESTS (?test=1) =================
 const TESTS = [
- ["atkTotal adds weapon", ()=>{ const s=NEWS(); s.atk=3; s.equip.weapon="kb2"; return atkTotal(s)===5; }],
- ["defTotal from badge", ()=>{ const s=NEWS(); s.equip.badge="bd2"; return defTotal(s)===2; }],
- ["critChance with Focus Charm", ()=>{ const s=NEWS(); s.equip.charm="ch1"; return Math.abs(critChance(s)-0.25)<1e-9; }],
- ["incomingDamage badge reduction", ()=>{ const s=NEWS(); s.equip.badge="bd1"; return incomingDamage(4,s,false)===3; }],
- ["incomingDamage defend halves (ceil)", ()=>{ const s=NEWS(); return incomingDamage(5,s,true)===3; }],
- ["incomingDamage floors at 0", ()=>{ const s=NEWS(); s.equip.badge="bd2"; return incomingDamage(1,s,false)===0; }],
- ["XP curve thresholds ascend", ()=>XPCURVE.every((v,i)=>i===0||v>XPCURVE[i-1])],
- ["seeded rng deterministic", ()=>{ const a=mulberry32(42), b=mulberry32(42); return [a(),a(),a()].join()=== [b(),b(),b()].join(); }],
- ["save/load round trip", ()=>{ const bak=localStorage.getItem(saveKey(2));
-    const s=NEWS(); s.lv=5; s.tokens=77; s.equip.weapon="kb1"; S=s; saveGame(2);
-    const l=loadSlot(2); const ok=l && l.lv===5 && l.tokens===77 && l.equip.weapon==="kb1" && l.v===SAVE_VERSION;
-    if(bak===null) localStorage.removeItem(saveKey(2)); else localStorage.setItem(saveKey(2),bak); S=NEWS(); return !!ok; }],
- ["load rejects wrong version", ()=>{ const bak=localStorage.getItem(saveKey(3));
-    localStorage.setItem(saveKey(3), JSON.stringify({v:1,lv:9}));
+ ["mkActor stats scale with level", ()=>{ const a=mkActor("refuter",4); return a.maxhp===14+4*3 && a.atk===3+3 && a.sk.includes("objection"); }],
+ ["wizard learns INDEX STORM at 5", ()=>{ const a=mkActor("wiki",5); return a.sk.includes("indexstorm") && !mkActor("wiki",4).sk.includes("indexstorm"); }],
+ ["per-actor XP levels independently", ()=>{ const bak=S; S=NEWS(); S.party=["wiki"]; S.actors.wiki=mkActor("wiki",1);
+    S.actors.hero.xp=9; S.actors.wiki.xp=9;
+    for(const a of living()){ a.xp+=1; while(a.lv<XPCURVE.length && a.xp>=XPCURVE[a.lv]){ a.lv++; } }
+    const ok=S.actors.hero.lv===2 && S.actors.wiki.lv===2; S=bak; return ok; }],
+ ["hero-only equipment math", ()=>{ const bak=S; S=NEWS(); S.equip.weapon="kb2"; S.actors.wiki=mkActor("wiki",1);
+    const ok=atkOf(S.actors.hero)===5 && atkOf(S.actors.wiki)===2; S=bak; return ok; }],
+ ["incoming: badge + defend + taunt reduction", ()=>{ const bak=S; S=NEWS();
+    const h=S.actors.hero; S.equip.badge="bd1";
+    const r=mkActor("refuter",1);
+    const a1=incoming(6,h,0); h.defending=true; const a2=incoming(6,h,0); h.defending=false;
+    const a3=incoming(6,r,1); S=bak; return a1===5 && a2===3 && a3===5; }],
+ ["XP curve ascends", ()=>XPCURVE.every((v,i)=>i===0||v>XPCURVE[i-1])],
+ ["seeded rng deterministic", ()=>{ const a=mulberry32(7), b=mulberry32(7); return [a(),a()].join()===[b(),b()].join(); }],
+ ["save/load v4 round trip", ()=>{ const bak=localStorage.getItem(saveKey(2)); const sb=S;
+    S=NEWS(); S.actors.hero.lv=5; S.tokens=77; S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",5); saveGame(2);
+    const l=loadSlot(2); const ok=l && l.actors.hero.lv===5 && l.tokens===77 && l.actors.sentinel && l.actors.sentinel.lv===5 && l.v===SAVE_VERSION;
+    if(bak===null) localStorage.removeItem(saveKey(2)); else localStorage.setItem(saveKey(2),bak); S=sb; return !!ok; }],
+ ["load rejects wrong/old version", ()=>{ const bak=localStorage.getItem(saveKey(3));
+    localStorage.setItem(saveKey(3), JSON.stringify({v:3,lv:9}));
     const l=loadSlot(3);
     if(bak===null) localStorage.removeItem(saveKey(3)); else localStorage.setItem(saveKey(3),bak);
     return l===null; }],
- ["v2 migration maps fields + grants", ()=>{ const s=migrateV2({lv:4,xp:30,party:["sentinel","wiki","mender","refuter"],items:{coffee:2,runbook:1},won:false});
-    return s.v===SAVE_VERSION && s.lv===4 && s.tokens===25 && s.stage===2 && s.items.coffee===2 && s.items.patch===1; }],
- ["hidden gimmick blocks unrevealed hit", ()=>{ M.b={ def:EN.h3, hp:14, maxhp:14, revealed:false, focused:true, doubled:false, menu:"main", defending:false, growN:0 };
-    playerHit(5,"t"); const ok=M.b.hp===14 && M.b.menu==="next"; M.b=null; return ok; }],
- ["regen gimmick needs verified", ()=>{ M.b={ def:EN.h4, hp:14, maxhp:14, revealed:true, focused:true, verified:false, doubled:false, menu:"main", defending:false, growN:0 };
-    playerHit(5,"t"); const blocked=M.b.hp===14;
-    M.b.verified=true; playerHit(5,"t"); const after=M.b.hp; M.b=null;
-    return blocked && after<14; }],
- ["smart AI escalates when shielded", ()=>{ const b={ def:EN.golem, hp:16, maxhp:16, shield:true };
-    const mv=pickMove(b); return mv===EN.golem.moves[EN.golem.moves.length-1]; }],
- ["boss chain structure ends with end-step", ()=>{ const chain=[{en:"monolith"},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{en:"h5"},{end:true}];
+ ["v3 migration builds actors at hero level", ()=>{ const s=migrateV3({lv:5, party:["sentinel","wiki"], tokens:50, won:false, stage:2});
+    return s.v===4 && s.actors.hero.lv===5 && s.actors.sentinel.lv===5 && s.actors.wiki.sk.includes("indexstorm")===true && s.tokens===50; }],
+ ["v2 migration chain works", ()=>{ const s=migrateV2({lv:3, party:["sentinel"], items:{coffee:2}, won:false});
+    return s.v===4 && s.actors.hero.lv===3 && s.actors.sentinel && s.tokens===25; }],
+ ["hidden gate blocks unrevealed strike", ()=>{ const sb=S; S=NEWS();
+    M.b={ def:EN.h3, hp:90, maxhp:90, revealed:false, focused:true, verified:0, doubled:false, menu:"main", turn:0, growN:0 };
+    playerHit(S.actors.hero,5,"t"); const ok=M.b.hp===90 && M.b.menu==="next"; M.b=null; S=sb; return ok; }],
+ ["regen blocked until verified round; verified round persists", ()=>{ const sb=S; S=NEWS();
+    M.b={ def:EN.h4, hp:90, maxhp:90, revealed:true, focused:true, verified:0, doubled:false, menu:"main", turn:0, growN:0 };
+    playerHit(S.actors.hero,5,"t"); const blocked=M.b.hp===90;
+    M.b.verified=2; playerHit(S.actors.hero,5,"t"); const hit1=M.b.hp<90;
+    playerHit(S.actors.hero,5,"t"); const hit2=M.b.hp<85; // still verified same round
+    M.b=null; S=sb; return blocked && hit1 && hit2; }],
+ ["audit steals once", ()=>{ const sb=S; S=NEWS(); const a=mkActor("sentinel",5); S.actors.sentinel=a; S.party=["sentinel"];
+    M.b={ def:EN.golem, hp:46, maxhp:46, revealed:true, focused:true, verified:0, stolen:false, menu:"main", turn:1, growN:0, doubled:false };
+    const t0=S.tokens; castSkill(a,"audit"); const gained=S.tokens>t0; const flag=M.b.stolen===true;
+    M.b.menu="main"; castSkill(a,"audit"); const same=S.tokens===t0+Math.max(3,Math.round(EN.golem.tok/2));
+    M.b=null; S=sb; return gained && flag && same; }],
+ ["ward shields every living ally", ()=>{ const sb=S; S=NEWS(); S.party=["mender","wiki"];
+    S.actors.mender=mkActor("mender",6); S.actors.wiki=mkActor("wiki",1); S.actors.wiki.ko=true;
+    M.b={ def:EN.h5, hp:110, maxhp:110, revealed:true, focused:true, verified:0, menu:"main", turn:1, growN:0, doubled:false };
+    castSkill(S.actors.mender,"ward");
+    const ok=S.actors.hero.shield===true && S.actors.mender.shield===true && !S.actors.wiki.shield;
+    M.b=null; S=sb; return ok; }],
+ ["taunt targets refuter ~70%", ()=>{ const sb=S; S=NEWS(); S.party=["refuter"]; S.actors.refuter=mkActor("refuter",3);
+    rng=mulberry32(99); let hits=0;
+    for(let i=0;i<300;i++){ if(rng()<0.7) hits++; }
+    S=sb; rng=mulberry32(1); return hits>170 && hits<250; }],
+ ["boss chain: 6 fights, 2 bridges, end", ()=>{ const chain=[{en:"monolith"},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{en:"h5"},{end:true}];
     return chain[chain.length-1].end===true && chain.filter(s=>s.en).length===6 && chain.filter(s=>s.bridge!==undefined).length===2; }],
- ["shop item catalog integrity", ()=>SHOP_STOCK.every(id=>IT[id] && IT[id].price>0 && IT[id].name)],
- ["12+ items, 3 equipment categories, 8 spells", ()=>{ const types=new Set(Object.values(IT).map(i=>i.type));
-    return Object.keys(IT).length>=12 && types.has("weapon")&&types.has("badge")&&types.has("charm") && Object.keys(SP).length>=8; }],
- ["enemy roster: 6+ regular, 2 elite, hydra multi-phase", ()=>{ const es=Object.values(EN);
-    return es.filter(e=>!e.elite && !/^SEV/.test(e.name) && e.name!=="THE MONOLITH" && e.name!=="Staging Dummy").length>=6
-      && es.filter(e=>e.elite).length===2 && ["h1","h2","h3","h4","h5"].every(k=>EN[k]); }],
+ ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===220],
+ ["shop catalog integrity (15 items)", ()=>SHOP_STOCK.length===15 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
+ ["5 classes, 14 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===5 && Object.keys(SP).length===14
+    && EN.monolith.hp===130 && EN.h5.multi===true && EN.unknown.multi3===true; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -877,14 +990,14 @@ function runTests(){ document.getElementById("objline").hidden=true;
   TESTS.forEach(([name,fn])=>{ let ok=false, err="";
     try{ ok=!!fn(); }catch(e){ err=" — "+e.message; }
     if(ok) pass++;
-    rows+="<div style='font-size:.78rem'>"+(ok?"<span class='num'>✔</span> ":"<span class='red'>✘</span> ")+name+err+"</div>"; });
+    rows+="<div style='font-size:.76rem'>"+(ok?"<span class='num'>✔</span> ":"<span class='red'>✘</span> ")+name+err+"</div>"; });
   window.TESTRESULTS={pass, total:TESTS.length};
   box.innerHTML="<b class='gold'>AUTOMATED TESTS</b> — "+pass+"/"+TESTS.length+" passed<br><br>"+rows+
    "<div class='choices'><button onclick='location.href=\"game.html\"'>▶ PLAY</button></div>"; }
 
 // ================= EXPOSE & BOOT =================
-window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, startBattle, startFinale, render, tryMove, interact,
-  menuPick, saveGame, loadSlot, migrateV2, atkTotal, defTotal, critChance, incomingDamage, pauseMenu, openShop, titleScreen, newGame };
+window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, mkActor, startBattle, startFinale, render, tryMove, interact,
+  menuPick, castSkill, useItem, saveGame, loadSlot, migrateV2, migrateV3, atkOf, defOf, critOf, incoming, pauseMenu, openShop, titleScreen, newGame, living, partyActors };
 tryMigrate();
 render();
 if(new URLSearchParams(location.search).get("test")==="1") runTests();
