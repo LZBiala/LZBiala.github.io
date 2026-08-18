@@ -38,8 +38,11 @@
   a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 2px; }
 
   /* ---------- the terminal hero ---------- */
-  .term { background: var(--term); color: var(--term-ink);
-    border-bottom: 1px solid var(--term-line); }
+  .term { color: var(--term-ink); border-bottom: 1px solid var(--term-line);
+    background: radial-gradient(900px 420px at 18% -5%, #2dd4bf17, transparent 60%),
+                radial-gradient(700px 380px at 95% 30%, #2dd4bf0c, transparent 55%),
+                var(--term); }
+  h1 { text-shadow: 0 0 46px #2dd4bf30; }
   .termbar { display: flex; align-items: center; gap: 8px; padding: 12px 0 0;
     font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.74rem;
     color: var(--term-mut); }
@@ -92,13 +95,12 @@
   .links a.primary { background: var(--term-teal); color: #0c1512; border-color: var(--term-teal); font-weight: 700; }
   .links a.primary:hover { filter: brightness(1.1); color: #0c1512; }
 
-  /* ---------- timeline sections on paper ---------- */
+  /* ---------- sections on paper ---------- */
   section { padding: 52px 0 16px; }
   section + section { border-top: 1px solid var(--line); }
-  .stamp { font-family: ui-monospace, Consolas, monospace; font-size: 0.7rem;
-    letter-spacing: 0.22em; color: var(--teal); text-transform: uppercase; margin-bottom: 8px; }
-  .stamp::before { content: "— "; color: var(--line); }
   section h2 { font-size: 1.7rem; letter-spacing: -0.015em; margin-bottom: 8px; text-wrap: balance; }
+  section h2::after { content: ""; display: block; width: 48px; height: 3px;
+    background: var(--teal); border-radius: 2px; margin-top: 10px; }
   .lead { color: var(--muted); max-width: 52em; margin-bottom: 26px; font-size: 1.02rem; }
 
   .stackline { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem;
@@ -180,7 +182,7 @@
 <header class="hero"><div class="wrap">
   <div class="hero-grid">
     <div class="hero-main">
-      <div class="eyebrow">T+0 · Signal — Digital platform &amp; AI reliability engineering · Minneapolis–St. Paul</div>
+      <div class="eyebrow">Digital platform &amp; AI reliability engineering · Minneapolis–St. Paul</div>
       <div class="heroname">Lito Zarate Biala</div>
       <h1>AI systems you can audit.</h1>
       <div class="arrowline">Site Reliability <b>→</b> AI Reliability <b>→</b> next: Forward Deployed</div>
@@ -219,7 +221,6 @@
 </div>
 
 <section id="work"><div class="wrap">
-  <div class="stamp">T+1 · Evidence</div>
   <h2>Four projects, one architecture</h2>
   <p class="lead">Not a pile of demos — a stack. Each layer answers a different form of
   the trust question, every repo runs in seconds with zero API keys, and each ships an
@@ -279,7 +280,6 @@
 </div></section>
 
 <section id="gamesec"><div class="wrap">
-  <div class="stamp">T+2 · Simulation</div>
   <h2>⚔️ Play the portfolio — AI Quest: SEV-1</h2>
   <p class="lead">An 8-bit JRPG where AI engineering is magic and the final boss is a major
   incident. Recruit a party of four — each companion is one of the projects above — learn
@@ -299,7 +299,6 @@
 </div></section>
 
 <section id="how"><div class="wrap">
-  <div class="stamp">T+3 · Method</div>
   <h2>How I work</h2>
   <p class="lead">The habits are the résumé. These are the laws every repo above obeys —
   and they are the same instincts that keep a bank's critical applications reliable, pointed at AI.</p>
@@ -327,7 +326,6 @@
 </div></section>
 
 <section id="background"><div class="wrap">
-  <div class="stamp">T+4 · Origin</div>
   <h2>Background</h2>
   <div class="bg2">
     <div>
@@ -365,7 +363,6 @@
 </div></section>
 
 <footer><div class="wrap">
-  <div class="stamp">Resolved ✓</div>
   <p>Let's build something trustworthy. Reach me by
   <a href="mailto:lzbiala@gmail.com">email</a>, on
   <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>, or through
