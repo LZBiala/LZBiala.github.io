@@ -70,24 +70,7 @@
   .thesis em { color: var(--term-mut); font-style: italic; }
   .thesis b { color: var(--term-teal); }
 
-  /* signature: the verification strip */
-  .verify { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; align-items: center; }
-  .chip { font-family: ui-monospace, Consolas, monospace; font-size: 0.78rem;
-    border: 1px solid var(--term-line); border-radius: 8px; padding: 5px 11px;
-    color: var(--term-teal); background: #ffffff06; opacity: 0; transform: translateY(4px);
-    animation: tick .45s ease-out forwards; }
-  .chip.amber { color: var(--term-amber); }
-  .chip:nth-child(1){ animation-delay:.15s } .chip:nth-child(2){ animation-delay:.4s }
-  .chip:nth-child(3){ animation-delay:.65s } .chip:nth-child(4){ animation-delay:.9s }
-  .chip:nth-child(5){ animation-delay:1.15s }
-  @keyframes tick { to { opacity: 1; transform: none; } }
-  .verifyline { font-family: ui-monospace, Consolas, monospace; font-size: 0.74rem;
-    color: var(--term-mut); margin-top: 10px; opacity: 0; animation: tick .5s 1.5s ease-out forwards; }
-  .verifyline b { color: var(--term-teal); }
-  @media (prefers-reduced-motion: reduce) {
-    .chip, .verifyline { animation: none; opacity: 1; transform: none; }
-  }
-  .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+  .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
   .links a { font-family: ui-monospace, Consolas, monospace; font-size: 0.84rem;
     text-decoration: none; border: 1px solid var(--term-line); border-radius: 999px;
     padding: 8px 17px; color: var(--term-ink); background: #ffffff08; transition: all .15s; }
@@ -196,14 +179,6 @@
       memory harnesses whose every published number regenerates in CI — <b>the build fails if a
       claim drifts</b> — and whose READMEs publish where the designs <em>lose</em>, above
       the fold.</p>
-      <div class="verify" aria-label="CI-verified claims">
-        <span class="chip">✓ 0.61× selective recall</span>
-        <span class="chip">✓ 9/10 · 0 false alarms</span>
-        <span class="chip">✓ flip test 0/8 vs 3/8</span>
-        <span class="chip">✓ 8/10 → 10/10 placebo-controlled</span>
-        <span class="chip amber">▲ losses published (1.27×)</span>
-      </div>
-      <div class="verifyline">$ drift-gate status → <b>all checks passing</b> · windows + linux</div>
       <div class="links">
         <a class="primary" href="Lito-Biala-Resume.pdf">Resume (PDF)</a>
         <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>
