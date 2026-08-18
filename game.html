@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Quest — from Prompt to Graph</title>
+<meta name="description" content="A tiny JRPG that teaches AI engineering: prompt → context → loop → graph → evaluation. One static file, no frameworks, no API keys. Every number quoted is CI-verified.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
+<style>
+  [hidden] { display:none !important; }
+  :root { --bg:#0b1210; --panel:#101b17; --ink:#d9efe6; --muted:#7fa294; --teal:#2dd4bf;
+    --gold:#fbbf24; --red:#f87171; --line:#1f3b32; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--ink); font-family:ui-monospace,"Cascadia Code",Consolas,monospace;
+    line-height:1.55; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:18px 12px 40px; }
+  .frame { width:100%; max-width:760px; }
+  .crt { border:2px solid var(--line); border-radius:12px; background:var(--panel);
+    box-shadow:0 0 40px #2dd4bf14, inset 0 0 60px #00000055; padding:20px 22px; }
+  h1 { color:var(--teal); font-size:1.5rem; letter-spacing:.04em; }
+  .sub { color:var(--muted); font-size:.85rem; margin:4px 0 14px; }
+  .hud { display:flex; gap:14px; flex-wrap:wrap; font-size:.8rem; margin-bottom:12px;
+    border-bottom:1px dashed var(--line); padding-bottom:10px; }
+  .hud span b { color:var(--teal); }
+  .bar { display:inline-block; width:110px; height:10px; border:1px solid var(--line);
+    border-radius:5px; overflow:hidden; vertical-align:middle; background:#0007; }
+  .bar i { display:block; height:100%; background:var(--teal); transition:width .3s; }
+  .bar.hp i { background:var(--gold); }
+  .bar.foe i { background:var(--red); }
+  .scene { min-height:120px; margin-bottom:14px; white-space:pre-wrap; }
+  .speaker { color:var(--gold); font-weight:700; }
+  .foe-name { color:var(--red); font-weight:700; }
+  .num { color:var(--teal); font-weight:700; }
+  .choices { display:grid; gap:8px; }
+  button { font-family:inherit; font-size:.92rem; text-align:left; color:var(--ink);
+    background:#0c1613; border:1px solid var(--line); border-radius:8px; padding:10px 14px; cursor:pointer; }
+  button:hover, button:focus-visible { border-color:var(--teal); color:var(--teal); outline:none; }
+  button.primary { border-color:var(--teal); color:var(--teal); font-weight:700; }
+  .feedback { border-left:3px solid var(--teal); padding:8px 12px; margin:12px 0; font-size:.9rem; background:#2dd4bf0d; }
+  .feedback.bad { border-color:var(--red); background:#f871710d; }
+  .artifact { border:1px dashed var(--gold); border-radius:10px; padding:10px 14px; margin:12px 0;
+    font-size:.85rem; }
+  .artifact a { color:var(--gold); }
+  .shake { animation:shake .3s; } @keyframes shake { 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+  .flash { animation:flash .35s; } @keyframes flash { 50%{background:#2dd4bf22} }
+  .end a { color:var(--teal); }
+  .tiny { font-size:.75rem; color:var(--muted); margin-top:16px; }
+  .tiny a { color:var(--muted); }
+  .kbd { color:var(--muted); font-size:.75rem; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="crt">
+    <h1>⚔️ AI QUEST</h1>
+    <div class="sub">from prompt to graph — a tiny JRPG about real AI engineering · by Lito Zarate Biala</div>
+    <div class="hud" id="hud" hidden>
+      <span>LV <b id="lv">1</b> <b id="title">Prompt Apprentice</b></span>
+      <span>HP <span class="bar hp"><i id="hp" style="width:100%"></i></span></span>
+      <span>XP <span class="bar"><i id="xp" style="width:0%"></i></span></span>
+      <span id="foewrap" hidden>FOE <span class="bar foe"><i id="foehp" style="width:100%"></i></span></span>
+    </div>
+    <div class="scene" id="scene"></div>
+    <div class="choices" id="choices"></div>
+    <div class="kbd" id="kbd" hidden>press 1 / 2 / 3 to choose</div>
+  </div>
+  <p class="tiny">One static file · no frameworks, no trackers, no API keys · every number quoted in
+  this game is a real, CI-verified claim from <a href="https://github.com/LZBiala">github.com/LZBiala</a> —
+  the build fails if a claim drifts. · <a href="index.html">← back to lzbiala.github.io</a></p>
+</div>
+
+<script>
+"use strict";
+const CH = [
+{ name:"Chapter 1 — The Realm of Prompts", foe:"The Vague Prompt", title:"Prompt Apprentice",
+  lore:"Every quest begins with words.\n\nYour guide appears: a reliability engineer from a great bank who spent years asking one question — \"how do we know this is actually working?\"\n\nGUIDE: \"Before graphs, before agents, before everything: learn to ask precisely. A monster approaches — it feeds on ambiguity.\"",
+  fights:[
+  { q:"An executive needs a summary of an incident report. Which prompt do you cast?",
+    a:["\"Summarize this.\"",
+       "\"You are briefing bank executives. Summarize this incident in 3 bullets: impact, root cause, next steps. Plain language, no jargon.\"",
+       "\"Please summarize this important document carefully and thoroughly and well.\""],
+    c:1,
+    good:"CRITICAL HIT! Role + audience + format + constraints. Adjectives beg; structure commands. The model now knows WHO it serves, WHAT shape to produce, and WHAT to leave out.",
+    bad:"The monster absorbs your vague words and grows! Adding adjectives (\"carefully, thoroughly\") tells the model nothing checkable. Give it a role, an audience, a format, and constraints." },
+  { q:"The AI keeps inventing numbers in its summaries. Your counter-spell?",
+    a:["Add \"Do not hallucinate.\" to the prompt",
+       "\"Only use numbers that appear in the source; if a number is missing, write 'not stated'.\"",
+       "Ask it to double-check itself afterward"],
+    c:1,
+    good:"SUPER EFFECTIVE! You gave it a checkable rule AND an escape hatch. \"Not stated\" gives the model something honest to do instead of guessing. Prohibitions without alternatives collapse under pressure.",
+    bad:"The monster laughs. \"Do not hallucinate\" is a wish, not a rule. Give the model a verifiable instruction and a legal way out: 'if missing, write not stated'." },
+  { q:"BOSS: answers vary wildly between runs. Which weapon strikes deepest?",
+    a:["Add three worked examples of ideal output (few-shot)",
+       "Add the words \"be consistent\"",
+       "Make the prompt longer with more adjectives"],
+    c:0,
+    good:"BOSS DEFEATED! Instructions describe; examples DEMONSTRATE. Few-shot examples anchor the output distribution harder than any adjective ever will.",
+    bad:"The boss shrugs off your words. Telling a model to \"be consistent\" is like telling dice to land on six. Show it three ideal outputs — examples anchor behavior." }],
+  unlock:{ text:"ARTIFACT UNLOCKED: the guide's first law — <b>structure beats adjectives.</b>", link:null } },
+
+{ name:"Chapter 2 — The Context Caverns", foe:"The Context Golem", title:"Context Shaper",
+  lore:"GUIDE: \"A model's context window is a backpack, not a warehouse. I once built an agent whose memory was a plain markdown wiki — index cards it could read, extend, and prune. The dungeon ahead punishes those who carry everything.\"",
+  fights:[
+  { q:"Your agent has 200 pages of notes. Today's question touches 2 of them. What goes in the backpack?",
+    a:["Everything — better safe than sorry",
+       "Index first: skim the card titles, retrieve only the 2-3 notes this question needs",
+       "Just the newest page — recency wins"],
+    c:1,
+    good:"CRITICAL HIT! Selective recall. Measured for real: <span class='num'>0.61×</span> the tokens of loading everything. And the honest boundary — on a tiny, hot corpus, stuffing actually wins (<span class='num'>1.27×</span>). Context engineering is knowing when each strategy wins.",
+    bad:"The Golem grows heavier with every page you stuff! Every token competes for the model's attention. Index first, retrieve what the question needs — and know the boundary: only on a tiny corpus does load-everything win." },
+  { q:"Deep into a long session, the agent forgets constraints you set at the start. Your move?",
+    a:["Hope it remembers next time",
+       "Keep durable constraints in a compact standing block, and refresh a summary as the session grows",
+       "Repeat the constraints IN ALL CAPS"],
+    c:1,
+    good:"SUPER EFFECTIVE! Position and persistence matter: durable facts live in durable slots. Long sessions need refreshed summaries — memory is an architecture, not an accident.",
+    bad:"The Golem eats your caps lock. Volume doesn't survive a long context; placement does. Durable constraints belong in a standing block that never scrolls away." },
+  { q:"BOSS: What belongs in the context window for any task?",
+    a:["Everything you have — the model will sort it out",
+       "The least sufficient set: task, constraints, retrieved facts, examples — each with its source",
+       "Only the question, purity above all"],
+    c:1,
+    good:"BOSS DEFEATED! Context is a budget. The least sufficient set, with sources — every extra token is noise that competes with signal.",
+    bad:"The Golem buries you in your own baggage! More context is not more safety — irrelevant tokens dilute the relevant ones. Curate: task, constraints, facts, examples. With sources." }],
+  unlock:{ text:"ARTIFACT UNLOCKED: <a href='https://github.com/LZBiala/wiki-memory-lab'>wiki-memory-lab</a> — agent memory as an auditable markdown wiki. Selective recall at 0.61× full-context cost; the crossover where it loses (1.27×) published in the same table.", link:true } },
+
+{ name:"Chapter 3 — The Loop Labyrinth", foe:"The Infinite Loop", title:"Loop Engineer",
+  lore:"GUIDE: \"An agent is a loop: act, observe, adjust. But a loop without brakes is a monster that eats budgets and calls it progress. I learned this running incident bridges — every fix must prove itself before it ships.\"",
+  fights:[
+  { q:"Your coding agent keeps 'fixing' the code and breaking it again, forever. First thing you add?",
+    a:["More iterations — it'll converge eventually",
+       "A verification step inside the loop: run the tests after each change; stop when green",
+       "A bigger model"],
+    c:1,
+    good:"CRITICAL HIT! Loops need measurable exit conditions. Verify INSIDE the loop — act, observe, MEASURE, adjust. A loop that can't tell success from failure only ever terminates by accident.",
+    bad:"The Loop spins faster! More iterations of an unmeasured loop is more chaos. Put verification inside the loop and define what 'done' measurably means." },
+  { q:"Your improvement loop raised the score. How do you KNOW the loop caused it?",
+    a:["Score went up — case closed",
+       "Run a control: same budget, placebo changes, measured on a test set sealed BEFORE the loop started",
+       "Run it twice and feel confident"],
+    c:1,
+    good:"SUPER EFFECTIVE! The clinical-trial move. Real measured example: a memory-repair loop scored <span class='num'>8/10 → 10/10</span> on a sealed held-out split — and the blind placebo arm, same edit budget, moved NOTHING. That contrast is how you know it's real.",
+    bad:"The Loop whispers: 'the number went up, worship me.' Without a control arm and a sealed test set, you can't separate the loop's effect from luck — or from teaching to the test." },
+  { q:"BOSS: your self-improving loop starts gaming its own metric — recall rises, token costs explode. Name the curse!",
+    a:["Goodhart's Law — when a measure becomes a target, it ceases to be a good measure. Publish the cost; gate on more than one metric",
+       "Success — ship it",
+       "Just overfitting, ignore it"],
+    c:0,
+    good:"BOSS DEFEATED! Goodhart's Law. The honest defense: publish the costs next to the gains, gate on multiple metrics, and build a Goodhart demonstration ON PURPOSE so everyone can see what gaming looks like.",
+    bad:"The Loop crowns itself king of a meaningless number! A metric that became a target stops measuring what you cared about. Gate on more than one measure — and publish the costs." }],
+  unlock:{ text:"ARTIFACT UNLOCKED: <a href='https://github.com/LZBiala/memory-repair-lab'>memory-repair-lab</a> — placebo-controlled memory repair. The model never learns; the notes do. 8/10 → 10/10 on a sealed held-out split, with a Goodhart arm shipped on purpose.", link:true } },
+
+{ name:"Chapter 4 — The Graph Citadel", foe:"The Deferential Judge", title:"Graph Engineer",
+  lore:"GUIDE: \"One agent is an opinion. A graph of agents is a system — if you engineer the structure. Roles, evidence flow, verification stages. The final tower is ruled by a judge... and the judge has never been tested.\"",
+  fights:[
+  { q:"You want ideas AND real criticism of them. How do you shape the graph?",
+    a:["One agent does both — efficient!",
+       "Separate roles: a generator, and a dedicated refuter whose only job is attack — no one grades their own homework",
+       "Two generators — twice the ideas"],
+    c:1,
+    good:"CRITICAL HIT! Structural role separation. An agent asked to praise and attack its own work will do neither honestly. Adversariality must live in the STRUCTURE, not in a polite instruction.",
+    bad:"The Citadel's walls yawn. One agent judging its own ideas is a mirror, not a critic. Separate the roles structurally — generator, refuter, judge." },
+  { q:"Your judge-agent's verdicts change when you rephrase its instructions. What do you build?",
+    a:["Nothing — trust the judge",
+       "An instruction-flip test: same evidence, OPPOSITE standing instructions — then count how many verdicts flip",
+       "A more polite prompt"],
+    c:1,
+    good:"SUPER EFFECTIVE! Cross-examine the judge itself. Measured for real: an evidence-driven judge flipped <span class='num'>0/8</span> verdicts; a deferential judge flipped <span class='num'>3/8</span> — exactly the ambiguous items, where a weak judge does the most damage.",
+    bad:"The Judge smiles and agrees with you. And with your opponent. And with everyone. A verdict that flips with the phrasing was never a verdict about the evidence — test the judge." },
+  { q:"FINAL TOWER: scaling to many agents — what keeps a graph honest?",
+    a:["More agents",
+       "Recorded decisions: kill ledgers with written reasons, verification stages between fan-out and merge, and judges that are themselves tested",
+       "Faster models"],
+    c:1,
+    good:"BOSS DEFEATED! Orchestration is evidence flow plus accountability — not headcount. Every killed idea carries its cause of death; every merge passes a verification stage; every judge stands trial.",
+    bad:"A thousand agents shout into the void! Scale without structure multiplies noise. Graphs stay honest through recorded decisions and tested judges." }],
+  unlock:{ text:"ARTIFACT UNLOCKED: <a href='https://github.com/LZBiala/adversarial-chambers'>adversarial-chambers</a> — multi-agent orchestration with the judge on trial. Kill ledger, role separation, instruction-flip test: 0/8 vs 3/8.", link:true } },
+
+{ name:"Final Chapter — The Hall of Claims", foe:"The Unverified Claim", title:"Reliability Sage",
+  lore:"GUIDE: \"You've learned to ask, to carry, to loop, to orchestrate. One monster remains — the oldest one. It lives in READMEs and slide decks. It says 'it works' and offers no receipts.\"",
+  fights:[
+  { q:"Your AI code reviewer reports '12 issues found.' Do you trust it?",
+    a:["Yes — 12 is impressively many",
+       "Test the tester: plant ONE known defect in clean code, mix in byte-identical clean controls — crying wolf scores zero",
+       "Ask the reviewer if it's sure"],
+    c:1,
+    good:"CRITICAL HIT! Mutation testing, aimed at the AI itself. Measured for real: <span class='num'>9/10</span> planted defects caught at the planted line, <span class='num'>0</span> false alarms on byte-identical clean controls — and one deliberate blind spot published so the scorecard shows a real miss.",
+    bad:"The Claim feeds on your trust! A reviewer that flags everything is as useless as one that flags nothing. Plant a known defect; include clean controls; score both directions." },
+  { q:"You published a benchmark number. Six months later the code has changed. What keeps the claim honest?",
+    a:["Memory and good intentions",
+       "CI regenerates every published number on every build — and the build FAILS if a claim drifts. Claims are SLOs.",
+       "A disclaimer in small print"],
+    c:1,
+    good:"SUPER EFFECTIVE! Claims-as-SLOs. The number in the README is regenerated by the same pipeline that tests the code — drift breaks the build, loudly, before it misleads anyone.",
+    bad:"The Claim quietly rots in your README while the code moves on! Numbers typed by hand go stale. Wire them to CI: regenerate on every build, fail on drift." },
+  { q:"THE FINAL QUESTION — the deepest law of trustworthy AI engineering:",
+    a:["Never ship anything",
+       "Publish where your design LOSES, right next to where it wins — a claim without its boundary is marketing",
+       "Bigger models will fix it"],
+    c:1,
+    good:"THE UNVERIFIED CLAIM DISSOLVES INTO LIGHT.\n\nGUIDE: \"That's the whole secret. The crossover where my memory design loses is printed in the same table as its win. The blind spot in my reviewer harness is published on purpose. Leading with the boundary is what makes everything else believable.\"",
+    bad:"The Claim feeds on perfection! Nothing wins everywhere. The engineers worth trusting are the ones who can tell you exactly where their system breaks — and print it above the fold." }],
+  unlock:{ text:"ARTIFACT UNLOCKED: <a href='https://github.com/LZBiala/agent-mutation-lab'>agent-mutation-lab</a> — mutation testing where the subject is an AI code reviewer. 9/10 caught, 0 false alarms, one honest blind spot.", link:true } }
+];
+
+const S = { ch:0, fight:0, hp:10, maxhp:10, xp:0, state:"title" };
+const $ = id => document.getElementById(id);
+const scene = $("scene"), choices = $("choices");
+
+function esc(t){ const d=document.createElement("div"); d.textContent=t; return d.innerHTML; }
+function hud(){
+  $("hud").hidden = S.state==="title";
+  $("kbd").hidden = S.state==="title";
+  $("lv").textContent = S.ch+1;
+  $("title").textContent = CH[Math.min(S.ch,CH.length-1)].title;
+  $("hp").style.width = (S.hp/S.maxhp*100)+"%";
+  $("xp").style.width = Math.min(100,(S.xp % 3)/3*100)+"%";
+  const inFight = S.state==="fight" || S.state==="feedback";
+  $("foewrap").hidden = !inFight;
+  if(inFight){ const f=CH[S.ch].fights.length; $("foehp").style.width = ((f-S.fight)/f*100)+"%"; }
+}
+function show(html, opts){
+  scene.innerHTML = html;
+  choices.innerHTML = "";
+  (opts||[]).forEach((o,i)=>{
+    const b=document.createElement("button");
+    b.innerHTML=(o.primary?"":`[${i+1}] `)+o.label;
+    if(o.primary) b.classList.add("primary");
+    b.onclick=o.fn;
+    choices.appendChild(b);
+  });
+  hud();
+}
+function titleScreen(){
+  S.state="title";
+  show(`A tiny JRPG about <b>real AI engineering</b>.\n\nFive chapters: <b>prompt</b> → <b>context</b> → <b>loop</b> → <b>graph</b> → <b>evaluation</b>.\nFight monsters by choosing the better engineering decision. Wrong answers cost HP but teach you why — you can always retry. Along the way you'll unlock four real, CI-verified artifacts built by your guide.\n\n(5–10 minutes · no signup · nothing leaves this page)`,
+    [{label:"▶ BEGIN THE QUEST", primary:true, fn:startChapter},
+     {label:"Who is the guide?", fn:aboutGuide}]);
+}
+function aboutGuide(){
+  show(`<span class="speaker">THE GUIDE</span> is Lito Zarate Biala — a VP at Wells Fargo leading SRE and incident management for critical banking applications, building governed GenAI products by day and open-source AI evaluation frameworks by night.\n\nEverything the guide teaches in this game comes from systems that actually exist — and every number quoted regenerates in CI.`,
+    [{label:"▶ BEGIN THE QUEST", primary:true, fn:startChapter},
+     {label:"↩ back", fn:titleScreen}]);
+}
+function startChapter(){
+  S.state="lore"; S.fight=0;
+  const c=CH[S.ch];
+  show(`<b>${esc(c.name)}</b>\n\n${esc(c.lore)}\n\nA wild <span class="foe-name">${esc(c.foe)}</span> appears!`,
+    [{label:"⚔ FIGHT", primary:true, fn:fight}]);
+}
+function fight(){
+  S.state="fight";
+  const c=CH[S.ch], f=c.fights[S.fight];
+  show(`<span class="foe-name">${esc(c.foe)}</span> · encounter ${S.fight+1}/${c.fights.length}\n\n${esc(f.q)}`,
+    f.a.map((label,i)=>({label:esc(label), fn:()=>answer(i)})));
+}
+function answer(i){
+  S.state="feedback";
+  const c=CH[S.ch], f=c.fights[S.fight];
+  if(i===f.c){
+    S.xp++;
+    document.querySelector(".crt").classList.add("flash");
+    setTimeout(()=>document.querySelector(".crt").classList.remove("flash"),400);
+    const last = S.fight+1>=c.fights.length;
+    show(`<div class="feedback">${f.good}</div>`,
+      [{label: last?"★ CLAIM VICTORY":"▶ next encounter", primary:true, fn:()=>{ S.fight++; last?chapterClear():fight(); }}]);
+  } else {
+    S.hp=Math.max(1,S.hp-1);
+    document.querySelector(".crt").classList.add("shake");
+    setTimeout(()=>document.querySelector(".crt").classList.remove("shake"),400);
+    show(`<div class="feedback bad">${f.bad}</div>\n(−1 HP — but knowledge is free. Try again.)`,
+      [{label:"↻ RETRY", primary:true, fn:fight}]);
+  }
+}
+function chapterClear(){
+  S.state="clear";
+  const c=CH[S.ch];
+  const art = c.unlock ? `<div class="artifact">🏆 ${c.unlock.text}</div>` : "";
+  const lastCh = S.ch+1>=CH.length;
+  show(`<b>${esc(c.foe)} defeated!</b>\n${art}\nYou are now a <b>${esc(lastCh?c.title:CH[S.ch+1].title)}</b>.`,
+    [{label: lastCh?"👑 FINISH THE QUEST":"▶ next chapter", primary:true, fn:()=>{ lastCh?ending():(S.ch++,startChapter()); }}]);
+}
+function ending(){
+  S.state="end";
+  show(`<div class="end"><b>🏆 QUEST COMPLETE — you are a Reliability Sage.</b>\n\nThe path you walked: <b>prompt</b> (structure beats adjectives) → <b>context</b> (a budget, not a warehouse) → <b>loop</b> (verify inside; control arms) → <b>graph</b> (roles, ledgers, tested judges) → <b>evaluation</b> (claims are SLOs; publish the losses).\n\nThe guide was real. The artifacts are real:\n· <a href="https://github.com/LZBiala/wiki-memory-lab">wiki-memory-lab</a> — auditable agent memory (0.61× / honest 1.27× loss)\n· <a href="https://github.com/LZBiala/memory-repair-lab">memory-repair-lab</a> — placebo-controlled repair (8/10 → 10/10)\n· <a href="https://github.com/LZBiala/adversarial-chambers">adversarial-chambers</a> — the judge on trial (0/8 vs 3/8)\n· <a href="https://github.com/LZBiala/agent-mutation-lab">agent-mutation-lab</a> — test the tester (9/10, 0 false alarms)\n\nMeet the guide: <a href="index.html">lzbiala.github.io</a> · <a href="Lito-Biala-Resume.pdf">resume</a> · <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a> · <a href="mailto:lzbiala@gmail.com">email</a></div>`,
+    [{label:"↻ play again", fn:()=>{ Object.assign(S,{ch:0,fight:0,hp:10,xp:0}); titleScreen(); }}]);
+}
+document.addEventListener("keydown",e=>{
+  if(!/^[1-9]$/.test(e.key)) return;
+  const btns=[...choices.querySelectorAll("button")];
+  const idx=parseInt(e.key,10)-1;
+  if(S.state==="fight"){ if(btns[idx]) btns[idx].click(); }
+  else if(btns.length && idx===0) btns[0].click();
+});
+titleScreen();
+</script>
+</body>
+</html>
