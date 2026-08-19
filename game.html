@@ -35,6 +35,9 @@
   .bstatus { position:absolute; top:25px; left:8px; font-size:.7rem; background:#000a; padding:1px 8px; border-radius:4px; color:var(--muted); max-width:75%; }
   .bhp { position:absolute; top:6px; right:8px; width:110px; height:10px; border:2px solid #fff; border-radius:5px; background:#0009; }
   .bhp i { display:block; height:100%; background:var(--red); transition:width .3s; }
+  .tqueue { font-size:.64rem; color:var(--muted); padding:0 4px; letter-spacing:.02em; }
+  .tqueue .tqcur { color:var(--gold); font-weight:700; }
+  .tqueue .tqdone { opacity:.4; text-decoration:line-through; }
   .pmrow { display:flex; gap:5px; }
   .pm { flex:1; background:var(--blue2); border:2px solid #ffffff88; border-radius:6px; padding:4px 6px;
     font-size:.68rem; line-height:1.35; min-width:0; }
@@ -123,6 +126,7 @@
       <div class="bhp"><i id="bfoehp" style="width:100%"></i></div>
       <canvas id="bcv" width="384" height="176"></canvas>
     </div>
+    <div class="tqueue" id="tqueue"></div>
     <div class="pmrow" id="pmrow"></div>
     <div class="win log" id="blog"></div>
     <div class="brow">
@@ -679,19 +683,20 @@ Object.keys(SPRX).forEach(k=>{ const n=SPRX[k].length;
 
 // ================= DATA: party classes =================
 const MEMBERS = {
- hero:{ name:"HERO", cls:"Commander", spr:"hero", base:{hp:12,mp:6,atk:3}, grow:{hp:3,mp:2,atk:1},
+ hero:{ name:"HERO", cls:"Commander", spr:"hero", spd:5, base:{hp:12,mp:6,atk:3}, grow:{hp:3,mp:2,atk:1},
    skills:{1:["promptia"],2:["fivewhy"],4:["rollback"],6:["hitl"]} },
- sentinel:{ name:"SENTINEL", cls:"Ranger", spr:"sentinel", base:{hp:10,mp:5,atk:4}, grow:{hp:2,mp:1,atk:1},
+ sentinel:{ name:"SENTINEL", cls:"Ranger", spr:"sentinel", spd:7, base:{hp:10,mp:5,atk:4}, grow:{hp:2,mp:1,atk:1},
    skills:{1:["mutagen","truestrike"],5:["audit"]} },
- wiki:{ name:"WIKI", cls:"Wizard", spr:"wiki", base:{hp:8,mp:10,atk:2}, grow:{hp:2,mp:3,atk:1},
+ wiki:{ name:"WIKI", cls:"Wizard", spr:"wiki", spd:4, base:{hp:8,mp:10,atk:2}, grow:{hp:2,mp:3,atk:1},
    skills:{1:["contexa"],5:["indexstorm"]} },
- mender:{ name:"MENDER", cls:"Cleric", spr:"mender", base:{hp:11,mp:8,atk:2}, grow:{hp:3,mp:2,atk:1},
+ mender:{ name:"MENDER", cls:"Cleric", spr:"mender", spd:4, base:{hp:11,mp:8,atk:2}, grow:{hp:3,mp:2,atk:1},
    skills:{1:["controlarm","repair"],6:["ward"]} },
- refuter:{ name:"REFUTER", cls:"Tank", spr:"refuter", base:{hp:14,mp:5,atk:3}, grow:{hp:4,mp:1,atk:1},
+ refuter:{ name:"REFUTER", cls:"Tank", spr:"refuter", spd:3, base:{hp:14,mp:5,atk:3}, grow:{hp:4,mp:1,atk:1},
    skills:{1:["fliptest","objection"]} } };
 function mkActor(id, lv){ const m=MEMBERS[id];
   const a={ id, lv, xp:XPCURVE[lv-1]||0,
     maxhp:m.base.hp+m.grow.hp*(lv-1), maxmp:m.base.mp+m.grow.mp*(lv-1), atk:m.base.atk+m.grow.atk*(lv-1),
+    spd:m.spd||4, row:(id==="wiki"||id==="mender")?"back":"front",
     ko:false, sk:[], lb:0 };
   a.hp=a.maxhp; a.mp=a.maxmp;
   for(let L=1;L<=lv;L++) (m.skills[L]||[]).forEach(s=>{ if(!a.sk.includes(s)) a.sk.push(s); });
@@ -786,8 +791,8 @@ const EN = {
   moves:[["agrees with everything you say",5],["harmonizes 'LGTM!'",6]],
   intro:"A chorus of yes-men blocks the gate. They approve everything. That's the problem.",
   tip:"FLIP TEST shatters flattery — 0/8 vs 3/8, a real measured contrast." },
- flakytest:{ name:"ELITE: THE FLAKY TEST", spr:"flaky", hp:60, atk:4, xp:22, tok:30, weak:"controlarm2", twice:true, elite:true, ai:"smart",
-  moves:[["passes... then fails on rerun",5],["fails only on Fridays",7]],
+ flakytest:{ name:"ELITE: THE FLAKY TEST", spr:"flaky", hp:50, atk:4, xp:22, tok:30, weak:"controlarm2", twice:true, elite:true, ai:"smart",
+  moves:[["passes... then fails on rerun",5],["fails only on Fridays",5]],   // 50hp / 5+5 set by the expert loop: the alpha strike must be survivable
   intro:"An ELITE appears — THE FLAKY TEST. Green, red, green, red...", tip:"Verified strikes only: CONTROL ARM, then unload." },
  configdrift:{ name:"ELITE: CONFIG DRIFT", spr:"drift", hp:70, atk:5, xp:24, tok:34, weak:null, regen:true, grow:true, elite:true, ai:"smart",
   moves:[["diverges from the documented state",5],["whispers 'it was always like this'",7]],
@@ -827,6 +832,17 @@ const EN = {
   moves:[["strikes from a blind spot you never mapped",9],["is not in any runbook",12]],
   intro:"The air tears open. THE UNKNOWN UNKNOWN — the incident no one has had yet. It attacks from everywhere at once.",
   tip:"No weakness. No trick. Just everything you've learned: taunt, ward, verify, heal, strike." } };
+
+// FFT initiative: per-unit speed (fast units act first, foe interleaved)
+const ENSPD={ dummy:1, vague:2, gremlin:8, creep:3, golem:3, wyrm:6, leak:4, chorus:4,
+ flakytest:8, configdrift:5, monolith:3, h1:6, h2:5, h3:5, h4:4, h5:5,
+ faxdaemon:6, cobol:2, patient0:5, unknown:7 };
+Object.keys(ENSPD).forEach(k=>{ if(EN[k]) EN[k].spd=ENSPD[k]; });
+function unitSpd(def){ return def.spd||4; }
+function rowOf(a){ return a.row || ((a.id==="wiki"||a.id==="mender")?"back":"front"); }
+function fightBase(a){ const cat=(a.id==="hero" && S.equip.weapon)? WVIS[S.equip.weapon] : null;
+  const exempt = cat==="bow" || cat==="staff";   // ranged and casting implements strike true from the back line
+  return Math.max(1, atkOf(a) - ((rowOf(a)==="back" && !exempt)?1:0)); }
 
 // ================= DATA: world =================
 const Z = [
@@ -1078,7 +1094,7 @@ function defOf(a){ return ((a.id==="hero" && S.equip.badge && IT[S.equip.badge])
   + (a.id==="hero" && (S.equip.charm==="ch5"||S.equip.charm==="tal") ? 1 : 0); }
 function critOf(a){ return 0.15 + (a.id==="hero" && (S.equip.charm==="ch1"||S.equip.charm==="ch4") ? 0.10 : 0)
   + (a.id==="hero" && matOn("mfocus") ? 0.10 : 0); }
-function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0));
+function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0) - (rowOf(a)==="back"?1:0));
   if(a.defending) d=Math.ceil(d/2); return d; }
 
 // ================= CHRONO REMASTER: battle-scene FX engine =================
@@ -1508,9 +1524,11 @@ function startBattle(id,key,chain){ const def=EN[id];
   if(id==="h5"){ M.b.fieldProto=true; S.actors.hero.lb=LB_MAX;
     intro+="<br><span class='gold'>Your hands stop shaking. Every rep — every five-why, every rollback, every blameless review — fuses into something NEW. ★ LIMIT evolved: FIELD PROTOCOL.</span>"; }
   BW.hidden=false; ov.hidden=true; blog(intro);
+  partyActors().forEach(a=>{ a.acted=false; });
+  M.b.introPending=intro;
   BFX.reset(); if(!M.bloop){ M.bloop=true; requestAnimationFrame(battleLoop); }
   playMusic("battle");
-  drawB(); }
+  buildQueue(M.b); nextUnit(); }
 function actor(){ const ids=["hero",...S.party]; return S.actors[ids[M.b.turn]]; }
 function blog(html){ document.getElementById("blog").innerHTML=html; }
 function statusLine(){ const b=M.b; const st=[];
@@ -1529,13 +1547,18 @@ function drawB(){ const b=M.b;
   document.getElementById("bstatus").textContent=statusLine();
   document.getElementById("bfoehp").style.width=Math.max(0,b.hp/b.maxhp*100)+"%";
   drawBattleScene();
+  const tq=document.getElementById("tqueue");
+  if(tq){ tq.innerHTML = b.queue ? "⏱ "+b.queue.map((u,i)=>{
+      const nm = u.t==="f" ? "☠ "+(b.def.name.split(" ")[0]) : MEMBERS[u.id].name;
+      const cls = i===b.qi ? "tqcur" : (i<b.qi ? "tqdone" : "");
+      return "<span class='"+cls+"'>"+nm+"</span>"; }).join(" · ") : ""; }
   const pr=document.getElementById("pmrow"); pr.innerHTML="";
   const ids=["hero",...S.party];
   ids.forEach((pid,i)=>{ const a=S.actors[pid]; if(!a) return; const m=MEMBERS[pid];
     const seg=Math.min(4,Math.floor((a.lb||0)/5));
     const d=document.createElement("div");
     d.className="pm"+(i===b.turn && !a.ko?" active":"")+(a.ko?" ko":"");
-    d.innerHTML="<b>"+m.name+"</b><span class='cls'>"+clsOf(a)+" L"+a.lv+"</span><br>HP "+a.hp+"/"+a.maxhp+"<br>MP "+a.mp+"/"+a.maxmp+
+    d.innerHTML="<b>"+m.name+" "+(rowOf(a)==="back"?"▼":"▲")+"</b><span class='cls'>"+clsOf(a)+" L"+a.lv+"</span><br>HP "+a.hp+"/"+a.maxhp+"<br>MP "+a.mp+"/"+a.maxmp+
       "<br><span class='"+(seg>=4?"gold":"mut")+"'>LB "+"▰".repeat(seg)+"▱".repeat(4-seg)+"</span>"+
       (a.ko?"<br><span class='red'>KO</span>":(a.defending?"<br>🛡 def":(a.shield?"<br>🛡 ward":"")));
     pr.appendChild(d); });
@@ -1548,6 +1571,7 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
     h="<div class='gold' style='font-size:.74rem'>▶ "+MEMBERS[a.id].name+" — "+clsOf(a)+"</div>"+
       ((a.lb||0)>=LB_MAX?"<button data-lm='1' style='color:var(--gold)'>★ LIMIT: "+((b.fieldProto&&a.id==="hero")?"FIELD PROTOCOL":LIMITS[a.id].name)+"</button>":"")+
       "<button data-a='fight'>FIGHT</button><button data-a='skill'>SKILL</button><button data-a='defend'>DEFEND</button><button data-a='item'>ITEM</button>"+
+      "<button data-a='row'>ROW: "+rowOf(a).toUpperCase()+" ⇄</button>"+
       (a.id==="hero"?"<button data-a='style'>STYLE: "+STANCES[S.stance||"balanced"].name+"</button>":"")+
       (b.def.flee && a.id==="hero"?"<button data-a='flee'>FLEE</button>":"")+(a.mp<2?"<button data-a='grit'>GRIT (+2 MP)</button>":""); }
   else if(b.menu==="skill"){ a.sk.forEach(id=>{ h+="<button data-s='"+id+"'>"+SP[id].name+" ("+SP[id].mp+")</button>"; });
@@ -1579,20 +1603,37 @@ function navBattle(d){ const b=M.b; if(!b) return;
   const bs=[...document.querySelectorAll("#bmenu button")]; if(!bs.length) return;
   b.sel=(((b.sel||0)+d)%bs.length+bs.length)%bs.length;
   bs.forEach((x,i)=>x.classList.toggle("sel", i===b.sel)); sfx("blip"); }
-function nextActor(){ const b=M.b; const ids=["hero",...S.party];
-  do { b.turn++; } while(b.turn<ids.length && S.actors[ids[b.turn]] && (S.actors[ids[b.turn]].ko || S.actors[ids[b.turn]].dualUsed));
-  if(b.turn>=ids.length){ b.turn=0; enemyTurn(); return; }
-  b.menu="main"; drawB(); }
+// -------- FFT INITIATIVE QUEUE: every unit acts in speed order, foe interleaved --------
+function buildQueue(b){ const ids=["hero",...S.party];
+  const units=[];
+  ids.forEach(id=>{ const a=S.actors[id]; if(a && !a.ko) units.push({t:"a", id, spd:a.spd||(MEMBERS[id].spd||4)}); });
+  units.push({t:"f", spd:unitSpd(b.def)});
+  units.sort((x,y)=>y.spd-x.spd);        // stable: equal-speed allies keep formation order, foe after them
+  b.queue=units; b.qi=-1; }
+function nextUnit(){ const b=M.b; if(!b) return;
+  const ids=["hero",...S.party];
+  const cur=b.queue && b.queue[b.qi];
+  if(cur && cur.t==="a"){ const fin=S.actors[cur.id]; if(fin) fin.acted=true; }
+  while(true){ b.qi++;
+    if(!b.queue || b.qi>=b.queue.length){ endOfRound(b,""); return; }
+    const u=b.queue[b.qi];
+    if(u.t==="f"){ if(b.hp>0){ foeAct(false); return; } continue; }
+    const a=S.actors[u.id];
+    if(!a || a.ko || a.dualUsed || a.acted) continue;
+    b.turn=ids.indexOf(u.id); b.introPending=null; b.menu="main"; drawB(); return; } }
 function menuPick(d){ const b=M.b; const a=actor();
   if(d.a==="back"){ b.menu="main"; drawMenu(); return; }
-  if(d.a==="next"){ nextActor(); return; }
+  if(d.a==="next"){ nextUnit(); return; }
+  if(d.a==="row"){ a.row=(rowOf(a)==="back")?"front":"back";
+    blog(MEMBERS[a.id].name+" shifts to the <b>"+rowOf(a).toUpperCase()+"</b> line. <span class='mut'>(free — positioning is a decision, not a turn)</span>");
+    b.menu="main"; drawB(); return; }
   if(d.a==="won"){ winBattle(); return; }
   if(d.a==="flee"){ M.roamBattle=false; BW.hidden=true; M.state="explore"; playMusic("overworld"); render(); say(["You retreat to fight another day."]); return; }
   if(d.a==="grit"){ a.mp=Math.min(a.maxmp,a.mp+2); blog(MEMBERS[a.id].name+" steadies their breathing. <span class='num'>+2 MP</span>."); b.menu="next"; drawB(); return; }
   if(d.a==="defend"){ a.defending=true; a.mp=Math.min(a.maxmp,a.mp+1);
     blog(MEMBERS[a.id].name+" braces — next hit <b>halved</b>, <span class='num'>+1 MP</span>."); b.menu="next"; drawB(); return; }
   if(d.a==="fight"){
-    if(reducedMotion()) return playerHit(a, atkOf(a)+(b.doubled?atkOf(a):0), MEMBERS[a.id].name+(b.doubled?" strikes the ROOT CAUSE — double damage!":" attacks!"));
+    if(reducedMotion()) return playerHit(a, fightBase(a)+(b.doubled?fightBase(a):0), MEMBERS[a.id].name+(b.doubled?" strikes the ROOT CAUSE — double damage!":" attacks!"));
     b.menu="strike"; b.strikeT0=performance.now(); drawMenu(); return; }
   if(d.a==="strikestop"){ const t=((performance.now()-b.strikeT0)/700)%2; return resolveStrike(a, t>1? 2-t : t); }
   if(d.a==="skill"){ b.menu="skill"; drawMenu(); return; }
@@ -1608,7 +1649,7 @@ function menuPick(d){ const b=M.b; const a=actor();
   if(d.t) return resolveTarget(a, d.t); }
 // -------- E33 TIMED STRIKE resolution --------
 function resolveStrike(a,p){ const b=M.b; const mult=strikeMult(p);
-  const base=atkOf(a)+(b.doubled?atkOf(a):0);
+  const base=fightBase(a)+(b.doubled?fightBase(a):0);
   const dmg=Math.round(base*mult);
   const pool=mult===1.5? STRIKELINES.perfect : (mult===1.2? STRIKELINES.good : STRIKELINES.normal);
   const line=pool[(M.frame||0)%pool.length];
@@ -1643,8 +1684,7 @@ function dualsFor(a){ const b=M.b; if(!b) return [];
     else if(a.id===du.b){ partnerId=du.a; myCost=du.mpb; theirCost=du.mpa; }
     else return;
     const p=S.actors[partnerId];
-    if(a.ko || !p || p.ko || p.dualUsed) return;
-    if(ids.indexOf(partnerId) <= ids.indexOf(a.id)) return; // partner already acted this round
+    if(a.ko || a.acted || !p || p.ko || p.dualUsed || p.acted) return; // FFT queue: either partner may lead while both are unacted
     if(a.mp<myCost || p.mp<theirCost) return;
     out.push({key, partner:partnerId, myCost, theirCost}); });
   return out; }
@@ -1783,12 +1823,15 @@ function pickMove(b){ const mv=b.def.moves;
   if(b.def.ai==="smart"){ if(b.hp<b.maxhp/2 || b.taunt>0) return mv[mv.length-1];
     return mv[Math.floor(rng()*mv.length)]; }
   return mv[Math.floor(rng()*mv.length)]; }
-function enemyTurn(){ const b=M.b;
-  if(b.snoozed){ b.snoozed=false; blog("🔕 The pager is snoozed — <b>"+b.def.name+"</b> misses its turn!"); endOfRound(b,""); return; }
+function enemyTurn(){ foeAct(true); }
+function foeAct(standalone){ const b=M.b;
+  if(b.snoozed){ b.snoozed=false; const msg="🔕 The pager is snoozed — <b>"+b.def.name+"</b> misses its turn!";
+    if(standalone){ blog(msg); endOfRound(b,""); } else { blog(msg); b.menu="next"; drawB(); } return; }
   const mv=pickMove(b);
   let raw=Math.max(1, mv[1]+stanceIn());
   if(b.def.grow){ b.growN=Math.min(4,(b.growN||0)+1); raw+=b.growN-1; }
   let t="<b>"+b.def.name+"</b> "+mv[0]+"!"+(b.def.grow&&b.growN>1?" <span class='red'>(grown!)</span>":"");
+  if(b.introPending){ t=b.introPending+"<br>"+t; b.introPending=null; }
   if(b.def.twice){ raw+=b.def.atk; t+=" (twice!)"; }
   const liv=living();
   if(!liv.length){ endOfRound(b,t); return; }
@@ -1798,7 +1841,8 @@ function enemyTurn(){ const b=M.b;
     for(let i=0;i<Math.min(k,pool.length);i++){ const j=Math.floor(rng()*pool.length); targets.push(pool.splice(j,1)[0]); }
     t+=" <span class='red'>(hits "+targets.length+"!)</span>"; }
   else if(b.taunt>0 && S.actors.refuter && !S.actors.refuter.ko && rng()<0.7){ targets=[S.actors.refuter]; }
-  else targets=[liv[Math.floor(rng()*liv.length)]];
+  else { const front=liv.filter(x=>rowOf(x)==="front");
+    targets=[ (front.length && rng()<0.7) ? front[Math.floor(rng()*front.length)] : liv[Math.floor(rng()*liv.length)] ]; }
   BFX.push("foelunge");
   for(const tgt of targets){
     let dmg=incoming(raw, tgt, ((tgt.id==="refuter"&&b.taunt>0)?1:0) + ((b.def.multi&&matOn("maegis"))?1:0));
@@ -1813,7 +1857,9 @@ function enemyTurn(){ const b=M.b;
     else { fxPopAlly(tgt.id,"0","#9fb0d8"); t+="<br>"+MEMBERS[tgt.id].name+" takes no damage."; } }
   document.getElementById("stage").classList.add("fx-shake");
   setTimeout(()=>document.getElementById("stage").classList.remove("fx-shake"),350);
-  endOfRound(b,t); }
+  if(standalone){ endOfRound(b,t); return; }
+  if(!living().length){ endOfRound(b,t); return; }
+  blog(t); b.menu="next"; drawB(); }
 function endOfRound(b,t){
   const liv=living();
   if(b.def.drain && liv.length){ const v=liv[Math.floor(rng()*liv.length)];
@@ -1828,7 +1874,7 @@ function endOfRound(b,t){
     if(b.def.regen && b.verified===0){ t+="<br>The defect fires… <span class='red'>patched by regeneration!</span>"; }
     else { b.hp-=2; t+="<br>The planted defect fires: <span class='num'>2</span>!";
       if(b.hp<=0){ blog(t+"<br><span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; } } }
-  partyActors().forEach(a=>{ a.defending=false; a.dualUsed=false; });
+  partyActors().forEach(a=>{ a.defending=false; a.dualUsed=false; a.acted=false; });
   if(!living().length){ S.deaths=(S.deaths||0)+1; b.menu="dead"; sfx("lose"); M.roamBattle=false;
     const toll=Math.ceil(S.tokens*0.1); S.tokens-=toll;
     blog(t+"<br><span class='red'>The party falls…</span>"); drawB();
@@ -1843,7 +1889,8 @@ function endOfRound(b,t){
       say(lines); },900);
     return; }
   b.rounds=(b.rounds||0)+1;
-  blog(t); b.turn=-1; nextActor(); }
+  if(t) blog(t);
+  buildQueue(b); nextUnit(); }
 function sparXP(){ const h=hero();
   if(S.sparLv!==h.lv){ S.sparLv=h.lv; S.sparN=0; }
   const xp=S.sparN===0? EN.dummy.xp : Math.max(1, Math.floor(EN.dummy.xp/Math.pow(2,S.sparN)));
@@ -2328,13 +2375,14 @@ const TESTS = [
  ["barrel loot defined on every b tile", ()=>Z.every(z=>{ let ok=true;
     z.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{ if(ch==="b" && !(z.loot && z.loot[x+","+y])) ok=false; }); }); return ok; })],
  ["dual techs: valid pairs, both costs positive", ()=>Object.values(DUAL).every(d=>MEMBERS[d.a] && MEMBERS[d.b] && d.a!==d.b && d.mpa>0 && d.mpb>0)],
- ["dualsFor gates on partner order, KO and MP", ()=>{ const sb=S; S=NEWS(); S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",1);
+ ["dual techs: either unacted partner may lead; acted, KO'd or drained partners may not", ()=>{ const sb=S; S=NEWS(); S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",1);
     M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
     const has=dualsFor(S.actors.hero).some(x=>x.key==="rootcausex");
-    S.actors.sentinel.ko=true; const koGone=dualsFor(S.actors.hero).length===0;
+    const reverseOk=dualsFor(S.actors.sentinel).some(x=>x.key==="rootcausex"); // FFT queue: hero unacted → sentinel may lead
+    S.actors.hero.acted=true; const actedGone=dualsFor(S.actors.sentinel).length===0;
+    S.actors.hero.acted=false; S.actors.sentinel.ko=true; const koGone=dualsFor(S.actors.hero).length===0;
     S.actors.sentinel.ko=false; S.actors.hero.mp=1; const mpGone=dualsFor(S.actors.hero).length===0;
-    const reverse=dualsFor(S.actors.sentinel).length===0; // hero acted already (earlier in order)
-    M.b=null; S=sb; return has && koGone && mpGone && reverse; }],
+    M.b=null; S=sb; return has && reverseOk && actedGone && koGone && mpGone; }],
  ["castDual spends both MPs and partner's turn", ()=>{ const sb=S; S=NEWS(); S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",1);
     M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
     castDual(S.actors.hero,"rootcausex");
@@ -2693,6 +2741,45 @@ const TESTS = [
     runChain([{end:true}]); window.setTimeout=st;
     const ok=/FINAL CHAPTER/.test(document.getElementById("chap").textContent) && S.won===true;
     M.state="test"; ov.hidden=true; M.dlg=null; S=sb; return ok; }],
+ // ---- FFT initiative core (RED-first) ----
+ ["every unit carries a speed stat", ()=>Object.values(MEMBERS).every(m=>m.spd>0)
+    && unitSpd(EN.gremlin)===8 && unitSpd(EN.dummy)===1 && unitSpd(EN.creep)>0
+    && MEMBERS.sentinel.spd>MEMBERS.hero.spd && MEMBERS.hero.spd>MEMBERS.refuter.spd],
+ ["the initiative queue orders all units by speed, foe interleaved", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","refuter"]; S.actors.sentinel=mkActor("sentinel",1); S.actors.refuter=mkActor("refuter",1);
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    buildQueue(M.b);
+    const q=M.b.queue.map(e=>e.t==="f"?"foe":e.id).join(",");
+    M.b.def=EN.gremlin; buildQueue(M.b);
+    const q2=M.b.queue[0];
+    M.b=null; S=sb;
+    return q==="sentinel,hero,refuter,foe" && q2.t==="f"; }],
+ ["a fast foe strikes before slow allies at battle start", ()=>{ const sb=S; S=NEWS();
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    startBattle("gremlin", null); window.setTimeout=st;
+    const struck=S.actors.hero.hp<S.actors.hero.maxhp && M.b.menu==="next";
+    M.b=null; M.state="test"; BW.hidden=true; S=sb; return struck; }],
+ ["rows: the back line takes one less and deals one less in melee", ()=>{ const sb=S; S=NEWS();
+    S.party=["wiki"]; S.actors.wiki=mkActor("wiki",3);
+    const backDefault=rowOf(S.actors.wiki)==="back" && rowOf(S.actors.hero)==="front";
+    const takes=incoming(6,S.actors.wiki,0)===5 && incoming(6,S.actors.hero,0)===6;
+    const deals=fightBase(S.actors.wiki)===S.actors.wiki.atk-1 && fightBase(S.actors.hero)===atkOf(S.actors.hero);
+    S.items.bw1=1; S.equip.weapon="bw1"; S.actors.hero.row="back";
+    const bowExempt=fightBase(S.actors.hero)===atkOf(S.actors.hero);
+    S=sb; return backDefault && takes && deals && bowExempt; }],
+ ["row switching is a free battle action", ()=>{ const sb=S; S=NEWS();
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    drawMenu();
+    const hasBtn=document.getElementById("bmenu").textContent.includes("ROW");
+    const r0=rowOf(S.actors.hero); menuPick({a:"row"});
+    const flipped=rowOf(S.actors.hero)!==r0 && M.b.menu==="main";
+    M.b=null; S=sb; return hasBtn && flipped; }],
+ ["the turn-order timeline renders the queue", ()=>{ const sb=S; S=NEWS(); S.party=["sentinel"];
+    S.actors.sentinel=mkActor("sentinel",1);
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:1, growN:0, doubled:false };
+    buildQueue(M.b); M.b.qi=0; drawB();
+    const tq=document.getElementById("tqueue").textContent;
+    M.b=null; S=sb; return /SENTINEL/.test(tq) && /HERO/.test(tq); }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -2713,7 +2800,8 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   STANCES, stanceOut, stanceIn, DROPS, grantDrops, obsDoubleChance, craftCost, addSkillXP, migrateV6, sloVerdict,
   MATERIA_IDS:["mvigor","mfocus","mdrain","maegis"], DISCOVER, matOn, strikeMult, resolveStrike, STRIKELINES,
   bankDepositAll, bankWithdrawAll, dropInventory, graveReclaim, graveExpired, INTRO, introAdvance, ITICON, migrateV7,
-  CHAPTERS, chapterCard, WVIS, navBattle, enterInterior, drawWeaponOverlay, fxAbility };
+  CHAPTERS, chapterCard, WVIS, navBattle, enterInterior, drawWeaponOverlay, fxAbility,
+  buildQueue, nextUnit, foeAct, unitSpd, rowOf, fightBase };
 tryMigrate();
 render();
 if(new URLSearchParams(location.search).get("test")==="1") runTests();
