@@ -65,6 +65,19 @@
   .invcell { position:relative; background:#0b1636; border:2px solid #ffffff55; border-radius:4px;
     text-align:center; font-size:1rem; padding:4px 0 6px; cursor:default; }
   .invcell i { position:absolute; bottom:0; right:2px; font-size:.6rem; color:var(--gold); font-style:normal; }
+  .abanner { position:absolute; top:6px; left:50%; transform:translateX(-50%); z-index:4; opacity:0; pointer-events:none;
+    background:linear-gradient(#1830a0,#101c66); border:2px solid #9fb0d8; border-radius:4px;
+    color:#fff; font-size:.78rem; letter-spacing:.08em; padding:2px 16px; white-space:nowrap; }
+  .abanner.show { animation:abfade 1.1s ease-out; }
+  @keyframes abfade { 8% { opacity:1; } 70% { opacity:1; } 100% { opacity:0; } }
+  .chap { position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); z-index:6; opacity:0; pointer-events:none;
+    background:linear-gradient(#2b2016,#1d1610); border:2px solid #a16207; border-radius:4px; box-shadow:0 4px 18px #000c;
+    color:#e7cf9f; font-size:.92rem; letter-spacing:.14em; padding:10px 26px; white-space:nowrap; }
+  .chap i { color:#a16207; font-style:normal; }
+  .chap.show { animation:chapfade 2.8s ease-out; }
+  @keyframes chapfade { 10% { opacity:1; } 75% { opacity:1; } 100% { opacity:0; } }
+  #bmenu button.sel { color:var(--gold); }
+  #bmenu button.sel::before { content:"▶ "; }
   .toast { position:absolute; top:8px; left:50%; transform:translateX(-50%); z-index:5; background:#000c;
     color:var(--gold); font-size:.78rem; padding:3px 12px; border-radius:12px; opacity:0; pointer-events:none; }
   .toast.show { animation:toastfade 1.5s ease-out; }
@@ -99,10 +112,12 @@
 <div id="objline">⚑ …</div>
 <div id="stage">
   <div id="toast" class="toast"></div>
+  <div id="chap" class="chap"></div>
   <canvas id="cv" width="384" height="288"></canvas>
   <div class="overlay" id="overlay" hidden><div class="win" id="box"></div></div>
   <div class="battle" id="battle" hidden>
     <div class="bscene" id="bscene">
+      <div class="abanner" id="abanner"></div>
       <div class="bfoename" id="bfoename"></div>
       <div class="bstatus" id="bstatus"></div>
       <div class="bhp"><i id="bfoehp" style="width:100%"></i></div>
@@ -527,6 +542,40 @@ unknown:[
 ".k.....kk.....k.",
 "k......kk......k",
 ".......kk......."],
+mara:[
+"................",
+".....kkkkkk.....",
+"....khhhhhhk....",
+"...khhkhhkhhk...",
+"....kssssssk....",
+"....kskssksk....",
+"....kssssssk....",
+".....kssssk.....",
+"....kbbbbbbk....",
+"...ksbwwwwbsk...",
+"...ksbwwwwbsk...",
+"....kbwwwwbk....",
+"....kbbbbbbk....",
+".....kbbbbk.....",
+".....kbbbbk.....",
+".....kkkkkk....."],
+cat:[
+"................",
+"................",
+"................",
+"................",
+"................",
+"......kk........",
+".....kmrk.......",
+"..kkkmmmmk......",
+".kmmmmmmmmk.....",
+".kmkmmmmmmmk....",
+".kmmmmmmmmmk....",
+"..kmmmmmmmk.m...",
+"...kkkkkkk.km...",
+"............k...",
+"................",
+"................"],
 fax:[
 "................",
 "................",
@@ -701,11 +750,14 @@ const IT = {
  kb5:{ name:"RCA Blade", type:"weapon", price:0, atk:4, d:"forged: +4 ATK. The edge that cuts to causes, not symptoms." },
  ch5:{ name:"Postmortem Ward", type:"charm", price:0, fx:"pmward", d:"forged: HERO -1 damage taken. The blameless page that shields." },
  tal:{ name:"SEV Talisman", type:"charm", price:0, fx:"tal", d:"forged from Incident Sigils: HERO +1 ATK and -1 damage taken. Every scar, worn as strength." },
+ sw1:{ name:"Refactor Blade", type:"weapon", price:45, atk:3, d:"a clean edge for clean cuts — a true sword for the working engineer." },
+ bw1:{ name:"Canary Bow", type:"weapon", price:0, atk:2, d:"forged: arrows that sing through fog — basic attacks pierce CONTEXT FOG." },
+ wd1:{ name:"Postmortem Wand", type:"weapon", price:0, atk:1, d:"forged: asks 'why?' on impact — basic attacks bite even ARMORED foes." },
  mvigor:{ name:"ERROR BUDGET Materia", type:"materia", price:0, d:"checkpoint orb: HERO +2 HP each round. Plan to fail a little every day, and you will never fail all at once." },
  mfocus:{ name:"GOLDEN SIGNAL Materia", type:"materia", price:0, d:"checkpoint orb: HERO +10% crit. A thousand metrics scream — four matter. The weak point lights up on its own." },
  mdrain:{ name:"GRADIENT LOOP Materia", type:"materia", price:0, d:"checkpoint orb: HERO heals 25% of damage dealt. Every strike is training data. Hit, measure, update, repeat." },
  maegis:{ name:"BULKHEAD Materia", type:"materia", price:0, d:"checkpoint orb: party takes -1 from multi-target attacks. Shrink the blast radius; the whole party stands." } };
-const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","kb1","kb2","kb3","bd1","bd2","ch1","ch2","ch3"];
+const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","kb1","kb2","kb3","sw1","bd1","bd2","ch1","ch2","ch3"];
 
 // ================= DATA: enemies (100k-sim tuned) =================
 const EN = {
@@ -757,7 +809,7 @@ const EN = {
  h4:{ name:"SEV-1 HYDRA — REGRESSION HEAD", spr:"hydra", hp:90, atk:6, xp:10, tok:10, weak:null, regen:true,
   moves:[["reopens the closed incident",7],["whispers 'it worked on my machine'",8]],
   intro:"The fourth head REGENERATES — unverified fixes come back!", tip:"CONTROL ARM verifies the round. Then everyone strikes." },
- h5:{ name:"SEV-1 HYDRA — THE BODY", spr:"hydra", hp:130, atk:6, xp:30, tok:60, weak:null, multi:true,
+ h5:{ name:"SEV-1 HYDRA — THE BODY", spr:"hydra", hp:145, atk:6, xp:30, tok:60, weak:null, multi:true,   // 145 set by the 10M-run learner (iteration 3→4)
   moves:[["thrashes production",9],["threatens the SLA",8]],
   intro:"Four heads down. The body remains — and it lashes at TWO of you at once!", tip:"Ward, taunt, heal, finish it." },
  faxdaemon:{ name:"FAX DAEMON", spr:"fax", hp:42, atk:4, xp:14, tok:12, weak:"promptia", flee:true,
@@ -850,7 +902,28 @@ const Z = [
   "YOUNG ROWAN: Last week's outage? Oh, we handled it. Found the guy whose change broke it and read his name out in the all-hands. He quit Friday. Problem solved!",
   "YOUNG ROWAN: ...why does something up on that ridge keep humming louder every time we do that?",
   "(You know this man. In your time his hair is grey, and he stares at the eastern mountains and says: 'some shortcuts cost more than they save.')"]}],
- chest:{key:"9,6", text:"🏆 RELIC: the ROOT CERT of 1999 — the signing key of everything that came after. HERO +1 ATK, +10% crit when equipped. The past, understood, makes you stronger. (+30 ⛁)", give:"ch4", tok:30} }
+ chest:{key:"9,6", text:"🏆 RELIC: the ROOT CERT of 1999 — the signing key of everything that came after. HERO +1 ATK, +10% crit when equipped. The past, understood, makes you stronger. (+30 ⛁)", give:"ch4", tok:30} },
+{ name:"The Error Budget Inn", ground:"#3b2a18", interior:true, maps:[
+"WWWWWWWWWWWW","W==.==.==..W","W..........W","W..q.....FFW","WCCC.CC....W","W...uuu....W","W..........W","W.........LW","WWWWWDWWWWWW"],
+ exits:{}, doorTo:{z:0,x:2,y:2},
+ npcs:[
+ {x:2,y:3,spr:"mara",name:"MARA",lines:[
+  "MARA: Welcome in, hon. Beds counted hourly, breakfast is blameless, and whatever happens to you out there won't happen to what's in my cellar.",
+  "MARA: House rules are on the board. The cellar stairs are the bank — deposits survive you. That is the entire product.",
+  "MARA: Rest in any free bed. Not the third one. He's... processing."]},
+ {x:9,y:4,spr:"cat",name:"PAGER THE CAT",lines:[
+  "Mrow.",
+  "The cat is asleep on an incident runbook.",
+  "In twelve years, Pager has never once been paged."]}] },
+{ name:"Peg's Supply & Forge", ground:"#33261a", interior:true, maps:[
+"WWWWWWWWWWWW","WSSSS..SSSSW","W..........W","WCCCC.CCCCCW","W....u.....W","W..........W","WA.........W","Wb.........W","WWWWWDWWWWWW"],
+ exits:{}, doorTo:{z:0,x:9,y:2},
+ loot:{"1,7":{tok:3, text:"PEG: 'Paws off the till jar!' ...she lets you keep <b>3 ⛁</b> for honesty."}},
+ npcs:[
+ {x:2,y:2,spr:"peg",name:"PEG",shopkeeper:true,lines:[
+  "PEG: Counter service! Blades, bows, wands, and everything the field provides — no refunds on incidents.",
+  "PEG: The anvil takes materials, the shelf takes tokens. Both take reps.",
+  "PEG: A blade shows on your belt, hon. Around here, what you carry says what you've survived."]}] }
 ];
 const OPENING = [
  "2:07 AM. The pager screams. Again.",
@@ -896,7 +969,7 @@ const OBJ = [
  "⚑ The Citadel gauntlet is open — the Monolith, then the SEV-1 behind it. Finish what the village started.",
  "⚑ Incident resolved. Something stirs atop the Citadel… (NEW GAME+ any time)" ];
 const CREDITS = [
- "⚔️ AI QUEST: SEV-1 — Party Edition",
+ "⚔️ AI QUEST: SEV-1 — Chrono Edition",
  "A game about the discipline of trustworthy AI.",
  "Design, writing, code, pixel art, chiptunes & 2,000,000 balance simulations: Lito Zarate Biala — with Claude Code as pair programmer.",
  "The skills are real practices. The companions are real projects — github.com/LZBiala.",
@@ -1016,7 +1089,9 @@ const BBACK = [
  {sky:"#1c2733", ground:"#141c26"},   // caverns — cold stone
  {sky:"#241f38", ground:"#181428"},   // labyrinth — violet dark
  {sky:"#31203a", ground:"#1f1526"},   // citadel — royal dusk
- {sky:"#3d2c1a", ground:"#241a10"} ]; // 1999 — sepia CRT
+ {sky:"#3d2c1a", ground:"#241a10"},   // 1999 — sepia CRT
+ {sky:"#4a3421", ground:"#2c1f12"},   // inn interior (no battles; completeness)
+ {sky:"#43301d", ground:"#241a10"} ]; // shop interior (no battles; completeness)
 const SKILL_FX = { promptia:"#2dd4bf", fivewhy:"#fbbf24", rollback:"#34d399", hitl:"#f0abfc",
  mutagen:"#4ade80", truestrike:"#e8f4ee", audit:"#fbbf24", contexa:"#c084fc", indexstorm:"#fbbf24",
  controlarm:"#60a5fa", repair:"#34d399", ward:"#93c5fd", fliptest:"#f87171", objection:"#fb923c",
@@ -1043,7 +1118,20 @@ function stanceIn(st){ return ({balanced:0,firefight:1,safe:-1})[st||S.stance||"
 const RESNAME={ logs:"Log Fragments", metrics:"Metric Ore", traces:"Trace Herbs", sigils:"Incident Sigils" };
 const RESICON={ logs:"🪵", metrics:"⛏", traces:"🌿", sigils:"🔮" };
 const RECIPES={ kb4:{logs:5,traces:3}, kb5:{metrics:5,logs:3}, ch5:{traces:4,metrics:2}, tal:{sigils:5},
+ bw1:{logs:4,traces:2}, wd1:{metrics:3,traces:3},
  mvigor:{traces:6,sigils:1}, mfocus:{metrics:6,sigils:1}, mdrain:{logs:6,sigils:1}, maegis:{sigils:3} };
+// weapon visual categories (transmog: what shows in the hero's hand)
+const WVIS={ kb1:"kb", kb2:"kb", kb3:"kb", kb4:"staff", kb5:"sword", sw1:"sword", bw1:"bow", wd1:"staff" };
+// ---- FFT chapter cards ----
+const CHAPTERS=[
+ "PROLOGUE — 2:07 AM",
+ "CHAPTER I — THE ROAD OF GATES",
+ "CHAPTER II — FULL PARTY",
+ "CHAPTER III — THE CITADEL GAUNTLET",
+ "FINAL CHAPTER — RESTORE SERVICE" ];
+function chapterCard(n){ const el=document.getElementById("chap"); if(!el||!CHAPTERS[n]) return;
+  el.innerHTML="<i>✦</i> "+CHAPTERS[n]+" <i>✦</i>";
+  el.classList.remove("show"); void el.offsetWidth; el.classList.add("show"); }
 // ---- MATERIA — THE CHECKPOINT ORBS (FF7 homage): frozen training runs of the engineers before you ----
 const DISCOVER={ monolith:"mfocus", h5:"mdrain", patient0:"mvigor", unknown:"maegis" };
 function matOn(id){ return Array.isArray(S.materia) && S.materia.includes(id); }
@@ -1052,7 +1140,7 @@ function strikeMult(p){ if(p>=0.42&&p<=0.58) return 1.5; if(p>=0.25&&p<=0.75) re
 const STRIKELINES={ perfect:["SURGICAL!","FIVE NINES!","ROOT CAUSE: YOU!"], good:["CLEAN MERGE!","SHIPPED!"], normal:["Logged."] };
 // ---- inventory icons ----
 const ITICON={ coffee:"☕", runbook:"📖", patch:"🩹", cache:"♨️", snooze:"🔕", handoff:"📟", postmortem:"📋",
- kb1:"⌨️", kb2:"⌨️", kb3:"⌨️", kb4:"🦴", kb5:"🗡️", bd1:"🪪", bd2:"🪪", ch1:"🧿", ch2:"🧿", ch3:"⏱️", ch4:"📜", ch5:"🛡️", tal:"🔮",
+ kb1:"⌨️", kb2:"⌨️", kb3:"⌨️", kb4:"🦴", kb5:"🗡️", sw1:"⚔️", bw1:"🏹", wd1:"🪄", bd1:"🪪", bd2:"🪪", ch1:"🧿", ch2:"🧿", ch3:"⏱️", ch4:"📜", ch5:"🛡️", tal:"🔮",
  mvigor:"🟢", mfocus:"🟡", mdrain:"🟣", maegis:"🔵" };
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
 function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){
@@ -1168,6 +1256,8 @@ function fxPopFoe(txt,color){ BFX.push("pop",{x:78,y:56,txt:String(txt),color:co
 function fxPopAlly(pid,txt,color){ const i=slotOf(pid); if(i<0) return;
   const p=BPOS(i); BFX.push("pop",{x:p.x+24,y:p.y+4,txt:String(txt),color:color||"#f87171"}); }
 function fxBlocked(){ fxPopFoe("BLOCKED","#9fb0d8"); }
+function fxAbility(name){ const el=document.getElementById("abanner"); if(!el) return;
+  el.textContent=name; el.classList.remove("show"); void el.offsetWidth; el.classList.add("show"); }
 function fxActive(kind){ const now=performance.now();
   return BFX.list.find(e=>e.kind===kind && now-e.t0<(FXDUR[kind]||600)); }
 function reducedMotion(){ return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
@@ -1199,6 +1289,7 @@ function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv"
     g.fillStyle="#00000055"; g.beginPath(); g.ellipse(p.x+24+ox,p.y+47,19,6,0,0,7); g.fill();
     const idle=(i===b.turn && !a.ko && !RM)? Math.sin(now/300)*2 : 0;
     drawSprTo(g, pid==="hero"?"hero24":MEMBERS[pid].spr, p.x+ox, p.y+idle, pid==="hero"?2:3);
+    if(pid==="hero") drawWeaponOverlay(g, p.x+ox+8, p.y+idle+6, 2, true);
     g.globalAlpha=1;
     if(a.shield && !a.ko){ g.strokeStyle="#93c5fdcc"; g.lineWidth=2; g.strokeRect(p.x-3+ox,p.y-3,54,54); }
     BFX.list.filter(e=>e.kind==="heal"&&e.slot===i).forEach(e=>{ const pr=(now-e.t0)/FXDUR.heal;
@@ -1250,6 +1341,23 @@ function drawTile(chr,tx,ty,zone){
     ctx.fillRect(tx+6,ty+8,20,2); ctx.fillRect(tx+6,ty+26,20,2); }
   if(chr==="M"){ drawSprTo(ctx, S.won?"unknown":"monolith",tx,ty,2); }
   if(chr==="c"){ drawSprTo(ctx,"chest",tx,ty,2); }
+  if(chr==="W"){ ctx.fillStyle="#4a3421"; ctx.fillRect(tx,ty,T,T); ctx.fillStyle="#3a2818";
+    ctx.fillRect(tx,ty+9,T,2); ctx.fillRect(tx,ty+20,T,2); ctx.fillStyle="#241a10"; ctx.fillRect(tx,ty,T,3); }
+  if(chr==="C"){ ctx.fillStyle="#6b4a2a"; ctx.fillRect(tx,ty+8,T,24); ctx.fillStyle="#8a6337"; ctx.fillRect(tx,ty+8,T,7); }
+  if(chr==="S"){ ctx.fillStyle="#4a3421"; ctx.fillRect(tx,ty,T,T); ctx.fillStyle="#2c1f12"; ctx.fillRect(tx+2,ty+10,28,3); ctx.fillRect(tx+2,ty+22,28,3);
+    ctx.fillStyle="#2dd4bf"; ctx.fillRect(tx+5,ty+5,4,5); ctx.fillStyle="#f87171"; ctx.fillRect(tx+13,ty+5,4,5); ctx.fillStyle="#fbbf24"; ctx.fillRect(tx+21,ty+16,4,6); }
+  if(chr==="="){ ctx.fillStyle="#5a3a1c"; ctx.fillRect(tx+3,ty+4,26,24); ctx.fillStyle="#e8f4ee"; ctx.fillRect(tx+5,ty+6,8,8);
+    ctx.fillStyle="#b91c1c"; ctx.fillRect(tx+5,ty+15,22,11);
+    if(S.z===6 && tx/T===7){ ctx.fillStyle="#991b1b"; ctx.fillRect(tx+12,ty+13-(M.frame%2),10,6); } }
+  if(chr==="F"){ ctx.fillStyle="#475569"; ctx.fillRect(tx+2,ty+2,28,28); ctx.fillStyle="#10151a"; ctx.fillRect(tx+6,ty+8,20,20);
+    ctx.fillStyle=(M.frame%2)?"#e8892c":"#f5c542"; ctx.fillRect(tx+10,ty+14+(M.frame%2),12,12);
+    ctx.fillStyle="#10151a"; ctx.fillRect(tx+12,ty+6,8,5); }
+  if(chr==="L"){ for(let i2=0;i2<4;i2++){ ctx.fillStyle=["#8a6337","#6b4a2a","#4a3421","#241a10"][i2]; ctx.fillRect(tx+4,ty+4+i2*7,24-i2*4,7); } }
+  if(chr==="u"){ ctx.fillStyle="#8f2f2f"; ctx.fillRect(tx+1,ty+1,30,30); ctx.fillStyle="#5e1f1f"; ctx.fillRect(tx+4,ty+4,24,24); ctx.fillStyle="#8f2f2f"; ctx.fillRect(tx+7,ty+7,18,18); }
+  if(chr==="A"){ ctx.fillStyle="#334155"; ctx.fillRect(tx+6,ty+10,20,8); ctx.fillRect(tx+10,ty+18,12,8); ctx.fillStyle="#475569"; ctx.fillRect(tx+4,ty+8,24,4); }
+  if(chr==="D"){ ctx.fillStyle="#5a3a1c"; ctx.fillRect(tx+6,ty+2,20,30); ctx.fillStyle="#8a6337"; ctx.fillRect(tx+8,ty+4,16,26); ctx.fillStyle="#fbbf24"; ctx.fillRect(tx+20,ty+16,3,3); }
+  if(chr==="q"){ ctx.fillStyle="#4a3421"; ctx.fillRect(tx,ty,T,T); ctx.fillStyle="#8a6337"; ctx.fillRect(tx+3,ty+5,26,20);
+    ctx.fillStyle="#1e293b"; ctx.fillRect(tx+5,ty+7,22,16); ctx.fillStyle="#e8f4ee"; ctx.fillRect(tx+8,ty+11,6,1); ctx.fillRect(tx+8,ty+15,9,1); ctx.fillRect(tx+8,ty+19,4,1); }
   if(chr==="O"){ const ph=M.frame%2;
     ctx.fillStyle="#0f766e"; ctx.beginPath(); ctx.arc(tx+16,ty+16,12+ph,0,7); ctx.fill();
     ctx.fillStyle="#2dd4bf"; ctx.beginPath(); ctx.arc(tx+16,ty+16,8+ph,0,7); ctx.fill();
@@ -1263,16 +1371,27 @@ function tileAt(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; let chr=zone.maps
   if((chr==="B"||chr==="E") && S.cleared[S.z+":"+k]) chr=".";
   if((chr==="c"||chr==="b") && S.opened[S.z+":"+k]) chr=".";
   return chr; }
-function solid(chr){ return "trwhsb".includes(chr)||chr==="M"; }
+function solid(chr){ return "trwhsbWCS=FLAq".includes(chr)||chr==="M"; }
 function ensureRoam(){ const zone=Z[S.z];
   if(!zone.roam){ return null; }
   if(M.roam[S.z]===undefined){
     const id=zone.roam.pool[Math.floor(rng()*zone.roam.pool.length)];
     M.roam[S.z]={ id, x:zone.roam.x, y:zone.roam.y, alive:true }; }
   return M.roam[S.z]; }
+function drawWeaponOverlay(g,x,y,s,big){ const w=S.equip.weapon; const cat=w? WVIS[w] : null;
+  const bx = big? 15*s : 1*s;   // battle hero24 frame: keep the bow clear of the face (right-hand side)
+  if(cat==="sword"){ g.fillStyle="#cbd5e1"; g.fillRect(x+13*s,y+3*s,s,7*s);
+    g.fillStyle="#fbbf24"; g.fillRect(x+12*s,y+10*s,3*s,s); g.fillStyle="#8a6337"; g.fillRect(x+13*s,y+11*s,s,2*s); }
+  else if(cat==="staff"){ g.fillStyle="#7c4a12"; g.fillRect(x+13*s,y+3*s,s,11*s);
+    g.fillStyle="#2dd4bf"; g.fillRect(x+12*s,y+2*s,3*s,2*s); }
+  else if(cat==="bow"){ g.fillStyle="#8a5a2b"; g.fillRect(x+bx,y+4*s,s,8*s);
+    g.fillRect(x+bx+s,y+3*s,s,s); g.fillRect(x+bx+s,y+12*s,s,s);
+    g.fillStyle="#e8f4ee"; g.fillRect(x+bx+s,y+5*s,1,6*s); }
+  if(S.equip.badge){ g.fillStyle="#94a3b8"; g.fillRect(x+3*s,y+8*s,2*s,s); g.fillRect(x+11*s,y+8*s,2*s,s); } }
 function drawActorSpr(name,x,y,lift){
   ctx.fillStyle="#00000044"; ctx.beginPath(); ctx.ellipse(x*T+16,y*T+29,11,4,0,0,7); ctx.fill();
-  drawSprTo(ctx,name,x*T,y*T-6+(lift||0),2); }
+  drawSprTo(ctx,name,x*T,y*T-6+(lift||0),2);
+  if(name==="hero") drawWeaponOverlay(ctx, x*T, y*T-6+(lift||0), 2); }
 function render(){
   const zone=Z[S.z];
   for(let y=0;y<9;y++)for(let x=0;x<12;x++) drawTile(tileAt(zone,x,y),x*T,y*T,zone);
@@ -1451,8 +1570,15 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
   else if(b.menu==="won"){ h="<button data-a='won'>★ VICTORY (Enter)</button>"; }
   else if(b.menu==="dead"){ h=""; }
   m.innerHTML=h;
+  const bs0=m.querySelectorAll("button");
+  b.sel=(bs0[0] && bs0[0].dataset.lm && bs0[1]) ? 1 : 0;   // a full limit gauge must never hijack the default cursor
+  if(bs0[b.sel]) bs0[b.sel].classList.add("sel");
   m.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ if(M.lock) return; M.lock=true;
     setTimeout(()=>M.lock=false,150); sfx("blip"); menuPick(btn.dataset); }); }
+function navBattle(d){ const b=M.b; if(!b) return;
+  const bs=[...document.querySelectorAll("#bmenu button")]; if(!bs.length) return;
+  b.sel=(((b.sel||0)+d)%bs.length+bs.length)%bs.length;
+  bs.forEach((x,i)=>x.classList.toggle("sel", i===b.sel)); sfx("blip"); }
 function nextActor(){ const b=M.b; const ids=["hero",...S.party];
   do { b.turn++; } while(b.turn<ids.length && S.actors[ids[b.turn]] && (S.actors[ids[b.turn]].ko || S.actors[ids[b.turn]].dualUsed));
   if(b.turn>=ids.length){ b.turn=0; enemyTurn(); return; }
@@ -1493,6 +1619,7 @@ function castLimit(a){ const b=M.b;
   if((a.lb||0)<LB_MAX){ blog("<span class='red'>The gauge isn't full.</span>"); b.menu="main"; drawMenu(); return; }
   a.lb=0;
   const nm=MEMBERS[a.id].name, isFP=b.fieldProto && a.id==="hero";
+  fxAbility("★ "+((isFP)?"FIELD PROTOCOL":LIMITS[a.id].name));
   BFX.push("burst",{color:SKILL_FX["limit_"+a.id]||"#fff"});
   if(a.id==="hero"){ markRevealed(b); b.focused=true; b.verified=2;
     BFX.push("lunge",{slot:slotOf(a.id)});
@@ -1526,6 +1653,7 @@ function castDual(a,key){ const b=M.b, du=DUAL[key];
   if(!pick){ blog("<span class='red'>The combo isn't ready — partner down, spent, or out of MP.</span>"); b.menu="main"; drawMenu(); return; }
   const p=S.actors[pick.partner];
   a.mp-=pick.myCost; p.mp-=pick.theirCost; p.dualUsed=true;
+  fxAbility(du.name.replace("✦ ",""));
   BFX.push("burst",{color:SKILL_FX[key]||"#fff"});
   BFX.push("lunge",{slot:slotOf(p.id)});
   const names=MEMBERS[a.id].name+" + "+MEMBERS[p.id].name;
@@ -1551,8 +1679,12 @@ function castDual(a,key){ const b=M.b, du=DUAL[key];
     return dealt(a, per*3, lead+"<br>Three canaries dive — "+per+" × 3 hits find the fault!"); } }
 function playerHit(a,dmg,txt){ const b=M.b;
   b.doubled=false;
-  if(!b.revealed){ fxBlocked(); blog(txt+"<br><span class='red'>No effect — treating symptoms! (FIVE-WHY exposes the core.)</span>"); b.menu="next"; drawMenu(); return; }
-  if(!b.focused){ fxBlocked(); blog(txt+"<br><span class='red'>The strike vanishes into fog! (CONTEXA lifts it; TRUE STRIKE pierces it.)</span>"); b.menu="next"; drawMenu(); return; }
+  const wandBite = a.id==="hero" && S.equip.weapon==="wd1";
+  const bowPierce = a.id==="hero" && S.equip.weapon==="bw1";
+  if(!b.revealed && !wandBite){ fxBlocked(); blog(txt+"<br><span class='red'>No effect — treating symptoms! (FIVE-WHY exposes the core.)</span>"); b.menu="next"; drawMenu(); return; }
+  if(!b.revealed && wandBite){ txt+=" <span class='num'>The wand asks WHY on impact — armor means nothing!</span>"; }
+  if(!b.focused && !bowPierce){ fxBlocked(); blog(txt+"<br><span class='red'>The strike vanishes into fog! (CONTEXA lifts it; TRUE STRIKE pierces it.)</span>"); b.menu="next"; drawMenu(); return; }
+  if(!b.focused && bowPierce){ txt+=" <span class='num'>The canary arrow sings through the fog!</span>"; }
   if(b.def.regen && b.verified===0){ fxBlocked(); blog(txt+"<br>It takes "+dmg+"... <span class='red'>and REGENERATES! (CONTROL ARM verifies the round.)</span>"); b.menu="next"; drawMenu(); return; }
   dealt(a,dmg,txt); }
 function dealt(a,dmg,txt){ const b=M.b;
@@ -1578,6 +1710,7 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
   // targeted skills open target submenu
   if(id==="repair"||id==="hitl"){ b.targeting={skill:id, ko:false, any:id==="hitl"}; b.menu="target"; drawMenu(); return; }
   if(!staffFree) a.mp-=sp.mp;
+  fxAbility(sp.name);
   if(SKILL_FX[id]) BFX.push("burst",{color:SKILL_FX[id]});
   const weakHit = b.def.weak===id || b.def.weak===id+"2";
   const nm=MEMBERS[a.id].name;
@@ -1735,7 +1868,7 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
     const chainNext=b.chain && b.chain.length ? b.chain : null;
     if(rec && !S.party.includes(rec.id)){ S.party.push(rec.id);
       S.actors[rec.id]=mkActor(rec.id, hero().lv);
-      if(S.party.length>=4 && S.stage<2){ S.stage=2; }
+      if(S.party.length>=4 && S.stage<2){ S.stage=2; chapterCard(2); }
       say(rec.lines, ()=>{ saveGame(0); if(chainNext) runChain(chainNext); }); return; }
     if(chainNext){ saveGame(0); runChain(chainNext); return; }
     if(b.id==="unknown"){ say(["THE UNKNOWN UNKNOWN dissolves into mapped, documented, boring KNOWN territory.","THE GUIDE: 'You beat the incident nobody had had yet. That's not response anymore. That's readiness.'","🏆 The resolution screen opens — your share card now carries the ☆."], ()=>{ saveGame(0); ending(); }); return; }
@@ -1752,7 +1885,7 @@ function runChain(chain){ const step=chain[0], rest=chain.slice(1);
     ask(br.t, br.a, i=>{ if(i===br.c){ say([br.good], ()=>{ gainXP(12, ()=>{ render(); runChain(rest); }); }); }
       else { living().forEach(a=>a.hp=Math.max(1,a.hp-2)); S.bridgeMiss=(S.bridgeMiss||0)+1; say([br.bad], ()=>{ render(); runChain(rest); }); } }); return; }
   if(step.en){ startBattle(step.en, null, rest); return; }
-  if(step.end){ ending(); return; } }
+  if(step.end){ chapterCard(4); ending(); return; } }
 
 // ================= SHOP & PAUSE MENU =================
 function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("center");
@@ -1811,7 +1944,10 @@ function menuSub(mn){
         else { const free=S.materia.indexOf(null); if(free>=0) S.materia[free]=id; else S.materia[0]=id; }
         render(); menuSub("equip"); return; }
       const slot=IT[id].type==="weapon"?"weapon":IT[id].type;
-      S.equip[slot]=(S.equip[slot]===id)?null:id; render(); menuSub("equip"); }); return; }
+      const was=S.equip[slot]===id;
+      S.equip[slot]=was?null:id;
+      if(!was && slot==="weapon" && WVIS[id] && WVIS[id]!=="kb") toast("⚔ "+IT[id].name+" equipped — it shows.");
+      render(); menuSub("equip"); }); return; }
   if(mn==="items"){ let h="<b class='gold'>INVENTORY</b> <span class='mut'>· banked items survive death (Mara's cellar)</span><div class='invgrid'>";
     let any=false; Object.keys(S.items).forEach(k=>{ if(S.items[k]>0){ any=true;
       h+="<div class='invcell' title='"+IT[k].name+" — "+IT[k].d.replace(/'/g,"&#39;")+"'>"+(ITICON[k]||"❔")+"<i>"+S.items[k]+"</i></div>"; } });
@@ -1847,7 +1983,7 @@ function startFinale(){
     ask("Atop the Citadel, the air itself feels… unmapped. Face THE UNKNOWN UNKNOWN? (superboss — bring everything)",
       ["FIGHT — the true test","Not yet"], i=>{ if(i===0) startBattle("unknown", null); }); return; }
   if(S.party.length<4){ say(["THE MONOLITH: 'ALONE? RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.'","(Recruit all four companions — clear every red gate — before the finale.)"]); return; }
-  say(REVEAL, ()=>{ S.stage=Math.max(S.stage,3); saveGame(0);
+  say(REVEAL, ()=>{ S.stage=Math.max(S.stage,3); chapterCard(3); saveGame(0);
     runChain(FINALE_CHAIN.slice()); }); }
 function allLootDone(){ let need=0, got=0;
   Z.forEach((z,zi)=>{ z.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{
@@ -1901,6 +2037,8 @@ function ending(){ S.won=true; S.stage=4; tickClock();
   box.querySelector("[data-ct]").onclick=()=>{ ov.hidden=true; M.state="explore"; render(); }; }
 
 // ================= MOVEMENT & INTERACTION =================
+function enterInterior(zi){ delete M.roam[S.z]; M.gathered={};
+  S.z=zi; S.x=5; S.y=7; sfx("blip"); render(); }
 function roamWalkable(zone,x,y){ if(x<0||x>11||y<0||y>8) return false;
   const chr=tileAt(zone,x,y);
   if(!(chr==="."||chr===","||chr==="g"||chr==="f")) return false;
@@ -1925,9 +2063,14 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
   if(nx<0||nx>11||ny<0||ny>8){ const dir=dx<0?"left":dx>0?"right":dy<0?"up":"down";
     if(zone.exits && zone.exits[dir]!==undefined){ const oldZ=S.z; S.z=zone.exits[dir]; delete M.roam[oldZ]; M.gathered={};
       if(dir==="right")S.x=0; if(dir==="left")S.x=11; if(dir==="down")S.y=0; if(dir==="up")S.y=8;
-      if(S.stage<1) S.stage=1;
+      if(S.stage<1){ S.stage=1; chapterCard(1); }
       render(); } return; }
   const chr=tileAt(zone,nx,ny);
+  if(S.z===0){ const dk=nx+","+ny;
+    if(dk===zone.inn){ enterInterior(6); return; }
+    if(dk===zone.shop){ enterInterior(7); return; } }
+  if(chr==="D" && zone.doorTo){ const to=zone.doorTo; delete M.roam[S.z]; M.gathered={};
+    S.z=to.z; S.x=to.x; S.y=to.y; render(); return; }
   const npc=(zone.npcs||[]).find(n=>n.x===nx&&n.y===ny);
   if(npc||solid(chr)||chr==="c") return;
   const rm=M.roam[S.z];
@@ -1969,21 +2112,28 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
     const nd=(zone.nodes||[]).find(n2=>n2.x===x&&n2.y===y);
     if(nd && !M.gathered[S.z+":"+key]){ gatherNode(nd); render(); return; }
     const npc=(zone.npcs||[]).find(n=>n.x===x&&n.y===y);
+    if(npc && npc.shopkeeper){ ask("PEG: 'Browsing or chatting, hon?'", ["🛒 Shop & Forge","💬 Chat"], i=>{
+        if(i===0) openShop(); else say(npc.lines); }); return; }
     if(npc){ if(npc.fight){ ask("STAGING DUMMY: 'Hit me! It's what staging is for.' Spar for XP? (Ippo rule: first rep each level pays full — every repeat pays less. No tokens; reps aren't loot.)", ["Spar!","Not now"], i=>{ if(i===0) startBattle("dummy",null); }); return; }
-      if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; saveGame(0); render(); }); return; }
+      if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; chapterCard(1); saveGame(0); render(); }); return; }
       say(npc.lines); return; }
     if(zone.signs && zone.signs[key]){ say([zone.signs[key]]); return; }
-    if(zone.inn===key){ ask("MARA THE INNKEEPER: 'Rest here? I'll save your progress too, hon. Or leave your things in my cellar — whatever happens to you out there won't happen to what's down here. That's not magic; that's a backup.'",
-      ["Rest & save","🏦 Bank: deposit all consumables","🏦 Bank: withdraw everything","Not yet"], i=>{
-        if(i===1){ bankDepositAll(); say(["MARA: 'Safe in the cellar, hon.'","🏦 Banked: "+(Object.keys(S.bank).map(k=>(ITICON[k]||"")+"×"+S.bank[k]).join(" ")||"(nothing)")]); return; }
-        if(i===2){ bankWithdrawAll(); say(["MARA: 'All yours again. Spend it wisely.'"]); return; }
-        if(i===0){
+    if(zone.inn===key){ enterInterior(6); return; }
+    if(zone.shop===key){ enterInterior(7); return; }
+    const chr0=tileAt(zone,x,y);
+    if(chr0==="="){ if(S.z===6 && x===7){ say(["Zzz... roll it back... zzz...","...FOR THE LOVE OF UPTIME ROLL IT BACK... zzz.","(An off-duty SRE, processing last week's deploy. Best not to wake him.)"]); return; }
+      ask("A clean, counted bed. Rest here? (saves your progress)", ["Rest & save","Not yet"], i=>{ if(i===0){
         partyActors().forEach(a=>{ a.ko=false; a.hp=a.maxhp; a.mp=a.maxmp; }); saveGame(0); render();
         say(["♪ The whole party rests. HP/MP restored. Game saved.",
           "MARA: 'This inn runs on promises, hon. I PROMISE travelers a bed — that's my SLA: a contract with consequences. I COUNT clean beds every hour — that's my SLI: the thing I actually measure. And I AIM for 999 of every 1000 — that's my SLO: the target.'",
           "MARA: 'The one bed in a thousand I'm allowed to miss? My error budget. I spend it renovating. Chase 100% and you never improve anything — perfection is how inns die, sweetheart.'",
           "MARA: 'The Guide stayed up all night again. Twelve years I've watched that light. Go easy on him.'"]); } }); return; }
-    if(zone.shop===key){ openShop(); return; }
+    if(chr0==="q"){ say(["📋 CLEAN BEDS THIS HOUR: <b>999 / 1000</b>. The one miss is being renovated.","MARA: 'That board is my SLI, hon. The 999 is the SLO. The chalk is load-bearing.'"]); return; }
+    if(chr0==="F"){ say(["The stew has simmered for twelve hours.","Mara calls it her <b>long-running process</b>. It has never crashed."]); return; }
+    if(chr0==="L"){ ask("CELLAR — DEPOSITS SURVIVE YOU. (That is the entire product.)",
+      ["🏦 Deposit all consumables","🏦 Withdraw everything","Leave"], i=>{
+        if(i===0){ bankDepositAll(); say(["MARA (from upstairs): 'Safe in the cellar, hon.'","🏦 Banked: "+(Object.keys(S.bank).map(k=>(ITICON[k]||"")+"×"+S.bank[k]).join(" ")||"(nothing)")]); }
+        else if(i===1){ bankWithdrawAll(); say(["MARA (from upstairs): 'All yours again. Spend it wisely.'"]); } }); return; }
     const chr=tileAt(zone,x,y);
     if((chr==="b"||tileAtRaw(zone,x,y)==="b") && zone.loot && zone.loot[key] && !S.opened[S.z+":"+key]){ S.opened[S.z+":"+key]=true;
       const L=zone.loot[key];
@@ -2023,7 +2173,7 @@ function newGame(plus){ S=NEWS(); S.seed=(Date.now()%899999)+100003; rng=mulberr
   drawIntro(); }
 function introAdvance(){ if(M.state!=="intro") return;
   M.introBeat++;
-  if(M.introBeat>=INTRO.length){ M.state="explore"; render(); say(OPENING, ()=>{ saveGame(0); }); return; }
+  if(M.introBeat>=INTRO.length){ M.state="explore"; render(); chapterCard(0); say(OPENING, ()=>{ saveGame(0); }); return; }
   drawIntro(); }
 function drawIntro(){ const beat=INTRO[M.introBeat]; if(!beat) return;
   const now=performance.now(); const pulse=reducedMotion()? 0.6 : (Math.sin(now/300)*0.5+0.5);
@@ -2052,10 +2202,13 @@ function introLoop(){ if(M.state!=="intro"){ M.iloop=false; return; } drawIntro(
 // ================= INPUT =================
 document.addEventListener("keydown",e=>{ const k=e.key;
   if(M.state==="battle"){
+    if(k==="Enter"||k===" "||k==="ArrowUp"||k==="ArrowDown"||k==="ArrowLeft"||k==="ArrowRight") e.preventDefault(); // repeats must never scroll the page
     if(e.repeat) return;
     const btns=[...document.querySelectorAll("#bmenu button")];
-    if(k==="Enter"||k===" "){ e.preventDefault(); if(btns[0]) btns[0].click(); }
-    else if(/^[1-9]$/.test(k)){ const b2=btns[parseInt(k,10)-1]; if(b2) b2.click(); }
+    if(k==="Enter"||k===" "){ const pick=btns[(M.b&&M.b.sel)||0]||btns[0]; if(pick) pick.click(); }
+    else if(k==="ArrowDown"||k==="ArrowRight"||k==="s"||k==="S"||k==="d"||k==="D"){ navBattle(1); }
+    else if(k==="ArrowUp"||k==="ArrowLeft"||k==="w"||k==="W"||k==="a"||k==="A"){ navBattle(-1); }
+    else if(/^[1-9]$/.test(k)){ const b2=btns.filter(x=>!x.dataset.lm)[parseInt(k,10)-1]; if(b2) b2.click(); }
     else if(k==="Escape"||k==="Backspace"){ const back=btns.find(x=>x.dataset.a==="back"); if(back) back.click(); }
     return; }
   if(M.state==="title"||M.state==="end"){
@@ -2085,8 +2238,11 @@ document.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",
       else { const bk=box.querySelector("[data-e='__back'],[data-b]"); if(bk) bk.click(); } } return; }
   if(M.state==="intro"){ if(k==="Enter") introAdvance(); return; }
   if(k==="Enter"){ if(M.state==="dialog") { const first=box.querySelector("button:not([data-buy]):not([data-forge])")||box.querySelector("button"); if(first) first.click(); }
-    else if(M.state==="battle"){ const btn=document.querySelector("#bmenu button"); if(M.b && (M.b.menu==="next"||M.b.menu==="won"||M.b.menu==="strike")) btn && btn.click(); }
+    else if(M.state==="battle"){ const bs=[...document.querySelectorAll("#bmenu button")];
+      const pick=bs[(M.b&&M.b.sel)||0]||bs[0]; if(pick) pick.click(); }
     else interact(); }
+  else if(M.state==="battle"){ if(k==="ArrowUp"||k==="ArrowLeft") navBattle(-1);
+    if(k==="ArrowDown"||k==="ArrowRight") navBattle(1); }
   else if(M.state==="explore"){ if(k==="ArrowLeft")tryMove(-1,0); if(k==="ArrowRight")tryMove(1,0);
     if(k==="ArrowUp")tryMove(0,-1); if(k==="ArrowDown")tryMove(0,1); } }));
 document.getElementById("menubtn").onclick=()=>{ if(M.state==="explore") pauseMenu(); };
@@ -2161,7 +2317,7 @@ const TESTS = [
       && FINALE_CHAIN.filter(s=>s.bridge!==undefined).length===4 && BRIDGE.length===4
       && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
- ["shop catalog integrity (15 items)", ()=>SHOP_STOCK.length===15 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
+ ["shop catalog integrity (16 items)", ()=>SHOP_STOCK.length===16 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
  ["5 classes, 14 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===5 && Object.keys(SP).length===14
     && EN.monolith.hp===150 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
@@ -2193,8 +2349,8 @@ const TESTS = [
     S=sb; return closed && open; }],
  ["era bestiary + roam pools reference real enemies", ()=>Z.every(z=>(!z.roam || z.roam.pool.every(id=>EN[id])))
     && EN.faxdaemon.hp===42 && EN.cobol.regen===true && EN.patient0.hidden===true && Z[5].name.includes("1999")],
- ["completion census: 13 lootables, fresh run has none", ()=>{ const sb=S; S=NEWS();
-    const r=allLootDone(); S=sb; return r.need===13 && r.got===0 && r.done===false; }],
+ ["completion census: 14 lootables, fresh run has none", ()=>{ const sb=S; S=NEWS();
+    const r=allLootDone(); S=sb; return r.need===14 && r.got===0 && r.done===false; }],
  ["roamer walkability respects walls and NPCs", ()=>{ const ok1=!roamWalkable(Z[0],0,0); // tree ring
     const ok2=!roamWalkable(Z[0],6,2); // THE GUIDE stands here
     const ok3=roamWalkable(Z[1],2,1); // open grass
@@ -2464,6 +2620,79 @@ const TESTS = [
  ["v7→v8 migration adds bank, materia slots, and grave", ()=>{ const old={v:7,tokens:9,party:[],actors:{hero:mkActor("hero",2)},res:{logs:0,metrics:0,traces:0,sigils:0},stance:"balanced",skills:{obs:{lv:1,xp:0},forge:{lv:1,xp:0}}};
     const s=migrateV7(old);
     return s.v===SAVE_VERSION && s.bank && Object.keys(s.bank).length===0 && Array.isArray(s.materia) && s.materia.length===2 && s.grave===null && s.tokens===9; }],
+ // ---- towns, weapons, chapters, battle-menu navigation (RED-first) ----
+ ["battle menu: arrow keys move the cursor, Enter picks it", ()=>{ const sb=S; S=NEWS(); M.state="battle";
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    drawMenu();
+    document.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowDown"}));
+    const btns=document.querySelectorAll("#bmenu button");
+    const moved=M.b.sel===1 && btns[1].classList.contains("sel");
+    document.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter"}));
+    const picked=M.b.menu==="skill";
+    M.b=null; M.state="test"; S=sb; return moved && picked; }],
+ ["town interiors exist behind the village doors", ()=>Z[6] && /Inn/i.test(Z[6].name) && Z[7] && /Supply|Forge|Shop/i.test(Z[7].name)
+    && Z[6].maps.some(r=>r.includes("D")) && Z[7].maps.some(r=>r.includes("D"))
+    && (Z[6].npcs||[]).some(n=>/MARA/i.test(n.name)) && (Z[7].npcs||[]).some(n=>/PEG/i.test(n.name))],
+ ["walking into the inn door enters the interior; the door leads back", ()=>{ const sb=S; S=NEWS();
+    M.state="explore"; S.z=0; S.x=2; S.y=2;
+    tryMove(0,-1);
+    const inside=S.z===6;
+    const dRow=Z[6].maps.findIndex(r=>r.includes("D")); const dCol=Z[6].maps[dRow].indexOf("D");
+    S.x=dCol; S.y=dRow-1; tryMove(0,1);
+    const back=S.z===0;
+    M.state="test"; S=sb; return inside && back; }],
+ ["weapon lines: sword buyable, bow and wand forgeable, all with visuals", ()=>IT.sw1 && IT.sw1.price>0 && SHOP_STOCK.includes("sw1")
+    && IT.bw1 && RECIPES.bw1 && IT.wd1 && RECIPES.wd1
+    && Object.keys(IT).filter(k=>IT[k].type==="weapon").every(k=>WVIS[k]!==undefined)],
+ ["Canary Bow pierces fog; Postmortem Wand bites armor", ()=>{ const sb=S; const rb=rng; S=NEWS();
+    S.items.bw1=1; S.equip.weapon="bw1";
+    M.b={ def:EN.h2, hp:85, maxhp:85, revealed:true, focused:false, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    rng=mulberry32(9); playerHit(S.actors.hero, 5, "t");
+    const fogPierced=M.b.hp<85;
+    S.equip.weapon="wd1"; S.items.wd1=1;
+    M.b={ def:EN.h3, hp:90, maxhp:90, revealed:false, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    rng=mulberry32(9); playerHit(S.actors.hero, 5, "t");
+    const armorBit=M.b.hp<90;
+    M.b=null; S=sb; rng=rb; return fogPierced && armorBit; }],
+ ["five chapter cards, renderable", ()=>{ const ok=CHAPTERS.length===5;
+    chapterCard(1); return ok && /CHAPTER I/.test(document.getElementById("chap").textContent); }],
+ // ---- review-fleet fixes (RED-first) ----
+ ["the inn chalkboard is actually reachable", ()=>{ const sb=S; S=NEWS();
+    M.state="explore"; S.z=6; S.x=3; S.y=2;
+    interact();
+    const ok=/CLEAN BEDS/.test(document.getElementById("box").textContent);
+    M.state="test"; ov.hidden=true; M.dlg=null; S=sb; return ok; }],
+ ["a full limit gauge never hijacks the default cursor", ()=>{ const sb=S; S=NEWS();
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    S.actors.hero.lb=LB_MAX; drawMenu();
+    const btns=[...document.querySelectorAll("#bmenu button")];
+    const ok=M.b.sel===1 && btns[1].dataset.a==="fight" && btns[1].classList.contains("sel");
+    M.b=null; S=sb; return ok; }],
+ ["held keys in battle never scroll the page", ()=>{ const sb=S; S=NEWS(); M.state="battle";
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    drawMenu();
+    const ev=new KeyboardEvent("keydown",{key:"ArrowDown",repeat:true,cancelable:true});
+    document.dispatchEvent(ev);
+    const ok=ev.defaultPrevented===true;
+    M.b=null; M.state="test"; S=sb; return ok; }],
+ ["the Guide's send-off shows the Chapter I card", ()=>{ const sb=S; S=NEWS();
+    document.getElementById("chap").textContent="";
+    M.state="explore"; S.z=0; S.x=6; S.y=3; S.stage=0;
+    interact();
+    for(let i=0;i<12 && M.state==="dialog";i++) advDlg();
+    const ok=S.stage===1 && /CHAPTER I/.test(document.getElementById("chap").textContent);
+    M.state="test"; ov.hidden=true; M.dlg=null; S=sb; return ok; }],
+ ["Peg offers a chat, not only a counter", ()=>{ const sb=S; S=NEWS();
+    M.state="explore"; S.z=7; S.x=2; S.y=3;
+    interact();
+    const ok=/Chat/i.test(document.getElementById("box").textContent);
+    M.state="test"; ov.hidden=true; M.dlg=null; S=sb; return ok; }],
+ ["the finale shows the FINAL CHAPTER card", ()=>{ const sb=S; S=NEWS();
+    document.getElementById("chap").textContent="";
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    runChain([{end:true}]); window.setTimeout=st;
+    const ok=/FINAL CHAPTER/.test(document.getElementById("chap").textContent) && S.won===true;
+    M.state="test"; ov.hidden=true; M.dlg=null; S=sb; return ok; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -2483,7 +2712,8 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   craft, gatherNode, budgetLeft, clsOf, mttxCard, setMusic, playMusic, MUS,
   STANCES, stanceOut, stanceIn, DROPS, grantDrops, obsDoubleChance, craftCost, addSkillXP, migrateV6, sloVerdict,
   MATERIA_IDS:["mvigor","mfocus","mdrain","maegis"], DISCOVER, matOn, strikeMult, resolveStrike, STRIKELINES,
-  bankDepositAll, bankWithdrawAll, dropInventory, graveReclaim, graveExpired, INTRO, introAdvance, ITICON, migrateV7 };
+  bankDepositAll, bankWithdrawAll, dropInventory, graveReclaim, graveExpired, INTRO, introAdvance, ITICON, migrateV7,
+  CHAPTERS, chapterCard, WVIS, navBattle, enterInterior, drawWeaponOverlay, fxAbility };
 tryMigrate();
 render();
 if(new URLSearchParams(location.search).get("test")==="1") runTests();
