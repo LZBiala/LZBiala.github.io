@@ -149,19 +149,19 @@ hero:[
 "...k..kk..k.....",
 "..khk.hhk.hk....",
 "..khhkhhkhhk....",
-".khhhhhhhhhhk...",
+".khhwhhhhhhhk...",
 ".khhhhhhhhhhk...",
 "..kttttttttk....",
 "..kssssssssk....",
 "..kskssssksk....",
 "...kssssssk.....",
-"..kttttttttk....",
-".ksttttttttsk...",
-".kstTTttTTtsk...",
-"..ktttttttk.....",
-"..kkYYYYYYkk....",
-"...kdd..ddk.....",
-"...kk....kk....."],
+"..kTtttkkttTk...",
+".ksttttkkttttsk.",
+".ksttttkkttttsk.",
+"..kttttkkttttk..",
+"..kkYYYYYYYYkk..",
+"...kdd...ddk....",
+"...kk.....kk...."],
 sentinel:[
 "................",
 ".....kkkkkk.....",
@@ -607,12 +607,12 @@ hero24:[
 "....kssskkkkssssk.......",
 ".....kssssssssk.........",
 "......kssssssk..........",
-"....ktttttttttk...r.....",
-"...ksttttttttttk.rr.....",
-"...kstTTttttTTtskr......",
-"...ksttttttttttsk.......",
-"....kttttttttttk........",
-"....kktYYYYYYtkk........",
+"....kTtttkktttTk...r....",
+"...kstttttkktttttsk.rr..",
+"...kstttttkktttttskr....",
+"...kstttttkktttttsk.....",
+"....ktttttkktttttk......",
+"....kktYYYYYYYYtkk......",
 ".....kYYYYYYYYk.........",
 ".....kdd....ddk.........",
 ".....kdd....ddk.........",
@@ -691,7 +691,8 @@ const IT = {
  ch4:{ name:"Root Cert", type:"charm", price:0, fx:"root", d:"relic of 1999: HERO +1 ATK, +10% crit. Not for sale — the past must be earned." },
  kb4:{ name:"Fishbone 5-Why Staff", type:"weapon", price:0, atk:3, d:"forged: +3 ATK; FIVE-WHY costs no MP and also lifts fog — the fishbone maps every cause." },
  kb5:{ name:"RCA Blade", type:"weapon", price:0, atk:4, d:"forged: +4 ATK. The edge that cuts to causes, not symptoms." },
- ch5:{ name:"Postmortem Ward", type:"charm", price:0, fx:"pmward", d:"forged: HERO -1 damage taken. The blameless page that shields." } };
+ ch5:{ name:"Postmortem Ward", type:"charm", price:0, fx:"pmward", d:"forged: HERO -1 damage taken. The blameless page that shields." },
+ tal:{ name:"SEV Talisman", type:"charm", price:0, fx:"tal", d:"forged from Incident Sigils: HERO +1 ATK and -1 damage taken. Every scar, worn as strength." } };
 const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","kb1","kb2","kb3","bd1","bd2","ch1","ch2","ch3"];
 
 // ================= DATA: enemies (100k-sim tuned) =================
@@ -892,12 +893,13 @@ const CREDITS = [
  "Thanks for playing. May your pages be few and your postmortems blameless. 🥊" ];
 
 // ================= STATE & SAVES =================
-const SAVE_VERSION = 6;
+const SAVE_VERSION = 7;
 const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   actors:{ hero: mkActor("hero",1) },
   items:{coffee:2, runbook:1, patch:1}, equip:{weapon:null,badge:null,charm:null}, stage:0,
   cleared:{}, opened:{}, won:false, superWon:false, deaths:0, bridgeMiss:0, playMs:0, seed:1,
-  sparLv:1, sparN:0, eraSeen:false, wizard:false, res:{logs:0,metrics:0,traces:0} });
+  sparLv:1, sparN:0, eraSeen:false, wizard:false, res:{logs:0,metrics:0,traces:0,sigils:0},
+  stance:"balanced", skills:{obs:{lv:1,xp:0}, forge:{lv:1,xp:0}} });
 let S = NEWS();
 let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0, roam:{}, roamBattle:false, gathered:{} };
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
@@ -919,18 +921,25 @@ function migrateV3(old){ // old v3 schema (single shared stats)
 function migrateV2(old){ // oldest schema key "aiquest"
   return migrateV3(Object.assign({}, old, { items:{coffee:(old.items&&old.items.coffee)||0, runbook:(old.items&&old.items.runbook)||0, patch:1},
     tokens:25, stage: old.won?4 : ((old.party&&old.party.length>=4)?2:1), seed:1 })); }
-function migrateV5(old){ // v5 chrono schema → v6 (adds resources + limit gauges)
+function migrateV6(old){ // v6 journey schema → v7 (adds stance, skills, sigils)
   const s=Object.assign(NEWS(), old);
   s.v=SAVE_VERSION;
+  if(!s.stance) s.stance="balanced";
+  if(!s.skills) s.skills={obs:{lv:1,xp:0}, forge:{lv:1,xp:0}};
+  if(!s.res) s.res={logs:0,metrics:0,traces:0,sigils:0};
+  if(s.res.sigils===undefined) s.res.sigils=0;
+  return s; }
+function migrateV5(old){ // v5 chrono schema → v6 fields → v7
+  const s=Object.assign(NEWS(), old);
   if(!s.res) s.res={logs:0,metrics:0,traces:0};
   Object.keys(s.actors||{}).forEach(k=>{ if(s.actors[k].lb===undefined) s.actors[k].lb=0; });
-  return s; }
+  return migrateV6(s); }
 function migrateV4(old){ // v4 party schema → v5 fields → v6
   const s=Object.assign(NEWS(), old);
   if(s.sparLv===undefined) s.sparLv=1; if(s.sparN===undefined) s.sparN=0;
   if(s.eraSeen===undefined) s.eraSeen=false; if(s.wizard===undefined) s.wizard=false;
   return migrateV5(s); }
-function saveKey(slot){ return slot? "aiquest6_s"+slot : "aiquest6_auto"; }
+function saveKey(slot){ return slot? "aiquest7_s"+slot : "aiquest7_auto"; }
 function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }
 function saveGame(slot){ try{ tickClock(); localStorage.setItem(saveKey(slot), JSON.stringify(S)); }catch(e){} }
 function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d) return null;
@@ -939,7 +948,12 @@ function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d
 function tryMigrate(){
   try{ if(localStorage.getItem(saveKey(0))) return false; }catch(e){ return false; }
   let migratedAuto=false;
-  for(const s5 of [0,1,2,3]){ try{           // v5 chrono saves first (per-slot try; never clobber a newer v6 save)
+  for(const s6 of [0,1,2,3]){ try{           // v6 journey saves first (per-slot try; never clobber a newer save)
+    if(localStorage.getItem(saveKey(s6))) continue;
+    const d6=localStorage.getItem(s6?"aiquest6_s"+s6:"aiquest6_auto");
+    if(d6){ localStorage.setItem(saveKey(s6), JSON.stringify(migrateV6(JSON.parse(d6)))); if(s6===0) migratedAuto=true; }
+  }catch(e){} }
+  for(const s5 of [0,1,2,3]){ try{           // then v5 chrono saves (same guard)
     if(localStorage.getItem(saveKey(s5))) continue;
     const d5=localStorage.getItem(s5?"aiquest5_s"+s5:"aiquest5_auto");
     if(d5){ localStorage.setItem(saveKey(s5), JSON.stringify(migrateV5(JSON.parse(d5)))); if(s5===0) migratedAuto=true; }
@@ -962,9 +976,9 @@ function tryMigrate(){
 
 // ================= derived stats (pure — tested) =================
 function atkOf(a){ return a.atk + (a.id==="hero" && S.equip.weapon && IT[S.equip.weapon] ? IT[S.equip.weapon].atk : 0)
-  + (a.id==="hero" && S.equip.charm==="ch4" ? 1 : 0); }
+  + (a.id==="hero" && (S.equip.charm==="ch4"||S.equip.charm==="tal") ? 1 : 0); }
 function defOf(a){ return ((a.id==="hero" && S.equip.badge && IT[S.equip.badge]) ? IT[S.equip.badge].def : 0)
-  + (a.id==="hero" && S.equip.charm==="ch5" ? 1 : 0); }
+  + (a.id==="hero" && (S.equip.charm==="ch5"||S.equip.charm==="tal") ? 1 : 0); }
 function critOf(a){ return 0.15 + (a.id==="hero" && (S.equip.charm==="ch1"||S.equip.charm==="ch4") ? 0.10 : 0); }
 function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0));
   if(a.defending) d=Math.ceil(d/2); return d; }
@@ -993,20 +1007,48 @@ const LIMITS = {
  mender:{ name:"BLAMELESS DAWN", d:"the postmortem that heals: every living ally +8 HP and a ward." },
  refuter:{ name:"FINAL OBJECTION", d:"the argument that stops the world: taunt 3 rounds, enemy loses its next turn." } };
 function chargeLB(a,d){ a.lb=Math.min(LB_MAX,(a.lb||0)+d); }
-// ---- Runescape layer: gatherable resources + Peg's forge ----
-const RESNAME={ logs:"Log Fragments", metrics:"Metric Ore", traces:"Trace Herbs" };
-const RESICON={ logs:"🪵", metrics:"⛏", traces:"🌿" };
-const RECIPES={ kb4:{logs:5,traces:3}, kb5:{metrics:5,logs:3}, ch5:{traces:4,metrics:2} };
-function craft(id){ const r=RECIPES[id]; if(!r) return false;
+// ---- combat stances (RuneScape attack styles, taught as deployment postures) ----
+const STANCES={
+ balanced:{ name:"BALANCED", d:"steady change control — no modifiers. The default posture." },
+ firefight:{ name:"FIREFIGHT", d:"all hands on the incident: party deals +1, but takes +1. Speed buys risk." },
+ safe:{ name:"SAFE ROLLOUT", d:"canary everything: party deals -1, takes -1. Slow is smooth." } };
+function stanceOut(st){ return ({balanced:0,firefight:1,safe:-1})[st||S.stance||"balanced"]; }
+function stanceIn(st){ return ({balanced:0,firefight:1,safe:-1})[st||S.stance||"balanced"]; }
+// ---- Runescape layer: gatherable resources, enemy drops, Peg's forge, two skills ----
+const RESNAME={ logs:"Log Fragments", metrics:"Metric Ore", traces:"Trace Herbs", sigils:"Incident Sigils" };
+const RESICON={ logs:"🪵", metrics:"⛏", traces:"🌿", sigils:"🔮" };
+const RECIPES={ kb4:{logs:5,traces:3}, kb5:{metrics:5,logs:3}, ch5:{traces:4,metrics:2}, tal:{sigils:5} };
+const DROPS={
+ vague:{logs:1}, gremlin:{metrics:1}, creep:{logs:1}, golem:{metrics:2}, wyrm:{traces:1},
+ leak:{traces:2}, chorus:{logs:2}, faxdaemon:{logs:2}, cobol:{metrics:2},
+ flakytest:{metrics:2,sigils:1}, configdrift:{traces:2,sigils:1},
+ monolith:{sigils:2}, h1:{sigils:1}, h2:{sigils:1}, h3:{sigils:1}, h4:{sigils:1}, h5:{sigils:2},
+ patient0:{traces:2,sigils:2}, unknown:{sigils:3} };
+const SKLCURVE=[0,10,26,50,86,140];
+function addSkillXP(which,n){ const sk=S.skills[which]; sk.xp+=n;
+  while(sk.lv<SKLCURVE.length && sk.xp>=SKLCURVE[sk.lv]){ sk.lv++;
+    toast((which==="obs"?"📡 Observability":"⚒ Toolsmithing")+" Lv "+sk.lv+"!"); sfx("level"); } }
+function obsDoubleChance(lv){ return Math.min(0.6, 0.30+0.06*(lv-1)); }
+function craftCost(id){ const base=RECIPES[id]; if(!base) return null;
+  const out={}; const disc=S.skills.forge.lv>=3? 1:0;
+  for(const k in base) out[k]=Math.max(1, base[k]-disc);
+  return out; }
+function grantDrops(id){ const d=DROPS[id]; if(!d) return null;
+  const parts=[];
+  for(const k in d){ S.res[k]=(S.res[k]||0)+d[k]; parts.push(RESICON[k]+"+"+d[k]+" "+RESNAME[k]); }
+  addSkillXP("obs",2);
+  return "Salvage: <span class='num'>"+parts.join(" · ")+"</span>"; }
+function craft(id){ const r=craftCost(id); if(!r) return false;
   if((S.items[id]||0)>0) return false;              // gear is unique — resources are too scarce for dead copies
   for(const k in r){ if((S.res[k]||0)<r[k]) return false; }
   for(const k in r){ S.res[k]-=r[k]; }
-  S.items[id]=(S.items[id]||0)+1; sfx("level"); return true; }
+  S.items[id]=(S.items[id]||0)+1; addSkillXP("forge",5); sfx("level"); return true; }
 function gatherNode(n){ const key=S.z+":"+n.x+","+n.y;
   if(M.gathered[key]) return false;
   M.gathered[key]=true;
-  const amt=1+(rng()<0.35?1:0);
+  const amt=1+(rng()<obsDoubleChance(S.skills.obs.lv)?1:0);
   S.res[n.t]=(S.res[n.t]||0)+amt; sfx("coin");
+  addSkillXP("obs",3);
   toast(RESICON[n.t]+" +"+amt+" "+RESNAME[n.t]+" ("+S.res[n.t]+")");
   saveGame(0); return true; }
 function toast(txt){ const el=document.getElementById("toast"); if(!el) return;
@@ -1192,6 +1234,12 @@ function render(){
   const rm=ensureRoam();
   if(rm && rm.alive) drawActorSpr(EN[rm.id].spr, rm.x, rm.y, M.frame%2);
   drawActorSpr("hero",S.x,S.y,walkBob(M.stepN||0));
+  const drawLabel=(txt,lx,ly)=>{ ctx.font="bold 9px ui-monospace,Consolas,monospace";
+    const w=ctx.measureText(txt).width+8;
+    ctx.fillStyle="#000000aa"; ctx.fillRect(lx*T+16-w/2, ly*T-13, w, 12);
+    ctx.fillStyle="#fbbf24"; ctx.textAlign="center"; ctx.fillText(txt, lx*T+16, ly*T-4); ctx.textAlign="left"; };
+  if(zone.inn){ const [ix,iy]=zone.inn.split(",").map(Number); drawLabel("INN · SAVE", ix, iy); }
+  if(zone.shop){ const [px2,py2]=zone.shop.split(",").map(Number); drawLabel("SHOP · FORGE", px2, py2); }
   if(S.z===5){ ctx.fillStyle="rgba(150,100,30,0.10)"; ctx.fillRect(0,0,384,288); }
   const vg=ctx.createRadialGradient(192,144,110,192,144,250);
   vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,0.30)");
@@ -1300,6 +1348,7 @@ function drawB(){ const b=M.b;
       (a.ko?"<br><span class='red'>KO</span>":(a.defending?"<br>🛡 def":(a.shield?"<br>🛡 ward":"")));
     pr.appendChild(d); });
   document.getElementById("bstat").innerHTML="⛁ "+S.tokens+"  ·  turn "+(b.turn+1)+"/"+ids.length+
+    "  ·  posture: <b>"+STANCES[S.stance||"balanced"].name+"</b>"+
     "<br><span class='mut'>"+(b.def.tip? "tip held by Runbook / FIVE-WHY" : "")+"</span>";
   drawMenu(); }
 function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=actor(); let h="";
@@ -1307,6 +1356,7 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
     h="<div class='gold' style='font-size:.74rem'>▶ "+MEMBERS[a.id].name+" — "+clsOf(a)+"</div>"+
       ((a.lb||0)>=LB_MAX?"<button data-lm='1' style='color:var(--gold)'>★ LIMIT: "+((b.fieldProto&&a.id==="hero")?"FIELD PROTOCOL":LIMITS[a.id].name)+"</button>":"")+
       "<button data-a='fight'>FIGHT</button><button data-a='skill'>SKILL</button><button data-a='defend'>DEFEND</button><button data-a='item'>ITEM</button>"+
+      (a.id==="hero"?"<button data-a='style'>STYLE: "+STANCES[S.stance||"balanced"].name+"</button>":"")+
       (b.def.flee && a.id==="hero"?"<button data-a='flee'>FLEE</button>":"")+(a.mp<2?"<button data-a='grit'>GRIT (+2 MP)</button>":""); }
   else if(b.menu==="skill"){ a.sk.forEach(id=>{ h+="<button data-s='"+id+"'>"+SP[id].name+" ("+SP[id].mp+")</button>"; });
     dualsFor(a).forEach(({key,partner,myCost,theirCost})=>{
@@ -1316,6 +1366,9 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
   else if(b.menu==="target"){ const t=M.b.targeting;
     partyActors().forEach((p,i)=>{ const ok = t.any? true : (t.ko? p.ko : !p.ko);
       if(ok) h+="<button data-t='"+p.id+"'>"+MEMBERS[p.id].name+" ("+p.hp+"/"+p.maxhp+(p.ko?" · KO":"")+")</button>"; });
+    h+="<button data-a='back'>◀ BACK</button>"; }
+  else if(b.menu==="style"){ Object.keys(STANCES).forEach(st=>{
+      h+="<button data-st2='"+st+"'>"+((S.stance||"balanced")===st?"● ":"○ ")+STANCES[st].name+" <span class='mut' style='font-size:.7rem'>"+STANCES[st].d+"</span></button>"; });
     h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="next"){ h="<button data-a='next'>▶ (Enter)</button>"; }
   else if(b.menu==="won"){ h="<button data-a='won'>★ VICTORY (Enter)</button>"; }
@@ -1337,6 +1390,10 @@ function menuPick(d){ const b=M.b; const a=actor();
     blog(MEMBERS[a.id].name+" braces — next hit <b>halved</b>, <span class='num'>+1 MP</span>."); b.menu="next"; drawB(); return; }
   if(d.a==="fight") return playerHit(a, atkOf(a)+(b.doubled?atkOf(a):0), MEMBERS[a.id].name+(b.doubled?" strikes the ROOT CAUSE — double damage!":" attacks!"));
   if(d.a==="skill"){ b.menu="skill"; drawMenu(); return; }
+  if(d.a==="style"){ b.menu="style"; drawMenu(); return; }
+  if(d.st2){ S.stance=d.st2; sfx("blip");
+    blog("Posture: <span class='gold'>"+STANCES[d.st2].name+"</span> — "+STANCES[d.st2].d+" <span class='mut'>(free to switch — posture is a decision, not a turn)</span>");
+    b.menu="main"; drawB(); return; }
   if(d.a==="item"){ b.menu="item"; drawMenu(); return; }
   if(d.lm) return castLimit(a);
   if(d.s) return castSkill(a, d.s);
@@ -1414,6 +1471,7 @@ function dealt(a,dmg,txt){ const b=M.b;
   let isCrit=false;
   if(rng()<critOf(a)){ dmg=Math.round(dmg*2); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
   else sfx("hit");
+  dmg=Math.max(1, dmg+stanceOut());
   BFX.push("lunge",{slot:b.turn}); BFX.push("hit");
   fxPopFoe(dmg, isCrit? "#fbbf24":"#fff");
   b.hp-=dmg;
@@ -1504,7 +1562,7 @@ function pickMove(b){ const mv=b.def.moves;
 function enemyTurn(){ const b=M.b;
   if(b.snoozed){ b.snoozed=false; blog("🔕 The pager is snoozed — <b>"+b.def.name+"</b> misses its turn!"); endOfRound(b,""); return; }
   const mv=pickMove(b);
-  let raw=mv[1];
+  let raw=Math.max(1, mv[1]+stanceIn());
   if(b.def.grow){ b.growN=Math.min(4,(b.growN||0)+1); raw+=b.growN-1; }
   let t="<b>"+b.def.name+"</b> "+mv[0]+"!"+(b.def.grow&&b.growN>1?" <span class='red'>(grown!)</span>":"");
   if(b.def.twice){ raw+=b.def.atk; t+=" (twice!)"; }
@@ -1569,6 +1627,7 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
   const toks=b.def.tok||0; if(toks){ S.tokens+=toks; sfx("coin"); pre.push("Recovered budget: <span class='num'>+"+toks+" ⛁</span>."); }
   if(b.id==="dummy"){ pre.push("<span class='mut'>KAMOGAWA'S LAW: reps build the fighter — but the same rep pays less each time. (Spar #"+(S.sparN+1)+" this level.)</span>"); }
   if(b.def.elite || b.def.superboss || b.id==="monolith" || /^h\d/.test(b.id)){ pre.push(mttxCard(b)); }
+  const dropTxt=grantDrops(b.id); if(dropTxt) pre.push(dropTxt);
   if(/^h\d/.test(b.id)){ living().forEach(a=>{ a.mp=Math.min(a.maxmp,a.mp+3); a.hp=Math.min(a.maxhp,a.hp+3); });
     pre.push("The bridge steadies the party: <span class='num'>+3 HP, +3 MP</span> each."); }
   if(b.id==="unknown"){ S.superWon=true; }
@@ -1601,8 +1660,9 @@ function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("cen
   let h="<span class='gold'>QUARTERMASTER PEG:</span> 'Budget's tight everywhere — spend yours wisely.'  <b>⛁ "+S.tokens+"</b><div class='choices'>";
   SHOP_STOCK.forEach(id=>{ const it=IT[id]; const own=(it.type!=="use" && (S.items[id]||0)>0)?" <span class='mut'>(owned)</span>":"";
     h+="<button data-buy='"+id+"'><span class='shoprow'><span>"+it.name+own+"</span><span>"+it.price+" ⛁</span></span><span class='mut' style='font-size:.72rem'>"+it.d+"</span></button>"; });
-  h+="<div class='gold' style='margin-top:8px;font-size:.8rem'>⚒ THE FORGE — 🪵"+S.res.logs+" Log · ⛏"+S.res.metrics+" Ore · 🌿"+S.res.traces+" Herb <span class='mut'>(gather in the field, craft here)</span></div>";
-  Object.keys(RECIPES).forEach(id=>{ const r=RECIPES[id];
+  h+="<div class='gold' style='margin-top:8px;font-size:.8rem'>⚒ THE FORGE — 🪵"+S.res.logs+" · ⛏"+S.res.metrics+" · 🌿"+S.res.traces+" · 🔮"+(S.res.sigils||0)+
+    " <span class='mut'>· 📡 Observability Lv "+S.skills.obs.lv+" · ⚒ Toolsmithing Lv "+S.skills.forge.lv+(S.skills.forge.lv>=3?" (−1 costs!)":"")+"</span></div>";
+  Object.keys(RECIPES).forEach(id=>{ const r=craftCost(id);
     const cost=Object.keys(r).map(k=>r[k]+" "+RESNAME[k]).join(" + ");
     const owned=(S.items[id]||0)>0?" <span class='mut'>(owned)</span>":"";
     h+="<button data-forge='"+id+"'><span class='shoprow'><span>"+IT[id].name+owned+"</span><span>"+cost+"</span></span><span class='mut' style='font-size:.72rem'>"+IT[id].d+"</span></button>"; });
@@ -1623,7 +1683,8 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
   let roster="";
   partyActors().forEach(a=>{ const m=MEMBERS[a.id];
     roster+="<span class='mut'>"+m.name+" · "+clsOf(a)+" · LV "+a.lv+" · "+a.hp+"/"+a.maxhp+" HP · "+a.mp+"/"+a.maxmp+" MP · skills: "+a.sk.map(s=>SP[s].name).join(", ")+"</span><br>"; });
-  roster+="<span class='mut'>Resources: 🪵"+S.res.logs+" · ⛏"+S.res.metrics+" · 🌿"+S.res.traces+" (forge at Peg's)</span><br>";
+  roster+="<span class='mut'>Resources: 🪵"+S.res.logs+" · ⛏"+S.res.metrics+" · 🌿"+S.res.traces+" · 🔮"+(S.res.sigils||0)+" (forge at Peg's)</span><br>";
+  roster+="<span class='mut'>📡 Observability Lv "+S.skills.obs.lv+" · ⚒ Toolsmithing Lv "+S.skills.forge.lv+" · posture: "+STANCES[S.stance||"balanced"].name+"</span><br>";
   let h="<b class='gold'>☰ MENU</b><br><span class='mut'>"+OBJ[Math.min(S.stage,OBJ.length-1)]+"</span><br>⛁ "+S.tokens+"<br>"+roster+
    "<span class='mut'>HERO gear: ⌨ "+(eq.weapon?IT[eq.weapon].name:"—")+" · 🪪 "+(eq.badge?IT[eq.badge].name:"—")+" · 🧿 "+(eq.charm?IT[eq.charm].name:"—")+"</span>"+
    "<div class='choices'>"+
@@ -2083,8 +2144,8 @@ const TESTS = [
     startBattle("h5", null);
     const ok=M.b.fieldProto===true && S.actors.hero.lb===LB_MAX;
     M.b=null; M.state="test"; BW.hidden=true; S=sb; return ok; }],
- ["forge recipes reference real gear and real resources", ()=>Object.keys(RECIPES).length>=3
-    && Object.keys(RECIPES).every(id=>IT[id] && Object.keys(RECIPES[id]).every(r=>["logs","metrics","traces"].includes(r)))],
+ ["forge recipes reference real gear and real resources", ()=>Object.keys(RECIPES).length>=4 && RECIPES.tal
+    && Object.keys(RECIPES).every(id=>IT[id] && Object.keys(RECIPES[id]).every(r=>["logs","metrics","traces","sigils"].includes(r)))],
  ["crafting consumes resources, grants gear, refuses when short or owned", ()=>{ const sb=S; S=NEWS();
     S.res={logs:99,metrics:99,traces:99};
     const ok1=craft("kb4")===true && (S.items.kb4||0)===1 && S.res.logs===99-RECIPES.kb4.logs;
@@ -2154,6 +2215,46 @@ const TESTS = [
     castSkill(S.actors.hero,"fivewhy");
     const ok=M.b.revealed===true && M.b.focused===true && S.actors.hero.mp===0;
     M.b=null; S=sb; return ok; }],
+ // ---- combat styles + RuneScape skilling (RED-first) ----
+ ["stances: three postures with symmetric modifiers", ()=>STANCES.balanced && STANCES.firefight && STANCES.safe
+    && stanceOut("firefight")===1 && stanceIn("firefight")===1 && stanceOut("safe")===-1 && stanceIn("safe")===-1 && stanceOut("balanced")===0],
+ ["firefight adds exactly +1 dealt on identical rolls; safe subtracts 1", ()=>{ const sb=S; const rb=rng; S=NEWS();
+    S.stance="balanced"; M.b={ def:EN.vague, hp:50, maxhp:50, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    rng=mulberry32(11); dealt(S.actors.hero,5,"t"); const d1=50-M.b.hp;
+    S.stance="firefight"; M.b.hp=50; rng=mulberry32(11); dealt(S.actors.hero,5,"t"); const d2=50-M.b.hp;
+    S.stance="safe"; M.b.hp=50; rng=mulberry32(11); dealt(S.actors.hero,5,"t"); const d3=50-M.b.hp;
+    M.b=null; S=sb; rng=rb; return d2===d1+1 && d3===d1-1; }],
+ ["battle menu offers STYLE switching with all three postures", ()=>{ const sb=S; S=NEWS();
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    drawMenu(); const main=document.getElementById("bmenu").innerHTML.includes("STYLE");
+    M.b.menu="style"; drawMenu(); const sub=document.getElementById("bmenu").textContent;
+    const ok=main && /FIREFIGHT/i.test(sub) && /SAFE/i.test(sub) && /BALANCED/i.test(sub);
+    M.b=null; S=sb; return ok; }],
+ ["enemy drops: every foe yields materials, sigils only from bosses", ()=>{ const ids=Object.keys(EN).filter(k=>k!=="dummy");
+    const all=ids.every(id=>DROPS[id]);
+    const sigOK=ids.every(id=>{ const hasSig=!!(DROPS[id]&&DROPS[id].sigils);
+      const bossy=!!(EN[id].elite||EN[id].superboss||/^h\d/.test(id)||id==="monolith"||id==="patient0");
+      return hasSig===bossy; });
+    return all && sigOK; }],
+ ["grantDrops adds materials and Observability XP", ()=>{ const sb=S; S=NEWS();
+    const x0=S.skills.obs.xp; const txt=grantDrops("golem");
+    const ok=S.res.metrics===2 && S.skills.obs.xp>x0 && typeof txt==="string" && /Metric/.test(txt);
+    S=sb; return ok; }],
+ ["Observability levels raise double-yield chance, capped", ()=>obsDoubleChance(1)===0.30 && obsDoubleChance(3)>obsDoubleChance(1) && obsDoubleChance(99)<=0.6],
+ ["Toolsmithing discounts recipes at level 3", ()=>{ const sb=S; S=NEWS();
+    const c1=craftCost("kb5"); S.skills.forge.lv=3; const c3=craftCost("kb5");
+    const ok=c1.metrics===RECIPES.kb5.metrics && c3.metrics===RECIPES.kb5.metrics-1 && c3.logs===RECIPES.kb5.logs-1;
+    S=sb; return ok; }],
+ ["crafting trains Toolsmithing", ()=>{ const sb=S; S=NEWS(); S.res={logs:99,metrics:99,traces:99,sigils:99};
+    const x0=S.skills.forge.xp; craft("kb5"); const ok=S.skills.forge.xp>x0; S=sb; return ok; }],
+ ["SEV Talisman: sigil recipe, +1 ATK and -1 damage taken", ()=>{ const sb=S; S=NEWS();
+    const rOK=RECIPES.tal && RECIPES.tal.sigils>=4 && IT.tal;
+    S.equip.charm="tal";
+    const a=atkOf(S.actors.hero)===S.actors.hero.atk+1 && defOf(S.actors.hero)===1;
+    S=sb; return rOK && a; }],
+ ["v6→v7 migration adds stance, skills, and sigils", ()=>{ const old={v:6,tokens:4,party:[],actors:{hero:mkActor("hero",2)},won:false,res:{logs:2,metrics:0,traces:1}};
+    const s=migrateV6(old);
+    return s.v===SAVE_VERSION && s.stance==="balanced" && s.skills.obs.lv===1 && s.res.sigils===0 && s.res.logs===2; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -2170,7 +2271,8 @@ function runTests(){ document.getElementById("objline").hidden=true;
 window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, LIMITS, RECIPES, mkActor, startBattle, startFinale, render, tryMove, interact,
   menuPick, castSkill, castDual, castLimit, chargeLB, dualsFor, useItem, saveGame, loadSlot, migrateV2, migrateV3, migrateV4, migrateV5, atkOf, defOf, critOf, incoming,
   pauseMenu, openShop, titleScreen, newGame, living, partyActors, sparXP, allLootDone, eraCleared, ensureRoam, moveRoam, roamWalkable, ending,
-  craft, gatherNode, budgetLeft, clsOf, mttxCard, setMusic, playMusic, MUS };
+  craft, gatherNode, budgetLeft, clsOf, mttxCard, setMusic, playMusic, MUS,
+  STANCES, stanceOut, stanceIn, DROPS, grantDrops, obsDoubleChance, craftCost, addSkillXP, migrateV6, sloVerdict };
 tryMigrate();
 render();
 if(new URLSearchParams(location.search).get("test")==="1") runTests();
