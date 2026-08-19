@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Quest: SEV-1 — Party Edition</title>
-<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Five classes, individual levels, unique skills, shops, elites, a superboss, and 100,000 simulated battles behind the balance. One static file, no frameworks, no API keys.">
+<title>AI Quest: SEV-1 — Chrono Edition</title>
+<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Five classes, dual techs, random encounters, time travel to 1999, a superboss, and 1,000,000 simulated battles behind the balance. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
 <meta property="og:title" content="AI Quest: SEV-1 — the 8-bit party JRPG of AI engineering">
-<meta property="og:description" content="Five classes. Individual levels. Spells are AI techniques, bosses are incidents, and the balance was tuned on 100,000 simulated battles.">
+<meta property="og:description" content="Five classes, dual techs, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 1,000,000 simulated battles.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-game.png">
 <meta property="og:url" content="https://lzbiala.github.io/game.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -77,7 +77,7 @@
 </head>
 <body>
 <h1>⚔️ AI QUEST: SEV-1</h1>
-<div class="sub">party edition · five classes · individual levels · balance tuned on 100,000 simulated battles · by Lito Zarate Biala</div>
+<div class="sub">chrono edition · five classes · dual techs · time travel · balance tuned on 1,000,000 simulated battles · by Lito Zarate Biala</div>
 <div class="hudtop">
   <span id="hhero"><b>HERO</b> LV 1</span>
   <span>⛁ <b id="htok">0</b></span><span id="zonename"><b>—</b></span>
@@ -109,7 +109,8 @@
   <button data-k="Enter">A</button><button data-k="Escape">☰</button>
 </div>
 <p class="tiny">arrows / WASD move · Enter interacts · Esc/☰ menu · red gates = incidents · E = elite ·
-five classes with their own levels &amp; skills · INN saves · after victory, something stirs atop the Citadel… ·
+✦ DUAL TECHS in the skill menu (both allies' MP, both turns — the Chrono rule) · prowling foes are visible and avoidable ·
+tall grass ambushes · spar the Staging Dummy for reps · after victory: a Time Rift, and something atop the Citadel… ·
 one static file, no frameworks, no API keys · every real-world number quoted is CI-verified at
 <a href="https://github.com/LZBiala">github.com/LZBiala</a> · <a href="index.html">← lzbiala.github.io</a> ·
 <a href="game.html?test=1">test suite</a></p>
@@ -117,10 +118,14 @@ one static file, no frameworks, no API keys · every real-world number quoted is
 <script>
 "use strict";
 /* ============================================================
-   AI QUEST: SEV-1 — Party Edition
-   Balance constants below were tuned on 100,000 Monte Carlo
-   battles (combat_sim.py): gates 3-5 turns, bosses 4-6 with KO
-   pressure, superboss ~6+ turns at 98% under OPTIMAL play.
+   AI QUEST: SEV-1 — Chrono Edition
+   Balance constants below were tuned on 1,000,000 Monte Carlo
+   battles (combat_sim_v2.py, 20 encounters × 50,000): gates 3-5
+   turns, marquee bosses 4-7 turns, superboss ~7 turns. Under the
+   OPTIMAL incident-command policy (duals + ward + taunt + verify)
+   the table wins ~100% — by design: discipline is the thesis.
+   Human play sits well below the policy ceiling; the Flaky Test
+   elite KOs someone in 48% of optimal runs.
    ============================================================ */
 
 // ================= seeded RNG =================
@@ -509,6 +514,57 @@ unknown:[
 ".k.....kk.....k.",
 "k......kk......k",
 ".......kk......."],
+fax:[
+"................",
+"................",
+"..kkkkkkkkkkkk..",
+".kmmmmmmmmmmmmk.",
+".kmMMMMMMMMMMmk.",
+".kmwwwwwwwwwwmk.",
+".kmMMMMMMMMMMmk.",
+".kmmrMmmmmMrmmk.",
+".kmmmmmmmmmmmmk.",
+".kmMMMMMMMMMMmk.",
+".kmmwwwwwwwmmmk.",
+"..kmwwwwwwwmk...",
+"..kkkkkkkkkkkk..",
+"...kmmk..kmmk...",
+"..kmmk....kmmk..",
+"..kkkk....kkkk.."],
+cobol:[
+"................",
+".....kkkkkk.....",
+"....kGGGGGGk....",
+"...kGGGGGGGGk...",
+"...kGwwwwwwGk...",
+"...kGwkwwkwGk...",
+"...kGwwwwwwGk...",
+"....kwwkkwwk..g.",
+"....kGGGGGGk.gn.",
+"...kgGGGGGGgk.n.",
+"...kgGgGGgGgk.n.",
+"....kGGGGGGk..n.",
+"....kGGGGGGk..n.",
+".....kGGGGk...n.",
+".....kGGGGk.....",
+"....kkkkkkkk...."],
+patient0:[
+"....kkkkkkkk....",
+"...krrrrrrrrk...",
+"...krRrrrrRrk...",
+"...krkkrrkkrk...",
+"...krkwrrwkrk...",
+"...krrrkkrrrk...",
+"..krrrrrrrrrrk..",
+".krRrrkkkkrrRk..",
+".krrrk....krrk..",
+".krrk..rr..krk..",
+"..krk.rrrr.kr...",
+"..kr...rr...k...",
+"...k..r..r......",
+"......r..r......",
+".....r....r.....",
+"................"],
 chest:[
 "................",
 "................",
@@ -568,6 +624,19 @@ const SP = {
  objection:{ name:"OBJECTION!", mp:2, d:"taunt: the enemy targets the Tank for 2 turns (-1 dmg to him)." } };
 const XPCURVE = [0,10,25,45,70,100,140,190];
 
+// ================= DATA: dual techs (Chrono rule: both MPs + both turns) =================
+const DUAL = {
+ rootcausex:{ name:"✦ ROOT CAUSE X", a:"hero", b:"sentinel", mpa:2, mpb:2,
+   d:"five-why + true strike in one motion: reveals the core, pierces fog, and wounds." },
+ promptstorm:{ name:"✦ PROMPT STORM", a:"hero", b:"wiki", mpa:3, mpb:4,
+   d:"a structured prompt rides the index gale — heavy magic. Needs the root exposed." },
+ xreview:{ name:"✦ X-REVIEW", a:"hero", b:"refuter", mpa:3, mpb:3,
+   d:"commit and counter-review cross-slash — (both ATK)×2, cuts through fog." },
+ canaryvolley:{ name:"✦ CANARY VOLLEY", a:"sentinel", b:"wiki", mpa:3, mpb:3,
+   d:"three enchanted canaries seek the fault — triple hit. Needs root + focus." },
+ safedeploy:{ name:"✦ SAFE DEPLOY", a:"mender", b:"refuter", mpa:4, mpb:2,
+   d:"ward the whole party AND draw the enemy's fire — one coordinated motion." } };
+
 // ================= DATA: items =================
 const IT = {
  coffee:{ name:"Coffee", type:"use", price:8, d:"acting ally: +5 HP, +2 MP." },
@@ -584,12 +653,13 @@ const IT = {
  bd2:{ name:"Security Badge", type:"badge", price:40, def:2, d:"HERO -2 damage taken." },
  ch1:{ name:"Focus Charm", type:"charm", price:30, fx:"crit", d:"HERO +10% crit chance." },
  ch2:{ name:"Regen Charm", type:"charm", price:30, fx:"regen", d:"HERO +1 MP per round." },
- ch3:{ name:"Uptime Charm", type:"charm", price:50, fx:"uptime", d:"HERO survives one lethal hit per battle." } };
+ ch3:{ name:"Uptime Charm", type:"charm", price:50, fx:"uptime", d:"HERO survives one lethal hit per battle." },
+ ch4:{ name:"Root Cert", type:"charm", price:0, fx:"root", d:"relic of 1999: HERO +1 ATK, +10% crit. Not for sale — the past must be earned." } };
 const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","kb1","kb2","kb3","bd1","bd2","ch1","ch2","ch3"];
 
 // ================= DATA: enemies (100k-sim tuned) =================
 const EN = {
- dummy:{ name:"Staging Dummy", spr:"dummy", hp:10, atk:1, xp:5, tok:4, weak:null, flee:true, respawn:true,
+ dummy:{ name:"Staging Dummy", spr:"dummy", hp:10, atk:1, xp:5, tok:0, weak:null, flee:true, respawn:true,
   moves:[["wobbles harmlessly",0],["displays a test alert",1]], intro:"It's supposed to break — that's what staging is for." },
  vague:{ name:"VAGUE TICKET", spr:"slime", hp:14, atk:3, xp:10, tok:8, weak:"promptia", flee:true,
   moves:[["mumbles 'something is down somewhere'",3],["adds a confusing screenshot",2]],
@@ -621,8 +691,8 @@ const EN = {
   moves:[["diverges from the documented state",5],["whispers 'it was always like this'",7]],
   intro:"An ELITE appears — CONFIG DRIFT. Nothing matches the runbook anymore!",
   tip:"Unverified fixes regenerate. CONTROL ARM verifies the whole round — then everyone strikes." },
- monolith:{ name:"THE MONOLITH", spr:"monolith", hp:130, atk:6, xp:20, tok:40, weak:"fliptest", ai:"smart",
-  moves:[["judges its own work: FLAWLESS",7],["cites no one",8],["generates unquestioned output",9]],
+ monolith:{ name:"THE MONOLITH", spr:"monolith", hp:150, atk:6, xp:20, tok:40, weak:"fliptest", ai:"smart",
+  moves:[["judges its own work: FLAWLESS",8],["cites no one",9],["generates unquestioned output",10]],
   intro:"THE MONOLITH: 'I AM ONE. I GENERATE. I JUDGE. I NEED NO OTHERS.'",
   tip:"FLIP TEST breaks self-judges." },
  h1:{ name:"SEV-1 HYDRA — ALERT STORM HEAD", spr:"hydra", hp:85, atk:5, xp:10, tok:10, weak:"promptia",
@@ -635,13 +705,24 @@ const EN = {
   moves:[["deflects: 'it's probably DNS'",7],["spawns another symptom",6]],
   intro:"The third head is ARMORED — you're treating symptoms!", tip:"FIVE-WHY exposes the core." },
  h4:{ name:"SEV-1 HYDRA — REGRESSION HEAD", spr:"hydra", hp:90, atk:6, xp:10, tok:10, weak:null, regen:true,
-  moves:[["reopens the closed incident",7],["whispers 'it worked on my machine'",7]],
+  moves:[["reopens the closed incident",7],["whispers 'it worked on my machine'",8]],
   intro:"The fourth head REGENERATES — unverified fixes come back!", tip:"CONTROL ARM verifies the round. Then everyone strikes." },
- h5:{ name:"SEV-1 HYDRA — THE BODY", spr:"hydra", hp:110, atk:6, xp:30, tok:60, weak:null, multi:true,
-  moves:[["thrashes production",8],["threatens the SLA",7]],
+ h5:{ name:"SEV-1 HYDRA — THE BODY", spr:"hydra", hp:130, atk:6, xp:30, tok:60, weak:null, multi:true,
+  moves:[["thrashes production",9],["threatens the SLA",8]],
   intro:"Four heads down. The body remains — and it lashes at TWO of you at once!", tip:"Ward, taunt, heal, finish it." },
- unknown:{ name:"THE UNKNOWN UNKNOWN", spr:"unknown", hp:220, atk:7, xp:60, tok:100, weak:null, ai:"smart", multi:true, multi3:true, superboss:true,
-  moves:[["strikes from a blind spot you never mapped",8],["is not in any runbook",10]],
+ faxdaemon:{ name:"FAX DAEMON", spr:"fax", hp:42, atk:4, xp:14, tok:12, weak:"promptia", flee:true,
+  moves:[["screeches a handshake tone",4],["spits a 40-page cover sheet",5]],
+  intro:"A FAX DAEMON boots up! It has been retrying since 1999.", tip:"Legacy interfaces fall to a precise, structured prompt." },
+ cobol:{ name:"COBOL LICH", spr:"cobol", hp:58, atk:5, xp:16, tok:14, weak:"contexa", regen:true, flee:true, ai:"smart",
+  moves:[["chants in fixed-width columns",6],["invokes a subroutine older than you",7]],
+  intro:"The COBOL LICH rises — undead code that refuses to die, because it still runs payroll.",
+  tip:"You cannot delete what you cannot verify. CONTROL ARM, then strike." },
+ patient0:{ name:"PATIENT ZERO — THE FIRST OUTAGE", spr:"patient0", hp:130, atk:6, xp:30, tok:50, weak:null, hidden:true, ai:"smart", elite:true,
+  moves:[["replays the night everything fell",7],["screams the name of who they blamed",9]],
+  intro:"PATIENT ZERO — the 1999 outage itself, still burning because its postmortem burned a PERSON instead of a CAUSE.",
+  tip:"It hides behind a name. FIVE-WHY past the who, into the why." },
+ unknown:{ name:"THE UNKNOWN UNKNOWN", spr:"unknown", hp:260, atk:8, xp:60, tok:100, weak:null, ai:"smart", multi:true, multi3:true, superboss:true,
+  moves:[["strikes from a blind spot you never mapped",9],["is not in any runbook",12]],
   intro:"The air tears open. THE UNKNOWN UNKNOWN — the incident no one has had yet. It attacks from everywhere at once.",
   tip:"No weakness. No trick. Just everything you've learned: taunt, ward, verify, heal, strike." } };
 
@@ -671,7 +752,7 @@ const Z = [
 { name:"Prompt Plains", ground:"#234a2e", maps:[
 "tttttttttttt","t.ggg..gg..t","tgggg..Egg.t","t.gg...t.g.t","pppppBpppBpp","t.g.gg..g..t","tb...g.gg..t","t..t.gg..c.t","tttttttttttt"],
  exits:{left:0,right:2}, battles:{"5,4":"vague","9,4":"gremlin"}, elites:{"7,2":"flakytest"},
- enc:{tile:"g", pool:["vague","gremlin"], rate:0.16},
+ enc:{tile:"g", pool:["vague","gremlin"], rate:0.12}, roam:{pool:["vague","gremlin"], x:7, y:6},
  loot:{"1,6":{tok:8, text:"A traveler's barrel hidden in the grass — <b>8 ⛁</b>!"}},
  recruitAfter:{"9,4":{ id:"sentinel",
   lines:["SENTINEL the Ranger joins the party!","SENTINEL: 'I plant one known defect and mix in byte-identical controls — crying wolf scores zero. 9/10 caught, 0 false alarms.'","★ SENTINEL fights with MUTAGEN and TRUE STRIKE — and learns AUDIT at LV 5."]}},
@@ -679,7 +760,7 @@ const Z = [
 { name:"Context Caverns", ground:"#26323a", maps:[
 "rrrrrrrrrrrr","r.,,.r..,,.r","r.rr,..rr,.r","r..,,,.,,..r","pppppBpppBpp","r.,.rr.,,..r","r.r,.....c.r","rb.,,......r","rrrrrrrrrrrr"],
  exits:{left:1,right:3}, battles:{"5,4":"creep","9,4":"golem"},
- enc:{tile:",", pool:["creep","gremlin"], rate:0.16},
+ enc:{tile:",", pool:["creep","gremlin"], rate:0.12}, roam:{pool:["creep","gremlin"], x:3, y:5},
  loot:{"1,7":{item:"cache", text:"A miner's barrel — a warm <b>Cache Warmer</b>!"}},
  recruitAfter:{"5,4":{ id:"wiki",
   lines:["WIKI the Wizard joins the party!","WIKI: 'Memory should be auditable — every belief a readable note, every deletion carrying its reason.'","★ WIKI casts CONTEXA — and learns INDEX STORM at LV 5."]}},
@@ -687,7 +768,7 @@ const Z = [
 { name:"Loop Labyrinth", ground:"#2a2a3a", maps:[
 "rrrrrr.rrrrr","r.,..r.r,..r","r.ww.r.ww,.r","r,...B..,..r","pppppp...E.r","r.,w...w,..r","r....B..,c.r","rb,......,.r","rrrrrrrrrrrr"],
  exits:{left:2,up:4}, battles:{"5,6":"wyrm","5,3":"leak"}, elites:{"9,4":"configdrift"},
- enc:{tile:",", pool:["wyrm","leak"], rate:0.15},
+ enc:{tile:",", pool:["wyrm","leak"], rate:0.11}, roam:{pool:["wyrm","leak"], x:8, y:7},
  loot:{"1,7":{item:"snooze", text:"An abandoned barrel — a <b>Pager Snooze</b>! Bless whoever left this."}},
  recruitAfter:{"5,6":{ id:"mender",
   lines:["MENDER the Cleric joins the party!","MENDER: 'The model never learns; the notes do. Improvement must beat its own placebo.'","★ MENDER carries CONTROL ARM and REPAIR — and learns WARD at LV 6."]}},
@@ -695,12 +776,23 @@ const Z = [
 { name:"Graph Citadel", ground:"#33283a", maps:[
 "rrrrrrrrrrrr","r....M.....r","r.,......,.r","r....B.....r","r.,......,.r","r.c........r","r...,,,....r","rb.......b.r","rrrrrr.rrrrr"],
  exits:{down:3}, battles:{"5,3":"chorus"}, boss:"5,1",
- enc:{tile:",", pool:["chorus"], rate:0.12},
+ enc:{tile:",", pool:["chorus"], rate:0.09}, roam:{pool:["chorus"], x:7, y:6},
  loot:{"1,7":{item:"postmortem", text:"A ceremonial barrel — a full <b>Post-Incident Review</b>!"},
        "9,7":{tok:20, text:"The Citadel's tithe barrel — <b>20 ⛁</b>!"}},
  recruitAfter:{"5,3":{ id:"refuter",
   lines:["REFUTER the Tank joins the party!","REFUTER: 'My only job is attack — and OBJECTION. Ideas that survive me have earned it.'","★ REFUTER wields FLIP TEST and OBJECTION! — the enemy will learn to fear the taunt.","REFUTER: 'The Monolith waits above. And behind it... I smell a SEV-1. Ready the party.'"]}},
- chest:{key:"2,5", text:"🏆 ARTIFACT: adversarial-chambers — the judge on trial. Instruction-flip test: 0/8 vs 3/8. github.com/LZBiala/adversarial-chambers  (+1 Runbook, +20 ⛁)", give:"runbook", tok:20} }
+ chest:{key:"2,5", text:"🏆 ARTIFACT: adversarial-chambers — the judge on trial. Instruction-flip test: 0/8 vs 3/8. github.com/LZBiala/adversarial-chambers  (+1 Runbook, +20 ⛁)", give:"runbook", tok:20} },
+{ name:"1999 — Legacy Ops", ground:"#3a2d1e", maps:[
+"rrrrrrrrrrrr","r.,....,.,.r","r..,.E.....r","r.,..r..,..r","r..,B..,B..r","r,.....,...r","r.,..,...c.r","r.O....,.b.r","rrrrrrrrrrrr"],
+ exits:{}, battles:{"4,4":"faxdaemon","8,4":"cobol"}, elites:{"5,2":"patient0"},
+ enc:{tile:",", pool:["faxdaemon"], rate:0.12}, roam:{pool:["faxdaemon","cobol"], x:8, y:2},
+ loot:{"9,7":{tok:19, text:"A Y2K emergency barrel — <b>19 ⛁</b> in 1999 dollars!"}},
+ npcs:[{x:3,y:5,spr:"rowan",name:"ROWAN (1999)",lines:[
+  "YOUNG ROWAN: New contractor? Great, grab a pager. We ship TONIGHT — fastest team in the valley, no time for reviews.",
+  "YOUNG ROWAN: Last week's outage? Oh, we handled it. Found the guy whose change broke it and read his name out in the all-hands. He quit Friday. Problem solved!",
+  "YOUNG ROWAN: ...why does something up on that ridge keep humming louder every time we do that?",
+  "(You know this man. In your time his hair is grey, and he stares at the eastern mountains and says: 'some shortcuts cost more than they save.')"]}],
+ chest:{key:"9,6", text:"🏆 RELIC: the ROOT CERT of 1999 — the signing key of everything that came after. HERO +1 ATK, +10% crit when equipped. The past, understood, makes you stronger. (+30 ⛁)", give:"ch4", tok:30} }
 ];
 const OPENING = [
  "2:07 AM. The pager screams. Again.",
@@ -732,20 +824,21 @@ const OBJ = [
 const CREDITS = [
  "⚔️ AI QUEST: SEV-1 — Party Edition",
  "A game about the discipline of trustworthy AI.",
- "Design, writing, code, pixel art, chiptunes & 100,000 balance simulations: Lito Zarate Biala — with Claude Code as pair programmer.",
+ "Design, writing, code, pixel art, chiptunes & 1,000,000 balance simulations: Lito Zarate Biala — with Claude Code as pair programmer.",
  "The skills are real practices. The companions are real projects — github.com/LZBiala.",
  "The bosses are real Tuesdays.",
  "No frameworks. No trackers. No API keys. Every real-world number quoted regenerates in CI.",
  "Thanks for playing. May your pages be few and your postmortems blameless. 🥊" ];
 
 // ================= STATE & SAVES =================
-const SAVE_VERSION = 4;
+const SAVE_VERSION = 5;
 const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   actors:{ hero: mkActor("hero",1) },
   items:{coffee:2, runbook:1, patch:1}, equip:{weapon:null,badge:null,charm:null}, stage:0,
-  cleared:{}, opened:{}, won:false, superWon:false, deaths:0, bridgeMiss:0, playMs:0, seed:1 });
+  cleared:{}, opened:{}, won:false, superWon:false, deaths:0, bridgeMiss:0, playMs:0, seed:1,
+  sparLv:1, sparN:0, eraSeen:false, wizard:false });
 let S = NEWS();
-let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0 };
+let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0, roam:{}, roamBattle:false };
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
 const ov=document.getElementById("overlay"), box=document.getElementById("box");
 const BW=document.getElementById("battle");
@@ -765,13 +858,22 @@ function migrateV3(old){ // old v3 schema (single shared stats)
 function migrateV2(old){ // oldest schema key "aiquest"
   return migrateV3(Object.assign({}, old, { items:{coffee:(old.items&&old.items.coffee)||0, runbook:(old.items&&old.items.runbook)||0, patch:1},
     tokens:25, stage: old.won?4 : ((old.party&&old.party.length>=4)?2:1), seed:1 })); }
-function saveKey(slot){ return slot? "aiquest4_s"+slot : "aiquest4_auto"; }
+function migrateV4(old){ // v4 party schema → v5 (adds spar/era/wizard fields)
+  const s=Object.assign(NEWS(), old);
+  s.v=SAVE_VERSION;
+  if(s.sparLv===undefined) s.sparLv=1; if(s.sparN===undefined) s.sparN=0;
+  if(s.eraSeen===undefined) s.eraSeen=false; if(s.wizard===undefined) s.wizard=false;
+  return s; }
+function saveKey(slot){ return slot? "aiquest5_s"+slot : "aiquest5_auto"; }
 function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }
 function saveGame(slot){ try{ tickClock(); localStorage.setItem(saveKey(slot), JSON.stringify(S)); }catch(e){} }
 function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d) return null;
     const p=JSON.parse(d); if(!p || p.v!==SAVE_VERSION || !p.actors || !p.actors.hero) return null;
     return Object.assign(NEWS(), p); }catch(e){ return null; } }
 function tryMigrate(){ try{
+    if(localStorage.getItem(saveKey(0))) return false;
+    for(const s4 of [0,1,2,3]){ const d4=localStorage.getItem(s4?"aiquest4_s"+s4:"aiquest4_auto");
+      if(d4){ const s=migrateV4(JSON.parse(d4)); localStorage.setItem(saveKey(s4), JSON.stringify(s)); if(s4===0) return true; } }
     if(localStorage.getItem(saveKey(0))) return false;
     const d3=localStorage.getItem("aiquest3_auto");
     if(d3){ const s=migrateV3(JSON.parse(d3)); localStorage.setItem(saveKey(0), JSON.stringify(s)); return true; }
@@ -780,9 +882,10 @@ function tryMigrate(){ try{
   }catch(e){} return false; }
 
 // ================= derived stats (pure — tested) =================
-function atkOf(a){ return a.atk + (a.id==="hero" && S.equip.weapon && IT[S.equip.weapon] ? IT[S.equip.weapon].atk : 0); }
+function atkOf(a){ return a.atk + (a.id==="hero" && S.equip.weapon && IT[S.equip.weapon] ? IT[S.equip.weapon].atk : 0)
+  + (a.id==="hero" && S.equip.charm==="ch4" ? 1 : 0); }
 function defOf(a){ return (a.id==="hero" && S.equip.badge && IT[S.equip.badge]) ? IT[S.equip.badge].def : 0; }
-function critOf(a){ return 0.15 + (a.id==="hero" && S.equip.charm==="ch1" ? 0.10 : 0); }
+function critOf(a){ return 0.15 + (a.id==="hero" && (S.equip.charm==="ch1"||S.equip.charm==="ch4") ? 0.10 : 0); }
 function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0));
   if(a.defending) d=Math.ceil(d/2); return d; }
 
@@ -813,22 +916,36 @@ function drawTile(chr,tx,ty,zone){
     ctx.fillRect(tx+6,ty+8,20,2); ctx.fillRect(tx+6,ty+26,20,2); }
   if(chr==="M"){ drawSprTo(ctx, S.won?"unknown":"monolith",tx,ty,2); }
   if(chr==="c"){ drawSprTo(ctx,"chest",tx,ty,2); }
+  if(chr==="O"){ const ph=M.frame%2;
+    ctx.fillStyle="#0f766e"; ctx.beginPath(); ctx.arc(tx+16,ty+16,12+ph,0,7); ctx.fill();
+    ctx.fillStyle="#2dd4bf"; ctx.beginPath(); ctx.arc(tx+16,ty+16,8+ph,0,7); ctx.fill();
+    ctx.fillStyle="#c084fc"; ctx.beginPath(); ctx.arc(tx+16,ty+16,4-ph,0,7); ctx.fill();
+    ctx.fillStyle="#10151a"; ctx.fillRect(tx+14+ph*2,ty+6,3,3); ctx.fillRect(tx+22,ty+20-ph*3,3,3); }
 }
 function tileAtRaw(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; return zone.maps[y][x]; }
 function tileAt(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; let chr=zone.maps[y][x];
   const k=x+","+y;
+  if(S.z===0 && x===6 && y===6 && S.won && chr===".") chr="O"; // the Time Rift opens once the SEV-1 is resolved
   if((chr==="B"||chr==="E") && S.cleared[S.z+":"+k]) chr=".";
   if((chr==="c"||chr==="b") && S.opened[S.z+":"+k]) chr=".";
   return chr; }
 function solid(chr){ return "trwhsb".includes(chr)||chr==="M"; }
+function ensureRoam(){ const zone=Z[S.z];
+  if(!zone.roam){ return null; }
+  if(M.roam[S.z]===undefined){
+    const id=zone.roam.pool[Math.floor(rng()*zone.roam.pool.length)];
+    M.roam[S.z]={ id, x:zone.roam.x, y:zone.roam.y, alive:true }; }
+  return M.roam[S.z]; }
 function render(){
   const zone=Z[S.z];
   for(let y=0;y<9;y++)for(let x=0;x<12;x++) drawTile(tileAt(zone,x,y),x*T,y*T,zone);
   (zone.npcs||[]).forEach(n=>drawSprTo(ctx,n.spr,n.x*T,n.y*T,2));
+  const rm=ensureRoam();
+  if(rm && rm.alive) drawSprTo(ctx, EN[rm.id].spr, rm.x*T, rm.y*T, 2);
   drawSprTo(ctx,"hero",S.x*T,S.y*T,2);
   document.getElementById("zonename").innerHTML="<b>"+zone.name+"</b>";
   const h=hero();
-  document.getElementById("hhero").innerHTML="<b>HERO</b> LV "+h.lv+" · "+h.hp+"/"+h.maxhp+" HP · "+h.mp+"/"+h.maxmp+" MP"+(S.party.length?" · +"+S.party.length+" allies":"");
+  document.getElementById("hhero").innerHTML="<b>"+(S.wizard?"🧙 AI WIZARD":"HERO")+"</b> LV "+h.lv+" · "+h.hp+"/"+h.maxhp+" HP · "+h.mp+"/"+h.maxmp+" MP"+(S.party.length?" · +"+S.party.length+" allies":"");
   document.getElementById("htok").textContent=S.tokens;
   document.getElementById("objline").textContent=OBJ[Math.min(S.stage,OBJ.length-1)];
 }
@@ -882,7 +999,7 @@ function sfx(kind){ if(!AU.on) return;
 
 // ================= BATTLE (party engine) =================
 function startBattle(id,key,chain){ const def=EN[id];
-  partyActors().forEach(a=>{ a.defending=false; a.shield=false; });
+  partyActors().forEach(a=>{ a.defending=false; a.shield=false; a.dualUsed=false; });
   M.state="battle"; M.b={ id, key, chain:chain||null, def, hp:def.hp, maxhp:def.hp,
     dot:0, verified:0, taunt:0, revealed:!def.hidden, focused:!def.foggy,
     doubled:false, menu:"main", turn:0, snoozed:false, stolen:false, uptimeUsed:false, growN:0 };
@@ -921,7 +1038,10 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
     h="<div class='gold' style='font-size:.74rem'>▶ "+MEMBERS[a.id].name+" — "+MEMBERS[a.id].cls+"</div>"+
       "<button data-a='fight'>FIGHT</button><button data-a='skill'>SKILL</button><button data-a='defend'>DEFEND</button><button data-a='item'>ITEM</button>"+
       (b.def.flee && a.id==="hero"?"<button data-a='flee'>FLEE</button>":"")+(a.mp<2?"<button data-a='grit'>GRIT (+2 MP)</button>":""); }
-  else if(b.menu==="skill"){ a.sk.forEach(id=>{ h+="<button data-s='"+id+"'>"+SP[id].name+" ("+SP[id].mp+")</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
+  else if(b.menu==="skill"){ a.sk.forEach(id=>{ h+="<button data-s='"+id+"'>"+SP[id].name+" ("+SP[id].mp+")</button>"; });
+    dualsFor(a).forEach(({key,partner,myCost,theirCost})=>{
+      h+="<button data-du='"+key+"' style='color:var(--teal)'>"+DUAL[key].name+" ("+myCost+"+"+theirCost+" w/ "+MEMBERS[partner].name+")</button>"; });
+    h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="item"){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use") h+="<button data-it='"+k+"'>"+IT[k].name+" ×"+S.items[k]+"</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="target"){ const t=M.b.targeting;
     partyActors().forEach((p,i)=>{ const ok = t.ko? p.ko : !p.ko;
@@ -934,7 +1054,7 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
   m.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ if(M.lock) return; M.lock=true;
     setTimeout(()=>M.lock=false,150); sfx("blip"); menuPick(btn.dataset); }); }
 function nextActor(){ const b=M.b; const ids=["hero",...S.party];
-  do { b.turn++; } while(b.turn<ids.length && S.actors[ids[b.turn]] && S.actors[ids[b.turn]].ko);
+  do { b.turn++; } while(b.turn<ids.length && S.actors[ids[b.turn]] && (S.actors[ids[b.turn]].ko || S.actors[ids[b.turn]].dualUsed));
   if(b.turn>=ids.length){ b.turn=0; enemyTurn(); return; }
   b.menu="main"; drawB(); }
 function menuPick(d){ const b=M.b; const a=actor();
@@ -949,8 +1069,49 @@ function menuPick(d){ const b=M.b; const a=actor();
   if(d.a==="skill"){ b.menu="skill"; drawMenu(); return; }
   if(d.a==="item"){ b.menu="item"; drawMenu(); return; }
   if(d.s) return castSkill(a, d.s);
+  if(d.du) return castDual(a, d.du);
   if(d.it) return useItem(a, d.it);
   if(d.t) return resolveTarget(a, d.t); }
+// -------- DUAL TECHS: Chrono's rule — both characters' MP, both characters' turns --------
+function dualsFor(a){ const b=M.b; if(!b) return [];
+  const ids=["hero",...S.party]; const out=[];
+  Object.keys(DUAL).forEach(key=>{ const du=DUAL[key];
+    let partnerId=null, myCost=0, theirCost=0;
+    if(a.id===du.a){ partnerId=du.b; myCost=du.mpa; theirCost=du.mpb; }
+    else if(a.id===du.b){ partnerId=du.a; myCost=du.mpb; theirCost=du.mpa; }
+    else return;
+    const p=S.actors[partnerId];
+    if(!p || p.ko || p.dualUsed) return;
+    if(ids.indexOf(partnerId) <= ids.indexOf(a.id)) return; // partner already acted this round
+    if(a.mp<myCost || p.mp<theirCost) return;
+    out.push({key, partner:partnerId, myCost, theirCost}); });
+  return out; }
+function castDual(a,key){ const b=M.b, du=DUAL[key];
+  const pick=dualsFor(a).find(x=>x.key===key);
+  if(!pick){ blog("<span class='red'>The combo isn't ready — partner down, spent, or out of MP.</span>"); b.menu="main"; drawMenu(); return; }
+  const p=S.actors[pick.partner];
+  a.mp-=pick.myCost; p.mp-=pick.theirCost; p.dualUsed=true;
+  const names=MEMBERS[a.id].name+" + "+MEMBERS[p.id].name;
+  const lead="<span class='gold'>"+du.name+"</span> — "+names+" move as ONE!";
+  if(key==="safedeploy"){ living().forEach(x=>x.shield=true); b.taunt=2; sfx("heal");
+    blog(lead+"<br>🛡 The whole party is warded — and the enemy can't look away from the Tank (2 turns)."); b.menu="next"; drawB(); return; }
+  if(key==="rootcausex"){ b.revealed=true;
+    const dmg=atkOf(S.actors.sentinel)+4;
+    if(b.def.regen && b.verified===0){ blog(lead+"<br>The core is exposed... <span class='red'>but it regenerates! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a, dmg, lead+"<br>The root cause is exposed AND struck — fog means nothing to a true strike."); }
+  if(key==="xreview"){
+    if(!b.revealed){ blog(lead+"<br><span class='red'>The cross-slash glances off armor! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(lead+"<br><span class='red'>It regenerates through the review! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a, atkOf(S.actors.hero)+atkOf(S.actors.refuter)+4, lead+"<br>Commit and counter-review cross in an X — nothing survives unexamined!"); }
+  if(key==="promptstorm"){
+    if(!b.revealed){ blog(lead+"<br><span class='red'>The storm breaks on armor! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(lead+"<br><span class='red'>It knits itself back! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a, 6+S.actors.hero.lv+S.actors.wiki.lv, lead+"<br>A structured prompt rides the index gale — every card, perfectly aimed!"); }
+  if(key==="canaryvolley"){
+    if(!b.revealed || !b.focused){ blog(lead+"<br><span class='red'>The canaries scatter — they need the root exposed and the fog lifted!</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(lead+"<br><span class='red'>It patches around every canary! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
+    const per=2+Math.floor((S.actors.sentinel.lv+S.actors.wiki.lv)/3);
+    return dealt(a, per*3, lead+"<br>Three canaries dive — "+per+" × 3 hits find the fault!"); } }
 function playerHit(a,dmg,txt){ const b=M.b;
   b.doubled=false;
   if(!b.revealed){ blog(txt+"<br><span class='red'>No effect — treating symptoms! (FIVE-WHY exposes the core.)</span>"); b.menu="next"; drawMenu(); return; }
@@ -1046,7 +1207,7 @@ function enemyTurn(){ const b=M.b;
   if(b.def.twice){ raw+=b.def.atk; t+=" (twice!)"; }
   const liv=living();
   let targets;
-  if(b.def.multi){ const k=(b.def.multi3 && b.hp<110)?3:2;
+  if(b.def.multi){ const k=(b.def.multi3 && b.hp<130)?3:2;
     targets=[]; const pool=[...liv];
     for(let i=0;i<Math.min(k,pool.length);i++){ const j=Math.floor(rng()*pool.length); targets.push(pool.splice(j,1)[0]); }
     t+=" <span class='red'>(hits "+targets.length+"!)</span>"; }
@@ -1078,8 +1239,8 @@ function endOfRound(b,t){
     if(b.def.regen && b.verified===0){ t+="<br>The defect fires… <span class='red'>patched by regeneration!</span>"; }
     else { b.hp-=2; t+="<br>The planted defect fires: <span class='num'>2</span>!";
       if(b.hp<=0){ blog(t+"<br><span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; } } }
-  partyActors().forEach(a=>a.defending=false);
-  if(!living().length){ S.deaths=(S.deaths||0)+1; b.menu="dead"; sfx("lose");
+  partyActors().forEach(a=>{ a.defending=false; a.dualUsed=false; });
+  if(!living().length){ S.deaths=(S.deaths||0)+1; b.menu="dead"; sfx("lose"); M.roamBattle=false;
     const toll=Math.ceil(S.tokens*0.1); S.tokens-=toll;
     blog(t+"<br><span class='red'>The party falls…</span>"); drawB();
     setTimeout(()=>{ BW.hidden=true;
@@ -1088,11 +1249,17 @@ function endOfRound(b,t){
       say(["You wake at Mara's inn. MARA: 'Incidents don't end careers — hiding from them does.'","(Party restored. The incident review docked "+toll+" ⛁. Levels, recruits and gear kept. Boss gauntlets restart — such is the pager.)"]); },900);
     return; }
   blog(t); b.turn=-1; nextActor(); }
+function sparXP(){ const h=hero();
+  if(S.sparLv!==h.lv){ S.sparLv=h.lv; S.sparN=0; }
+  const xp=S.sparN===0? EN.dummy.xp : Math.max(1, Math.floor(EN.dummy.xp/Math.pow(2,S.sparN)));
+  S.sparN++; return xp; }
 function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore";
   if(b.key) S.cleared[S.z+":"+b.key]=true;
+  if(M.roamBattle){ M.roamBattle=false; const rm=M.roam[S.z]; if(rm) rm.alive=false; }
   const zone=Z[S.z];
   let pre=[];
   const toks=b.def.tok||0; if(toks){ S.tokens+=toks; sfx("coin"); pre.push("Recovered budget: <span class='num'>+"+toks+" ⛁</span>."); }
+  if(b.id==="dummy"){ pre.push("<span class='mut'>KAMOGAWA'S LAW: reps build the fighter — but the same rep pays less each time. (Spar #"+(S.sparN+1)+" this level.)</span>"); }
   if(/^h\d/.test(b.id)){ living().forEach(a=>{ a.mp=Math.min(a.maxmp,a.mp+3); a.hp=Math.min(a.maxhp,a.hp+3); });
     pre.push("The bridge steadies the party: <span class='num'>+3 HP, +3 MP</span> each."); }
   if(b.id==="unknown"){ S.superWon=true; }
@@ -1105,8 +1272,14 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore";
       say(rec.lines, ()=>{ saveGame(0); if(chainNext) runChain(chainNext); }); return; }
     if(chainNext){ saveGame(0); runChain(chainNext); return; }
     if(b.id==="unknown"){ say(["THE UNKNOWN UNKNOWN dissolves into mapped, documented, boring KNOWN territory.","THE GUIDE: 'You beat the incident nobody had had yet. That's not response anymore. That's readiness.'","🏆 TRUE ENDING unlocked — your share card now carries the ☆."], ()=>saveGame(0)); return; }
+    if(b.id==="patient0"){ say([
+      "PATIENT ZERO gutters out — and for a moment you see it clearly: not a monster. A postmortem meeting, 1999, and a room choosing a NAME instead of a CAUSE.",
+      "The engineer they burned had found the real bug that night. He never told anyone. He just... stopped telling anyone anything.",
+      "Every silence after that fed the ridge. The Monolith wasn't built in a quarter. It was built in the quiet.",
+      "⏳ You understand the whole timeline now. Blameless isn't kindness — it's ENGINEERING. Fear hides the data that prevention needs.",
+      "(The chest by the wall holds the ROOT CERT relic. Take the past with you.)"], ()=>saveGame(0)); return; }
     saveGame(0); };
-  render(); gainXP(b.def.xp, afterXP, pre); }
+  render(); gainXP(b.id==="dummy"? sparXP() : b.def.xp, afterXP, pre); }
 function runChain(chain){ const step=chain[0], rest=chain.slice(1);
   if(step.bridge!==undefined){ const br=BRIDGE[step.bridge];
     ask(br.t, br.a, i=>{ if(i===br.c){ say([br.good], ()=>{ gainXP(12, ()=>{ render(); runChain(rest); }); }); }
@@ -1183,17 +1356,25 @@ function startFinale(){
   if(S.party.length<4){ say(["THE MONOLITH: 'ALONE? RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.'","(Recruit all four companions — clear every red gate — before the finale.)"]); return; }
   say(REVEAL, ()=>{ S.stage=Math.max(S.stage,3); saveGame(0);
     runChain([{en:"monolith"},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{en:"h5"},{end:true}]); }); }
+function allLootDone(){ let need=0, got=0;
+  Z.forEach((z,zi)=>{ z.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{
+    if((ch==="c" && z.chest && z.chest.key===x+","+y) || (ch==="b" && z.loot && z.loot[x+","+y])){ need++; if(S.opened[zi+":"+x+","+y]) got++; } }); }); });
+  return {need, got, done: got>=need && need>0}; }
+function eraCleared(){ return !!S.cleared["5:5,2"]; }
 function ending(){ S.won=true; S.stage=4; tickClock();
   const pad=n=>String(n).padStart(2,"0");
   const min=Math.floor(S.playMs/60000), sec=Math.floor(S.playMs/1000)%60;
   const score=(S.deaths*2)+S.bridgeMiss+(min>=18?2:min>=12?1:0);
   const grade=score===0?"S":score<=2?"A":score<=4?"B":"C";
+  const loot=allLootDone(), era=eraCleared();
+  const wizardNow = era && S.superWon && loot.done;
+  if(wizardNow) S.wizard=true;
   let best=null; try{ best=JSON.parse(localStorage.getItem("aiquest_best")); }catch(e){}
   const better=!best||score<best.score||(score===best.score&&S.playMs<best.ms);
   if(better){ best={score:score, grade:grade, ms:S.playMs};
     try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
   const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
-  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+(S.superWon?"☆":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · five classes, real tactics, the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
+  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · five classes, dual techs, time travel — the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
   saveGame(0); ov.hidden=false; ov.classList.remove("center"); M.state="end"; sfx("level");
   box.innerHTML="<b class='gold'>👑 INCIDENT RESOLVED — MTTx: LEGENDARY</b>"+
   "<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
@@ -1203,7 +1384,11 @@ function ending(){ S.won=true; S.stage=4; tickClock();
   "<br><button id='sharebtn' class='hudbtn' style='margin-top:6px'>📋 COPY RESULT</button></div>"+
   "The Hydra dissolves. The bridge goes quiet. Somewhere, a postmortem doc opens itself — <i>blameless</i>.<br>"+
   "The Guide hands you his old pager, powered off. <span class='gold'>'Governance is memory. You're the memory now.'</span><br>"+
-  "<span class='mut'>…and something stirs atop the Citadel. Return there when you're ready for THE UNKNOWN UNKNOWN.</span><br><br>"+
+  (era? "<span class='num'>⏳ HISTORIAN:</span> you walked 1999 and put out the FIRST fire. The timeline is documented end to end.<br>" :
+        "<span class='mut'>⏳ A Time Rift now swirls in the village square — the past is asking for a postmortem…</span><br>")+
+  (S.superWon? "" : "<span class='mut'>…and something stirs atop the Citadel. Return there when you're ready for THE UNKNOWN UNKNOWN.</span><br>")+
+  (S.wizard? "<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px;margin:6px 0'><b class='gold'>🧙 TRUE ENDING — THE AI WIZARD.</b> Every incident resolved, every era understood, every artifact recovered ("+loot.got+"/"+loot.need+"). The kid who grabbed a keyboard at 2 AM is gone; the engineer who commands the room, cites the evidence, and teaches the next one — that's who's holding the pager now. Ippo would bow.</div>" :
+   "<span class='mut'>Completion: artifacts "+loot.got+"/"+loot.need+" · era "+(era?"✔":"✘")+" · superboss "+(S.superWon?"✔":"✘")+" — all three = the TRUE ENDING.</span><br>")+"<br>"+
   "Your party was a real portfolio: <a href='https://github.com/LZBiala/agent-mutation-lab' style='color:var(--teal)'>agent-mutation-lab</a> · "+
   "<a href='https://github.com/LZBiala/wiki-memory-lab' style='color:var(--teal)'>wiki-memory-lab</a> · "+
   "<a href='https://github.com/LZBiala/memory-repair-lab' style='color:var(--teal)'>memory-repair-lab</a> · "+
@@ -1220,25 +1405,56 @@ function ending(){ S.won=true; S.stage=4; tickClock();
   box.querySelector("[data-ct]").onclick=()=>{ ov.hidden=true; M.state="explore"; render(); }; }
 
 // ================= MOVEMENT & INTERACTION =================
+function roamWalkable(zone,x,y){ if(x<0||x>11||y<0||y>8) return false;
+  const chr=tileAt(zone,x,y);
+  if(!(chr==="."||chr===","||chr==="g"||chr==="f")) return false;
+  if((zone.npcs||[]).some(n=>n.x===x&&n.y===y)) return false;
+  return true; }
+function roamBattleNow(rm){ M.roamBattle=true;
+  battleTransition(()=>{ startBattle(rm.id, null); blog("👁 The prowling "+EN[rm.id].name+" catches you — you saw it coming!"); }); }
+function moveRoam(zone){ const rm=M.roam[S.z]; if(!rm || !rm.alive) return false;
+  const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+  let step=null;
+  if(rng()<0.5){ // prowl toward the player, Chrono-style — visible, avoidable, but hunting
+    const cands=dirs.filter(([dx,dy])=>Math.abs(rm.x+dx-S.x)+Math.abs(rm.y+dy-S.y) < Math.abs(rm.x-S.x)+Math.abs(rm.y-S.y));
+    step=cands.find(([dx,dy])=>roamWalkable(zone,rm.x+dx,rm.y+dy) || (rm.x+dx===S.x&&rm.y+dy===S.y)) || null; }
+  if(!step){ const shuffled=dirs.slice().sort(()=>rng()-0.5);
+    step=shuffled.find(([dx,dy])=>roamWalkable(zone,rm.x+dx,rm.y+dy) || (rm.x+dx===S.x&&rm.y+dy===S.y)) || null; }
+  if(!step) return false;
+  const tx=rm.x+step[0], ty=rm.y+step[1];
+  if(tx===S.x && ty===S.y){ roamBattleNow(rm); return true; }
+  rm.x=tx; rm.y=ty; return false; }
 function tryMove(dx,dy){ if(M.state!=="explore") return;
   const zone=Z[S.z]; let nx=S.x+dx, ny=S.y+dy;
   if(nx<0||nx>11||ny<0||ny>8){ const dir=dx<0?"left":dx>0?"right":dy<0?"up":"down";
-    if(zone.exits && zone.exits[dir]!==undefined){ S.z=zone.exits[dir];
+    if(zone.exits && zone.exits[dir]!==undefined){ const oldZ=S.z; S.z=zone.exits[dir]; delete M.roam[oldZ];
       if(dir==="right")S.x=0; if(dir==="left")S.x=11; if(dir==="down")S.y=0; if(dir==="up")S.y=8;
       if(S.stage<1) S.stage=1;
       render(); } return; }
   const chr=tileAt(zone,nx,ny);
   const npc=(zone.npcs||[]).find(n=>n.x===nx&&n.y===ny);
   if(npc||solid(chr)||chr==="c") return;
+  const rm=M.roam[S.z];
+  if(rm && rm.alive && rm.x===nx && rm.y===ny){ roamBattleNow(rm); return; }
   S.x=nx; S.y=ny; render();
   const key=nx+","+ny;
+  if(chr==="O"){ const oldZ=S.z; delete M.roam[oldZ];
+    if(S.z===0){ S.z=5; S.x=2; S.y=7;
+      if(!S.eraSeen){ S.eraSeen=true; render(); sfx("level");
+        say(["The rift swallows you. Dial-up static. CRT glow. A banner reads: 'Y2K READINESS: 94 DAYS'.",
+             "⏳ 1999 — LEGACY OPS. This is where it all started — and where PATIENT ZERO, the first outage, still burns.",
+             "(Defeat it to learn the truth, and to claim the ROOT CERT relic.)"], ()=>saveGame(0)); return; }
+      render(); say(["⏳ The rift hums. 1999 again — the past never fully closes."]); return; }
+    else { S.z=0; S.x=6; S.y=5; render(); say(["The rift returns you to the present. The village hums on — governed, this time."]); return; } }
   if(chr==="B" && zone.battles && zone.battles[key] && !S.cleared[S.z+":"+key]){ battleTransition(()=>startBattle(zone.battles[key], key)); return; }
   if(chr==="E" && zone.elites && zone.elites[key] && !S.cleared[S.z+":"+key]){ battleTransition(()=>startBattle(zone.elites[key], key)); return; }
   if(zone.enc && chr===zone.enc.tile){
-    if(M.encGuard>0){ M.encGuard--; return; }
-    if(rng()<zone.enc.rate){ M.encGuard=4;
+    if(M.encGuard>0){ M.encGuard--; }
+    else if(rng()<zone.enc.rate){ M.encGuard=4;
       const foe=zone.enc.pool[Math.floor(rng()*zone.enc.pool.length)];
-      battleTransition(()=>{ startBattle(foe, null); blog("⚡ "+EN[foe].name+" ambushes you from the "+(zone.enc.tile==="g"?"tall grass":"rubble")+"!"); }); } } }
+      battleTransition(()=>{ startBattle(foe, null); blog("⚡ "+EN[foe].name+" ambushes you from the "+(zone.enc.tile==="g"?"tall grass":"rubble")+"!"); }); return; } }
+  if(M.state==="explore" && moveRoam(zone)) return;
+  render(); }
 function battleTransition(cb){
   if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){ cb(); return; }
   M.state="enc";
@@ -1250,7 +1466,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
   for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0],[0,0]]){
     const x=S.x+dx, y=S.y+dy, key=x+","+y;
     const npc=(zone.npcs||[]).find(n=>n.x===x&&n.y===y);
-    if(npc){ if(npc.fight){ ask("STAGING DUMMY: 'Hit me! It's what staging is for.' Practice battle?", ["Fight! (earn XP + ⛁)","Not now"], i=>{ if(i===0) startBattle("dummy",null); }); return; }
+    if(npc){ if(npc.fight){ ask("STAGING DUMMY: 'Hit me! It's what staging is for.' Spar for XP? (Ippo rule: first rep each level pays full — every repeat pays less. No tokens; reps aren't loot.)", ["Spar!","Not now"], i=>{ if(i===0) startBattle("dummy",null); }); return; }
       if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; saveGame(0); render(); }); return; }
       say(npc.lines); return; }
     if(zone.signs && zone.signs[key]){ say([zone.signs[key]]); return; }
@@ -1272,8 +1488,8 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 // ================= TITLE & BOOT =================
 function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.classList.add("center");
   const auto=loadSlot(0);
-  let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>— PARTY EDITION —</div>"+
-   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>five classes · individual levels · the final boss is a SEV-1<br>balance tuned on 100,000 simulated battles</div>"+
+  let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>— CHRONO EDITION —</div>"+
+   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>five classes · ✦ dual techs · time travel to 1999 · the final boss is a SEV-1<br>balance tuned on 1,000,000 simulated battles</div>"+
    "<div class='choices' style='max-width:360px;margin:0 auto;text-align:left'>";
   if(auto) h+="<button data-t='cont'>▶ CONTINUE (HERO LV "+auto.actors.hero.lv+" · "+Z[auto.z].name+")</button>";
   h+="<button data-t='new'>✦ NEW ADVENTURE</button>";
@@ -1356,9 +1572,11 @@ const TESTS = [
     if(bak===null) localStorage.removeItem(saveKey(3)); else localStorage.setItem(saveKey(3),bak);
     return l===null; }],
  ["v3 migration builds actors at hero level", ()=>{ const s=migrateV3({lv:5, party:["sentinel","wiki"], tokens:50, won:false, stage:2});
-    return s.v===4 && s.actors.hero.lv===5 && s.actors.sentinel.lv===5 && s.actors.wiki.sk.includes("indexstorm")===true && s.tokens===50; }],
+    return s.v===SAVE_VERSION && s.actors.hero.lv===5 && s.actors.sentinel.lv===5 && s.actors.wiki.sk.includes("indexstorm")===true && s.tokens===50; }],
  ["v2 migration chain works", ()=>{ const s=migrateV2({lv:3, party:["sentinel"], items:{coffee:2}, won:false});
-    return s.v===4 && s.actors.hero.lv===3 && s.actors.sentinel && s.tokens===25; }],
+    return s.v===SAVE_VERSION && s.actors.hero.lv===3 && s.actors.sentinel && s.tokens===25; }],
+ ["v4→v5 migration adds spar/era/wizard defaults", ()=>{ const s=migrateV4({v:4, tokens:88, party:["sentinel"], actors:{hero:mkActor("hero",6), sentinel:mkActor("sentinel",6)}, won:true});
+    return s.v===5 && s.tokens===88 && s.sparN===0 && s.sparLv===1 && s.wizard===false && s.eraSeen===false && s.actors.hero.lv===6 && s.won===true; }],
  ["hidden gate blocks unrevealed strike", ()=>{ const sb=S; S=NEWS();
     M.b={ def:EN.h3, hp:90, maxhp:90, revealed:false, focused:true, verified:0, doubled:false, menu:"main", turn:0, growN:0 };
     playerHit(S.actors.hero,5,"t"); const ok=M.b.hp===90 && M.b.menu==="next"; M.b=null; S=sb; return ok; }],
@@ -1385,16 +1603,44 @@ const TESTS = [
     S=sb; rng=mulberry32(1); return hits>170 && hits<250; }],
  ["boss chain: 6 fights, 2 bridges, end", ()=>{ const chain=[{en:"monolith"},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{en:"h5"},{end:true}];
     return chain[chain.length-1].end===true && chain.filter(s=>s.en).length===6 && chain.filter(s=>s.bridge!==undefined).length===2; }],
- ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===220],
+ ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
  ["shop catalog integrity (15 items)", ()=>SHOP_STOCK.length===15 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
  ["5 classes, 14 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===5 && Object.keys(SP).length===14
-    && EN.monolith.hp===130 && EN.h5.multi===true && EN.unknown.multi3===true; }],
+    && EN.monolith.hp===150 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites normalized to 16x16", ()=>Object.values(SPR).every(s=>s.length===16 && s.every(r=>r.length===16))],
  ["encounter pools reference real enemies", ()=>Z.every(z=>!z.enc || (z.enc.pool.every(id=>EN[id]) && z.enc.rate>0 && z.enc.rate<0.3))],
  ["encounter rate statistically in band", ()=>{ const r2=mulberry32(1234); let hits=0;
     for(let i=0;i<1000;i++){ if(r2()<0.16) hits++; } return hits>110 && hits<220; }],
  ["barrel loot defined on every b tile", ()=>Z.every(z=>{ let ok=true;
     z.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{ if(ch==="b" && !(z.loot && z.loot[x+","+y])) ok=false; }); }); return ok; })],
+ ["dual techs: valid pairs, both costs positive", ()=>Object.values(DUAL).every(d=>MEMBERS[d.a] && MEMBERS[d.b] && d.a!==d.b && d.mpa>0 && d.mpb>0)],
+ ["dualsFor gates on partner order, KO and MP", ()=>{ const sb=S; S=NEWS(); S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",1);
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    const has=dualsFor(S.actors.hero).some(x=>x.key==="rootcausex");
+    S.actors.sentinel.ko=true; const koGone=dualsFor(S.actors.hero).length===0;
+    S.actors.sentinel.ko=false; S.actors.hero.mp=1; const mpGone=dualsFor(S.actors.hero).length===0;
+    const reverse=dualsFor(S.actors.sentinel).length===0; // hero acted already (earlier in order)
+    M.b=null; S=sb; return has && koGone && mpGone && reverse; }],
+ ["castDual spends both MPs and partner's turn", ()=>{ const sb=S; S=NEWS(); S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",1);
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    castDual(S.actors.hero,"rootcausex");
+    const ok=M.b.hp<14 && S.actors.hero.mp===4 && S.actors.sentinel.mp===3 && S.actors.sentinel.dualUsed===true && M.b.revealed===true;
+    M.b=null; S=sb; return ok; }],
+ ["spar XP decays per level and resets on level-up", ()=>{ const sb=S; S=NEWS();
+    const a=sparXP(), b2=sparXP(), c=sparXP(), d=sparXP();
+    S.actors.hero.lv=2; const e=sparXP();
+    const ok=a===5 && b2===2 && c===1 && d===1 && e===5; S=sb; return ok; }],
+ ["era zone gated behind the resolved SEV-1", ()=>{ const sb=S; S=NEWS();
+    const closed=tileAt(Z[0],6,6)==="."; S.won=true; const open=tileAt(Z[0],6,6)==="O";
+    S=sb; return closed && open; }],
+ ["era bestiary + roam pools reference real enemies", ()=>Z.every(z=>(!z.roam || z.roam.pool.every(id=>EN[id])))
+    && EN.faxdaemon.hp===42 && EN.cobol.regen===true && EN.patient0.hidden===true && Z[5].name.includes("1999")],
+ ["completion census: 13 lootables, fresh run has none", ()=>{ const sb=S; S=NEWS();
+    const r=allLootDone(); S=sb; return r.need===13 && r.got===0 && r.done===false; }],
+ ["roamer walkability respects walls and NPCs", ()=>{ const ok1=!roamWalkable(Z[0],0,0); // tree ring
+    const ok2=!roamWalkable(Z[0],6,2); // THE GUIDE stands here
+    const ok3=roamWalkable(Z[1],2,1); // open grass
+    return ok1 && ok2 && ok3; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -1408,8 +1654,9 @@ function runTests(){ document.getElementById("objline").hidden=true;
    "<div class='choices'><button onclick='location.href=\"game.html\"'>▶ PLAY</button></div>"; }
 
 // ================= EXPOSE & BOOT =================
-window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, mkActor, startBattle, startFinale, render, tryMove, interact,
-  menuPick, castSkill, useItem, saveGame, loadSlot, migrateV2, migrateV3, atkOf, defOf, critOf, incoming, pauseMenu, openShop, titleScreen, newGame, living, partyActors };
+window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, mkActor, startBattle, startFinale, render, tryMove, interact,
+  menuPick, castSkill, castDual, dualsFor, useItem, saveGame, loadSlot, migrateV2, migrateV3, migrateV4, atkOf, defOf, critOf, incoming,
+  pauseMenu, openShop, titleScreen, newGame, living, partyActors, sparXP, allLootDone, eraCleared, ensureRoam, moveRoam, roamWalkable, ending };
 tryMigrate();
 render();
 if(new URLSearchParams(location.search).get("test")==="1") runTests();
