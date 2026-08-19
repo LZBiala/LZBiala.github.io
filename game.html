@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Quest: SEV-1 — Chrono Edition</title>
+<title>AI Quest: SEV-1 — SRE Edition</title>
 <meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Five classes, dual techs, random encounters, time travel to 1999, a superboss, and 2,000,000 simulated battles behind the balance. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
 <meta property="og:title" content="AI Quest: SEV-1 — the 8-bit party JRPG of AI engineering">
@@ -104,7 +104,7 @@
 </head>
 <body>
 <h1>⚔️ AI QUEST: SEV-1</h1>
-<div class="sub">chrono edition · limit breaks · dual techs · crafting · time travel · chiptune music · balance tuned on 2,000,000 simulated battles · by Lito Zarate Biala</div>
+<div class="sub">sre edition · limit breaks · dual techs · crafting · time travel · chiptune music · balance tuned on 2,000,000 simulated battles · by Lito Zarate Biala</div>
 <div class="hudtop">
   <span id="hhero"><b>HERO</b> LV 1</span>
   <span>⛁ <b id="htok">0</b></span><span id="hslo"></span><span id="zonename"><b>—</b></span>
@@ -141,7 +141,7 @@
   <button data-k="Enter">A</button><button data-k="Escape">☰</button>
 </div>
 <p class="tiny">arrows / WASD move · Enter interacts · Esc/☰ menu · red gates = incidents · E = elite ·
-✦ DUAL TECHS in the skill menu (both allies' MP, both turns — the Chrono rule) · prowling foes are visible and avoidable ·
+✦ DUAL TECHS in the skill menu (both allies' MP, both turns) · ↑↓ move the battle cursor, Enter confirms · prowling foes are visible and avoidable ·
 tall grass ambushes · spar the Staging Dummy for reps · after victory: a Time Rift, and something atop the Citadel… ·
 one static file, no frameworks, no API keys · every real-world number quoted is CI-verified at
 <a href="https://github.com/LZBiala">github.com/LZBiala</a> · <a href="index.html">← lzbiala.github.io</a> ·
@@ -150,7 +150,7 @@ one static file, no frameworks, no API keys · every real-world number quoted is
 <script>
 "use strict";
 /* ============================================================
-   AI QUEST: SEV-1 — Chrono Edition
+   AI QUEST: SEV-1 — SRE Edition
    Balance constants below were tuned on 2,000,000 Monte Carlo
    battles (combat_sim_v2.py, 20 encounters × 50,000): gates 3-5
    turns, marquee bosses 4-7 turns, superboss ~7 turns. Under the
@@ -985,7 +985,7 @@ const OBJ = [
  "⚑ The Citadel gauntlet is open — the Monolith, then the SEV-1 behind it. Finish what the village started.",
  "⚑ Incident resolved. Something stirs atop the Citadel… (NEW GAME+ any time)" ];
 const CREDITS = [
- "⚔️ AI QUEST: SEV-1 — Chrono Edition",
+ "⚔️ AI QUEST: SEV-1 — SRE Edition",
  "A game about the discipline of trustworthy AI.",
  "Design, writing, code, pixel art, chiptunes & 2,000,000 balance simulations: Lito Zarate Biala — with Claude Code as pair programmer.",
  "The skills are real practices. The companions are real projects — github.com/LZBiala.",
@@ -1220,6 +1220,21 @@ function mttxCard(b){
     "</span> · resolve: <span class='num'>"+((b.rounds||0)+1)+" round"+(((b.rounds||0)+1)===1?"":"s")+"</span>"+
     "<br><span class='mut'>Detect fast = observability. Mitigate fast = ownership. Verify the fix = control. Each phase names a different bottleneck.</span>"; }
 function budgetLeft(){ return Math.max(0, 3-(S.deaths||0)); }
+function isEnraged(b){ return !!(b.def && b.def.ai==="smart" && b.hp < b.maxhp/2); }
+// floating labels for every interactive the player must discover
+function labelsFor(zone, zi){
+  const out=[];
+  if(zone.inn){ const [x,y]=zone.inn.split(",").map(Number); out.push({x,y,t:"INN · SAVE"}); }
+  if(zone.shop){ const [x,y]=zone.shop.split(",").map(Number); out.push({x,y,t:"SHOP · FORGE"}); }
+  (zone.npcs||[]).forEach(n=>{ if(n.fight) out.push({x:n.x,y:n.y,t:"SPAR · XP"}); });
+  zone.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{
+    if(ch==="L") out.push({x,y,t:"🏦 BANK"});
+    if(ch==="A") out.push({x,y,t:"FORGE"}); }); });
+  if(zi===0 && S.won) out.push({x:6,y:6,t:"TIME RIFT"});
+  if(S.grave && S.grave.z===zi && !graveExpired(S.grave)){
+    const mins=Math.max(0,Math.ceil((600000-(Date.now()-S.grave.t))/60000));
+    out.push({x:S.grave.x,y:S.grave.y,t:"⚰ GRAVE "+mins+"m"}); }
+  return out; }
 function sloVerdict(){ const d=S.deaths||0;
   if(d===0) return "held clean — textbook";
   if(d<=3) return "held — barely, and that's what budgets are for";
@@ -1290,7 +1305,13 @@ function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv"
   if(fl&&!RM){ const p=(now-fl.t0)/FXDUR.foelunge; fxo=Math.sin(p*Math.PI)*72; }
   const bob=RM?0:Math.sin(now/450)*3;
   g.fillStyle="#00000055"; g.beginPath(); g.ellipse(78+fxo,152,46,10,0,0,7); g.fill();
+  if(isEnraged(b)){ const ep=RM?0.5:(Math.sin(now/220)*0.5+0.5);
+    g.strokeStyle="rgba(248,113,113,"+(0.30+0.45*ep).toFixed(2)+")"; g.lineWidth=3;
+    g.beginPath(); g.ellipse(78+fxo,80+bob,56,62,0,0,7); g.stroke(); }
   drawSprTo(g,b.def.spr,30+fxo,28+bob,6);
+  if(b.queue && b.queue[b.qi] && b.queue[b.qi].t==="f"){
+    const cy=12+(RM?0:Math.sin(now/250)*3);
+    g.fillStyle="#f87171"; g.beginPath(); g.moveTo(70+fxo,cy); g.lineTo(86+fxo,cy); g.lineTo(78+fxo,cy+10); g.fill(); }
   if(fxActive("hit")){ g.fillStyle="#ffffffaa"; g.fillRect(30+fxo,28+bob,96,96); }
   BFX.list.filter(e=>e.kind==="burst").forEach(e=>{ const p=(now-e.t0)/FXDUR.burst;
     g.fillStyle=e.color||"#fff"; g.globalAlpha=Math.max(0,1-p);
@@ -1306,6 +1327,9 @@ function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv"
     const idle=(i===b.turn && !a.ko && !RM)? Math.sin(now/300)*2 : 0;
     drawSprTo(g, pid==="hero"?"hero24":MEMBERS[pid].spr, p.x+ox, p.y+idle, pid==="hero"?2:3);
     if(pid==="hero") drawWeaponOverlay(g, p.x+ox+8, p.y+idle+6, 2, true);
+    if(i===b.turn && !a.ko && b.queue && b.queue[b.qi] && b.queue[b.qi].t==="a"){
+      const cy=p.y-11+(RM?0:Math.sin(now/250)*3);
+      g.fillStyle="#fbbf24"; g.beginPath(); g.moveTo(p.x+17+ox,cy); g.lineTo(p.x+31+ox,cy); g.lineTo(p.x+24+ox,cy+9); g.fill(); }
     g.globalAlpha=1;
     if(a.shield && !a.ko){ g.strokeStyle="#93c5fdcc"; g.lineWidth=2; g.strokeRect(p.x-3+ox,p.y-3,54,54); }
     BFX.list.filter(e=>e.kind==="heal"&&e.slot===i).forEach(e=>{ const pr=(now-e.t0)/FXDUR.heal;
@@ -1316,9 +1340,11 @@ function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv"
     if(pr>0.35&&pr<0.62){ g.strokeStyle="#fff"; g.lineWidth=3;
       g.beginPath(); g.arc(112,74,30,-0.9+pr*2,0.6+pr*2); g.stroke(); } }
   // ---- damage popups ----
-  g.font="bold 15px ui-monospace,Consolas,monospace"; g.textAlign="center";
+  g.textAlign="center";
   BFX.list.filter(e=>e.kind==="pop").forEach(e=>{ const pr=(now-e.t0)/FXDUR.pop;
     const yy=e.y-(RM?8:pr*26);
+    const sc=(!RM && pr<0.15)? 1.5-3.3*pr : 1.0;     // pop-in punch
+    g.font="bold "+Math.round(15*sc)+"px ui-monospace,Consolas,monospace";
     g.globalAlpha=Math.max(0,1-pr*pr);
     g.fillStyle="#10151a"; g.fillText(e.txt,e.x+1,yy+1);
     g.fillStyle=e.color||"#fff"; g.fillText(e.txt,e.x,yy); g.globalAlpha=1; });
@@ -1450,8 +1476,7 @@ function render(){
     const w=ctx.measureText(txt).width+8;
     ctx.fillStyle="#000000aa"; ctx.fillRect(lx*T+16-w/2, ly*T-13, w, 12);
     ctx.fillStyle="#fbbf24"; ctx.textAlign="center"; ctx.fillText(txt, lx*T+16, ly*T-4); ctx.textAlign="left"; };
-  if(zone.inn){ const [ix,iy]=zone.inn.split(",").map(Number); drawLabel("INN · SAVE", ix, iy); }
-  if(zone.shop){ const [px2,py2]=zone.shop.split(",").map(Number); drawLabel("SHOP · FORGE", px2, py2); }
+  labelsFor(zone, S.z).forEach(l=>drawLabel(l.t, l.x, l.y));
   document.getElementById("zonename").innerHTML="<b>"+zone.name+"</b>";
   const h=hero();
   document.getElementById("hhero").innerHTML="<b>"+(S.wizard?"🧙 AI WIZARD":"HERO")+"</b> LV "+h.lv+" · "+h.hp+"/"+h.maxhp+" HP · "+h.mp+"/"+h.maxmp+" MP"+(S.party.length?" · +"+S.party.length+" allies":"");
@@ -1541,6 +1566,7 @@ function statusLine(){ const b=M.b; const st=[];
   if(b.def.regen) st.push("♻ regen");
   if(b.def.grow && b.growN>1) st.push("📈 +"+(b.growN-1));
   if(b.def.multi) st.push("💥 multi-target");
+  if(isEnraged(b)) st.push("😤 ENRAGED — expects its hardest hit");
   return st.join(" · "); }
 function drawB(){ const b=M.b;
   document.getElementById("bfoename").innerHTML="<b>"+b.def.name+"</b>";
@@ -1564,7 +1590,7 @@ function drawB(){ const b=M.b;
     pr.appendChild(d); });
   document.getElementById("bstat").innerHTML="⛁ "+S.tokens+"  ·  turn "+(b.turn+1)+"/"+ids.length+
     "  ·  posture: <b>"+STANCES[S.stance||"balanced"].name+"</b>"+
-    "<br><span class='mut'>"+(b.def.tip? "tip held by Runbook / FIVE-WHY" : "")+"</span>";
+    "<br><span class='mut'>↑↓ select · Enter confirm"+(b.def.tip? " · tip held by Runbook / FIVE-WHY" : "")+"</span>";
   drawMenu(); }
 function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=actor(); let h="";
   if(b.menu==="main"){
@@ -2195,7 +2221,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 // ================= TITLE & BOOT =================
 function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.classList.add("center");
   const auto=loadSlot(0);
-  let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>— CHRONO EDITION —</div>"+
+  let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>— SRE EDITION —</div>"+
    "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999<br>the final boss is a SEV-1 · balance tuned on 2,000,000 simulated battles</div>"+
    "<div class='choices' style='max-width:360px;margin:0 auto;text-align:left'>";
   if(auto) h+="<button data-t='cont'>▶ CONTINUE (HERO LV "+auto.actors.hero.lv+" · "+Z[auto.z].name+")</button>";
@@ -2780,6 +2806,24 @@ const TESTS = [
     buildQueue(M.b); M.b.qi=0; drawB();
     const tq=document.getElementById("tqueue").textContent;
     M.b=null; S=sb; return /SENTINEL/.test(tq) && /HERO/.test(tq); }],
+ // ---- SRE Edition polish (RED-first) ----
+ ["the edition is SRE, not Chrono", ()=>/SRE Edition/.test(document.title)
+    && /SRE Edition/.test(JSON.stringify(CREDITS)) && !/chrono/i.test(JSON.stringify(CREDITS))],
+ ["interactives carry floating labels: spar, bank, forge, rift, grave", ()=>{ const sb=S; S=NEWS();
+    const l0=labelsFor(Z[0],0);
+    const spar=l0.some(l=>/SPAR/.test(l.t) && l.x===9 && l.y===4);
+    const noRift=!l0.some(l=>/RIFT/.test(l.t));
+    S.won=true;
+    const rift=labelsFor(Z[0],0).some(l=>/RIFT/.test(l.t) && l.x===6 && l.y===6);
+    const bank=labelsFor(Z[6],6).some(l=>/BANK/.test(l.t));
+    const forge=labelsFor(Z[7],7).some(l=>/FORGE/.test(l.t));
+    S.grave={z:2,x:4,y:5,items:{coffee:1},t:Date.now()};
+    const grave=labelsFor(Z[2],2).some(l=>/GRAVE/.test(l.t) && l.x===4);
+    S=sb; return spar && noRift && rift && bank && forge && grave; }],
+ ["smart enemies telegraph their enrage below half health", ()=>{ const b1={ def:EN.golem, hp:40, maxhp:46 };
+    const b2={ def:EN.golem, hp:20, maxhp:46 };
+    const b3={ def:EN.vague, hp:5, maxhp:14 };
+    return isEnraged(b1)===false && isEnraged(b2)===true && isEnraged(b3)===false; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -2801,7 +2845,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   MATERIA_IDS:["mvigor","mfocus","mdrain","maegis"], DISCOVER, matOn, strikeMult, resolveStrike, STRIKELINES,
   bankDepositAll, bankWithdrawAll, dropInventory, graveReclaim, graveExpired, INTRO, introAdvance, ITICON, migrateV7,
   CHAPTERS, chapterCard, WVIS, navBattle, enterInterior, drawWeaponOverlay, fxAbility,
-  buildQueue, nextUnit, foeAct, unitSpd, rowOf, fightBase };
+  buildQueue, nextUnit, foeAct, unitSpd, rowOf, fightBase, labelsFor, isEnraged };
 tryMigrate();
 render();
 if(new URLSearchParams(location.search).get("test")==="1") runTests();
