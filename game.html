@@ -28,9 +28,8 @@
   .overlay.center { justify-content:center; }
   .battle { position:absolute; inset:0; display:flex; flex-direction:column; padding:8px; gap:6px; }
   .bscene { flex:1; border:4px double #fff; border-radius:6px; position:relative; overflow:hidden;
-    display:flex; align-items:center; justify-content:center; min-height:104px; }
-  .bscene canvas { image-rendering:pixelated; animation:bob 2.2s ease-in-out infinite; }
-  @keyframes bob { 50% { transform:translateY(-4px); } }
+    display:flex; align-items:stretch; justify-content:center; min-height:150px; background:#0b0e18; }
+  .bscene canvas { image-rendering:pixelated; width:100%; height:100%; object-fit:contain; }
   .bfoename { position:absolute; top:6px; left:8px; font-size:.78rem; background:#000a; padding:2px 8px; border-radius:4px; }
   .bfoename b { color:var(--red); }
   .bstatus { position:absolute; top:25px; left:8px; font-size:.7rem; background:#000a; padding:1px 8px; border-radius:4px; color:var(--muted); max-width:75%; }
@@ -58,7 +57,7 @@
   .fx-shake { animation:shk .3s; } @keyframes shk { 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
   .fx-flash { animation:fls .35s; } @keyframes fls { 50%{filter:brightness(2.2)} }
   .fx-enc { animation:enc .38s; } @keyframes enc { 30%{filter:brightness(0);transform:scale(1.03)} 65%{filter:brightness(0)} }
-  @media (prefers-reduced-motion: reduce) { .fx-shake, .fx-flash, .bscene canvas { animation:none !important; } }
+  @media (prefers-reduced-motion: reduce) { .fx-shake, .fx-flash { animation:none !important; } }
   .hudtop { display:flex; gap:10px; flex-wrap:wrap; font-size:.76rem; margin:6px 0; width:min(94vw,672px); align-items:center; }
   .hudtop b { color:var(--teal); }
   .hudbtn { font-family:inherit; font-size:.72rem; color:var(--ink); background:var(--blue2);
@@ -93,7 +92,7 @@
       <div class="bfoename" id="bfoename"></div>
       <div class="bstatus" id="bstatus"></div>
       <div class="bhp"><i id="bfoehp" style="width:100%"></i></div>
-      <canvas id="foecv" width="120" height="104"></canvas>
+      <canvas id="bcv" width="384" height="176"></canvas>
     </div>
     <div class="pmrow" id="pmrow"></div>
     <div class="win log" id="blog"></div>
@@ -736,16 +735,18 @@ const Z = [
  npcs:[
  {x:6,y:2,spr:"elder",name:"THE GUIDE",lines:[
   "THE GUIDE: You came. Good. I'm Lito — SRE by trade, AI builder by conviction. Last night the pager went off at 2 AM... and it hasn't stopped.",
+  "THE GUIDE: I spent years as what the field now calls a forward-deployed engineer — embedded where the incidents actually live, learning one system inside-out until I WAS its runbook. An API Gateway was my product. I knew its heartbeat.",
   "THE GUIDE: East of here the MONOLITH squats — an ungoverned AI that judges its own work. And behind it, something worse is building: a SEV-1. The real thing.",
-  "THE GUIDE: You can't do this alone. Four specialists wait along the road — a Ranger who tests everything, a Wizard of memory, a Cleric of repairs, a Tank who objects to everything.",
-  "THE GUIDE: Each fights their own way. Each grows their own way. Command them well.",
-  "THE GUIDE: Buy gear at Peg's. Rest at Mara's — she saves your progress. And when you reach the Citadel... ask me about the Monolith. There's something you deserve to know. Go east!"]},
+  "THE GUIDE: You can't do this alone. Four specialists wait along the road — a Ranger who tests everything, a Wizard of memory, a Cleric of repairs, a Tank who objects to everything. Incident command is separation of responsibilities: you hold the state, they touch the system.",
+  "THE GUIDE: One more law, kid. We keep an error budget here — we SPEND failure on learning, never on excuses. A village that never breaks anything has stopped shipping.",
+  "THE GUIDE: Buy gear at Peg's — she stocks shared primitives, not one-off hacks. Rest at Mara's — she saves your progress. And when you reach the Citadel... ask me about the Monolith. There's something you deserve to know. Go east!"]},
  {x:3,y:5,spr:"rowan",name:"ELDER ROWAN",lines:[
   "ELDER ROWAN: New face! This village once shipped the fastest software in the valley, you know.",
   "ELDER ROWAN: Fast... yes. *stares at the eastern mountains* Some shortcuts cost more than they save, child.",
   "ELDER ROWAN: If you meet something that speaks in ALL CAPS out there... it didn't come from nowhere."]},
  {x:8,y:5,spr:"kid",name:"KID BIT",lines:[
   "KID BIT: I'm gonna be an incident commander when I grow up! Or a slime. Slimes seem relaxed.",
+  "KID BIT: The Guide says the best engineers are 'always be scoping'. I scoped my chores down to ONE dish. Mom disagrees with my methodology.",
   "KID BIT: I heard if you beat the big SEV, something EVEN SCARIER wakes up on the mountain. Cooool."]},
  {x:9,y:4,spr:"dummy",name:"STAGING DUMMY",fight:"dummy"}],
  signs:{"5,3":"⚑ Reliability Village · INN: NW house (Mara — rest & save) · SUPPLY CLOSET: NE house (Peg) · east: Prompt Plains"} },
@@ -814,12 +815,22 @@ const BRIDGE = [
  { t:"📞 THE BRIDGE, HOUR TWO. Root cause found — a config change. The room looks for someone to burn. You say:",
    a:["'Whose change was it? Name them.'","'The system let a risky change through — the fix is a guardrail, not a scapegoat. Blameless postmortem tomorrow.'","'Let's discuss process later.'"], c:1,
    good:"+12 XP each! Blameless culture: humans err, systems must catch it.",
-   bad:"Engineers go quiet (party -2 HP). Fear hides the next incident." } ];
+   bad:"Engineers go quiet (party -2 HP). Fear hides the next incident." },
+ { t:"🧭 FIELD CALL. The Monolith falls — and before the dust settles, the client's COO bursts in: 'Wonderful! Now put AI on EVERYTHING by Friday.' You answer:",
+   a:["'Absolutely. A model in every workflow. Friday.'","'What decision will you make Monday morning that you wish were faster? We scope the first workflow around that, ship it on shared primitives, and measure it.'","'That's not how any of this works.'"], c:1,
+   good:"+12 XP each! Always be scoping — the forward-deployed craft is finding the ONE workflow where value is provable, then building on shared primitives so win #2 costs half.",
+   bad:"Scope balloons; the fire spreads (party -2 HP). A yes without scoping is a no you'll deliver later." },
+ { t:"🦴 THE PILOT. The client wants proof by next week. What ships?",
+   a:["The full platform — dashboards, agents, every integration.","The thinnest walking skeleton: one input, one governed output, evals wired from day one.","A beautiful slide deck about the platform."], c:1,
+   good:"+12 XP each! A walking skeleton that breathes beats an architecture that sleeps. Evals from day one — or you'll never know if week two made it better.",
+   bad:"Week two arrives with nothing runnable (party -2 HP). Demos age; skeletons walk." } ];
+const FINALE_CHAIN = [
+ {en:"monolith"},{bridge:2},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{bridge:3},{en:"h5"},{end:true}];
 const OBJ = [
  "⚑ Find THE GUIDE in the village square.",
  "⚑ Head east. Clear the gates. Recruit all four specialists.",
  "⚑ Full party! Challenge THE MONOLITH atop the Graph Citadel.",
- "⚑ THE SEV-1 HYDRA has risen! Save the day.",
+ "⚑ The Citadel gauntlet is open — the Monolith, then the SEV-1 behind it. Finish what the village started.",
  "⚑ Incident resolved. Something stirs atop the Citadel… (NEW GAME+ any time)" ];
 const CREDITS = [
  "⚔️ AI QUEST: SEV-1 — Party Edition",
@@ -870,16 +881,23 @@ function saveGame(slot){ try{ tickClock(); localStorage.setItem(saveKey(slot), J
 function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d) return null;
     const p=JSON.parse(d); if(!p || p.v!==SAVE_VERSION || !p.actors || !p.actors.hero) return null;
     return Object.assign(NEWS(), p); }catch(e){ return null; } }
-function tryMigrate(){ try{
-    if(localStorage.getItem(saveKey(0))) return false;
-    for(const s4 of [0,1,2,3]){ const d4=localStorage.getItem(s4?"aiquest4_s"+s4:"aiquest4_auto");
-      if(d4){ const s=migrateV4(JSON.parse(d4)); localStorage.setItem(saveKey(s4), JSON.stringify(s)); if(s4===0) return true; } }
-    if(localStorage.getItem(saveKey(0))) return false;
+function tryMigrate(){
+  try{ if(localStorage.getItem(saveKey(0))) return false; }catch(e){ return false; }
+  let migratedAuto=false;
+  for(const s4 of [0,1,2,3]){ try{           // per-slot try: one corrupt entry never blocks the rest
+    const d4=localStorage.getItem(s4?"aiquest4_s"+s4:"aiquest4_auto");
+    if(d4){ localStorage.setItem(saveKey(s4), JSON.stringify(migrateV4(JSON.parse(d4)))); if(s4===0) migratedAuto=true; }
+  }catch(e){} }
+  if(migratedAuto) return true;
+  try{ if(!localStorage.getItem(saveKey(0))){
     const d3=localStorage.getItem("aiquest3_auto");
-    if(d3){ const s=migrateV3(JSON.parse(d3)); localStorage.setItem(saveKey(0), JSON.stringify(s)); return true; }
+    if(d3){ localStorage.setItem(saveKey(0), JSON.stringify(migrateV3(JSON.parse(d3)))); return true; } }
+  }catch(e){}
+  try{ if(!localStorage.getItem(saveKey(0))){
     const d2=localStorage.getItem("aiquest");
-    if(d2){ const s=migrateV2(JSON.parse(d2)); localStorage.setItem(saveKey(0), JSON.stringify(s)); return true; }
-  }catch(e){} return false; }
+    if(d2){ localStorage.setItem(saveKey(0), JSON.stringify(migrateV2(JSON.parse(d2)))); return true; } }
+  }catch(e){}
+  return false; }
 
 // ================= derived stats (pure — tested) =================
 function atkOf(a){ return a.atk + (a.id==="hero" && S.equip.weapon && IT[S.equip.weapon] ? IT[S.equip.weapon].atk : 0)
@@ -889,12 +907,93 @@ function critOf(a){ return 0.15 + (a.id==="hero" && (S.equip.charm==="ch1"||S.eq
 function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0));
   if(a.defending) d=Math.ceil(d/2); return d; }
 
+// ================= CHRONO REMASTER: battle-scene FX engine =================
+// Non-blocking presentation layer: game logic NEVER waits on a tween.
+const BBACK = [
+ {sky:"#1e4a35", ground:"#173226"},   // village — warm forest
+ {sky:"#2b5a38", ground:"#1c3a24"},   // plains — open green
+ {sky:"#1c2733", ground:"#141c26"},   // caverns — cold stone
+ {sky:"#241f38", ground:"#181428"},   // labyrinth — violet dark
+ {sky:"#31203a", ground:"#1f1526"},   // citadel — royal dusk
+ {sky:"#3d2c1a", ground:"#241a10"} ]; // 1999 — sepia CRT
+const SKILL_FX = { promptia:"#2dd4bf", fivewhy:"#fbbf24", rollback:"#34d399", hitl:"#f0abfc",
+ mutagen:"#4ade80", truestrike:"#e8f4ee", audit:"#fbbf24", contexa:"#c084fc", indexstorm:"#fbbf24",
+ controlarm:"#60a5fa", repair:"#34d399", ward:"#93c5fd", fliptest:"#f87171", objection:"#fb923c",
+ rootcausex:"#2dd4bf", promptstorm:"#c084fc", xreview:"#f87171", canaryvolley:"#fbbf24", safedeploy:"#60a5fa" };
+const FXDUR = { lunge:520, foelunge:520, burst:600, pop:900, heal:700, hit:260 };
+const BFX = {
+ list:[],
+ push(kind,o){ this.list.push(Object.assign({kind, t0:performance.now()}, o||{})); },
+ sweep(now){ this.list=this.list.filter(e=>now-e.t0 < (FXDUR[e.kind]||600)); },
+ reset(){ this.list=[]; } };
+function BPOS(i){ return { x:236+i*24, y:30+i*22 }; }         // CT diagonal formation, party right
+function slotOf(pid){ return ["hero",...S.party].indexOf(pid); }
+function walkBob(n){ return n%2; }
+function fxPopFoe(txt,color){ BFX.push("pop",{x:78,y:56,txt:String(txt),color:color||"#fff"}); }
+function fxPopAlly(pid,txt,color){ const i=slotOf(pid); if(i<0) return;
+  const p=BPOS(i); BFX.push("pop",{x:p.x+24,y:p.y+4,txt:String(txt),color:color||"#f87171"}); }
+function fxBlocked(){ fxPopFoe("BLOCKED","#9fb0d8"); }
+function fxActive(kind){ const now=performance.now();
+  return BFX.list.find(e=>e.kind===kind && now-e.t0<(FXDUR[kind]||600)); }
+function reducedMotion(){ return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv");
+  if(!b||!bcv) return; const g=bcv.getContext("2d"); const now=performance.now(); const RM=reducedMotion();
+  const bg=BBACK[S.z]||BBACK[0];
+  const gr=g.createLinearGradient(0,0,0,176);
+  gr.addColorStop(0,bg.sky); gr.addColorStop(0.58,bg.sky); gr.addColorStop(0.62,bg.ground); gr.addColorStop(1,bg.ground);
+  g.fillStyle=gr; g.fillRect(0,0,384,176);
+  g.fillStyle="#ffffff12"; for(let i=0;i<10;i++){ g.fillRect((i*89+13)%384,(i*37)%88,2,2); }
+  g.fillStyle="#00000030"; for(let i=0;i<12;i++){ g.fillRect((i*71+31)%384,116+((i*53)%54),5,2); }
+  // ---- foe (left) ----
+  let fxo=0; const fl=fxActive("foelunge");
+  if(fl&&!RM){ const p=(now-fl.t0)/FXDUR.foelunge; fxo=Math.sin(p*Math.PI)*72; }
+  const bob=RM?0:Math.sin(now/450)*3;
+  g.fillStyle="#00000055"; g.beginPath(); g.ellipse(78+fxo,152,46,10,0,0,7); g.fill();
+  drawSprTo(g,b.def.spr,30+fxo,28+bob,6);
+  if(fxActive("hit")){ g.fillStyle="#ffffffaa"; g.fillRect(30+fxo,28+bob,96,96); }
+  BFX.list.filter(e=>e.kind==="burst").forEach(e=>{ const p=(now-e.t0)/FXDUR.burst;
+    g.fillStyle=e.color||"#fff"; g.globalAlpha=Math.max(0,1-p);
+    for(let i=0;i<10;i++){ const a2=i/10*6.28+p*3; const r=8+p*46;
+      g.fillRect(78+Math.cos(a2)*r, 76+Math.sin(a2)*r*0.7, 5,5); } g.globalAlpha=1; });
+  // ---- party (right, diagonal) ----
+  const ids=["hero",...S.party];
+  ids.forEach((pid,i)=>{ const a=S.actors[pid]; if(!a) return; const p=BPOS(i);
+    let ox=0; const lg=BFX.list.find(e=>e.kind==="lunge" && e.slot===i);
+    if(lg && !RM){ const pr=(now-lg.t0)/FXDUR.lunge; ox=-Math.sin(pr*Math.PI)*95; }
+    g.globalAlpha=a.ko?0.35:1;
+    g.fillStyle="#00000055"; g.beginPath(); g.ellipse(p.x+24+ox,p.y+47,19,6,0,0,7); g.fill();
+    const idle=(i===b.turn && !a.ko && !RM)? Math.sin(now/300)*2 : 0;
+    drawSprTo(g,MEMBERS[pid].spr,p.x+ox,p.y+idle,3);
+    g.globalAlpha=1;
+    if(a.shield && !a.ko){ g.strokeStyle="#93c5fdcc"; g.lineWidth=2; g.strokeRect(p.x-3+ox,p.y-3,54,54); }
+    BFX.list.filter(e=>e.kind==="heal"&&e.slot===i).forEach(e=>{ const pr=(now-e.t0)/FXDUR.heal;
+      g.fillStyle="#34d399"; g.globalAlpha=Math.max(0,1-pr);
+      for(let s2=0;s2<5;s2++){ g.fillRect(p.x+8+s2*8, p.y+42-pr*40-(s2%2)*7, 3,3); } g.globalAlpha=1; }); });
+  const lg2=fxActive("lunge");
+  if(lg2&&!RM){ const pr=(now-lg2.t0)/FXDUR.lunge;
+    if(pr>0.35&&pr<0.62){ g.strokeStyle="#fff"; g.lineWidth=3;
+      g.beginPath(); g.arc(112,74,30,-0.9+pr*2,0.6+pr*2); g.stroke(); } }
+  // ---- damage popups ----
+  g.font="bold 15px ui-monospace,Consolas,monospace"; g.textAlign="center";
+  BFX.list.filter(e=>e.kind==="pop").forEach(e=>{ const pr=(now-e.t0)/FXDUR.pop;
+    const yy=e.y-(RM?8:pr*26);
+    g.globalAlpha=Math.max(0,1-pr*pr);
+    g.fillStyle="#10151a"; g.fillText(e.txt,e.x+1,yy+1);
+    g.fillStyle=e.color||"#fff"; g.fillText(e.txt,e.x,yy); g.globalAlpha=1; });
+  g.textAlign="left"; }
+function battleLoop(){ if(M.state!=="battle"||BW.hidden){ M.bloop=false; return; }
+  BFX.sweep(performance.now()); drawBattleScene(); requestAnimationFrame(battleLoop); }
+
 // ================= RENDER =================
 function drawSprTo(g,name,tx,ty,s){ const spr=SPR[name]; const n=spr.length;
   for(let r=0;r<n;r++)for(let q=0;q<n;q++){ const c=spr[r][q]; if(PAL[c]){ g.fillStyle=PAL[c]; g.fillRect(tx+q*s,ty+r*s,s,s);} } }
 function drawTile(chr,tx,ty,zone){
   ctx.fillStyle=zone.ground; ctx.fillRect(tx,ty,T,T);
   if(((tx/T)+(ty/T))%2===0){ ctx.fillStyle="#00000018"; ctx.fillRect(tx,ty,T,T); }
+  const gx=tx/T, gy=ty/T, hsh=(gx*7+gy*13)%7;    // deterministic tone dither — no rng
+  if(hsh===0){ ctx.fillStyle="#ffffff0a"; ctx.fillRect(tx+((gx*11)%18),ty+((gy*17)%18),7,7); }
+  if(hsh===3){ ctx.fillStyle="#00000016"; ctx.fillRect(tx+((gx*13)%16),ty+((gy*7)%16),9,6); }
+  if(hsh===5 && chr==="."){ ctx.fillStyle="#00000022"; ctx.fillRect(tx+8,ty+20,2,3); ctx.fillRect(tx+20,ty+9,2,3); }
   if(chr==="t"){ ctx.fillStyle="#78350f"; ctx.fillRect(tx+13,ty+18,6,10); ctx.fillStyle="#166534"; ctx.beginPath(); ctx.arc(tx+16,ty+12,10,0,7); ctx.fill(); ctx.fillStyle="#14532d"; ctx.fillRect(tx+10,ty+8,4,4); }
   if(chr==="r"){ ctx.fillStyle="#475569"; ctx.fillRect(tx+4,ty+8,24,18); ctx.fillStyle="#334155"; ctx.fillRect(tx+8,ty+12,8,6); }
   if(chr==="w"){ ctx.fillStyle="#1d4ed8"; ctx.fillRect(tx+2,ty+2,28,28); ctx.fillStyle="#60a5fa";
@@ -936,18 +1035,27 @@ function ensureRoam(){ const zone=Z[S.z];
     const id=zone.roam.pool[Math.floor(rng()*zone.roam.pool.length)];
     M.roam[S.z]={ id, x:zone.roam.x, y:zone.roam.y, alive:true }; }
   return M.roam[S.z]; }
+function drawActorSpr(name,x,y,lift){
+  ctx.fillStyle="#00000044"; ctx.beginPath(); ctx.ellipse(x*T+16,y*T+29,11,4,0,0,7); ctx.fill();
+  drawSprTo(ctx,name,x*T,y*T-6+(lift||0),2); }
 function render(){
   const zone=Z[S.z];
   for(let y=0;y<9;y++)for(let x=0;x<12;x++) drawTile(tileAt(zone,x,y),x*T,y*T,zone);
-  (zone.npcs||[]).forEach(n=>drawSprTo(ctx,n.spr,n.x*T,n.y*T,2));
+  (zone.npcs||[]).forEach(n=>drawActorSpr(n.spr,n.x,n.y,(M.frame+n.x)%2));
   const rm=ensureRoam();
-  if(rm && rm.alive) drawSprTo(ctx, EN[rm.id].spr, rm.x*T, rm.y*T, 2);
-  drawSprTo(ctx,"hero",S.x*T,S.y*T,2);
+  if(rm && rm.alive) drawActorSpr(EN[rm.id].spr, rm.x, rm.y, M.frame%2);
+  drawActorSpr("hero",S.x,S.y,walkBob(M.stepN||0));
+  if(S.z===5){ ctx.fillStyle="rgba(150,100,30,0.10)"; ctx.fillRect(0,0,384,288); }
+  const vg=ctx.createRadialGradient(192,144,110,192,144,250);
+  vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,0.30)");
+  ctx.fillStyle=vg; ctx.fillRect(0,0,384,288);
   document.getElementById("zonename").innerHTML="<b>"+zone.name+"</b>";
   const h=hero();
   document.getElementById("hhero").innerHTML="<b>"+(S.wizard?"🧙 AI WIZARD":"HERO")+"</b> LV "+h.lv+" · "+h.hp+"/"+h.maxhp+" HP · "+h.mp+"/"+h.maxmp+" MP"+(S.party.length?" · +"+S.party.length+" allies":"");
   document.getElementById("htok").textContent=S.tokens;
-  document.getElementById("objline").textContent=OBJ[Math.min(S.stage,OBJ.length-1)];
+  document.getElementById("objline").textContent=S.superWon?
+    "⚑ Legend. The Unknown is known — the Time Rift, the artifacts, and NEW GAME+ await."
+    : OBJ[Math.min(S.stage,OBJ.length-1)];
 }
 setInterval(()=>{ M.frame++; if(M.state==="explore") render(); }, 600);
 
@@ -1000,10 +1108,16 @@ function sfx(kind){ if(!AU.on) return;
 // ================= BATTLE (party engine) =================
 function startBattle(id,key,chain){ const def=EN[id];
   partyActors().forEach(a=>{ a.defending=false; a.shield=false; a.dualUsed=false; });
+  if(!living().length){ partyActors().forEach(a=>{ a.ko=false; a.hp=1; }); } // never start a battle with no one standing
+  const ids0=["hero",...S.party]; let t0=0;
+  while(t0<ids0.length && S.actors[ids0[t0]] && S.actors[ids0[t0]].ko) t0++;
+  if(t0>=ids0.length) t0=0;
   M.state="battle"; M.b={ id, key, chain:chain||null, def, hp:def.hp, maxhp:def.hp,
     dot:0, verified:0, taunt:0, revealed:!def.hidden, focused:!def.foggy,
-    doubled:false, menu:"main", turn:0, snoozed:false, stolen:false, uptimeUsed:false, growN:0 };
-  BW.hidden=false; ov.hidden=true; blog(def.intro); drawB(); }
+    doubled:false, menu:"main", turn:t0, snoozed:false, stolen:false, uptimeUsed:false, growN:0 };
+  BW.hidden=false; ov.hidden=true; blog(def.intro);
+  BFX.reset(); if(!M.bloop){ M.bloop=true; requestAnimationFrame(battleLoop); }
+  drawB(); }
 function actor(){ const ids=["hero",...S.party]; return S.actors[ids[M.b.turn]]; }
 function blog(html){ document.getElementById("blog").innerHTML=html; }
 function statusLine(){ const b=M.b; const st=[];
@@ -1021,8 +1135,7 @@ function drawB(){ const b=M.b;
   document.getElementById("bfoename").innerHTML="<b>"+b.def.name+"</b>";
   document.getElementById("bstatus").textContent=statusLine();
   document.getElementById("bfoehp").style.width=Math.max(0,b.hp/b.maxhp*100)+"%";
-  const fc=document.getElementById("foecv"), g=fc.getContext("2d");
-  g.clearRect(0,0,120,104); drawSprTo(g,b.def.spr,12,4,6);
+  drawBattleScene();
   const pr=document.getElementById("pmrow"); pr.innerHTML="";
   const ids=["hero",...S.party];
   ids.forEach((pid,i)=>{ const a=S.actors[pid]; if(!a) return; const m=MEMBERS[pid];
@@ -1044,8 +1157,8 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
     h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="item"){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use") h+="<button data-it='"+k+"'>"+IT[k].name+" ×"+S.items[k]+"</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="target"){ const t=M.b.targeting;
-    partyActors().forEach((p,i)=>{ const ok = t.ko? p.ko : !p.ko;
-      if(ok) h+="<button data-t='"+p.id+"'>"+MEMBERS[p.id].name+" ("+p.hp+"/"+p.maxhp+")</button>"; });
+    partyActors().forEach((p,i)=>{ const ok = t.any? true : (t.ko? p.ko : !p.ko);
+      if(ok) h+="<button data-t='"+p.id+"'>"+MEMBERS[p.id].name+" ("+p.hp+"/"+p.maxhp+(p.ko?" · KO":"")+")</button>"; });
     h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="next"){ h="<button data-a='next'>▶ (Enter)</button>"; }
   else if(b.menu==="won"){ h="<button data-a='won'>★ VICTORY (Enter)</button>"; }
@@ -1061,7 +1174,7 @@ function menuPick(d){ const b=M.b; const a=actor();
   if(d.a==="back"){ b.menu="main"; drawMenu(); return; }
   if(d.a==="next"){ nextActor(); return; }
   if(d.a==="won"){ winBattle(); return; }
-  if(d.a==="flee"){ BW.hidden=true; M.state="explore"; render(); say(["You retreat to fight another day."]); return; }
+  if(d.a==="flee"){ M.roamBattle=false; BW.hidden=true; M.state="explore"; render(); say(["You retreat to fight another day."]); return; }
   if(d.a==="grit"){ a.mp=Math.min(a.maxmp,a.mp+2); blog(MEMBERS[a.id].name+" steadies their breathing. <span class='num'>+2 MP</span>."); b.menu="next"; drawB(); return; }
   if(d.a==="defend"){ a.defending=true; a.mp=Math.min(a.maxmp,a.mp+1);
     blog(MEMBERS[a.id].name+" braces — next hit <b>halved</b>, <span class='num'>+1 MP</span>."); b.menu="next"; drawB(); return; }
@@ -1081,7 +1194,7 @@ function dualsFor(a){ const b=M.b; if(!b) return [];
     else if(a.id===du.b){ partnerId=du.a; myCost=du.mpb; theirCost=du.mpa; }
     else return;
     const p=S.actors[partnerId];
-    if(!p || p.ko || p.dualUsed) return;
+    if(a.ko || !p || p.ko || p.dualUsed) return;
     if(ids.indexOf(partnerId) <= ids.indexOf(a.id)) return; // partner already acted this round
     if(a.mp<myCost || p.mp<theirCost) return;
     out.push({key, partner:partnerId, myCost, theirCost}); });
@@ -1091,9 +1204,11 @@ function castDual(a,key){ const b=M.b, du=DUAL[key];
   if(!pick){ blog("<span class='red'>The combo isn't ready — partner down, spent, or out of MP.</span>"); b.menu="main"; drawMenu(); return; }
   const p=S.actors[pick.partner];
   a.mp-=pick.myCost; p.mp-=pick.theirCost; p.dualUsed=true;
+  BFX.push("burst",{color:SKILL_FX[key]||"#fff"});
+  BFX.push("lunge",{slot:slotOf(p.id)});
   const names=MEMBERS[a.id].name+" + "+MEMBERS[p.id].name;
   const lead="<span class='gold'>"+du.name+"</span> — "+names+" move as ONE!";
-  if(key==="safedeploy"){ living().forEach(x=>x.shield=true); b.taunt=2; sfx("heal");
+  if(key==="safedeploy"){ living().forEach(x=>{ x.shield=true; BFX.push("heal",{slot:slotOf(x.id)}); }); b.taunt=2; sfx("heal");
     blog(lead+"<br>🛡 The whole party is warded — and the enemy can't look away from the Tank (2 turns)."); b.menu="next"; drawB(); return; }
   if(key==="rootcausex"){ b.revealed=true;
     const dmg=atkOf(S.actors.sentinel)+4;
@@ -1114,16 +1229,20 @@ function castDual(a,key){ const b=M.b, du=DUAL[key];
     return dealt(a, per*3, lead+"<br>Three canaries dive — "+per+" × 3 hits find the fault!"); } }
 function playerHit(a,dmg,txt){ const b=M.b;
   b.doubled=false;
-  if(!b.revealed){ blog(txt+"<br><span class='red'>No effect — treating symptoms! (FIVE-WHY exposes the core.)</span>"); b.menu="next"; drawMenu(); return; }
-  if(!b.focused){ blog(txt+"<br><span class='red'>The strike vanishes into fog! (CONTEXA lifts it; TRUE STRIKE pierces it.)</span>"); b.menu="next"; drawMenu(); return; }
-  if(b.def.regen && b.verified===0){ blog(txt+"<br>It takes "+dmg+"... <span class='red'>and REGENERATES! (CONTROL ARM verifies the round.)</span>"); b.menu="next"; drawMenu(); return; }
+  if(!b.revealed){ fxBlocked(); blog(txt+"<br><span class='red'>No effect — treating symptoms! (FIVE-WHY exposes the core.)</span>"); b.menu="next"; drawMenu(); return; }
+  if(!b.focused){ fxBlocked(); blog(txt+"<br><span class='red'>The strike vanishes into fog! (CONTEXA lifts it; TRUE STRIKE pierces it.)</span>"); b.menu="next"; drawMenu(); return; }
+  if(b.def.regen && b.verified===0){ fxBlocked(); blog(txt+"<br>It takes "+dmg+"... <span class='red'>and REGENERATES! (CONTROL ARM verifies the round.)</span>"); b.menu="next"; drawMenu(); return; }
   dealt(a,dmg,txt); }
 function dealt(a,dmg,txt){ const b=M.b;
-  if(rng()<critOf(a)){ dmg=Math.round(dmg*2); txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
+  let isCrit=false;
+  if(rng()<critOf(a)){ dmg=Math.round(dmg*2); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
   else sfx("hit");
+  BFX.push("lunge",{slot:b.turn}); BFX.push("hit");
+  fxPopFoe(dmg, isCrit? "#fbbf24":"#fff");
   b.hp-=dmg;
-  document.getElementById("bscene").classList.add("fx-flash");
-  setTimeout(()=>document.getElementById("bscene").classList.remove("fx-flash"),350);
+  const sc=document.getElementById("bscene");
+  sc.classList.remove("fx-flash"); void sc.offsetWidth; sc.classList.add("fx-flash"); // reflow so back-to-back hits re-flash
+  setTimeout(()=>sc.classList.remove("fx-flash"),350);
   if(b.hp<=0){ blog(txt+"<br><span class='num'>"+dmg+"</span> damage... <span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; }
   blog(txt+"<br><span class='num'>"+dmg+"</span> damage!"); b.menu="next"; drawB(); }
 function castSkill(a,id){ const b=M.b, sp=SP[id];
@@ -1131,6 +1250,7 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
   // targeted skills open target submenu
   if(id==="repair"||id==="hitl"){ b.targeting={skill:id, ko:false, any:id==="hitl"}; b.menu="target"; drawMenu(); return; }
   a.mp-=sp.mp;
+  if(SKILL_FX[id]) BFX.push("burst",{color:SKILL_FX[id]});
   const weakHit = b.def.weak===id || b.def.weak===id+"2";
   const nm=MEMBERS[a.id].name;
   if(id==="fivewhy"){ b.revealed=true; b.doubled=true;
@@ -1165,7 +1285,7 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     blog(nm+" raises the CONTROL ARM — <span class='gold'>this round's strikes are VERIFIED</span> (regeneration denied), and "+nm+" is shielded."); b.menu="next"; drawB(); return; }
   if(id==="ward"){ living().forEach(p=>p.shield=true); sfx("heal");
     blog(nm+" casts WARD — <span class='gold'>a placebo barrier wraps the whole party.</span> Next hit on each ally: 0."); b.menu="next"; drawB(); return; }
-  if(id==="rollback"){ a.hp=Math.min(a.maxhp,a.hp+7); sfx("heal");
+  if(id==="rollback"){ a.hp=Math.min(a.maxhp,a.hp+7); sfx("heal"); BFX.push("heal",{slot:b.turn});
     blog(nm+" ROLLS BACK to last known good state — <span class='num'>+7 HP</span>."); b.menu="next"; drawB(); return; }
   if(id==="objection"){ b.taunt=2;
     blog(nm+": <span class='gold'>\"OBJECTION!\"</span> The enemy can't resist arguing — it targets the Tank for 2 turns (-1 dmg)."); b.menu="next"; drawB(); return; }
@@ -1174,6 +1294,7 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
 }
 function resolveTarget(a,pid){ const b=M.b; const t=S.actors[pid]; const which=b.targeting.skill; b.targeting=null;
   const sp=SP[which]; a.mp-=sp.mp; const nm=MEMBERS[a.id].name, tn=MEMBERS[pid].name;
+  BFX.push("heal",{slot:slotOf(pid)});
   if(which==="repair"){ t.hp=Math.min(t.maxhp,t.hp+6); sfx("heal");
     blog(nm+" REPAIRS "+tn+" — <span class='num'>+6 HP</span>, citing the failure that demanded it."); }
   if(which==="hitl"){ sfx("heal");
@@ -1183,9 +1304,10 @@ function resolveTarget(a,pid){ const b=M.b; const t=S.actors[pid]; const which=b
 function useItem(a,k){ const b=M.b;
   if(k==="handoff"){ const kos=partyActors().filter(p=>p.ko);
     if(!kos.length){ blog("No one needs a handoff — the whole party stands!"); b.menu="main"; drawMenu(); return; }
-    S.items[k]--; const t=kos[0]; t.ko=false; t.hp=Math.ceil(t.maxhp/2); sfx("heal");
+    S.items[k]--; const t=kos[0]; t.ko=false; t.hp=Math.ceil(t.maxhp/2); sfx("heal"); BFX.push("heal",{slot:slotOf(t.id)});
     blog("📟 ON-CALL HANDOFF — <span class='gold'>"+MEMBERS[t.id].name+" takes the pager and rises!</span> ("+t.hp+" HP)"); b.menu="next"; drawB(); return; }
   S.items[k]--;
+  if(k==="coffee"||k==="patch"||k==="cache"||k==="postmortem") BFX.push("heal",{slot:b.turn});
   if(k==="coffee"){ a.hp=Math.min(a.maxhp,a.hp+5); a.mp=Math.min(a.maxmp,a.mp+2); sfx("heal"); blog("☕ Coffee! "+MEMBERS[a.id].name+" <span class='num'>+5 HP, +2 MP</span>."); }
   if(k==="patch"){ a.hp=Math.min(a.maxhp,a.hp+4); sfx("heal"); blog("🩹 Patch Kit: "+MEMBERS[a.id].name+" <span class='num'>+4 HP</span>."); }
   if(k==="cache"){ a.mp=Math.min(a.maxmp,a.mp+4); sfx("heal"); blog("♨ Cache Warmer: "+MEMBERS[a.id].name+" <span class='num'>+4 MP</span>."); }
@@ -1206,6 +1328,7 @@ function enemyTurn(){ const b=M.b;
   let t="<b>"+b.def.name+"</b> "+mv[0]+"!"+(b.def.grow&&b.growN>1?" <span class='red'>(grown!)</span>":"");
   if(b.def.twice){ raw+=b.def.atk; t+=" (twice!)"; }
   const liv=living();
+  if(!liv.length){ endOfRound(b,t); return; }
   let targets;
   if(b.def.multi){ const k=(b.def.multi3 && b.hp<130)?3:2;
     targets=[]; const pool=[...liv];
@@ -1213,17 +1336,18 @@ function enemyTurn(){ const b=M.b;
     t+=" <span class='red'>(hits "+targets.length+"!)</span>"; }
   else if(b.taunt>0 && S.actors.refuter && !S.actors.refuter.ko && rng()<0.7){ targets=[S.actors.refuter]; }
   else targets=[liv[Math.floor(rng()*liv.length)]];
+  BFX.push("foelunge");
   for(const tgt of targets){
     let dmg=incoming(raw, tgt, (tgt.id==="refuter"&&b.taunt>0)?1:0);
-    if(tgt.shield){ tgt.shield=false; t+="<br>🛡 "+MEMBERS[tgt.id].name+"'s ward absorbs it — 0 damage!"; continue; }
+    if(tgt.shield){ tgt.shield=false; fxPopAlly(tgt.id,"0","#93c5fd"); t+="<br>🛡 "+MEMBERS[tgt.id].name+"'s ward absorbs it — 0 damage!"; continue; }
     if(dmg>0){
       if(tgt.id==="hero" && tgt.hp-dmg<=0 && S.equip.charm==="ch3" && !b.uptimeUsed){ b.uptimeUsed=true; tgt.hp=1;
         t+="<br><span class='gold'>⏱ The Uptime Charm holds HERO at 1 HP!</span>"; }
-      else { tgt.hp=Math.max(0,tgt.hp-dmg);
+      else { tgt.hp=Math.max(0,tgt.hp-dmg); fxPopAlly(tgt.id,dmg,"#f87171");
         t+="<br>"+MEMBERS[tgt.id].name+" takes <span class='red'>"+dmg+"</span>.";
         if(tgt.hp<=0){ tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>"; } }
       sfx("hurt"); }
-    else t+="<br>"+MEMBERS[tgt.id].name+" takes no damage."; }
+    else { fxPopAlly(tgt.id,"0","#9fb0d8"); t+="<br>"+MEMBERS[tgt.id].name+" takes no damage."; } }
   document.getElementById("stage").classList.add("fx-shake");
   setTimeout(()=>document.getElementById("stage").classList.remove("fx-shake"),350);
   endOfRound(b,t); }
@@ -1235,7 +1359,8 @@ function endOfRound(b,t){
   if(S.equip.charm==="ch2" && !h.ko && h.mp<h.maxmp){ h.mp++; t+=" <span class='mut'>(Regen Charm: HERO +1 MP)</span>"; }
   if(b.verified>0) b.verified--;
   if(b.taunt>0) b.taunt--;
-  if(b.dot>0){ b.dot--;
+  // wipe takes precedence over a DOT kill in the same round — no false victories
+  if(living().length && b.dot>0){ b.dot--;
     if(b.def.regen && b.verified===0){ t+="<br>The defect fires… <span class='red'>patched by regeneration!</span>"; }
     else { b.hp-=2; t+="<br>The planted defect fires: <span class='num'>2</span>!";
       if(b.hp<=0){ blog(t+"<br><span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; } } }
@@ -1271,7 +1396,7 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore";
       if(S.party.length>=4 && S.stage<2){ S.stage=2; }
       say(rec.lines, ()=>{ saveGame(0); if(chainNext) runChain(chainNext); }); return; }
     if(chainNext){ saveGame(0); runChain(chainNext); return; }
-    if(b.id==="unknown"){ say(["THE UNKNOWN UNKNOWN dissolves into mapped, documented, boring KNOWN territory.","THE GUIDE: 'You beat the incident nobody had had yet. That's not response anymore. That's readiness.'","🏆 TRUE ENDING unlocked — your share card now carries the ☆."], ()=>saveGame(0)); return; }
+    if(b.id==="unknown"){ say(["THE UNKNOWN UNKNOWN dissolves into mapped, documented, boring KNOWN territory.","THE GUIDE: 'You beat the incident nobody had had yet. That's not response anymore. That's readiness.'","🏆 The resolution screen opens — your share card now carries the ☆."], ()=>{ saveGame(0); ending(); }); return; }
     if(b.id==="patient0"){ say([
       "PATIENT ZERO gutters out — and for a moment you see it clearly: not a monster. A postmortem meeting, 1999, and a room choosing a NAME instead of a CAUSE.",
       "The engineer they burned had found the real bug that night. He never told anyone. He just... stopped telling anyone anything.",
@@ -1351,11 +1476,15 @@ function menuSub(mn){
 
 // ================= FINALE, SUPERBOSS & ENDING =================
 function startFinale(){
-  if(S.won){ ask("Atop the Citadel, the air itself feels… unmapped. Face THE UNKNOWN UNKNOWN? (superboss — bring everything)",
+  if(S.won){
+    if(S.superWon){ ask("The summit is quiet. The Unknown is known, and the mountain remembers your name.",
+        ["REFLECT — review the resolution (your completion counts here)","FIGHT the Unknown once more","Leave"],
+        i=>{ if(i===0) ending(); else if(i===1) startBattle("unknown", null); }); return; }
+    ask("Atop the Citadel, the air itself feels… unmapped. Face THE UNKNOWN UNKNOWN? (superboss — bring everything)",
       ["FIGHT — the true test","Not yet"], i=>{ if(i===0) startBattle("unknown", null); }); return; }
   if(S.party.length<4){ say(["THE MONOLITH: 'ALONE? RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.'","(Recruit all four companions — clear every red gate — before the finale.)"]); return; }
   say(REVEAL, ()=>{ S.stage=Math.max(S.stage,3); saveGame(0);
-    runChain([{en:"monolith"},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{en:"h5"},{end:true}]); }); }
+    runChain(FINALE_CHAIN.slice()); }); }
 function allLootDone(){ let need=0, got=0;
   Z.forEach((z,zi)=>{ z.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{
     if((ch==="c" && z.chest && z.chest.key===x+","+y) || (ch==="b" && z.loot && z.loot[x+","+y])){ need++; if(S.opened[zi+":"+x+","+y]) got++; } }); }); });
@@ -1436,7 +1565,7 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
   if(npc||solid(chr)||chr==="c") return;
   const rm=M.roam[S.z];
   if(rm && rm.alive && rm.x===nx && rm.y===ny){ roamBattleNow(rm); return; }
-  S.x=nx; S.y=ny; render();
+  S.x=nx; S.y=ny; M.stepN=(M.stepN||0)+1; render();
   const key=nx+","+ny;
   if(chr==="O"){ const oldZ=S.z; delete M.roam[oldZ];
     if(S.z===0){ S.z=5; S.x=2; S.y=7;
@@ -1515,11 +1644,17 @@ document.addEventListener("keydown",e=>{ const k=e.key;
     else if(/^[1-9]$/.test(k)){ const b2=btns[parseInt(k,10)-1]; if(b2) b2.click(); }
     else if(k==="Escape"||k==="Backspace"){ const back=btns.find(x=>x.dataset.a==="back"); if(back) back.click(); }
     return; }
+  if(M.state==="title"||M.state==="end"){
+    const btns=[...box.querySelectorAll("button")];
+    if(k==="Enter"||k===" "){ e.preventDefault(); if(btns[0]) btns[0].click(); }
+    else if(/^[1-9]$/.test(k)){ const b2=btns[parseInt(k,10)-1]; if(b2) b2.click(); }
+    else if(k==="Escape" && M.state==="end"){ const ct=box.querySelector("[data-ct]"); if(ct) ct.click(); }
+    return; }
   if(k==="Escape"){ e.preventDefault();
     if(M.state==="explore") pauseMenu();
     else if(M.state==="dialog"){
       if(box.querySelector("[data-m]")) menuSub("close");
-      else { const bk=box.querySelector("[data-e='__back'],[data-b]"); if(bk) bk.click(); } }
+      else { const bk=box.querySelector("[data-e='__back'],[data-b],[data-x]"); if(bk) bk.click(); } }
     return; }
   if(k==="ArrowLeft"||k==="a"||k==="A"){ e.preventDefault(); tryMove(-1,0); }
   else if(k==="ArrowRight"||k==="d"||k==="D"){ e.preventDefault(); tryMove(1,0); }
@@ -1533,7 +1668,7 @@ document.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",
   if(k==="Escape"){ if(M.state==="explore") pauseMenu();
     else if(M.state==="dialog"){ if(box.querySelector("[data-m]")) menuSub("close");
       else { const bk=box.querySelector("[data-e='__back'],[data-b]"); if(bk) bk.click(); } } return; }
-  if(k==="Enter"){ if(M.state==="dialog") { const first=box.querySelector("button"); if(first) first.click(); }
+  if(k==="Enter"){ if(M.state==="dialog") { const first=box.querySelector("button:not([data-buy])")||box.querySelector("button"); if(first) first.click(); }
     else if(M.state==="battle"){ const btn=document.querySelector("#bmenu button"); if(M.b && (M.b.menu==="next"||M.b.menu==="won")) btn && btn.click(); }
     else interact(); }
   else if(M.state==="explore"){ if(k==="ArrowLeft")tryMove(-1,0); if(k==="ArrowRight")tryMove(1,0);
@@ -1601,8 +1736,10 @@ const TESTS = [
     rng=mulberry32(99); let hits=0;
     for(let i=0;i<300;i++){ if(rng()<0.7) hits++; }
     S=sb; rng=mulberry32(1); return hits>170 && hits<250; }],
- ["boss chain: 6 fights, 2 bridges, end", ()=>{ const chain=[{en:"monolith"},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{en:"h5"},{end:true}];
-    return chain[chain.length-1].end===true && chain.filter(s=>s.en).length===6 && chain.filter(s=>s.bridge!==undefined).length===2; }],
+ ["finale chain (production data): 6 fights, 4 decision beats, end", ()=>{
+    return FINALE_CHAIN[FINALE_CHAIN.length-1].end===true && FINALE_CHAIN.filter(s=>s.en).length===6
+      && FINALE_CHAIN.filter(s=>s.bridge!==undefined).length===4 && BRIDGE.length===4
+      && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
  ["shop catalog integrity (15 items)", ()=>SHOP_STOCK.length===15 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
  ["5 classes, 14 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===5 && Object.keys(SP).length===14
@@ -1641,6 +1778,80 @@ const TESTS = [
     const ok2=!roamWalkable(Z[0],6,2); // THE GUIDE stands here
     const ok3=roamWalkable(Z[1],2,1); // open grass
     return ok1 && ok2 && ok3; }],
+ // ---- CHRONO REMASTER (written RED-first) ----
+ ["battle formation: 5 diagonal slots inside the scene", ()=>{ let ok=true, px=-1, py=-1;
+    for(let i=0;i<5;i++){ const p=BPOS(i);
+      if(!(p.x>px && p.y>py)) ok=false; px=p.x; py=p.y;
+      if(p.x<200 || p.x+48>384 || p.y<0 || p.y+48>176) ok=false; }
+    return ok; }],
+ ["BFX queue: effects expire by their duration", ()=>{ BFX.reset();
+    BFX.push("pop",{t0:1000}); BFX.push("lunge",{t0:1000});
+    BFX.sweep(1000+FXDUR.lunge+1);
+    const popAlive=BFX.list.some(e=>e.kind==="pop"), lungeGone=!BFX.list.some(e=>e.kind==="lunge");
+    BFX.sweep(1000+FXDUR.pop+1); const allGone=BFX.list.length===0;
+    return popAlive && lungeGone && allGone; }],
+ ["every skill AND dual tech has an FX color", ()=>Object.keys(SP).every(k=>SKILL_FX[k]) && Object.keys(DUAL).every(k=>SKILL_FX[k])],
+ ["walk bob alternates with step parity", ()=>walkBob(0)===0 && walkBob(1)===1 && walkBob(2)===0],
+ ["slotOf maps party ids to formation indices", ()=>{ const sb=S; S=NEWS(); S.party=["sentinel","wiki"];
+    const ok=slotOf("hero")===0 && slotOf("sentinel")===1 && slotOf("wiki")===2 && slotOf("refuter")===-1;
+    S=sb; return ok; }],
+ ["battle backdrop painted for every zone", ()=>Z.every((z,i)=>BBACK[i] && BBACK[i].sky && BBACK[i].ground)],
+ ["every named NPC speaks at least 3 lines", ()=>Z.every(z=>(z.npcs||[]).every(n=>n.fight || (n.lines && n.lines.length>=3)))],
+ ["FDE vocabulary lives in the world's words", ()=>{ const txt=JSON.stringify(Z.map(z=>z.npcs||[]))+JSON.stringify(BRIDGE)+JSON.stringify(OPENING);
+    return ["scoping","blameless","error budget","walking skeleton","shared primitives","forward-deployed"].every(v=>txt.toLowerCase().includes(v)); }],
+ // ---- adversarial-review fixes (written RED-first) ----
+ ["HITL target menu lists fallen allies (revive reachable)", ()=>{ const sb=S; S=NEWS(); S.party=["wiki"];
+    S.actors.wiki=mkActor("wiki",3); S.actors.wiki.ko=true;
+    const h=S.actors.hero; h.sk=["hitl"]; h.mp=9; h.maxmp=9;
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    castSkill(h,"hitl");
+    const html=document.getElementById("bmenu").innerHTML;
+    const ok=M.b.menu==="target" && html.includes("WIKI");
+    M.b=null; S=sb; return ok; }],
+ ["party wipe beats DOT kill in the same round (no false victory)", ()=>{ const sb=S; S=NEWS();
+    partyActors().forEach(a=>{ a.ko=true; a.hp=0; });
+    M.b={ def:EN.vague, hp:1, maxhp:14, dot:1, verified:0, taunt:0, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false };
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    endOfRound(M.b,"t"); window.setTimeout=st;
+    const ok=M.b.menu==="dead"; M.b=null; M.state="test"; S=sb; return ok; }],
+ ["enemyTurn with no living party routes to wipe, not crash", ()=>{ const sb=S; S=NEWS();
+    partyActors().forEach(a=>{ a.ko=true; a.hp=0; });
+    M.b={ def:EN.vague, hp:14, maxhp:14, dot:0, verified:0, taunt:0, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false };
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    enemyTurn(); window.setTimeout=st;
+    const ok=M.b.menu==="dead"; M.b=null; M.state="test"; S=sb; return ok; }],
+ ["fleeing a prowler battle clears the roam flag", ()=>{ const sb=S; S=NEWS(); M.roamBattle=true;
+    M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
+    menuPick({a:"flee"});
+    const ok=M.roamBattle===false;
+    M.b=null; M.state="test"; ov.hidden=true; S=sb; return ok; }],
+ ["v4 migration converts every save slot, not just auto", ()=>{
+    const keys=["aiquest4_auto","aiquest4_s2","aiquest5_auto","aiquest5_s2"];
+    const bak=keys.map(k=>[k,localStorage.getItem(k)]);
+    localStorage.removeItem("aiquest5_auto"); localStorage.removeItem("aiquest5_s2");
+    const v4={v:4,tokens:5,party:[],actors:{hero:mkActor("hero",2)},items:{},equip:{weapon:null,badge:null,charm:null},cleared:{},opened:{}};
+    localStorage.setItem("aiquest4_auto",JSON.stringify(v4));
+    localStorage.setItem("aiquest4_s2",JSON.stringify(Object.assign({},v4,{tokens:9})));
+    tryMigrate();
+    const ok=!!localStorage.getItem("aiquest5_auto") && !!localStorage.getItem("aiquest5_s2");
+    bak.forEach(([k,v])=>{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); });
+    return ok; }],
+ ["Escape leaves the shop (keyboard exit exists)", ()=>{ const sb=S; S=NEWS();
+    openShop(); document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}));
+    const ok=M.state==="explore" && ov.hidden===true;
+    M.state="test"; ov.hidden=true; S=sb; return ok; }],
+ ["after the superboss falls, the summit offers reflection (true ending reachable)", ()=>{ const sb=S; S=NEWS();
+    S.won=true; S.superWon=true;
+    startFinale();
+    const ok=/REFLECT/.test(document.getElementById("box").textContent);
+    M.state="test"; ov.hidden=true; S=sb; return ok; }],
+ ["a KO'd hero does not command the first turn (and cannot lead duals)", ()=>{ const sb=S; S=NEWS(); S.party=["sentinel"];
+    S.actors.sentinel=mkActor("sentinel",3);
+    S.actors.hero.ko=true; S.actors.hero.hp=0;
+    startBattle("vague", null);
+    const turnOk=M.b.turn===1;
+    const dualsOk=dualsFor(S.actors.hero).length===0;
+    M.b=null; M.state="test"; BW.hidden=true; S=sb; return turnOk && dualsOk; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
