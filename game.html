@@ -101,7 +101,7 @@
   /* ---- STORY PANEL: letterboxed cinematics (the world remembers itself) ---- */
   #spanel { position:absolute; inset:0; z-index:30; background:#05070f; display:flex; flex-direction:column;
     justify-content:center; gap:8px; animation:spfade .5s ease-out both; }
-  #spanel.sp-out { animation:spfade .35s ease-in reverse both; }
+  #spanel.sp-out { animation:spfade .35s ease-in reverse both; pointer-events:none; }
   @keyframes spfade { from { opacity:0; } to { opacity:1; } }
   #spanel::before, #spanel::after { content:""; position:absolute; left:0; right:0; height:11%; background:#000; z-index:2; }
   #spanel::before { top:0; animation:spbarT .6s ease-out both; }
@@ -1314,9 +1314,14 @@ function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M
 function saveGame(slot){ try{ tickClock(); localStorage.setItem(saveKey(slot), JSON.stringify(S)); }catch(e){} }
 function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d) return null;
     const p=JSON.parse(d); if(!p || p.v!==SAVE_VERSION || !p.actors || !p.actors.hero) return null;
-    return Object.assign(NEWS(), p); }catch(e){ return null; } }
+    const out=Object.assign(NEWS(), p);
+    out.equip=Object.assign({weapon:null,badge:null,charm:null,armor:null}, p.equip||{});   // backfill keys nested in old containers
+    out.res=Object.assign({logs:0,metrics:0,traces:0,sigils:0}, p.res||{});
+    out.skills=Object.assign({obs:{lv:1,xp:0}, forge:{lv:1,xp:0}}, p.skills||{});
+    Object.keys(out.items||{}).forEach(k=>{ if(!IT[k]) delete out.items[k]; });             // never carry item ids the table no longer knows
+    return out; }catch(e){ return null; } }
 function tryMigrate(){
-  try{ if(localStorage.getItem(saveKey(0))) return false; }catch(e){ return false; }
+  try{ localStorage.getItem(saveKey(0)); }catch(e){ return false; }   // per-slot never-clobber guards below make migration safely resumable
   let migratedAuto=false;
   for(const s8 of [0,1,2,3]){ try{           // v8 maplestory saves first (per-slot try; never clobber a newer save)
     if(localStorage.getItem(saveKey(s8))) continue;
@@ -1554,18 +1559,18 @@ function heroTrial(answers){
 const SHARON_TALKS=[
  "You know what I loved first? Your incident reports. Anyone can be brave, love — you were CLEAR. Clarity is how engineers say 'I care.'",
  "MODULE ONE — ML BASICS: a model doesn't think, it interpolates. Training is memory, inference is recall, and EVALS are the only honest mirror. Never trust a demo — a demo is a first date; an eval is a marriage.",
- "MODULE TWO — HARNESS ENGINEERING: before you build the wizard, build the rig — staging, seeds, replays, instrumentation. The loop AROUND the model is where reliability lives. Your dojo dummy knew this before either of us.",
+ "MODULE TWO — HARNESS ENGINEERING: the dummy taught you the what; here's the why. A rig that can replay any failure makes courage CHEAP — you can try anything when you can rewind everything. Reliability belongs to the loop, not the model.",
  "MODULE THREE — PROMPT ENGINEERING: an instruction is an interface. Be specific, show examples, leave room for 'I don't know.' You already write world-class prompts, love — your runbooks.",
  "MODULE FOUR — CONTEXT & RAG: the model is only as right as its window. Retrieval, grounding, citations — feed it truth and it stops inventing. The knowledge layer is a library card, not a bigger brain.",
  "MODULE FIVE — LOOP ENGINEERING: an agent is a loop — look, think, act, check — with a budget, backoff, and an exit. You've BEEN one all along. The pager was your event loop.",
- "MODULE SIX — MCP & TOOLS: tools serve the loop, and an agent's hands need CONTRACTS. One standard socket beats a drawer of proprietary plugs — ask the Fax Daemon how proprietary worked out.",
+ "MODULE SIX — MCP & TOOLS: tools serve the loop, and an agent's hands need CONTRACTS — typed inputs, honest errors, permissions that mean something. A standard interface turns a hundred integrations into one.",
  "MODULE SEVEN — GUARDRAILS: freedom inside fences. Screen what comes in, screen what goes out, log every catch — and let the model be brilliant in between. The Bastion's walls, built right this time.",
  "MODULE EIGHT — ORCHESTRATION & WORKFLOWS: one agent is a solo; a workflow is a symphony — deterministic where it matters, creative where it counts. The botnet was the cautionary tale: coordination without a conscience.",
  "MODULE NINE — GRAPH ENGINEERING: memory that LINKS is memory that thinks. Notes pointing to notes, a wiki an agent can walk — a knowledge graph. Your wiki-memory-lab is exactly this. You built the last module before we ever met.",
  "And always: alignment. THE MISALIGNED optimized perfectly for the wrong thing. Capability was never the hard part, love. The objective is.",
  "My mom asked what you do. I said: he walks into fires and leaves runbooks behind so no one burns twice. She said 'marry the rollback engineer.' …Working on it.",
  "The frontier isn't a place. It's a discipline: ship the thinnest thing, measure it, own the failure, teach the next one. You already live there." ];
-const SHARON_TALKS_FINALE="You did it. Every injection sanitized, every hallucination grounded, every objective aligned. There are labs out on the frontier building minds, love — and they hire engineers EXACTLY like you. Go. I'll be right beside you.";
+const SHARON_TALKS_FINALE="You did it. Every injection sanitized, every hallucination grounded, every objective aligned. The frontier is building minds now, love — and everything you practiced here — the verify, the evals, the blameless heart — is the entry ticket. Go see it. I'll be right beside you.";
 function sharonTalkLine(){ if(frontierDone() && (S.sharonTalk||0)%(SHARON_TALKS.length+1)===SHARON_TALKS.length){ S.sharonTalk=(S.sharonTalk||0)+1; return SHARON_TALKS_FINALE; }
   const t=SHARON_TALKS[(S.sharonTalk||0)%SHARON_TALKS.length]; S.sharonTalk=(S.sharonTalk||0)+1; return t; }
 function frontierDone(){ return !!(S.cleared["9:5,6"] && S.cleared["10:6,6"] && S.cleared["11:5,5"]); }
@@ -1644,7 +1649,9 @@ function panelSay(beats, done){
       fig.style.animation="none"; void fig.offsetWidth; fig.style.animation=""; }
     txt.innerHTML=b.t.replace(/^([A-Z0-9 !()'—·@.-]+):/,"<span class='gold'>$1:</span>");
     txt.style.animation="none"; void txt.offsetWidth; txt.style.animation=""; }
-  function close(){ el.classList.add("sp-out"); delete M.panelAdv; delete M.panelEnd;
+  let closed=false;
+  function close(){ if(closed) return; closed=true; el.onclick=null;
+    el.classList.add("sp-out"); delete M.panelAdv; delete M.panelEnd;
     setTimeout(()=>{ el.remove(); if(M.state==="panel") M.state="explore"; if(done) done(); render(); },360); }
   el.onclick=()=>show(); M.panelAdv=show; M.panelEnd=close; show(); }
 function foxxBed(){ const st=foxxBedState();
@@ -2158,7 +2165,7 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
     dualsFor(a).forEach(({key,partner,myCost,theirCost})=>{
       h+="<button data-du='"+key+"' style='color:var(--teal)'>"+DUAL[key].name+" ("+myCost+"+"+theirCost+" w/ "+MEMBERS[partner].name+")</button>"; });
     h+="<button data-a='back'>◀ BACK</button>"; }
-  else if(b.menu==="item"){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use") h+="<button data-it='"+k+"'>"+IT[k].name+" ×"+S.items[k]+"</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
+  else if(b.menu==="item"){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k] && IT[k].type==="use") h+="<button data-it='"+k+"'>"+IT[k].name+" ×"+S.items[k]+"</button>"; }); h+="<button data-a='back'>◀ BACK</button>"; }
   else if(b.menu==="target"){ const t=M.b.targeting;
     partyActors().forEach((p,i)=>{ const ok = t.any? true : (t.ko? p.ko : !p.ko);
       if(ok) h+="<button data-t='"+p.id+"'>"+MEMBERS[p.id].name+" ("+p.hp+"/"+p.maxhp+(p.ko?" · KO":"")+")</button>"; });
@@ -2590,7 +2597,7 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
       "SHARONDUH: 'I read every diff you shipped on the way in. Nice rollback in the Bastion, by the way. Marry— I MEAN. Merge me. I MEAN—'",
       "You both laugh. The Dark NOC's alarms, for the first time in recorded history, stay quiet.",
       "★ SHARONDUH is yours now, fully — FAILOVER FIST, HOTFIX, SANITIZE, and FIVE NINES. Someone has to keep you heroes alive.",
-      "SHARONDUH: 'Also — the things he was building back there? Machine minds optimizing for the WRONG objective. This isn't over. I'll show you the frontier… it needs engineers exactly like you.'",
+      "SHARONDUH: 'Also — the things he was building back there? Machine minds optimizing for the WRONG objective. This isn't over. I'll show you the frontier — the work up there needs the same discipline we just used down here.'",
       "⚠ New signals detected — PROMPT INJECTION (Bastion) · THE HALLUCINATION (the Wire) · and something vast waking in the NOC: THE MISALIGNED. <b>The AI arc begins.</b>"],
       ()=>{ finishRescue(); saveGame(0); render(); }); return; }
     if(b.id==="unknown"){ say(["THE UNKNOWN UNKNOWN dissolves into mapped, documented, boring KNOWN territory.","THE GUIDE: 'You beat the incident nobody had had yet. That's not response anymore. That's readiness.'","🏆 The resolution screen opens — your share card now carries the ☆."], ()=>{ saveGame(0); ending(); }); return; }
@@ -2736,7 +2743,7 @@ function menuSub(mn){
       if(!was && slot==="weapon" && WVIS[id] && WVIS[id]!=="kb") toast("⚔ "+IT[id].name+" equipped — it shows.");
       render(); menuSub("equip"); }); return; }
   if(mn==="items"){ let h="<b class='gold'>INVENTORY</b> <span class='mut'>· banked items survive death (Mara's cellar)</span><div class='invgrid'>";
-    let any=false; Object.keys(S.items).forEach(k=>{ if(S.items[k]>0){ any=true;
+    let any=false; Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k]){ any=true;
       const fitsTxt=(IT[k].fits&&IT[k].fits.length)? " · fits: "+IT[k].fits.map(f=>MEMBERS[f].name).join(", ") : "";
       h+="<div class='invcell' title='"+(IT[k].name+" — "+IT[k].d+fitsTxt).replace(/'/g,"&#39;")+"'>"+(ITICON[k]||"❔")+"<i>"+S.items[k]+"</i></div>"; } });
     if(!any) h+="<span class='mut'>Empty. Peg's shop awaits.</span>";
@@ -2812,7 +2819,7 @@ function ending(){ S.won=true; S.stage=4; tickClock();
         "<span class='mut'>⏳ A Time Rift now swirls in the village square — the past is asking for a postmortem…</span><br>")+
   (S.superWon? "" : "<span class='mut'>…and something stirs atop the Citadel. Return there when you're ready for THE UNKNOWN UNKNOWN.</span><br>")+
   (S.haxKnown? "" : "<span class='mut'>⚠ THE GUIDE is pacing the square with a postmortem he can't put down — and Sharonduh's desk is empty. Talk to him.</span><br>")+
-  (frontierDone()? "<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px;margin:6px 0'><b class='gold'>🤖 THE FRONTIER ENDING.</b> Every injection sanitized, every hallucination grounded, every objective aligned. SHARONDUH: 'You came to save me and found the frontier.' The engineer who grabbed a keyboard at 2 AM now speaks agent, eval, and alignment as fluently as rollback and runbook — <b>world-class isn't a title, it's a discipline, practiced daily</b>. Somewhere out there, frontier labs are building minds. You're ready for them.</div>" :
+  (frontierDone()? "<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px;margin:6px 0'><b class='gold'>🤖 THE FRONTIER ENDING.</b> Every injection sanitized, every hallucination grounded, every objective aligned. SHARONDUH: 'You came to save me and found the frontier.' The engineer who grabbed a keyboard at 2 AM now speaks agent, eval, and alignment as fluently as rollback and runbook — <b>world-class isn't a title, it's a discipline, practiced daily</b>. Somewhere out there, the frontier is building minds — and the discipline in your hands is the way in.</div>" :
    (S.haxWon? "<span class='mut'>🤖 The frontier stirs: PROMPT INJECTION, THE HALLUCINATION, and THE MISALIGNED wait in the internet. Resolve all three for the FRONTIER ending.</span><br>" : ""))+
   (S.wizard? "<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px;margin:6px 0'><b class='gold'>🧙 TRUE ENDING — THE AI WIZARD.</b> Every incident resolved, every era understood, every artifact recovered ("+loot.got+"/"+loot.need+"). The kid who grabbed a keyboard at 2 AM is gone; the engineer who commands the room, cites the evidence, and teaches the next one — that's who's holding the pager now. Ippo would bow.</div>" :
    "<span class='mut'>Completion: artifacts "+loot.got+"/"+loot.need+" · era "+(era?"✔":"✘")+" · superboss "+(S.superWon?"✔":"✘")+" — all three = the TRUE ENDING.</span><br>")+"<br>"+
