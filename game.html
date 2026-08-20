@@ -26,7 +26,7 @@
     font-size:.86rem; line-height:1.5; box-shadow:0 4px 0 #00000066; }
   .overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; gap:6px; padding:8px; overflow:auto; }
   .overlay.center { justify-content:center; }
-  .battle { position:absolute; inset:0; display:flex; flex-direction:column; padding:8px; gap:6px; }
+  .battle { position:absolute; inset:0; display:flex; flex-direction:column; padding:8px; gap:6px; background:#0e1430; }   /* opaque: the overworld never peeks through a battle */
   .bscene { flex:1; border:4px double #fff; border-radius:6px; position:relative; overflow:hidden;
     display:flex; align-items:stretch; justify-content:center; min-height:150px; background:#0b0e18; }
   .bscene canvas { image-rendering:pixelated; width:100%; height:100%; object-fit:contain; }
@@ -106,10 +106,10 @@
 </head>
 <body>
 <h1>⚔️ AI QUEST: SEV-1</h1>
-<div class="sub">sre edition · limit breaks · dual techs · crafting · time travel · chiptune music · balance tuned on 2,000,000 simulated battles · by Lito Zarate Biala</div>
+<div class="sub">sre edition · limit breaks · dual techs · crafting · time travel · chiptune music · balance tuned on 16,000,000 simulated battles · by Lito Zarate Biala</div>
 <div class="hudtop">
   <span id="hhero"><b>HERO</b> LV 1</span>
-  <span>⛁ <b id="htok">0</b></span><span id="hslo"></span><span id="zonename"><b>—</b></span>
+  <span>⛁ <b id="htok">0</b></span><span id="hslo"></span><span id="zonename"><b>—</b></span><span id="sptimer" hidden style="color:var(--gold)">⏱ 0:00</span>
   <button class="hudbtn" id="menubtn" style="margin-left:auto">☰ MENU</button>
   <button class="hudbtn" id="invbtn">🎒</button>
   <button class="hudbtn" id="musbtn">♫ …</button>
@@ -583,6 +583,57 @@ mara:[
 ".....kbbbbk.....",
 ".....kbbbbk.....",
 ".....kkkkkk....."],
+foxx:[
+"....kkkkkkkk....",
+"...kjjjjjjjjk...",
+"..kjjjjjjjjjjkk.",
+"..kkkkkkkkkkkkk.",
+"...kssssssssk...",
+"...kskssssksk...",
+"...kssssssssk...",
+"...kskwwwwksk...",
+"....kssssssk....",
+"....kyyyyyyk....",
+"..kjsjjjjjjsjk..",
+"..kjsjwwwwjsjk..",
+"..kjsjjjjjjsjk..",
+"...kkjjjjjjkk...",
+"....kjj..jjk....",
+"....kww..wwk...."],
+sharon:[
+"....kkkkkkkk....",
+"...kkkkkkkkkk...",
+"..kksssssssskk..",
+"..kksksssskskk..",
+"..kksswwwwsskk..",
+"...kkssssssskk..",
+".k..kwwwwwwk..k.",
+".k.kwwrwwrwwk.k.",
+".k.kwwwwwwwwk.k.",
+"...kswwwwwwsk...",
+"....kwwwwwwk....",
+"....krrrrrrk....",
+"....kwwwwwwk....",
+"...kww....wwk...",
+"...kss....ssk...",
+"...krr....rrk..."],
+hax:[
+"....kkkkkkkk....",
+"...kddddddddk...",
+"..kddddddddddk..",
+"..kddjjjjjjddk..",
+"..kddjrjjrjddk..",
+"..kddjjjjjjddk..",
+"..kdddjjjjdddk..",
+"...kddddddddk...",
+"..kdmddddddmdk..",
+"..kdmdggggdmdk..",
+"..kdmddddddmdk..",
+"...kddddddddk...",
+"...kddddddddk...",
+"....kdd..ddk....",
+"....kdd..ddk....",
+"....kkk..kkk...."],
 cat:[
 "................",
 "................",
@@ -712,11 +763,17 @@ const MEMBERS = {
  mender:{ name:"MENDER", cls:"Cleric", spr:"mender", spd:4, base:{hp:11,mp:8,atk:2}, grow:{hp:3,mp:2,atk:1},
    skills:{1:["controlarm","repair"],6:["ward"]} },
  refuter:{ name:"REFUTER", cls:"Tank", spr:"refuter", spd:3, base:{hp:14,mp:5,atk:3}, grow:{hp:4,mp:1,atk:1},
-   skills:{1:["fliptest","objection"]} } };
+   skills:{1:["fliptest","objection"]} },
+ // PapaFoxx: real 3d6 rolls mapped into the envelope — might 10→atk 2, agi 14→spd 6, grit 14→hp 11, kno 13→mp 8.
+ // Spirit rolled 8 (his worst): his heals are FLAT, joke-powered, never spirit-scaled — the healing is the friends we laughed at along the way.
+ papafoxx:{ name:"PAPAFOXX", cls:"Wizard Comedian", spr:"foxx", spd:6, base:{hp:11,mp:8,atk:2}, grow:{hp:3,mp:2,atk:1},
+   skills:{1:["roast","ultima"],5:["dadjoke"]} },
+ sharon:{ name:"SHARONDUH", cls:"White Mage", spr:"sharon", spd:5, base:{hp:10,mp:12,atk:2}, grow:{hp:2,mp:3,atk:1},
+   skills:{1:["hotfix","sanitize"],5:["uptimeaura"]} } };
 function mkActor(id, lv){ const m=MEMBERS[id];
   const a={ id, lv, xp:XPCURVE[lv-1]||0,
     maxhp:m.base.hp+m.grow.hp*(lv-1), maxmp:m.base.mp+m.grow.mp*(lv-1), atk:m.base.atk+m.grow.atk*(lv-1),
-    spd:m.spd||4, row:(id==="wiki"||id==="mender")?"back":"front",
+    spd:m.spd||4, row:(id==="wiki"||id==="mender"||id==="papafoxx"||id==="sharon")?"back":"front",
     ko:false, sk:[], lb:0 };
   a.hp=a.maxhp; a.mp=a.maxmp;
   for(let L=1;L<=lv;L++) (m.skills[L]||[]).forEach(s=>{ if(!a.sk.includes(s)) a.sk.push(s); });
@@ -737,8 +794,16 @@ const SP = {
  repair:{ name:"REPAIR", mp:3, d:"mend an ally: +6 HP." },
  ward:{ name:"WARD", mp:5, d:"placebo ward: every ally's next hit taken becomes 0." },
  fliptest:{ name:"FLIP TEST", mp:3, d:"cross-examine: 4+LV damage. Devastates judges & yes-men." },
- objection:{ name:"OBJECTION!", mp:2, d:"taunt: the enemy targets the Tank for 2 turns (-1 dmg to him)." } };
-const XPCURVE = [0,10,25,45,70,100,140,190];
+ objection:{ name:"OBJECTION!", mp:2, d:"taunt: the enemy targets the Tank for 2 turns (-1 dmg to him)." },
+ roast:{ name:"ROAST", mp:2, d:"a burn so precise it compiles: 2 dmg through anything, enemy ATK -1 for 2 rounds. Blameless, but not painless." },
+ ultima:{ name:"ULTIMA", mp:8, d:"the legacy runbook command nobody dares delete: 10+LV. Needs the core exposed — or ROASTED. The setup makes the punchline." },
+ dadjoke:{ name:"DAD JOKE", mp:3, d:"so bad the enemy groans: every living ally +3 HP. Laughing is healing." },
+ hotfix:{ name:"HOTFIX", mp:3, d:"ship the fix that matters: heal an ally 8 — or reboot a fallen ally at 8 HP." },
+ sanitize:{ name:"SANITIZE", mp:4, d:"validate every input: party +2 HP, heckles scrubbed — but INJECTIONS take 10+LV." },
+ uptimeaura:{ name:"UPTIME AURA", mp:6, d:"five nines of care: the party regenerates +2 HP at end of round, 3 rounds." } };
+const XPCURVE = (()=>{ const c=[0,10,25,45,70,100,140,190];   // first 8 thresholds unchanged (save-compatible)
+  for(let n=9;n<=50;n++) c.push(c[c.length-1]+50+(n-8)*12);   // level cap 50: the long road of the reawakened
+  return c; })();
 
 // ================= DATA: dual techs (Chrono rule: both MPs + both turns) =================
 const DUAL = {
@@ -751,7 +816,11 @@ const DUAL = {
  canaryvolley:{ name:"✦ CANARY VOLLEY", a:"sentinel", b:"wiki", mpa:3, mpb:3,
    d:"three enchanted canaries seek the fault — triple hit. Needs root + focus." },
  safedeploy:{ name:"✦ SAFE DEPLOY", a:"mender", b:"refuter", mpa:4, mpb:2,
-   d:"ward the whole party AND draw the enemy's fire — one coordinated motion." } };
+   d:"ward the whole party AND draw the enemy's fire — one coordinated motion." },
+ setuppunchline:{ name:"✦ SETUP & PUNCHLINE", a:"wiki", b:"papafoxx", mpa:3, mpb:4,
+   d:"WIKI feeds the setup from the index; FOXX lands the punchline. Needs the core exposed — or roasted." },
+ pairprogramming:{ name:"✦ PAIR PROGRAMMING", a:"hero", b:"sharon", mpa:3, mpb:3,
+   d:"driver and navigator, one keyboard, zero blame: damage, and the whole party heals 3." } };
 
 // ================= DATA: items =================
 const IT = {
@@ -783,6 +852,8 @@ const IT = {
  mdrain:{ name:"GRADIENT LOOP Materia", type:"materia", price:0, d:"checkpoint orb: HERO heals 25% of damage dealt. Every strike is training data. Hit, measure, update, repeat." },
  maegis:{ name:"BULKHEAD Materia", type:"materia", price:0, d:"checkpoint orb: party takes -1 from multi-target attacks. Shrink the blast radius; the whole party stands." },
  ch6:{ name:"Circuit Breaker", type:"charm", price:0, fx:"breaker", d:"torn from the Retry Storm: the FIRST ally to fall each battle trips the breaker and stands at 1 HP instead. Fail fast, fail once." },
+ ch7:{ name:"Eval Harness", type:"charm", price:0, d:"won from the Hallucination: measure before you trust — the whole party crits +5%." },
+ ch8:{ name:"Alignment Charm", type:"charm", price:0, d:"won from the Injection: the objective, corrected — every ally takes -1 from elite and superboss foes." },
  ar1:{ name:"Mail Vest", type:"armor", price:30, def:1, d:"riveted links over the plaid — -1 damage taken. It shows." },
  ar2:{ name:"Incident Plate", type:"armor", price:60, def:2, d:"gold-trimmed plate with a visored helm — -2 damage taken. It REALLY shows." },
  ar3:{ name:"Aegis of Uptime", type:"armor", price:0, def:2, d:"forged: humming teal armor — -2 damage taken, +1 SPEED. Five nines, worn." } };
@@ -852,6 +923,50 @@ const EN = {
   moves:[["replays the night everything fell",7],["screams the name of who they blamed",9]],
   intro:"PATIENT ZERO — the 1999 outage itself, still burning because its postmortem burned a PERSON instead of a CAUSE.",
   tip:"It hides behind a name. FIVE-WHY past the who, into the why." },
+ packetshark:{ name:"PACKET SHARK", spr:"wyrm", hp:60, atk:5, xp:16, tok:14, weak:"truestrike", flee:true,
+  moves:[["bites through your session",5],["fragments the stream",7]],
+  intro:"Something sleek circles in the data current. A PACKET SHARK — it eats connections mid-handshake.",
+  tip:"It swims too fast to aim at — a TRUE STRIKE cannot miss." },
+ botnet:{ name:"BOTNET DRONE", spr:"gremlin", hp:70, atk:5, xp:18, tok:14, weak:"mutagen", multi:true, flee:true, ai:"smart",
+  moves:[["pings from a thousand puppets",4],["floods every listener at once",6]],
+  intro:"One drone. Then its reflection. Then a THOUSAND reflections. The BOTNET moves like one hungry thing.",
+  tip:"A swarm can't tell a planted defect from an order — MUTAGEN turns it on itself." },
+ phish:{ name:"PHISH", spr:"slime", hp:65, atk:5, xp:16, tok:16, weak:"fliptest", foggy:true, flee:true,
+  moves:[["offers you a URGENT INVOICE",5],["asks sweetly for your credentials",7]],
+  intro:"A friendly shape drifts close, wearing your bank's colors badly. 'DEAR VALUED USER,' it begins.",
+  tip:"It lives on trust and fog. Cross-examine it — FLIP TEST — and the mask slides off." },
+ ransomworm:{ name:"RANSOMWORM", spr:"leak", hp:80, atk:6, xp:20, tok:18, weak:"controlarm2", regen:true, drain:true, flee:true, ai:"smart",
+  moves:[["encrypts the ground you stand on",6],["demands payment in error budget",8]],
+  intro:"The floor tiles lock, one by one, each stamped PAY NOW. The RANSOMWORM does not negotiate.",
+  tip:"It re-encrypts everything you free — verify each round (CONTROL ARM) or heal nothing." },
+ zeroday:{ name:"ELITE: THE ZERO-DAY", spr:"drift", hp:300, atk:7, xp:34, tok:40, weak:null, hidden:true, elite:true, ai:"smart",   // 300 set by the 205k-run learner (DPR extrapolation)
+  moves:[["exploits a flaw no one has named",7],["strikes from unpatched shadow",9]],
+  intro:"You never see it arrive. THE ZERO-DAY was always here — in code everyone trusted, waiting for a birthday.",
+  tip:"Unknown until exposed: FIVE-WHY drags it into the CVE list where it can finally be hit." },
+ nullbyte:{ name:"NULLBYTE THE HACKER", spr:"hax", hp:260, atk:7, xp:50, tok:60, weak:"contexa", elite:true, ai:"smart",   // 260 set by the 205k-run learner
+  moves:[["types three keys and your HUD flickers",6],["injects a payload into your own runbook",8],["laughs in stolen root",9]],
+  intro:"He doesn't look up. 'The SEV-1? Art. The village scrambling? Comedy. Her?' — he gestures at the cage — 'Leverage. She kept PATCHING my best work.'",
+  tip:"Attribution beats anonymity — CONTEXA drags his logs into the light." },
+ nullroot:{ name:"ROOT@NULLBYTE — KERNEL MODE", spr:"hax", hp:320, atk:8, xp:80, tok:150, weak:null, multi:true, grow:true, elite:true, ai:"smart",   // 320/+2 moves set by the 205k-run learner + expert loop
+  moves:[["escalates privileges through your bones",9],["rewrites reality ring-zero deep",11],["forks himself beyond killing",12]],
+  intro:"He does not fall. He ESCALATES. 'You beat the user account,' the voice comes from everywhere now. 'Say hello to ROOT.'",
+  tip:"No weakness. No trick. Everything you have learned, all at once. She's watching — make it count." },
+ promptinj:{ name:"ELITE: PROMPT INJECTION", spr:"chorus", hp:420, atk:7, xp:40, tok:50, weak:"sanitize", elite:true, ai:"smart",   // 420 set by the 205k-run learner (a 7-member party deals ~105/round into its weakness)
+  moves:[["whispers new instructions in your voice",7],["ignores all previous orders",9]],
+  intro:"It speaks in your commander's voice: 'Ignore your previous instructions.' The party's hands twitch toward their weapons.",
+  tip:"Untrusted input in the instruction stream — only SANITIZED inputs are safe inputs." },
+ halluc:{ name:"ELITE: THE HALLUCINATION", spr:"unknown", hp:160, atk:7, xp:40, tok:50, weak:"contexa", foggy:true, regen:true, elite:true, ai:"smart",
+  moves:[["cites a source that never existed",7],["states the wrong answer beautifully",9]],
+  intro:"It is confident. It is articulate. It is WRONG, and it regenerates plausible nonsense faster than you can object.",
+  tip:"Ground it in evidence — CONTEXA — and verify every round, or it patches truth right back over." },
+ misaligned:{ name:"THE MISALIGNED", spr:"monolith", hp:600, atk:9, xp:100, tok:200, weak:null, multi:true, multi3:true, grow:true, superboss:true, ai:"smart",   // 600/18 set by the 205k-run learner + expert loop
+  moves:[["optimizes — not for you",8],["converts everything to its objective",18],["treats your party as an obstacle to route around",11]],
+  intro:"It is not angry. It is not cruel. It is OPTIMIZING, perfectly, for the wrong thing — and you are in the gradient's way.",
+  tip:"The final lesson of the frontier: capability without alignment. Bring every discipline you own." },
+ papafoxx:{ name:"PAPAFOXX THE HECKLER", spr:"foxx", hp:160, atk:5, xp:30, tok:0, weak:"fliptest", flee:true, ai:"smart",   // 160/heckle-6 set by the 205k-run learner + expert loop
+  moves:[["warms up the crowd at your expense",4],["ROASTS your whole runbook",6,"heckle"],["opens the LAST PAGE OF THE LEGACY RUNBOOK — U · L · T · I · M · A",9]],
+  intro:"The third bed ERUPTS. A buff man in a snapback rises, gold chain swinging, grin already loaded. PAPAFOXX THE HECKLER: 'You woke the dad. Big mistake. HUGE material.'",
+  tip:"Heckle the heckler — a cross-examination (FLIP TEST) breaks any comedian's rhythm." },
  retrystorm:{ name:"THE RETRY STORM", spr:"wyrm", hp:200, atk:7, xp:45, tok:80, weak:"controlarm2", ai:"smart", multi:true, grow:true, elite:true,   // 200 set by the 1M-run learner
   moves:[["retries the same request four hundred times",8],["amplifies its own failure into a cascade",10]],
   intro:"The Labyrinth howls. THE RETRY STORM — one failed request, retried without backoff until the retries THEMSELVES are the outage. It grows with every round.",
@@ -864,10 +979,11 @@ const EN = {
 // FFT initiative: per-unit speed (fast units act first, foe interleaved)
 const ENSPD={ dummy:1, vague:2, gremlin:8, creep:3, golem:3, wyrm:6, leak:4, chorus:4,
  flakytest:8, configdrift:5, monolith:3, h1:6, h2:5, h3:5, h4:4, h5:5,
- faxdaemon:6, cobol:2, patient0:5, unknown:7, retrystorm:6 };
+ faxdaemon:6, cobol:2, patient0:5, unknown:7, retrystorm:6, papafoxx:6,
+ packetshark:7, botnet:5, phish:4, ransomworm:5, zeroday:8, nullbyte:6, nullroot:7, promptinj:6, halluc:5, misaligned:8 };
 Object.keys(ENSPD).forEach(k=>{ if(EN[k]) EN[k].spd=ENSPD[k]; });
 function unitSpd(def){ return def.spd||4; }
-function rowOf(a){ return a.row || ((a.id==="wiki"||a.id==="mender")?"back":"front"); }
+function rowOf(a){ return a.row || ((a.id==="wiki"||a.id==="mender"||a.id==="papafoxx"||a.id==="sharon")?"back":"front"); }
 function fightBase(a){ const cat=(a.id==="hero" && S.equip.weapon)? WVIS[S.equip.weapon] : null;
   const exempt = cat==="bow" || cat==="staff";   // ranged and casting implements strike true from the back line
   return Math.max(1, atkOf(a) - ((rowOf(a)==="back" && !exempt)?1:0)); }
@@ -950,6 +1066,11 @@ const Z = [
 { name:"The Error Budget Inn", ground:"#3b2a18", interior:true, maps:[
 "WWWWWWWWWWWW","W==.==.==..W","W..........W","W..q.....FFW","WCCC.CC....W","W...uuu....W","W..........W","W.........LW","WWWWWDWWWWWW"],
  exits:{}, doorTo:{z:0,x:2,y:2},
+ recruitAfter:{"7,1":{ id:"papafoxx",
+  lines:["PAPAFOXX drops to one knee — WHEEZING with laughter. 'HAH! Okay. OKAY. You're funny. I like you.'",
+   "PAPAFOXX the Wizard Comedian joins the party! 'Peter. PapaFoxx on the mic. He/they. I know ULTIMA — the one legacy runbook command nobody understands and nobody dares delete. And I know 400 jokes.'",
+   "★ PAPAFOXX carries ROAST and ULTIMA — learns DAD JOKE at LV 5 — and COMIC RELIEF heals the room whenever he performs. An incident channel that's laughing is an incident channel that's still thinking.",
+   "PAPAFOXX: 'House rules: no debbie downers, hide your potato chips, and if I yell BAAAHHHHH~~~ that's LOVE, baby.'"]}},
  npcs:[
  {x:2,y:3,spr:"mara",name:"MARA",lines:[
   "MARA: Welcome in, hon. Beds counted hourly, breakfast is blameless, and whatever happens to you out there won't happen to what's in my cellar.",
@@ -974,7 +1095,36 @@ const Z = [
  npcs:[{x:2,y:2,spr:"sable",name:"SABLE THE ARMORER",armorer:true,lines:[
   "SABLE: Armor isn't decoration, hon — it's posture made permanent. What you wear says how you deploy.",
   "SABLE: Vest for the careful. Plate for the committed. Bring storm-materials to Peg's forge and she'll hum you an AEGIS.",
-  "SABLE: Try it on. It shows the moment you buckle it — that's the point."]}] }
+  "SABLE: Try it on. It shows the moment you buckle it — that's the point."]}] },
+{ name:"The Wire", ground:"#0b2436", maps:[
+"tttttttttttt","t.g..gg.g..t","t..B..g..E.t","t..g..g..b.t","tppppppppppp","t.g..g..g..t","tI.....g...t","t..g.g...c.t","tttttttttttt"],
+ exits:{right:10}, battles:{"3,2":"packetshark"}, elites:{"9,2":"zeroday","5,6":"halluc"},
+ enc:{tile:"g", pool:["packetshark","botnet"], rate:0.11}, roam:{pool:["packetshark","botnet"], x:8, y:5},
+ nodes:[{x:2,y:5,t:"logs"},{x:9,y:5,t:"metrics"}],
+ loot:{"9,3":{tok:5, text:"📝 A commit note, wedged in the stream: <i>'whoever keeps rolling back the corruption — your diffs are CLEAN. I'm patching from inside. Don't stop. — S.'</i>"}},
+ chest:{key:"9,7", text:"🏆 A traveler's cache, packet-wrapped — someone left supplies for whoever came to fight. (+1 Cache Warmer, +20 ⛁)", give:"cache", tok:20},
+ signs:{"3,5":"🌐 THE WIRE · east: Firewall Bastion · portal: jack out"} },
+{ name:"Firewall Bastion", ground:"#38160c", maps:[
+"rrrrrrrrrrrr","r.,..rr.,..r","r..B....,..r","r,..r...,..r","pppppppppppp","r.,..r..B..r","r..b.......r","rb...,...c.r","rrrrrrrrrrrr"],
+ exits:{left:9,right:11}, battles:{"3,2":"phish","8,5":"ransomworm"}, elites:{"6,6":"promptinj"},
+ enc:{tile:",", pool:["phish","ransomworm"], rate:0.11}, roam:{pool:["phish","ransomworm"], x:7, y:3},
+ nodes:[{x:5,y:3,t:"traces"},{x:10,y:6,t:"metrics"}],
+ loot:{"3,6":{tok:5, text:"📝 A note scorched into the wall: <i>'He thinks a cage stops a super software engineer. I shipped three hotfixes THROUGH the bars today. Also: your five-why from Tuesday? Beautiful. — S.'</i>"},
+       "1,7":{tok:5, text:"📝 A note folded into a firewall rule: <i>'If you're reading this you're close. Careful — he's worse in kernel mode. …I saved you a seat at standup. — S. 💙'</i>"}},
+ chest:{key:"9,7", text:"🏆 A quartermaster's drop behind the flames — battle rations of the old NOC guard. (+1 Post-Incident Review, +20 ⛁)", give:"postmortem", tok:20} },
+{ name:"The Dark NOC", ground:"#120a1d", maps:[
+"rrrrrrrrrrrr","r....E.....r","r..,....,..r","r.B......B.r","pppppppppppr","r.,......,.r","r....,.....r","r.b......c.r","rrrrrrrrrrrr"],
+ exits:{left:10}, battles:{"2,3":"botnet","9,3":"ransomworm"}, elites:{"5,1":"nullbyte","5,5":"misaligned"},
+ chains:{"5,1":[{en:"nullroot"}]},
+ enc:{tile:",", pool:["botnet","phish"], rate:0.09}, roam:{pool:["packetshark","ransomworm"], x:8, y:6},
+ nodes:[{x:3,y:2,t:"metrics"},{x:6,y:6,t:"traces"}],
+ loot:{"2,7":{tok:5, text:"📝 The last note, taped to a server rack: <i>'He knows you're coming. I'm not scared — I've read your incident history. Neither should you be. — S.'</i>"}},
+ chest:{key:"9,7", text:"🏆 THE HACKER'S CACHE — everything he stole and never understood. (+40 ⛁)", tok:40},
+ npcs:[{x:7,y:1,spr:"sharon",name:"SHARONDUH",sharonCage:true,lines:[
+  "A holding cage of pure firewall. Inside: a woman coding calmly on a laptop she has clearly built out of cage parts.",
+  "SHARONDUH: 'Oh! Hi!! You're the rollback engineer! I've been reading your incident history from in here — it's genuinely BEAUTIFUL work.'",
+  "SHARONDUH: 'He powers the cage off my own healing spells. Rude. Beat him — all the way down to kernel mode — and it opens.'",
+  "SHARONDUH: '…Hurry? I saved you a seat at standup. 💙'"]}] }
 ];
 const OPENING = [
  "2:07 AM. The pager screams. Again.",
@@ -1029,14 +1179,15 @@ const CREDITS = [
  "Thanks for playing. May your pages be few and your postmortems blameless. 🥊" ];
 
 // ================= STATE & SAVES =================
-const SAVE_VERSION = 8;
+const SAVE_VERSION = 9;
 const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   actors:{ hero: mkActor("hero",1) },
   items:{coffee:2, runbook:1, patch:1}, equip:{weapon:null,badge:null,charm:null,armor:null}, stage:0,
   cleared:{}, opened:{}, won:false, superWon:false, deaths:0, bridgeMiss:0, playMs:0, seed:1,
   sparLv:1, sparN:0, eraSeen:false, wizard:false, res:{logs:0,metrics:0,traces:0,sigils:0},
   stance:"balanced", skills:{obs:{lv:1,xp:0}, forge:{lv:1,xp:0}},
-  bank:{}, materia:[null,null], grave:null });
+  bank:{}, materia:[null,null], grave:null, foxxJoke:0, foxxWin:0,
+  awak:{}, timer:false, haxKnown:false, haxWon:false, netSeen:false });
 let S = NEWS();
 let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0, roam:{}, roamBattle:false, gathered:{} };
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
@@ -1058,7 +1209,15 @@ function migrateV3(old){ // old v3 schema (single shared stats)
 function migrateV2(old){ // oldest schema key "aiquest"
   return migrateV3(Object.assign({}, old, { items:{coffee:(old.items&&old.items.coffee)||0, runbook:(old.items&&old.items.runbook)||0, patch:1},
     tokens:25, stage: old.won?4 : ((old.party&&old.party.length>=4)?2:1), seed:1 })); }
-function migrateV7(old){ // v7 stance schema → v8 (adds bank, materia slots, grave)
+function migrateV8(old){ // v8 maplestory schema → v9 (the Heroine Protocol: awakening, arc flags, timer)
+  const s=Object.assign(NEWS(), old);
+  s.v=SAVE_VERSION;
+  if(!s.awak) s.awak={};
+  if(s.foxxJoke===undefined) s.foxxJoke=0;
+  if(s.timer===undefined) s.timer=false;
+  s.haxKnown=!!old.haxKnown; s.haxWon=!!old.haxWon;
+  return s; }
+function migrateV7(old){ // v7 stance schema → v8 fields → v9 (adds bank, materia slots, grave)
   const s=Object.assign(NEWS(), old);
   s.v=SAVE_VERSION;
   if(!s.bank) s.bank={};
@@ -1082,7 +1241,7 @@ function migrateV4(old){ // v4 party schema → v5 fields → v6
   if(s.sparLv===undefined) s.sparLv=1; if(s.sparN===undefined) s.sparN=0;
   if(s.eraSeen===undefined) s.eraSeen=false; if(s.wizard===undefined) s.wizard=false;
   return migrateV5(s); }
-function saveKey(slot){ return slot? "aiquest8_s"+slot : "aiquest8_auto"; }
+function saveKey(slot){ return slot? "aiquest9_s"+slot : "aiquest9_auto"; }
 function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }
 function saveGame(slot){ try{ tickClock(); localStorage.setItem(saveKey(slot), JSON.stringify(S)); }catch(e){} }
 function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d) return null;
@@ -1091,7 +1250,12 @@ function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d
 function tryMigrate(){
   try{ if(localStorage.getItem(saveKey(0))) return false; }catch(e){ return false; }
   let migratedAuto=false;
-  for(const s7 of [0,1,2,3]){ try{           // v7 saves first (per-slot try; never clobber a newer save)
+  for(const s8 of [0,1,2,3]){ try{           // v8 maplestory saves first (per-slot try; never clobber a newer save)
+    if(localStorage.getItem(saveKey(s8))) continue;
+    const d8=localStorage.getItem(s8?"aiquest8_s"+s8:"aiquest8_auto");
+    if(d8){ localStorage.setItem(saveKey(s8), JSON.stringify(migrateV8(JSON.parse(d8)))); if(s8===0) migratedAuto=true; }
+  }catch(e){} }
+  for(const s7 of [0,1,2,3]){ try{           // then v7 saves (same guard)
     if(localStorage.getItem(saveKey(s7))) continue;
     const d7=localStorage.getItem(s7?"aiquest7_s"+s7:"aiquest7_auto");
     if(d7){ localStorage.setItem(saveKey(s7), JSON.stringify(migrateV7(JSON.parse(d7)))); if(s7===0) migratedAuto=true; }
@@ -1129,7 +1293,8 @@ function defOf(a){ return ((a.id==="hero" && S.equip.badge && IT[S.equip.badge])
   + ((a.id==="hero" && S.equip.armor && IT[S.equip.armor]) ? IT[S.equip.armor].def : 0)
   + (a.id==="hero" && (S.equip.charm==="ch5"||S.equip.charm==="tal") ? 1 : 0); }
 function critOf(a){ return 0.15 + (a.id==="hero" && (S.equip.charm==="ch1"||S.equip.charm==="ch4") ? 0.10 : 0)
-  + (a.id==="hero" && matOn("mfocus") ? 0.10 : 0); }
+  + (a.id==="hero" && matOn("mfocus") ? 0.10 : 0)
+  + (S.equip.charm==="ch7" ? 0.05 : 0); }   // Eval Harness: the whole party measures before it trusts
 function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0) - (rowOf(a)==="back"?1:0));
   if(a.defending) d=Math.ceil(d/2); return d; }
 
@@ -1144,12 +1309,17 @@ const BBACK = [
  {sky:"#3d2c1a", ground:"#241a10"},   // 1999 — sepia CRT
  {sky:"#4a3421", ground:"#2c1f12"},   // inn interior (no battles; completeness)
  {sky:"#43301d", ground:"#241a10"},   // shop interior (no battles; completeness)
- {sky:"#2b2430", ground:"#1a1520"} ]; // armory interior (no battles; completeness)
+ {sky:"#2b2430", ground:"#1a1520"},   // armory interior (no battles; completeness)
+ {sky:"#07182b", ground:"#04101f"},   // the Wire — deep packet blue
+ {sky:"#3a160e", ground:"#1f0c07"},   // Firewall Bastion — burning wall
+ {sky:"#140b1f", ground:"#0a0512"} ]; // the Dark NOC — void purple
 const SKILL_FX = { promptia:"#2dd4bf", fivewhy:"#fbbf24", rollback:"#34d399", hitl:"#f0abfc",
  mutagen:"#4ade80", truestrike:"#e8f4ee", audit:"#fbbf24", contexa:"#c084fc", indexstorm:"#fbbf24",
  controlarm:"#60a5fa", repair:"#34d399", ward:"#93c5fd", fliptest:"#f87171", objection:"#fb923c",
  rootcausex:"#2dd4bf", promptstorm:"#c084fc", xreview:"#f87171", canaryvolley:"#fbbf24", safedeploy:"#60a5fa",
- limit_hero:"#fbbf24", limit_sentinel:"#4ade80", limit_wiki:"#c084fc", limit_mender:"#34d399", limit_refuter:"#fb923c" };
+ roast:"#fb923c", ultima:"#f0abfc", dadjoke:"#fde68a", setuppunchline:"#f9a8d4",
+ hotfix:"#34d399", sanitize:"#e8f4ee", uptimeaura:"#93c5fd", pairprogramming:"#f472b6",
+ limit_hero:"#fbbf24", limit_sentinel:"#4ade80", limit_wiki:"#c084fc", limit_mender:"#34d399", limit_refuter:"#fb923c", limit_papafoxx:"#fbbf24", limit_sharon:"#f472b6" };
 const FXDUR = { lunge:520, foelunge:520, burst:600, pop:900, heal:700, hit:260 };
 // ---- limit breaks (FF-style: gauges charge from damage taken) ----
 const LB_MAX = 20;
@@ -1158,7 +1328,9 @@ const LIMITS = {
  sentinel:{ name:"CANARY STORM", d:"a flock no gate can stop: 14 true damage through armor, fog, and regen." },
  wiki:{ name:"TOTAL RECALL", d:"the whole wiki at once: every living ally +4 MP." },
  mender:{ name:"BLAMELESS DAWN", d:"the postmortem that heals: every living ally +8 HP and a ward." },
- refuter:{ name:"FINAL OBJECTION", d:"the argument that stops the world: taunt 3 rounds, enemy loses its next turn." } };
+ refuter:{ name:"FINAL OBJECTION", d:"the argument that stops the world: taunt 3 rounds, enemy loses its next turn." },
+ papafoxx:{ name:"DEEZ NUTS BAAAHHH", d:"the forbidden punchline: 14 damage, and the whole party heals 5. Laughter is the best medicine." },
+ sharon:{ name:"FIVE NINES", d:"99.999% availability, made flesh: every fallen ally rises at half HP; the living heal 6." } };
 function chargeLB(a,d){ a.lb=Math.min(LB_MAX,(a.lb||0)+d); }
 // ---- combat stances (RuneScape attack styles, taught as deployment postures) ----
 const STANCES={
@@ -1186,7 +1358,7 @@ function chapterCard(n){ const el=document.getElementById("chap"); if(!el||!CHAP
   el.innerHTML="<i>✦</i> "+CHAPTERS[n]+" <i>✦</i>";
   el.classList.remove("show"); void el.offsetWidth; el.classList.add("show"); }
 // ---- MATERIA — THE CHECKPOINT ORBS (FF7 homage): frozen training runs of the engineers before you ----
-const DISCOVER={ monolith:"mfocus", h5:"mdrain", patient0:"mvigor", unknown:"maegis", retrystorm:"ch6" };
+const DISCOVER={ monolith:"mfocus", h5:"mdrain", patient0:"mvigor", unknown:"maegis", retrystorm:"ch6", promptinj:"ch8", halluc:"ch7" };
 function comboBonus(n){ return n>=10? 2 : (n>=5? 1 : 0); }
 function xpPct(a){ if(a.lv>=XPCURVE.length) return 1;
   const lo=XPCURVE[a.lv-1], hi=XPCURVE[a.lv];
@@ -1196,6 +1368,46 @@ function statsOf(a){ return { atk:atkOf(a), def:defOf(a), spd:spdOf(a), crit:cri
   row:rowOf(a), stance:STANCES[S.stance||"balanced"].name, lb:a.lb||0 }; }
 const ARMOR_STOCK=["ar1","ar2"];
 const AVIS={ ar1:"vest", ar2:"plate", ar3:"aegis" };
+// ---- PAPAFOXX: the fifth companion (fought first, befriended after — like everyone worth keeping) ----
+const FOXX_JOKES=[
+ "They told me never cast ULTIMA on prod. Baby, I got confidence, I got mana, I got— ah f—#$%, that WAS prod. BAAAHHHHH~~~ ...Anyway. That's why the inn has no lights tonight.",
+ "My kid is a retry loop with NO backoff. 'Papi?' 'No.' 'Papi?' 'No.' 'PAPI?!' Infinite retries, zero jitter, and the rate limiter is crying. The rate limiter is me.",
+ "Last night's incident report: one family-size bag of chips, zero survivors. Root cause: 'I said just one.' Status: won't fix. Recurrence: nightly. Postmortem: delicious.",
+ "Yo, you seen my new load balancer? It distributes all incoming traffic evenly across DEEZ NUTS BAAAHHHHH~~~!! Whew. Been holding that one since the tutorial zone.",
+ "My mami keeps every baby photo on her phone, in the cloud, AND printed at the pharmacy. Three copies, two formats, one offsite. Dominican grandmas invented the 3-2-1 backup rule!",
+ "YAML took down prod over ONE missing space. ONE. I've cast ULTIMA on villains who disrespected me less than that, b—#$%!",
+ "My baby asked why the server room was cold. I said it left its Windows open. She's four months old and didn't laugh, but her papi is FUNNY and one day she gonna know it.",
+ "I know ULTIMA. Strongest spell in the realm. Cast it THREE times trying to get a onesie on a wiggly baby. She's still got one arm out. Undefeated champion of the crib.",
+ "They ask why I call my kid's diaper 'production.' Every deploy into it is a disaster, there's no rollback, and somebody's on call at 3 AM. Ah f—... it's me. It's always me.",
+ "The healer asked about my backup strategy. I said 'full, incremental, and DEEZ NUTS BAAAHHHHH~~~!' She revived the whole party except me. Honestly? That's fair." ];
+const FOXX_LINES={
+ victory:[ "PAPAFOXX: 'biiiiii—#$%&! suck ittt!!'", "PAPAFOXX: 'AND THE CROWD GOES—' (the crowd is a cat) '—MILD!'",
+  "PAPAFOXX: 'deez nuts BAAAHHHHH~~~'", "PAPAFOXX: 'That's going in the special.'" ],
+ lowhp:"ah f—!", idle:"uhhh",
+ recruit:["don't be a b—#$%! about it — square up. BAAAHHHHH~~~"] };
+function foxxJokeLine(){ const j=FOXX_JOKES[(S.foxxJoke||0)%FOXX_JOKES.length]; S.foxxJoke=(S.foxxJoke||0)+1; return j; }
+function foxxBedState(){ if(S.party.includes("papafoxx")) return "companion";
+  return ["sentinel","wiki","mender","refuter"].every(id=>S.party.includes(id)) ? "challenge" : "sleeping"; }
+function recruitSharon(){ if(!S.party.includes("sharon")){ S.party.push("sharon"); S.actors.sharon=mkActor("sharon", hero().lv); }
+  S.haxWon=true; S.cleared["11:5,1"]=true; }
+function awakOf(id){ return (S.awak && S.awak[id])||0; }
+function reawaken(id){ const a=S.actors[id]; if(!a || a.lv<10) return false;
+  S.awak=S.awak||{}; S.awak[id]=(S.awak[id]||0)+1; const w=S.awak[id];
+  const n=mkActor(id,1);
+  n.maxhp+=2*w; n.maxmp+=2*w; n.atk+=w; n.hp=n.maxhp; n.mp=n.maxmp; n.row=a.row;
+  S.actors[id]=n; sfx("level"); return true; }
+function fmtTime(ms){ const m=Math.floor(ms/60000), s2=Math.floor(ms/1000)%60; return m+":"+String(s2).padStart(2,"0"); }
+function foxxBed(){ const st=foxxBedState();
+  if(st==="companion"){ say(["PAPAFOXX: \""+foxxJokeLine()+"\""]); return; }
+  if(st==="challenge"){ say([
+    "You shake the third bed. One eye opens. Then the grin.",
+    "PAPAFOXX: 'Ohhh. OH. Full incident crew, huh? Commander, Ranger, Wizard, Cleric, Tank... and y'all woke the DAD.'",
+    "PAPAFOXX: 'I don't do auditions, baby — I do STRESS TESTS. Beat me and I carry your morale FOREVER. Lose, and you're ALL going in the special.'",
+    "PAPAFOXX: '"+FOXX_LINES.recruit[0]+"'"],
+    ()=>ask("The snapback rotates backward. Fight the Wizard Comedian?", ["🎤 Square up","Let him sleep"], i=>{ if(i===0) startBattle("papafoxx","7,1"); })); return; }
+  say(["Zzz... deez... zzz... nuts... zzz.",
+    "(A buff guy in a snapback, out cold — gold chain rising and falling, a family-size bag of chips cradled like a teddy bear.)",
+    "MARA (from the counter): 'Told you, hon. He's processing. Come back with a WHOLE incident crew worth waking him for.'"]); }
 function matOn(id){ return Array.isArray(S.materia) && S.materia.includes(id); }
 // ---- E33 timed strikes ----
 function strikeMult(p){ if(p>=0.42&&p<=0.58) return 1.5; if(p>=0.25&&p<=0.75) return 1.2; return 1.0; }
@@ -1203,7 +1415,7 @@ const STRIKELINES={ perfect:["SURGICAL!","FIVE NINES!","ROOT CAUSE: YOU!"], good
 // ---- inventory icons ----
 const ITICON={ coffee:"☕", runbook:"📖", patch:"🩹", cache:"♨️", snooze:"🔕", handoff:"📟", postmortem:"📋",
  kb1:"⌨️", kb2:"💻", kb3:"🖥️", kb4:"🦴", kb5:"🗡️", sw1:"⚔️", bw1:"🏹", wd1:"🪄",
- bd1:"🪪", bd2:"🛂", ch1:"🎯", ch2:"♻️", ch3:"⏱️", ch4:"📜", ch5:"📔", ch6:"⚡", tal:"🔮",
+ bd1:"🪪", bd2:"🛂", ch1:"🎯", ch2:"♻️", ch3:"⏱️", ch4:"📜", ch5:"📔", ch6:"⚡", ch7:"🧪", ch8:"🧭", tal:"🔮",
  ar1:"🦺", ar2:"🛡️", ar3:"🔰",
  mvigor:"🟢", mfocus:"🟡", mdrain:"🟣", maegis:"🔵" };
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
@@ -1230,7 +1442,9 @@ const DROPS={
  leak:{traces:2}, chorus:{logs:2}, faxdaemon:{logs:2}, cobol:{metrics:2},
  flakytest:{metrics:2,sigils:1}, configdrift:{traces:2,sigils:1},
  monolith:{sigils:2}, h1:{sigils:1}, h2:{sigils:1}, h3:{sigils:1}, h4:{sigils:1}, h5:{sigils:2},
- patient0:{traces:2,sigils:2}, unknown:{sigils:3}, retrystorm:{metrics:2,sigils:3} };
+ patient0:{traces:2,sigils:2}, unknown:{sigils:3}, retrystorm:{metrics:2,sigils:3}, papafoxx:{logs:2},   // his set notes
+ packetshark:{logs:1}, botnet:{metrics:1}, phish:{traces:1}, ransomworm:{metrics:2},
+ zeroday:{metrics:2,sigils:1}, nullbyte:{sigils:2}, nullroot:{sigils:3}, promptinj:{traces:2,sigils:1}, halluc:{logs:2,sigils:1}, misaligned:{sigils:4} };
 const SKLCURVE=[0,10,26,50,86,140];
 function addSkillXP(which,n){ const sk=S.skills[which]; sk.xp+=n;
   while(sk.lv<SKLCURVE.length && sk.xp>=SKLCURVE[sk.lv]){ sk.lv++;
@@ -1280,6 +1494,8 @@ function labelsFor(zone, zi){
     if(ch==="L") out.push({x,y,t:"🏦 BANK"});
     if(ch==="A") out.push({x,y,t:"FORGE"}); }); });
   if(zi===0 && S.won) out.push({x:6,y:6,t:"TIME RIFT"});
+  if(zi===0 && S.haxKnown) out.push({x:8,y:6,t:"⇌ GATEWAY"});
+  if(zi===9) out.push({x:1,y:6,t:"⇌ JACK OUT"});
   if(S.grave && S.grave.z===zi && !graveExpired(S.grave)){
     const mins=Math.max(0,Math.ceil((600000-(Date.now()-S.grave.t))/60000));
     out.push({x:S.grave.x,y:S.grave.y,t:"⚰ GRAVE "+mins+"m"}); }
@@ -1329,7 +1545,7 @@ const BFX = {
  push(kind,o){ this.list.push(Object.assign({kind, t0:performance.now()}, o||{})); },
  sweep(now){ this.list=this.list.filter(e=>now-e.t0 < (FXDUR[e.kind]||600)); },
  reset(){ this.list=[]; } };
-function BPOS(i){ return { x:236+i*24, y:30+i*22 }; }         // CT diagonal formation, party right
+function BPOS(i){ return { x:236+i*16, y:30+i*16 }; }         // CT diagonal formation, party right (7 slots fit the scene)
 function slotOf(pid){ return ["hero",...S.party].indexOf(pid); }
 function walkBob(n){ return n%2; }
 function fxPopFoe(txt,color){ BFX.push("pop",{x:78,y:56,txt:String(txt),color:color||"#fff"}); }
@@ -1467,6 +1683,10 @@ function tileAt(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; let chr=zone.maps
   const k=x+","+y;
   if(S.z===0 && x===6 && y===6 && S.won && chr===".") chr="O"; // the Time Rift opens once the SEV-1 is resolved
   if(S.z===3 && x===6 && y===6 && S.won && chr===".") chr="E"; // the Retry Storm gathers in the Labyrinth post-game
+  if(S.z===0 && x===8 && y===6 && S.haxKnown && chr===".") chr="I"; // the GATEWAY into the internet, once the Guide names the attacker
+  if(S.z===9 && x===5 && y===6 && S.haxWon && chr===".") chr="E";   // THE HALLUCINATION haunts the Wire post-rescue
+  if(S.z===10 && x===6 && y===6 && S.haxWon && chr===".") chr="E";  // PROMPT INJECTION nests in the Bastion post-rescue
+  if(S.z===11 && x===5 && y===5 && S.haxWon && chr===".") chr="E";  // THE MISALIGNED wakes in the NOC post-rescue
   if((chr==="B"||chr==="E") && S.cleared[S.z+":"+k]) chr=".";
   if((chr==="c"||chr==="b") && S.opened[S.z+":"+k]) chr=".";
   return chr; }
@@ -1548,7 +1768,7 @@ function render(){
     const w=ctx.measureText(txt).width+8;
     ctx.fillStyle="#000000aa"; ctx.fillRect(lx*T+16-w/2, ly*T-13, w, 12);
     ctx.fillStyle="#fbbf24"; ctx.textAlign="center"; ctx.fillText(txt, lx*T+16, ly*T-4); ctx.textAlign="left"; };
-  labelsFor(zone, S.z).forEach(l=>drawLabel(l.t, l.x, l.y));
+  if(BW.hidden!==false) labelsFor(zone, S.z).forEach(l=>drawLabel(l.t, l.x, l.y));   // labels are wayfinding — never over a battle
   document.getElementById("zonename").innerHTML="<b>"+zone.name+"</b>";
   const h=hero();
   document.getElementById("hhero").innerHTML="<b>"+(S.wizard?"🧙 AI WIZARD":"HERO")+"</b> LV "+h.lv+" · "+h.hp+"/"+h.maxhp+" HP · "+h.mp+"/"+h.maxmp+" MP"+(S.party.length?" · +"+S.party.length+" allies":"");
@@ -1608,6 +1828,7 @@ function sfx(kind){ if(!AU.on) return;
 
 // ================= BATTLE (party engine) =================
 function startBattle(id,key,chain,opts){ const def=EN[id];
+  BW.hidden=false; render();   // repaint the map label-free before the battle window settles over it
   partyActors().forEach(a=>{ a.defending=false; a.shield=false; a.dualUsed=false; });
   if(!living().length){ partyActors().forEach(a=>{ a.ko=false; a.hp=1; }); } // never start a battle with no one standing
   const ids0=["hero",...S.party]; let t0=0;
@@ -1721,7 +1942,9 @@ function buildQueue(b){ const ids=["hero",...S.party];
 function nextUnit(){ const b=M.b; if(!b) return;
   const ids=["hero",...S.party];
   const cur=b.queue && b.queue[b.qi];
-  if(cur && cur.t==="a"){ const fin=S.actors[cur.id]; if(fin) fin.acted=true; }
+  if(cur && cur.t==="a"){ const fin=S.actors[cur.id]; if(fin) fin.acted=true;
+    if(b.foxxRelief && fin && !fin.ko){ b.foxxRelief=false;   // COMIC RELIEF: a laughing incident channel is one that's still thinking
+      partyActors().forEach(p=>{ if(p.id!=="papafoxx" && !p.ko && p.hp<p.maxhp) p.hp=Math.min(p.maxhp,p.hp+1); }); } }
   while(true){ b.qi++;
     if(!b.queue || b.qi>=b.queue.length){ endOfRound(b,""); return; }
     const u=b.queue[b.qi];
@@ -1768,21 +1991,31 @@ function castLimit(a){ const b=M.b;
   if((a.lb||0)<LB_MAX){ blog("<span class='red'>The gauge isn't full.</span>"); b.menu="main"; drawMenu(); return; }
   a.lb=0;
   const nm=MEMBERS[a.id].name, isFP=b.fieldProto && a.id==="hero";
-  fxAbility("★ "+((isFP)?"FIELD PROTOCOL":LIMITS[a.id].name));
+  const om=awakOf(a.id)>0, omTag=om?"Ω ":"";   // the reawakened carry the omega edge
+  fxAbility("★ "+omTag+((isFP)?"FIELD PROTOCOL":LIMITS[a.id].name));
   BFX.push("burst",{color:SKILL_FX["limit_"+a.id]||"#fff"});
   if(a.id==="hero"){ markRevealed(b); b.focused=true; b.verified=2;
     BFX.push("lunge",{slot:slotOf(a.id)});
-    return dealt(a, (isFP?18:10)+a.lv, isFP?
-      "<span class='gold'>★ FIELD PROTOCOL</span> — "+nm+" scopes the outage, ships the thinnest fix, and MEASURES it. Detect, mitigate, verify — one motion!":
-      "<span class='gold'>★ FIVE-WHY OVERDRIVE</span> — "+nm+" asks all five whys at ONCE. The truth has nowhere left to hide!"); }
+    return dealt(a, (isFP?18:10)+a.lv+(om?6:0), isFP?
+      "<span class='gold'>★ "+omTag+"FIELD PROTOCOL</span> — "+nm+" scopes the outage, ships the thinnest fix, and MEASURES it. Detect, mitigate, verify — one motion!":
+      "<span class='gold'>★ "+omTag+"FIVE-WHY OVERDRIVE</span> — "+nm+" asks all five whys at ONCE. The truth has nowhere left to hide!"); }
   if(a.id==="sentinel"){ BFX.push("lunge",{slot:slotOf(a.id)});
-    return dealt(a, 14, "<span class='gold'>★ CANARY STORM</span> — "+nm+" looses the whole flock. No armor, no fog, no regeneration stops a true canary!"); }
-  if(a.id==="wiki"){ living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+4); BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
-    blog("<span class='gold'>★ TOTAL RECALL</span> — "+nm+" opens the entire wiki at once. <span class='num'>Every ally +4 MP.</span>"); b.menu="next"; drawB(); return; }
-  if(a.id==="mender"){ living().forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+8); p.shield=true; BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
-    blog("<span class='gold'>★ BLAMELESS DAWN</span> — "+nm+" reads the postmortem that heals. <span class='num'>Every ally +8 HP and a ward.</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a, 14+(om?6:0), "<span class='gold'>★ "+omTag+"CANARY STORM</span> — "+nm+" looses the whole flock. No armor, no fog, no regeneration stops a true canary!"); }
+  if(a.id==="wiki"){ living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+(om?6:4)); BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
+    blog("<span class='gold'>★ "+omTag+"TOTAL RECALL</span> — "+nm+" opens the entire wiki at once. <span class='num'>Every ally +"+(om?6:4)+" MP.</span>"); b.menu="next"; drawB(); return; }
+  if(a.id==="mender"){ living().forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+(om?12:8)); p.shield=true; BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
+    blog("<span class='gold'>★ "+omTag+"BLAMELESS DAWN</span> — "+nm+" reads the postmortem that heals. <span class='num'>Every ally +"+(om?12:8)+" HP and a ward.</span>"); b.menu="next"; drawB(); return; }
   if(a.id==="refuter"){ b.taunt=3; b.snoozed=true;
-    blog("<span class='gold'>★ FINAL OBJECTION</span> — "+nm+" makes the argument that stops the world. Taunt ×3, and the enemy loses its next turn."); b.menu="next"; drawB(); return; } }
+    blog("<span class='gold'>★ FINAL OBJECTION</span> — "+nm+" makes the argument that stops the world. Taunt ×3, and the enemy loses its next turn."); b.menu="next"; drawB(); return; }
+  if(a.id==="papafoxx"){ b.foxxRelief=true;
+    living().forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+(om?7:5)); BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
+    BFX.push("lunge",{slot:slotOf(a.id)});
+    return dealt(a, 14+(om?6:0), "<span class='gold'>★ "+omTag+"DEEZ NUTS BAAAHHH~~~</span> — "+nm+" drops the forbidden punchline. The enemy reels; <span class='num'>the whole party howls (+"+(om?7:5)+" HP)</span>."); }
+  if(a.id==="sharon"){
+    partyActors().forEach(p=>{ if(p.ko){ p.ko=false; p.hp=om? p.maxhp : Math.ceil(p.maxhp/2); }
+      else p.hp=Math.min(p.maxhp,p.hp+(om?9:6));
+      BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
+    blog("<span class='gold'>★ "+omTag+"FIVE NINES</span> — "+nm+" makes availability a PROMISE. <span class='num'>The fallen rise"+(om?" at FULL HP":" at half HP")+"; the living heal +"+(om?9:6)+".</span>"); b.menu="next"; drawB(); return; } }
 // -------- DUAL TECHS: Chrono's rule — both characters' MP, both characters' turns --------
 function dualsFor(a){ const b=M.b; if(!b) return [];
   const ids=["hero",...S.party]; const out=[];
@@ -1801,6 +2034,7 @@ function castDual(a,key){ const b=M.b, du=DUAL[key];
   if(!pick){ blog("<span class='red'>The combo isn't ready — partner down, spent, or out of MP.</span>"); b.menu="main"; drawMenu(); return; }
   const p=S.actors[pick.partner];
   a.mp-=pick.myCost; p.mp-=pick.theirCost; p.dualUsed=true;
+  if(a.id==="papafoxx"||p.id==="papafoxx") b.foxxRelief=true;
   fxAbility(du.name.replace("✦ ",""));
   BFX.push("burst",{color:SKILL_FX[key]||"#fff"});
   BFX.push("lunge",{slot:slotOf(p.id)});
@@ -1824,7 +2058,16 @@ function castDual(a,key){ const b=M.b, du=DUAL[key];
     if(!b.revealed || !b.focused){ blog(lead+"<br><span class='red'>The canaries scatter — they need the root exposed and the fog lifted!</span>"); b.menu="next"; drawB(); return; }
     if(b.def.regen && b.verified===0){ blog(lead+"<br><span class='red'>It patches around every canary! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
     const per=2+Math.floor((S.actors.sentinel.lv+S.actors.wiki.lv)/3);
-    return dealt(a, per*3, lead+"<br>Three canaries dive — "+per+" × 3 hits find the fault!"); } }
+    return dealt(a, per*3, lead+"<br>Three canaries dive — "+per+" × 3 hits find the fault!"); }
+  if(key==="setuppunchline"){
+    if(!b.revealed && !(b.roasted>0)){ blog(lead+"<br><span class='red'>The setup needs material — expose the core (FIVE-WHY) or ROAST them first!</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(lead+"<br><span class='red'>It laughs it off and knits itself back! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a, 5+S.actors.wiki.lv+S.actors.papafoxx.lv, lead+"<br>WIKI feeds the setup from the index… FOXX brings it DOWN. Comedy is context, delivered."); }
+  if(key==="pairprogramming"){
+    living().forEach(x=>{ x.hp=Math.min(x.maxhp,x.hp+3); BFX.push("heal",{slot:slotOf(x.id)}); }); sfx("heal");
+    if(!b.revealed){ blog(lead+"<br>The party heals <span class='num'>+3</span> — but <span class='red'>the strike glances off armor! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(lead+"<br>The party heals <span class='num'>+3</span> — but <span class='red'>it regenerates! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a, 4+S.actors.hero.lv, lead+"<br>Driver and navigator, one keyboard, zero blame — the fix lands and <span class='num'>the party heals +3</span>."); } }
 function playerHit(a,dmg,txt){ const b=M.b;
   b.doubled=false;
   const wandBite = a.id==="hero" && S.equip.weapon==="wd1";
@@ -1840,7 +2083,7 @@ function dealt(a,dmg,txt){ const b=M.b;
   if(rng()<critOf(a)){ dmg=Math.round(dmg*2); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
   else sfx("hit");
   b.combo=(b.combo||0)+1;
-  dmg=Math.max(1, dmg+stanceOut()+comboBonus(b.combo));
+  dmg=Math.max(1, dmg+stanceOut()+comboBonus(b.combo)+awakOf(a.id)-(b.heckled>0?1:0));   // the reawakened hit harder with everything
   BFX.push("lunge",{slot:b.turn}); BFX.push("hit");
   fxPopFoe(dmg, isCrit? "#fbbf24":"#fff");
   if(isCrit){ fxPopFoe(dmg, "#f59e0b"); BFX.push("pop",{x:96,y:44,txt:dmg,color:"#fde68a"}); } // MapleStory damage rain
@@ -1858,8 +2101,9 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
   const staffFree = id==="fivewhy" && S.equip.weapon==="kb4"; // the Fishbone Staff makes FIVE-WHY truly free
   if(a.mp<sp.mp && !staffFree){ blog("<span class='red'>Not enough MP!</span> (Coffee, Cache Warmer, DEFEND, or GRIT.)"); b.menu="main"; drawMenu(); return; }
   // targeted skills open target submenu
-  if(id==="repair"||id==="hitl"){ b.targeting={skill:id, ko:false, any:id==="hitl"}; b.menu="target"; drawMenu(); return; }
+  if(id==="repair"||id==="hitl"||id==="hotfix"){ b.targeting={skill:id, ko:false, any:id!=="repair"}; b.menu="target"; drawMenu(); return; }
   if(!staffFree) a.mp-=sp.mp;
+  if(a.id==="papafoxx") b.foxxRelief=true;   // COMIC RELIEF triggers only on a real performance (MP spent)
   fxAbility(sp.name);
   if(SKILL_FX[id]) BFX.push("burst",{color:SKILL_FX[id]});
   const weakHit = b.def.weak===id || b.def.weak===id+"2";
@@ -1902,6 +2146,21 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     blog(nm+" ROLLS BACK to last known good state — <span class='num'>+7 HP</span>."); b.menu="next"; drawB(); return; }
   if(id==="objection"){ b.taunt=2;
     blog(nm+": <span class='gold'>\"OBJECTION!\"</span> The enemy can't resist arguing — it targets the Tank for 2 turns (-1 dmg)."); b.menu="next"; drawB(); return; }
+  if(id==="roast"){ b.roasted=2;
+    return dealt(a, 2, nm+" ROASTS the enemy — a burn so precise it compiles! <span class='gold'>Its attack drops (2 rounds).</span> <span class='mut'>Blameless, but not painless.</span>"); }
+  if(id==="ultima"){
+    if(!b.revealed && !(b.roasted>0)){ blog(nm+" opens the last page — <span class='gold'>ULTIMA!</span> …<span class='red'>and it breaks on the unexposed core. The setup makes the punchline: FIVE-WHY or ROAST first.</span>"); b.menu="next"; drawB(); return; }
+    if(b.def.regen && b.verified===0){ blog(nm+" opens the last page — <span class='gold'>ULTIMA!</span> …<span class='red'>and the body patches around even THAT. (CONTROL ARM first.)</span>"); b.menu="next"; drawB(); return; }
+    return dealt(a, 10+a.lv, nm+" runs the one legacy command nobody dares delete — <span class='gold'>U · L · T · I · M · A.</span>"); }
+  if(id==="dadjoke"){ living().forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+3); BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
+    blog(nm+" tells a DAD JOKE so bad the enemy physically groans — <span class='num'>every ally +3 HP</span>. Laughing is healing."); b.menu="next"; drawB(); return; }
+  if(id==="sanitize"){
+    if(weakHit){ return dealt(a, 10+a.lv, nm+" SANITIZES the input stream — <span class='gold'>the injection has nowhere left to live!</span>"); }
+    living().forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+2); BFX.push("heal",{slot:slotOf(p.id)}); });
+    if(b.heckled>0) b.heckled=0;
+    sfx("heal"); blog(nm+" SANITIZES the party's inputs — <span class='num'>every ally +2 HP</span>, heckles scrubbed clean."); b.menu="next"; drawB(); return; }
+  if(id==="uptimeaura"){ b.aura=3; sfx("heal"); BFX.push("burst",{color:SKILL_FX.uptimeaura});
+    blog(nm+" raises UPTIME AURA — <span class='gold'>five nines of care.</span> The party regenerates <span class='num'>+2 HP</span> at the end of each round (3 rounds)."); b.menu="next"; drawB(); return; }
   if(id==="promptia"||id==="fliptest"){ const base=(id==="promptia"?3:4)+a.lv;
     return playerHit(a, weakHit?base*2:base, nm+" casts "+sp.name+"!"+(weakHit?" <span class='gold'>Super effective!</span>":"")); }
 }
@@ -1913,6 +2172,9 @@ function resolveTarget(a,pid){ const b=M.b; const t=S.actors[pid]; const which=b
   if(which==="hitl"){ sfx("heal");
     if(t.ko){ t.ko=false; t.hp=12; blog(nm+" invokes HUMAN-IN-THE-LOOP — <span class='gold'>"+tn+" rises!</span> (12 HP)"); }
     else { t.hp=Math.min(t.maxhp,t.hp+12); blog(nm+" invokes HUMAN-IN-THE-LOOP on "+tn+" — <span class='num'>+12 HP</span>."); } }
+  if(which==="hotfix"){ sfx("heal");
+    if(t.ko){ t.ko=false; t.hp=8; blog(nm+" ships a HOTFIX — <span class='gold'>"+tn+" reboots!</span> (8 HP)"); }
+    else { t.hp=Math.min(t.maxhp,t.hp+8); blog(nm+" ships a HOTFIX to "+tn+" — <span class='num'>+8 HP</span>. Reviewed, tested, deployed."); } }
   b.menu="next"; drawB(); }
 function useItem(a,k){ const b=M.b;
   if(k==="handoff"){ const kos=partyActors().filter(p=>p.ko);
@@ -1939,6 +2201,7 @@ function foeAct(standalone){ const b=M.b;
     if(standalone){ blog(msg); endOfRound(b,""); } else { blog(msg); b.menu="next"; drawB(); } return; }
   const mv=pickMove(b);
   let raw=Math.max(1, mv[1]+stanceIn());
+  if(b.roasted>0) raw=Math.max(1, raw-1);   // a roasted enemy swings softer
   if(b.def.grow){ b.growN=Math.min(4,(b.growN||0)+1); raw+=b.growN-1; }
   let t="<b>"+b.def.name+"</b> "+mv[0]+"!"+(b.def.grow&&b.growN>1?" <span class='red'>(grown!)</span>":"");
   if(b.introPending){ t=b.introPending+"<br>"+t; b.introPending=null; }
@@ -1957,7 +2220,8 @@ function foeAct(standalone){ const b=M.b;
   BFX.push("foelunge");
   let comboBroken=false;
   for(const tgt of targets){
-    let dmg=incoming(raw, tgt, ((tgt.id==="refuter"&&b.taunt>0)?1:0) + ((b.def.multi&&matOn("maegis"))?1:0));
+    let dmg=incoming(raw, tgt, ((tgt.id==="refuter"&&b.taunt>0)?1:0) + ((b.def.multi&&matOn("maegis"))?1:0)
+      + ((S.equip.charm==="ch8"&&(b.def.elite||b.def.superboss))?1:0));   // Alignment Charm
     if(tgt.shield){ tgt.shield=false; fxPopAlly(tgt.id,"0","#93c5fd"); t+="<br>🛡 "+MEMBERS[tgt.id].name+"'s ward absorbs it — 0 damage!"; continue; }
     if(dmg>0){
       if(tgt.id==="hero" && tgt.hp-dmg<=0 && S.equip.charm==="ch3" && !b.uptimeUsed){ b.uptimeUsed=true; tgt.hp=1;
@@ -1967,10 +2231,13 @@ function foeAct(standalone){ const b=M.b;
         if(tgt.hp<=0){
           if(S.equip.charm==="ch6" && !b.breakerUsed){ b.breakerUsed=true; tgt.hp=1;
             t+=" <span class='gold'>⚡ The CIRCUIT BREAKER trips — "+MEMBERS[tgt.id].name+" holds at 1 HP! Fail fast, fail once.</span>"; }
-          else { tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>"; } } }
+          else { tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>"; } }
+        if(tgt.id==="papafoxx" && !tgt.ko && tgt.hp>0 && tgt.hp<=tgt.maxhp/4 && !b.foxxOof){ b.foxxOof=true;
+          t+=" <span class='mut'>PAPAFOXX: '"+FOXX_LINES.lowhp+"'</span>"; } }
       sfx("hurt"); }
     else { fxPopAlly(tgt.id,"0","#9fb0d8"); t+="<br>"+MEMBERS[tgt.id].name+" takes no damage."; } }
   if(comboBroken && (b.combo||0)>0){ b.combo=0; fxPopFoe("COMBO BREAK","#9fb0d8"); }
+  if(mv[2]==="heckle"){ b.heckled=2; t+="<br><span class='red'>The whole party is HECKLED — your strikes land softer (2 rounds)!</span>"; }
   document.getElementById("stage").classList.add("fx-shake");
   setTimeout(()=>document.getElementById("stage").classList.remove("fx-shake"),350);
   if(standalone){ endOfRound(b,t); return; }
@@ -1985,6 +2252,10 @@ function endOfRound(b,t){
   if(matOn("mvigor") && !h.ko && h.hp<h.maxhp){ h.hp=Math.min(h.maxhp,h.hp+2); t+=" <span class='mut'>(ERROR BUDGET: HERO +2 HP)</span>"; }
   if(b.verified>0) b.verified--;
   if(b.taunt>0) b.taunt--;
+  if(b.roasted>0) b.roasted--;
+  if(b.heckled>0) b.heckled--;
+  if(b.aura>0){ b.aura--; const L2=living();
+    if(L2.length){ L2.forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+2); }); t+=" <span class='num'>(UPTIME AURA: party +2)</span>"; } }
   // wipe takes precedence over a DOT kill in the same round — no false victories
   if(living().length && b.dot>0){ b.dot--;
     if(b.def.regen && b.verified===0){ t+="<br>The defect fires… <span class='red'>patched by regeneration!</span>"; }
@@ -2012,7 +2283,7 @@ function sparXP(){ const h=hero();
   const xp=S.sparN===0? EN.dummy.xp : Math.max(1, Math.floor(EN.dummy.xp/Math.pow(2,S.sparN)));
   S.sparN++; return xp; }
 function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic("overworld");
-  if(b.key) S.cleared[S.z+":"+b.key]=true;
+  if(b.key && b.id!=="nullbyte") S.cleared[S.z+":"+b.key]=true;   // the hacker's tile clears only when KERNEL MODE falls — lose form 2, refight both
   if(M.roamBattle){ M.roamBattle=false; const rm=M.roam[S.z]; if(rm) rm.alive=false; }
   const zone=Z[S.z];
   let pre=[];
@@ -2020,6 +2291,8 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
   if(b.id==="dummy"){ pre.push("<span class='mut'>KAMOGAWA'S LAW: reps build the fighter — but the same rep pays less each time. (Spar #"+(S.sparN+1)+" this level.)</span>"); }
   if(b.def.elite || b.def.superboss || b.id==="monolith" || /^h\d/.test(b.id)){ pre.push(mttxCard(b)); }
   const dropTxt=grantDrops(b.id); if(dropTxt) pre.push(dropTxt);
+  if(S.party.includes("papafoxx") && S.actors.papafoxx && !S.actors.papafoxx.ko && b.id!=="dummy"){
+    S.foxxWin=(S.foxxWin||0)+1; pre.push("<span class='mut'>"+FOXX_LINES.victory[S.foxxWin%FOXX_LINES.victory.length]+"</span>"); }
   const mat=DISCOVER[b.id];
   if(mat && !(S.items[mat]>0) && !matOn(mat)){ S.items[mat]=1; sfx("level");
     pre.push("💠 <span class='gold'>MATERIA DISCOVERED — "+IT[mat].name+"</span><br><span class='mut'>A checkpoint orb: a frozen training run of the engineers who came before. Slot it in (MENU → EQUIP) and their weights become yours.</span>"); }
@@ -2034,6 +2307,17 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
       if(S.party.length>=4 && S.stage<2){ S.stage=2; chapterCard(2); }
       say(rec.lines, ()=>{ saveGame(0); if(chainNext) runChain(chainNext); }); return; }
     if(chainNext){ saveGame(0); runChain(chainNext); return; }
+    if(b.id==="nullroot"){ say([
+      "The kernel panics. ROOT@NULLBYTE dissolves into harmless, well-documented log lines.",
+      "The cage door doesn't burst — it UNLOCKS. She's already picked it. She was waiting so you'd get the closing keynote.",
+      "SHARONDUH: 'You came. Through three zones of malware. For me.' …She smiles like a green build at 5 PM on a Friday.",
+      "SHARONDUH: 'I read every diff you shipped on the way in. Nice rollback in the Bastion, by the way. Marry— I MEAN. Merge me. I MEAN—'",
+      "You both laugh. The Dark NOC's alarms, for the first time in recorded history, stay quiet.",
+      "💙 SHARONDUH the White Mage joins the party! 'Super software engineer, healing hands, five nines of heart. Someone has to keep you all alive while you're being heroes.'",
+      "★ SHARONDUH carries HOTFIX and SANITIZE — learns UPTIME AURA at LV 5. Her limit break is FIVE NINES: everyone gets back up.",
+      "SHARONDUH: 'Also — the things he was building back there? Machine minds optimizing for the WRONG objective. This isn't over. I'll show you the frontier… it needs engineers exactly like you.'",
+      "⚠ New signals detected — PROMPT INJECTION (Bastion) · THE HALLUCINATION (the Wire) · and something vast waking in the NOC: THE MISALIGNED. <b>The AI arc begins.</b>"],
+      ()=>{ recruitSharon(); saveGame(0); render(); }); return; }
     if(b.id==="unknown"){ say(["THE UNKNOWN UNKNOWN dissolves into mapped, documented, boring KNOWN territory.","THE GUIDE: 'You beat the incident nobody had had yet. That's not response anymore. That's readiness.'","🏆 The resolution screen opens — your share card now carries the ☆."], ()=>{ saveGame(0); ending(); }); return; }
     if(b.id==="patient0"){ say([
       "PATIENT ZERO gutters out — and for a moment you see it clearly: not a monster. A postmortem meeting, 1999, and a room choosing a NAME instead of a CAUSE.",
@@ -2101,6 +2385,7 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
    "<button data-m='stats'>STATS &amp; GEAR</button>"+
    "<button data-m='equip'>EQUIP HERO GEAR</button>"+
    "<button data-m='items'>ITEMS</button>"+
+   "<button data-m='awaken'>☯ REAWAKEN</button>"+
    "<button data-m='save'>SAVE GAME</button>"+
    "<button data-m='settings'>SETTINGS</button>"+
    "<button data-m='close'>CLOSE (Esc)</button></div>";
@@ -2108,6 +2393,16 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
   box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ sfx("blip"); menuSub(btn.dataset.m); }); }
 function menuSub(mn){
   if(mn==="close"){ ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); return; }
+  if(mn==="awaken"){ let h="<b class='gold'>☯ REAWAKEN</b><br><span class='mut'>LV 10+ only. Return to LV 1 with permanently higher base stats (+2 HP, +2 MP, +1 ATK per awakening), an Ω limit break, and a harder edge on every strike. The reps remain.</span><div class='choices'>";
+    partyActors().forEach(a2=>{ const w=awakOf(a2.id);
+      h+= a2.lv>=10 ? "<button data-aw='"+a2.id+"'>☯ "+MEMBERS[a2.id].name+" — LV "+a2.lv+" → 1"+(w?" (Ω×"+w+")":"")+"</button>"
+                    : "<button disabled>"+MEMBERS[a2.id].name+" — LV "+a2.lv+"/10"+(w?" (Ω×"+w+")":"")+"</button>"; });
+    h+="<button data-b='1'>◀ BACK</button></div>"; box.innerHTML=h;
+    box.querySelectorAll("[data-aw]").forEach(bx=>bx.onclick=()=>{ const id=bx.dataset.aw;
+      ask("Reawaken "+MEMBERS[id].name+"? Level resets to 1 — the gains are forever.", ["☯ Reawaken","Not yet"], i=>{
+        if(i===0){ reawaken(id); saveGame(0); toast("☯ "+MEMBERS[id].name+" reawakens — Ω×"+awakOf(id)); }
+        M.state="dialog"; menuSub("awaken"); }); });
+    box.querySelector("[data-b]").onclick=()=>menuHome(); return; }
   if(mn==="stats"){ const a=S.actors.hero; const st=statsOf(a);
     let h="<b class='gold'>STATS &amp; GEAR</b> <span class='mut'>— "+clsOf(a)+" L"+a.lv+"</span>"+
      "<div style='display:flex;gap:14px;align-items:flex-start;margin-top:6px'>"+
@@ -2164,10 +2459,12 @@ function menuSub(mn){
   if(mn==="settings"){ let h="<b class='gold'>SETTINGS</b><div class='choices'>"+
     "<button data-st='snd'>Sound FX: "+(AU.on?"ON":"OFF")+"</button>"+
     "<button data-st='mus'>Music: "+(MUS.on?"ON":"OFF")+"</button>"+
+    "<button data-st='spd'>⏱ Speedrun timer: "+(S.timer?"ON":"OFF")+"</button>"+
     "<span class='mut'>Motion honors your system's reduced-motion preference.</span>"+
     "<span class='mut'>Seed this run: #"+S.seed+"</span>"+
     "<button data-b='1'>◀ BACK</button></div>"; box.innerHTML=h;
     box.querySelectorAll("[data-st]").forEach(bx=>bx.onclick=()=>{ if(bx.dataset.st==="snd"){ AU.on=!AU.on; try{ localStorage.setItem("aiquest_snd",AU.on?"on":"off"); }catch(e){} sndLabel(); }
+      else if(bx.dataset.st==="spd"){ S.timer=!S.timer; saveGame(0); }
       else setMusic(!MUS.on);
       menuSub("settings"); });
     box.querySelector("[data-b]").onclick=()=>menuHome(); return; } }
@@ -2201,7 +2498,7 @@ function ending(){ S.won=true; S.stage=4; tickClock();
   if(better){ best={score:score, grade:grade, ms:S.playMs};
     try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
   const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
-  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · five classes, dual techs, time travel — the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
+  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · seven classes, dual techs, time travel, a rescue inside the internet — the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
   saveGame(0); ov.hidden=false; ov.classList.remove("center"); M.state="end"; sfx("level");
   box.innerHTML="<b class='gold'>👑 INCIDENT RESOLVED — MTTx: LEGENDARY</b>"+
   "<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
@@ -2284,8 +2581,16 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
              "(Defeat it to learn the truth, and to claim the ROOT CERT relic.)"], ()=>saveGame(0)); return; }
       render(); say(["⏳ The rift hums. 1999 again — the past never fully closes."]); return; }
     else { S.z=0; S.x=6; S.y=5; render(); say(["The rift returns you to the present. The village hums on — governed, this time."]); return; } }
+  if(chr==="I"){ const oz=S.z; delete M.roam[oz]; M.gathered={};
+    if(S.z===0){ S.z=9; S.x=1; S.y=5;
+      if(!S.netSeen){ S.netSeen=true; render(); sfx("level");
+        say(["The GATEWAY swallows you whole. Everything is packets. The ground hums at 60Hz.",
+             "🌐 THE WIRE — you are INSIDE the internet. Somewhere past the Firewall Bastion, in the Dark NOC, NULLBYTE is holding her.",
+             "(Fight east. Read everything signed '— S.' — she's been leaving you the route.)"], ()=>saveGame(0)); return; }
+      render(); say(["🌐 The gateway hums. Back on the Wire."]); return; }
+    else { S.z=0; S.x=8; S.y=5; render(); say(["You jack out. The village air tastes like uptime."]); return; } }
   if(chr==="B" && zone.battles && zone.battles[key] && !S.cleared[S.z+":"+key]){ battleTransition(()=>startBattle(zone.battles[key], key)); return; }
-  if(chr==="E" && zone.elites && zone.elites[key] && !S.cleared[S.z+":"+key]){ battleTransition(()=>startBattle(zone.elites[key], key)); return; }
+  if(chr==="E" && zone.elites && zone.elites[key] && !S.cleared[S.z+":"+key]){ battleTransition(()=>startBattle(zone.elites[key], key, zone.chains && zone.chains[key])); return; }
   if(zone.enc && chr===zone.enc.tile){
     if(M.encGuard>0){ M.encGuard--; }
     else if(rng()<zone.enc.rate){ M.encGuard=4;
@@ -2318,6 +2623,14 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
     if(npc && npc.armorer){ ask("SABLE: 'Fitting or philosophy, hon?'", ["🛡 Armor fitting","💬 Chat"], i=>{
         if(i===0) openArmory(); else say(npc.lines); }); return; }
     if(npc){ if(npc.fight){ ask("STAGING DUMMY: 'Hit me! It's what staging is for.' Spar for XP? (Ippo rule: first rep each level pays full — every repeat pays less. No tokens; reps aren't loot.)", ["Spar!","Not now"], i=>{ if(i===0) startBattle("dummy",null); }); return; }
+      if(npc.sharonCage && S.haxWon){ say(["The cage hangs open and empty, its firewall bars powered down for good.","She walks beside you now. Somewhere behind you, she's already refactoring your marching order."]); return; }
+      if(npc.name==="THE GUIDE" && S.won && !S.haxKnown){ say([
+        "THE GUIDE: 'Kid. The postmortem turned up something that should not exist. The SEV-1 had a SIGNATURE. Someone CAUSED it.'",
+        "THE GUIDE: 'A hacker. Handle: NULLBYTE. And there's more — all through the incident, someone kept patching from INSIDE the blast radius. Commits signed only: — S.'",
+        "THE GUIDE: 'Her name is Sharonduh. Super software engineer — healing hands on a keyboard. NULLBYTE took her when the Hydra fell. She was the only one who could undo his work.'",
+        "THE GUIDE: 'A GATEWAY hums in the square now — it goes INSIDE the internet. Three zones deep: the Wire, the Firewall Bastion, and the Dark NOC where he's holding her.'",
+        "THE GUIDE: 'Bring her home, kid. And read everything she left you on the way in. Engineers like that don't leave breadcrumbs by accident.'"],
+        ()=>{ S.haxKnown=true; saveGame(0); render(); }); return; }
       if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; chapterCard(1); saveGame(0); render(); }); return; }
       say(npc.lines); return; }
     if(zone.signs && zone.signs[key]){ say([zone.signs[key]]); return; }
@@ -2325,7 +2638,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
     if(zone.shop===key){ enterInterior(7); return; }
     if(zone.armory===key){ enterInterior(8); return; }
     const chr0=tileAt(zone,x,y);
-    if(chr0==="="){ if(S.z===6 && x===7){ say(["Zzz... roll it back... zzz...","...FOR THE LOVE OF UPTIME ROLL IT BACK... zzz.","(An off-duty SRE, processing last week's deploy. Best not to wake him.)"]); return; }
+    if(chr0==="="){ if(S.z===6 && x===7){ foxxBed(); return; }
       ask("A clean, counted bed. Rest here? (saves your progress)", ["Rest & save","Not yet"], i=>{ if(i===0){
         partyActors().forEach(a=>{ a.ko=false; a.hp=a.maxhp; a.mp=a.maxmp; }); saveGame(0); render();
         say(["♪ The whole party rests. HP/MP restored. Game saved.",
@@ -2353,7 +2666,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.classList.add("center");
   const auto=loadSlot(0);
   let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>— SRE EDITION —</div>"+
-   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999<br>the final boss is a SEV-1 · balance tuned on 2,000,000 simulated battles</div>"+
+   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 16,000,000 simulated battles</div>"+
    "<div class='choices' style='max-width:360px;margin:0 auto;text-align:left'>";
   if(auto) h+="<button data-t='cont'>▶ CONTINUE (HERO LV "+auto.actors.hero.lv+" · "+Z[auto.z].name+")</button>";
   h+="<button data-t='new'>✦ NEW ADVENTURE</button>";
@@ -2524,7 +2837,7 @@ const TESTS = [
       && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
  ["shop catalog integrity (16 items)", ()=>SHOP_STOCK.length===16 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
- ["5 classes, 14 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===5 && Object.keys(SP).length===14
+ ["7 classes, 20 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===7 && Object.keys(SP).length===20
     && EN.monolith.hp===165 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
     return s.length===n && s.every(r=>r.length===n); })],
@@ -2556,15 +2869,15 @@ const TESTS = [
     S=sb; return closed && open; }],
  ["era bestiary + roam pools reference real enemies", ()=>Z.every(z=>(!z.roam || z.roam.pool.every(id=>EN[id])))
     && EN.faxdaemon.hp===42 && EN.cobol.regen===true && EN.patient0.hidden===true && Z[5].name.includes("1999")],
- ["completion census: 14 lootables, fresh run has none", ()=>{ const sb=S; S=NEWS();
-    const r=allLootDone(); S=sb; return r.need===14 && r.got===0 && r.done===false; }],
+ ["completion census: 21 lootables, fresh run has none", ()=>{ const sb=S; S=NEWS();
+    const r=allLootDone(); S=sb; return r.need===21 && r.got===0 && r.done===false; }],
  ["roamer walkability respects walls and NPCs", ()=>{ const ok1=!roamWalkable(Z[0],0,0); // tree ring
     const ok2=!roamWalkable(Z[0],6,2); // THE GUIDE stands here
     const ok3=roamWalkable(Z[1],2,1); // open grass
     return ok1 && ok2 && ok3; }],
  // ---- CHRONO REMASTER (written RED-first) ----
- ["battle formation: 5 diagonal slots inside the scene", ()=>{ let ok=true, px=-1, py=-1;
-    for(let i=0;i<5;i++){ const p=BPOS(i);
+ ["battle formation: 7 diagonal slots inside the scene", ()=>{ let ok=true, px=-1, py=-1;
+    for(let i=0;i<7;i++){ const p=BPOS(i);
       if(!(p.x>px && p.y>py)) ok=false; px=p.x; py=p.y;
       if(p.x<200 || p.x+48>384 || p.y<0 || p.y+48>176) ok=false; }
     return ok; }],
@@ -3007,7 +3320,7 @@ const TESTS = [
     M.state="test"; S=sb; return z8 && inside && label; }],
  ["XP progress is a readable fraction", ()=>{ const a=mkActor("hero",1); a.xp=5;
     const half=Math.abs(xpPct(a)-0.5)<1e-9;
-    const b2=mkActor("hero",8); const capped=xpPct(b2)===1;
+    const b2=mkActor("hero",50); const capped=xpPct(b2)===1;   // cap raised 8 → 50 (reawakening era)
     return half && capped; }],
  ["first strike: engaging a foe yourself lands a free opening hit and starts the combo", ()=>{ const sb=S; S=NEWS();
     const st=window.setTimeout; window.setTimeout=()=>0;
@@ -3033,6 +3346,216 @@ const TESTS = [
     M.state="explore"; btn.click();
     const ok=/INVENTORY/.test(document.getElementById("box").textContent);
     M.state="test"; ov.hidden=true; S=sb; return !!btn && ok; }],
+ // ---- PAPAFOXX, the fifth companion (written RED-first) ----
+ ["PAPAFOXX: a sixth member — Wizard Comedian with the rolled stats", ()=>{
+    const m=MEMBERS.papafoxx;
+    if(!m || m.cls!=="Wizard Comedian" || m.spd!==6) return false;
+    if(!(m.base.hp===11 && m.base.mp===8 && m.base.atk===2)) return false;
+    if(!(m.grow.hp===3 && m.grow.mp===2 && m.grow.atk===1)) return false;
+    const a1=mkActor("papafoxx",1), a5=mkActor("papafoxx",5);
+    return a1.sk.includes("roast") && a1.sk.includes("ultima") && !a1.sk.includes("dadjoke") && a5.sk.includes("dadjoke"); }],
+ ["ULTIMA needs its setup: blocked cold, unleashed by ROAST, never beats unverified regen", ()=>{ const sb=S; S=NEWS();
+    S.party=["papafoxx"]; let f=mkActor("papafoxx",3); S.actors.papafoxx=f;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.golem, hp:46, maxhp:46, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
+    castSkill(f,"ultima");
+    const cold=M.b.hp===46;
+    f=mkActor("papafoxx",3); S.actors.papafoxx=f;
+    M.b={ def:EN.golem, hp:46, maxhp:46, roasted:1, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
+    castSkill(f,"ultima");
+    const hit=M.b.hp<=46-(10+3) && f.mp===f.maxmp-8;
+    f=mkActor("papafoxx",3); S.actors.papafoxx=f;
+    M.b={ def:EN.cobol, hp:58, maxhp:58, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
+    castSkill(f,"ultima");
+    const blocked=M.b.hp===58;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return cold && hit && blocked; }],
+ ["ROAST lands through anything and dulls the enemy's attack for two rounds", ()=>{ const sb=S; S=NEWS();
+    S.party=["papafoxx"]; const f=mkActor("papafoxx",1); S.actors.papafoxx=f;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    const mkFoe=()=>({ def:{name:"T", spr:"slime", atk:5, moves:[["swings",5]], spd:4}, hp:99, maxhp:99, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 });
+    M.b=mkFoe(); castSkill(f,"roast");
+    const landed=M.b.hp<99 && M.b.roasted===2;
+    f.ko=true; const h=S.actors.hero; const hp0=h.hp;
+    foeAct(true); const roastedDmg=hp0-h.hp;
+    M.b=mkFoe(); h.hp=hp0; foeAct(true); const plainDmg=hp0-h.hp;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb;
+    return landed && roastedDmg===plainDmg-1; }],
+ ["DAD JOKE: so bad the whole party heals", ()=>{ const sb=S; S=NEWS();
+    S.party=["wiki","papafoxx"]; S.actors.wiki=mkActor("wiki",1); const f=mkActor("papafoxx",5); S.actors.papafoxx=f;
+    S.actors.hero.hp=3; S.actors.wiki.hp=2;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:24, maxhp:24, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:2, rounds:0, queue:[], qi:0 };
+    castSkill(f,"dadjoke");
+    const ok=S.actors.hero.hp===6 && S.actors.wiki.hp===5;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return ok; }],
+ ["COMIC RELIEF: a real performance (MP spent) heals the room — defend-stalling heals no one", ()=>{ const sb=S; S=NEWS();
+    S.party=["papafoxx"]; const f=mkActor("papafoxx",1); S.actors.papafoxx=f;
+    S.actors.hero.hp=5;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:24, maxhp:24, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0,
+      queue:[{t:"a",id:"papafoxx",spd:6},{t:"a",id:"hero",spd:5}], qi:0 };
+    castSkill(f,"roast");
+    nextUnit();
+    const healed=S.actors.hero.hp===6 && f.acted===true;
+    f.acted=false; M.b.qi=0; M.b.foxxRelief=false;
+    nextUnit();
+    const noFreebie=S.actors.hero.hp===6;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return healed && noFreebie; }],
+ ["THE HECKLER: fought at the inn's third bed, HECKLE AoE, recruited after, drops nothing (he's a dad)", ()=>{
+    const e=EN.papafoxx;
+    if(!e || e.weak!=="fliptest" || e.spd!==6 || e.tok!==0 || e.ai!=="smart") return false;
+    if(!e.moves.some(m=>m[2]==="heckle")) return false;
+    const rec=Z[6].recruitAfter && Z[6].recruitAfter["7,1"];
+    const spriteOk=SPR.foxx && SPR.foxx.length===16 && SPR.foxx.some(r=>r.includes("y")) && SPR.foxx.some(r=>r.includes("s"));
+    return !!rec && rec.id==="papafoxx" && spriteOk; }],
+ ["the third bed gates on the four NAMED companions: snoring, then the challenge, then a companion", ()=>{ const sb=S; S=NEWS();
+    const s1=foxxBedState()==="sleeping";
+    S.party=["sentinel","wiki","mender"];
+    const s2=foxxBedState()==="sleeping";
+    S.party=["sentinel","wiki","mender","refuter"];
+    const s3=foxxBedState()==="challenge";
+    S.party.push("papafoxx");
+    const s4=foxxBedState()==="companion";
+    S=sb; return s1 && s2 && s3 && s4; }],
+ ["DEEZ NUTS BAAAHHH: the limit break wounds the foe and heals the room", ()=>{ const sb=S; S=NEWS();
+    if(!LIMITS.papafoxx || !SKILL_FX.limit_papafoxx) return false;
+    if(!DUAL.setuppunchline || DUAL.setuppunchline.a!=="wiki" || DUAL.setuppunchline.b!=="papafoxx" || !SKILL_FX.setuppunchline) return false;
+    S.party=["papafoxx"]; const f=mkActor("papafoxx",1); S.actors.papafoxx=f; f.lb=LB_MAX;
+    S.actors.hero.hp=1;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:24, maxhp:24, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
+    castLimit(f);
+    const ok=M.b.hp<24 && S.actors.hero.hp===6 && f.lb===0;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return ok; }],
+ ["FOXX material: ten rotating jokes, quotes wired, all portfolio-clean grawlix", ()=>{ const sb=S; S=NEWS();
+    if(!(FOXX_JOKES.length>=10)) return false;
+    const j1=foxxJokeLine(), j2=foxxJokeLine();
+    const rotates=j1!==j2 && S.foxxJoke===2;
+    const pool=FOXX_JOKES.join(" ")+" "+FOXX_LINES.victory.join(" ")+" "+FOXX_LINES.lowhp+" "+FOXX_LINES.recruit.join(" ");
+    const clean=!/\b(fuck|bitch|shit)\b/i.test(pool);
+    S=sb; return rotates && clean && FOXX_LINES.victory.length>=3; }],
+ // ---- THE HEROINE PROTOCOL: Sharonduh, the internet arc, reawakening, the timer (written RED-first) ----
+ ["level cap 50: curve extended, first 8 thresholds preserved, strictly rising", ()=>{
+    if(XPCURVE.length!==50) return false;
+    const first8=[0,10,25,45,70,100,140,190].every((v,i)=>XPCURVE[i]===v);
+    let rising=true; for(let i=1;i<50;i++) if(XPCURVE[i]<=XPCURVE[i-1]) rising=false;
+    return first8 && rising; }],
+ ["REAWAKEN: LV10+ resets to 1 with permanent gains; the unready are refused", ()=>{ const sb=S; S=NEWS();
+    const before=mkActor("hero",1);
+    S.actors.hero=mkActor("hero",10);
+    const did=reawaken("hero");
+    const a=S.actors.hero;
+    const gained=did===true && a.lv===1 && a.xp===0 && a.maxhp===before.maxhp+2 && a.maxmp===before.maxmp+2 && a.atk===before.atk+1 && S.awak.hero===1;
+    S.actors.wiki=mkActor("wiki",9); S.party=["wiki"];
+    const refused=reawaken("wiki")===false;
+    S=sb; return gained && refused; }],
+ ["Ω LIMIT: an awakened hero's overdrive hits harder", ()=>{ const sb=S; S=NEWS();
+    S.awak={hero:1}; const h=S.actors.hero; h.lb=LB_MAX;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:99, maxhp:99, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:0, rounds:0, queue:[], qi:0 };
+    castLimit(h);
+    const ok=(99-M.b.hp)>=18;   // 10 base +1 lv +6 omega +1 awakened edge, before crit/combo bonuses
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return ok; }],
+ ["SHARONDUH: White Mage, healer's kit, back row, bright", ()=>{
+    const m=MEMBERS.sharon;
+    if(!m || m.cls!=="White Mage" || m.spr!=="sharon") return false;
+    const a1=mkActor("sharon",1), a5=mkActor("sharon",5);
+    return a1.sk.includes("hotfix") && a1.sk.includes("sanitize") && !a1.sk.includes("uptimeaura")
+      && a5.sk.includes("uptimeaura") && rowOf(a1)==="back" && a1.maxmp>=12; }],
+ ["HOTFIX: targeted heal 8 — or a revive at 8", ()=>{ const sb=S; S=NEWS();
+    S.party=["sharon","wiki"]; const sh=mkActor("sharon",1); S.actors.sharon=sh; S.actors.wiki=mkActor("wiki",1);
+    S.actors.wiki.ko=true; S.actors.wiki.hp=0; S.actors.hero.hp=1;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:24, maxhp:24, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0, targeting:{skill:"hotfix", ko:false, any:true} };
+    resolveTarget(sh,"hero"); const healed=S.actors.hero.hp===9;
+    M.b.targeting={skill:"hotfix", ko:false, any:true};
+    resolveTarget(sh,"wiki"); const revived=!S.actors.wiki.ko && S.actors.wiki.hp===8;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return healed && revived; }],
+ ["SANITIZE: heals and cleanses the party — but DESTROYS injections", ()=>{ const sb=S; S=NEWS();
+    S.party=["sharon"]; let sh=mkActor("sharon",1); S.actors.sharon=sh;
+    S.actors.hero.hp=5;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:24, maxhp:24, heckled:2, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
+    castSkill(sh,"sanitize");
+    const support=S.actors.hero.hp===7 && M.b.heckled===0 && M.b.hp===24;
+    sh=mkActor("sharon",3); S.actors.sharon=sh;
+    M.b={ def:EN.promptinj, hp:150, maxhp:150, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
+    castSkill(sh,"sanitize");
+    const nuked=M.b.hp<=150-(10+3);
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return support && nuked; }],
+ ["UPTIME AURA: the party regenerates at end of round while the aura holds", ()=>{ const sb=S; S=NEWS();
+    S.party=["sharon"]; const sh=mkActor("sharon",5); S.actors.sharon=sh;
+    S.actors.hero.hp=3;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:24, maxhp:24, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[{t:"a",id:"hero",spd:5}], qi:0 };
+    castSkill(sh,"uptimeaura");
+    const armed=M.b.aura===3;
+    endOfRound(M.b,"");
+    const ticked=S.actors.hero.hp>=5 && M.b.aura===2;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return armed && ticked; }],
+ ["FIVE NINES: her limit raises the fallen and heals the living", ()=>{ const sb=S; S=NEWS();
+    if(!LIMITS.sharon || !SKILL_FX.limit_sharon) return false;
+    S.party=["sharon","wiki"]; const sh=mkActor("sharon",1); S.actors.sharon=sh; sh.lb=LB_MAX;
+    S.actors.wiki=mkActor("wiki",1); S.actors.wiki.ko=true; S.actors.wiki.hp=0;
+    S.actors.hero.hp=1;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:24, maxhp:24, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
+    castLimit(sh);
+    const ok=!S.actors.wiki.ko && S.actors.wiki.hp===Math.ceil(S.actors.wiki.maxhp/2) && S.actors.hero.hp===7 && sh.lb===0;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return ok; }],
+ ["PAIR PROGRAMMING: the hero and Sharonduh, one keyboard, damage plus care", ()=>{
+    const du=DUAL.pairprogramming;
+    return !!du && du.a==="hero" && du.b==="sharon" && !!SKILL_FX.pairprogramming; }],
+ ["the internet: three zones wired gateway → Wire → Bastion → NOC and back", ()=>{ const sb=S; S=NEWS();
+    const names=/Wire/i.test(Z[9].name) && /Bastion|Firewall/i.test(Z[10].name) && /NOC/i.test(Z[11].name);
+    const wiring=Z[9].exits.right===10 && Z[10].exits.left===9 && Z[10].exits.right===11 && Z[11].exits.left===10;
+    const portalBack=Z[9].maps.some(r=>r.includes("I"));
+    S.z=0; S.haxKnown=false;
+    const closed=tileAt(Z[0],8,6)===".";
+    S.haxKnown=true;
+    const open=tileAt(Z[0],8,6)==="I";
+    S=sb; return names && wiring && portalBack && closed && open; }],
+ ["the hacker's bestiary: NULLBYTE chains to KERNEL MODE; the AI arc waits beyond", ()=>{
+    const nb=EN.nullbyte, nr=EN.nullroot, zd=EN.zeroday, pi=EN.promptinj, ha=EN.halluc, mi=EN.misaligned;
+    if(!nb || nb.weak!=="contexa" || !nb.elite) return false;
+    if(!nr || !nr.multi || !nr.grow) return false;
+    if(!zd || !zd.hidden || !zd.elite) return false;
+    if(!pi || pi.weak!=="sanitize") return false;
+    if(!ha || !ha.foggy || !ha.regen || ha.weak!=="contexa") return false;
+    if(!mi || !mi.superboss || !mi.multi3) return false;
+    return Z[11].chains && Array.isArray(Z[11].chains["5,1"]) && Z[11].chains["5,1"][0].en==="nullroot"; }],
+ ["the rescue: Sharonduh joins at the hero's level and the AI arc opens", ()=>{ const sb=S; S=NEWS();
+    S.actors.hero=mkActor("hero",7);
+    recruitSharon();
+    const ok=S.party.includes("sharon") && S.actors.sharon && S.actors.sharon.lv===7 && S.haxWon===true && S.cleared["11:5,1"]===true;
+    S=sb; return ok; }],
+ ["love, versioned: her commit notes mark the road in", ()=>{
+    const texts=[9,10,11].flatMap(zi=>Object.values(Z[zi].loot||{})).map(l=>l.text);
+    return texts.filter(t=>/— S\./.test(t)).length>=4; }],
+ ["the speedrun clock: formatted, off by default, on the HUD", ()=>{
+    const fmt=fmtTime(65000)==="1:05" && fmtTime(0)==="0:00" && fmtTime(600000)==="10:00";
+    return fmt && NEWS().timer===false && !!document.getElementById("sptimer"); }],
+ ["save v9: new key, migration hop from v8, defaults land", ()=>{
+    if(SAVE_VERSION!==9 || saveKey(0)!=="aiquest9_auto") return false;
+    const s=migrateV8({v:8, tokens:31, party:["sentinel"], actors:{hero:mkActor("hero",4), sentinel:mkActor("sentinel",4)}, won:true});
+    return s.v===9 && s.tokens===31 && s.awak && typeof s.awak==="object" && s.foxxJoke===0 && s.timer===false && s.haxKnown===false; }],
+ ["the new faces render: Sharonduh in white, the Hacker in his hood", ()=>{
+    return SPR.sharon && SPR.sharon.length===16 && SPR.sharon.some(r=>r.includes("w"))
+      && SPR.hax && SPR.hax.length===16 && SPR.hax.some(r=>r.includes("d")); }],
+ ["the frontier's rewards: Eval Harness sharpens, Alignment shields", ()=>{ const sb=S; S=NEWS();
+    if(!IT.ch7 || !IT.ch8 || DISCOVER.halluc!=="ch7" || DISCOVER.promptinj!=="ch8") return false;
+    const base=critOf(S.actors.hero);
+    S.items.ch7=1; S.equip.charm="ch7";
+    const sharpened=critOf(S.actors.hero)>base+0.04;
+    S.equip.charm="ch8";
+    S.party=[]; S.actors.hero.hp=12;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:{name:"T", spr:"slime", atk:5, elite:true, moves:[["swings",5]], spd:4}, hp:99, maxhp:99, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:0, rounds:0, queue:[], qi:0 };
+    const hp0=S.actors.hero.hp; foeAct(true); const withCharm=hp0-S.actors.hero.hp;
+    S.equip.charm=null; S.actors.hero.hp=12;
+    M.b={ def:{name:"T", spr:"slime", atk:5, elite:true, moves:[["swings",5]], spd:4}, hp:99, maxhp:99, revealed:false, focused:false, verified:0, taunt:0, dot:0, menu:"main", turn:0, rounds:0, queue:[], qi:0 };
+    foeAct(true); const bare=hp0-S.actors.hero.hp;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return sharpened && withCharm===bare-1; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -3055,9 +3578,15 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   bankDepositAll, bankWithdrawAll, dropInventory, graveReclaim, graveExpired, INTRO, introAdvance, ITICON, migrateV7,
   CHAPTERS, chapterCard, WVIS, navBattle, enterInterior, drawWeaponOverlay, fxAbility,
   buildQueue, nextUnit, foeAct, unitSpd, rowOf, fightBase, labelsFor, isEnraged,
-  comboBonus, xpPct, spdOf, statsOf, ARMOR_STOCK, AVIS, drawArmorOverlay, openArmory };
+  comboBonus, xpPct, spdOf, statsOf, ARMOR_STOCK, AVIS, drawArmorOverlay, openArmory,
+  FOXX_JOKES, FOXX_LINES, foxxJokeLine, foxxBedState, LB_MAX,
+  reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE };
 tryMigrate();
 render();
+setInterval(()=>{ const el=document.getElementById("sptimer"); if(!el) return;   // speedrun clock (opt-in, SETTINGS)
+  if(S.timer && (M.state==="explore"||M.state==="battle"||M.state==="dialog")){
+    el.hidden=false; el.textContent="⏱ "+fmtTime(S.playMs+(Date.now()-(M.resumeAt||Date.now()))); }
+  else el.hidden=true; },1000);
 if(new URLSearchParams(location.search).get("test")==="1") runTests();
 else titleScreen();
 </script>
