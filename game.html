@@ -768,12 +768,13 @@ const MEMBERS = {
  // Spirit rolled 8 (his worst): his heals are FLAT, joke-powered, never spirit-scaled — the healing is the friends we laughed at along the way.
  papafoxx:{ name:"PAPAFOXX", cls:"Wizard Comedian", spr:"foxx", spd:6, base:{hp:11,mp:8,atk:2}, grow:{hp:3,mp:2,atk:1},
    skills:{1:["roast","ultima"],5:["dadjoke"]} },
- sharon:{ name:"SHARONDUH", cls:"White Mage", spr:"sharon", spd:5, base:{hp:10,mp:12,atk:2}, grow:{hp:2,mp:3,atk:1},
-   skills:{1:["hotfix","sanitize"],5:["uptimeaura"]} } };
+ // Sharonduh reworked (LZB 2026-08-20): a White Mage who ran out of patience — fast, front line, fists AND healing hands
+ sharon:{ name:"SHARONDUH", cls:"White Mage", spr:"sharon", spd:7, base:{hp:10,mp:10,atk:4}, grow:{hp:2,mp:2,atk:1},
+   skills:{1:["failoverfist","hotfix","sanitize"],5:["uptimeaura"]} } };
 function mkActor(id, lv){ const m=MEMBERS[id];
   const a={ id, lv, xp:XPCURVE[lv-1]||0,
     maxhp:m.base.hp+m.grow.hp*(lv-1), maxmp:m.base.mp+m.grow.mp*(lv-1), atk:m.base.atk+m.grow.atk*(lv-1),
-    spd:m.spd||4, row:(id==="wiki"||id==="mender"||id==="papafoxx"||id==="sharon")?"back":"front",
+    spd:m.spd||4, row:(id==="wiki"||id==="mender"||id==="papafoxx")?"back":"front",
     ko:false, sk:[], lb:0 };
   a.hp=a.maxhp; a.mp=a.maxmp;
   for(let L=1;L<=lv;L++) (m.skills[L]||[]).forEach(s=>{ if(!a.sk.includes(s)) a.sk.push(s); });
@@ -798,6 +799,7 @@ const SP = {
  roast:{ name:"ROAST", mp:2, d:"a burn so precise it compiles: 2 dmg through anything, enemy ATK -1 for 2 rounds. Blameless, but not painless." },
  ultima:{ name:"ULTIMA", mp:8, d:"the legacy runbook command nobody dares delete: 10+LV. Needs the core exposed — or ROASTED. The setup makes the punchline." },
  dadjoke:{ name:"DAD JOKE", mp:3, d:"so bad the enemy groans: every living ally +3 HP. Laughing is healing." },
+ failoverfist:{ name:"FAILOVER FIST", mp:2, d:"a fighting medic's answer: 3+LV damage, and the weakest ally is patched +2 on the follow-through." },
  hotfix:{ name:"HOTFIX", mp:3, d:"ship the fix that matters: heal an ally 8 — or reboot a fallen ally at 8 HP." },
  sanitize:{ name:"SANITIZE", mp:4, d:"validate every input: party +2 HP, heckles scrubbed — but INJECTIONS take 10+LV." },
  uptimeaura:{ name:"UPTIME AURA", mp:6, d:"five nines of care: the party regenerates +2 HP at end of round, 3 rounds." } };
@@ -983,7 +985,7 @@ const ENSPD={ dummy:1, vague:2, gremlin:8, creep:3, golem:3, wyrm:6, leak:4, cho
  packetshark:7, botnet:5, phish:4, ransomworm:5, zeroday:8, nullbyte:6, nullroot:7, promptinj:6, halluc:5, misaligned:8 };
 Object.keys(ENSPD).forEach(k=>{ if(EN[k]) EN[k].spd=ENSPD[k]; });
 function unitSpd(def){ return def.spd||4; }
-function rowOf(a){ return a.row || ((a.id==="wiki"||a.id==="mender"||a.id==="papafoxx"||a.id==="sharon")?"back":"front"); }
+function rowOf(a){ return a.row || ((a.id==="wiki"||a.id==="mender"||a.id==="papafoxx")?"back":"front"); }
 function fightBase(a){ const cat=(a.id==="hero" && S.equip.weapon)? WVIS[S.equip.weapon] : null;
   const exempt = cat==="bow" || cat==="staff";   // ranged and casting implements strike true from the back line
   return Math.max(1, atkOf(a) - ((rowOf(a)==="back" && !exempt)?1:0)); }
@@ -1083,7 +1085,27 @@ const Z = [
  {x:9,y:4,spr:"cat",name:"PAGER THE CAT",lines:[
   "Mrow.",
   "The cat is asleep on an incident runbook.",
-  "In twelve years, Pager has never once been paged."]}] },
+  "In twelve years, Pager has never once been paged."]},
+ {x:3,y:6,spr:"sentinel",name:"SENTINEL",inParty:"sentinel",lines:[
+  "I planted a defect in Peg's stew recipe to test her review process. She caught it. I have never respected anyone more.",
+  "The dummy and I train at dawn. It never flinches. I've started to suspect it's the strongest of us.",
+  "You fight cleaner than when we met. Fewer wasted strikes. The canaries noticed too.",
+  "Nine out of ten defects caught means one got through. I think about that one every night. That's the job."]},
+ {x:5,y:6,spr:"wiki",name:"WIKI",inParty:"wiki",lines:[
+  "I've been indexing PapaFoxx's jokes. Retrieval is easy. Knowing WHEN to retrieve one — that's the hard problem.",
+  "Sharonduh let me read her cage notebooks. Half genius, half love letters. I filed them under both.",
+  "Every belief auditable, every deletion carrying its reason. People too, I think. That's what forgiveness is — a documented deletion.",
+  "Your five-why has gotten quieter. The loud ones are for the room. The quiet ones are for the truth."]},
+ {x:8,y:6,spr:"mender",name:"MENDER",inParty:"mender",lines:[
+  "I checked everyone's HP while they slept. Old habit. The placebo of care is still care.",
+  "The Retry Storm taught me something: healing isn't undoing damage. It's teaching the system to fail smaller.",
+  "Mara and I trade notes — innkeeping and clerics run the same playbook. Rest, count, never blame the bed.",
+  "You call for repairs less than you used to. I can't decide if I'm proud or unemployed."]},
+ {x:10,y:5,spr:"refuter",name:"REFUTER",inParty:"refuter",lines:[
+  "OBJECTION. …Sorry. Reflex. You walked in confidently and my whole body reacted.",
+  "The comedian ROASTS and I OBJECT. Legally distinct. Mine holds up in court; his holds up the room.",
+  "I reviewed our incident history and found the common thread in every win: someone said 'wait.' Keep me around.",
+  "Tanking is just arguing with damage. And I have never lost an argument I could taunt into."]}] },
 { name:"Peg's Supply & Forge", ground:"#33261a", interior:true, maps:[
 "WWWWWWWWWWWW","WSSSS..SSSSW","W..........W","WCCCC.CCCCCW","W....u.....W","W..........W","WA.........W","Wb.........W","WWWWWDWWWWWW"],
  exits:{}, doorTo:{z:0,x:9,y:2},
@@ -1191,7 +1213,8 @@ const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   sparLv:1, sparN:0, eraSeen:false, wizard:false, res:{logs:0,metrics:0,traces:0,sigils:0},
   stance:"balanced", skills:{obs:{lv:1,xp:0}, forge:{lv:1,xp:0}},
   bank:{}, materia:[null,null], grave:null, foxxJoke:0, foxxWin:0,
-  awak:{}, timer:false, haxKnown:false, haxWon:false, netSeen:false });
+  awak:{}, timer:false, haxKnown:false, haxWon:false, netSeen:false,
+  bond:{}, hang:{}, bastionSeen:false, nocSeen:false, nightSeen:false });
 let S = NEWS();
 let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0, roam:{}, roamBattle:false, gathered:{} };
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
@@ -1322,7 +1345,7 @@ const SKILL_FX = { promptia:"#2dd4bf", fivewhy:"#fbbf24", rollback:"#34d399", hi
  controlarm:"#60a5fa", repair:"#34d399", ward:"#93c5fd", fliptest:"#f87171", objection:"#fb923c",
  rootcausex:"#2dd4bf", promptstorm:"#c084fc", xreview:"#f87171", canaryvolley:"#fbbf24", safedeploy:"#60a5fa",
  roast:"#fb923c", ultima:"#f0abfc", dadjoke:"#fde68a", setuppunchline:"#f9a8d4",
- hotfix:"#34d399", sanitize:"#e8f4ee", uptimeaura:"#93c5fd", pairprogramming:"#f472b6",
+ hotfix:"#34d399", sanitize:"#e8f4ee", uptimeaura:"#93c5fd", pairprogramming:"#f472b6", failoverfist:"#fda4af",
  limit_hero:"#fbbf24", limit_sentinel:"#4ade80", limit_wiki:"#c084fc", limit_mender:"#34d399", limit_refuter:"#fb923c", limit_papafoxx:"#fbbf24", limit_sharon:"#f472b6" };
 const FXDUR = { lunge:520, foelunge:520, burst:600, pop:900, heal:700, hit:260 };
 // ---- limit breaks (FF-style: gauges charge from damage taken) ----
@@ -1409,7 +1432,37 @@ const SHARON_TALKS_FINALE="You did it. Every injection sanitized, every hallucin
 function sharonTalkLine(){ if(frontierDone() && (S.sharonTalk||0)%(SHARON_TALKS.length+1)===SHARON_TALKS.length){ S.sharonTalk=(S.sharonTalk||0)+1; return SHARON_TALKS_FINALE; }
   const t=SHARON_TALKS[(S.sharonTalk||0)%SHARON_TALKS.length]; S.sharonTalk=(S.sharonTalk||0)+1; return t; }
 function frontierDone(){ return !!(S.cleared["9:5,6"] && S.cleared["10:6,6"] && S.cleared["11:5,5"]); }
-function npcsFor(zone){ return (zone.npcs||[]).filter(n=>!n.when || S[n.when]); }
+function npcsFor(zone){ return (zone.npcs||[]).filter(n=>(!n.when || S[n.when]) && (!n.inParty || S.party.includes(n.inParty))); }
+// ---- BONDS: friendship is a stat you earn by showing up (talks at home base, dual techs in the field) ----
+function bondOf(id){ return (S.bond && S.bond[id])||0; }
+function bondLvl(id){ const p=bondOf(id); return p>=12?3 : p>=7?2 : p>=3?1 : 0; }
+function bondUp(id){ if(!MEMBERS[id] || id==="hero") return;
+  S.bond=S.bond||{}; const was=bondLvl(id);
+  S.bond[id]=Math.min(12,(S.bond[id]||0)+1);
+  if(bondLvl(id)>was) toast("♥ Your bond with "+MEMBERS[id].name+" deepens! (dual techs +"+bondLvl(id)+")"); }
+function bondDualBonus(du){ return Math.max(du.a!=="hero"?bondLvl(du.a):0, du.b!=="hero"?bondLvl(du.b):0); }
+function hangoutTalk(npc){ bondUp(npc.inParty);
+  S.hang=S.hang||{}; const i=(S.hang[npc.inParty]||0); S.hang[npc.inParty]=i+1;
+  say([npc.name+": \""+npc.lines[i%npc.lines.length].replace(/^[A-Z]+: /,"")+"\""]); }
+// ---- INTERSTITIALS: the story breathes between fights (the opening's voice) ----
+const INTERSTITIALS={
+ bastion:[
+  "The heat hits first. Walls of flame in ordered rows — someone BUILT this fire, rule by rule, and called it safety.",
+  "Her second note is here somewhere. You catch yourself scanning for it before you scan for threats.",
+  "You are three weeks and one lifetime past a 2:07 AM pager. The junior who flinched at alerts is gone; what walks through the Bastion reads flame-rules like YAML.",
+  "East. The NOC is east. Keep walking." ],
+ noc:[
+  "It is quiet here the way a muted alarm is quiet — not peace. Suppression.",
+  "Racks stretch into the dark. Every screen shows the same feed: her cage, from a hundred angles. He WANTED you to watch.",
+  "Your hands aren't shaking. Somewhere between the five-whys and the friends who stood back up, they learned not to.",
+  "One door left. Beyond it: root." ],
+ rescueNight:[
+  "Night at the Error Budget Inn. Real beds. The pager, for once, silent.",
+  "SHARONDUH has claimed the window seat with a laptop and won't say what she's building. Every few minutes she laughs at her own commit messages.",
+  "PAPAFOXX is teaching KID BIT card tricks. He is losing. To a child. Loudly.",
+  "You watch them — the crew that was once a list of empty seats in the Guide's speech — and understand something no dashboard ever told you:",
+  "Uptime was never why we keep systems alive. It's this. The room the system keeps safe.",
+  "(Rest deep. Tomorrow, the frontier.)" ] };
 function awakOf(id){ return (S.awak && S.awak[id])||0; }
 function reawaken(id){ const a=S.actors[id]; if(!a || a.lv<10) return false;
   S.awak=S.awak||{}; S.awak[id]=(S.awak[id]||0)+1; const w=S.awak[id];
@@ -1418,7 +1471,7 @@ function reawaken(id){ const a=S.actors[id]; if(!a || a.lv<10) return false;
   S.actors[id]=n; sfx("level"); return true; }
 function fmtTime(ms){ const m=Math.floor(ms/60000), s2=Math.floor(ms/1000)%60; return m+":"+String(s2).padStart(2,"0"); }
 function foxxBed(){ const st=foxxBedState();
-  if(st==="companion"){ say(["PAPAFOXX: \""+foxxJokeLine()+"\""]); return; }
+  if(st==="companion"){ bondUp("papafoxx"); say(["PAPAFOXX: \""+foxxJokeLine()+"\""]); return; }
   if(st==="challenge"){ say([
     "You shake the third bed. One eye opens. Then the grin.",
     "PAPAFOXX: 'Ohhh. OH. Full incident crew, huh? Commander, Ranger, Wizard, Cleric, Tank... and y'all woke the DAD.'",
@@ -2055,6 +2108,8 @@ function castDual(a,key){ const b=M.b, du=DUAL[key];
   const p=S.actors[pick.partner];
   a.mp-=pick.myCost; p.mp-=pick.theirCost; p.dualUsed=true;
   if(a.id==="papafoxx"||p.id==="papafoxx") b.foxxRelief=true;
+  if(a.id!=="hero") bondUp(a.id); if(p.id!=="hero") bondUp(p.id);   // fighting as one deepens the bond
+  const bb=bondDualBonus(du);
   fxAbility(du.name.replace("✦ ",""));
   BFX.push("burst",{color:SKILL_FX[key]||"#fff"});
   BFX.push("lunge",{slot:slotOf(p.id)});
@@ -2063,31 +2118,31 @@ function castDual(a,key){ const b=M.b, du=DUAL[key];
   if(key==="safedeploy"){ living().forEach(x=>{ x.shield=true; BFX.push("heal",{slot:slotOf(x.id)}); }); b.taunt=2; sfx("heal");
     blog(lead+"<br>🛡 The whole party is warded — and the enemy can't look away from the Tank (2 turns)."); b.menu="next"; drawB(); return; }
   if(key==="rootcausex"){ markRevealed(b);
-    const dmg=atkOf(S.actors.sentinel)+4;
+    const dmg=atkOf(S.actors.sentinel)+4+bb;
     if(b.def.regen && b.verified===0){ blog(lead+"<br>The core is exposed... <span class='red'>but it regenerates! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
     return dealt(a, dmg, lead+"<br>The root cause is exposed AND struck — fog means nothing to a true strike."); }
   if(key==="xreview"){
     if(!b.revealed){ blog(lead+"<br><span class='red'>The cross-slash glances off armor! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
     if(b.def.regen && b.verified===0){ blog(lead+"<br><span class='red'>It regenerates through the review! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
-    return dealt(a, atkOf(S.actors.hero)+atkOf(S.actors.refuter)+4, lead+"<br>Commit and counter-review cross in an X — nothing survives unexamined!"); }
+    return dealt(a, atkOf(S.actors.hero)+atkOf(S.actors.refuter)+4+bb, lead+"<br>Commit and counter-review cross in an X — nothing survives unexamined!"); }
   if(key==="promptstorm"){
     if(!b.revealed){ blog(lead+"<br><span class='red'>The storm breaks on armor! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
     if(b.def.regen && b.verified===0){ blog(lead+"<br><span class='red'>It knits itself back! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
-    return dealt(a, 6+S.actors.hero.lv+S.actors.wiki.lv, lead+"<br>A structured prompt rides the index gale — every card, perfectly aimed!"); }
+    return dealt(a, 6+S.actors.hero.lv+S.actors.wiki.lv+bb, lead+"<br>A structured prompt rides the index gale — every card, perfectly aimed!"); }
   if(key==="canaryvolley"){
     if(!b.revealed || !b.focused){ blog(lead+"<br><span class='red'>The canaries scatter — they need the root exposed and the fog lifted!</span>"); b.menu="next"; drawB(); return; }
     if(b.def.regen && b.verified===0){ blog(lead+"<br><span class='red'>It patches around every canary! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
     const per=2+Math.floor((S.actors.sentinel.lv+S.actors.wiki.lv)/3);
-    return dealt(a, per*3, lead+"<br>Three canaries dive — "+per+" × 3 hits find the fault!"); }
+    return dealt(a, per*3+bb, lead+"<br>Three canaries dive — "+per+" × 3 hits find the fault!"); }
   if(key==="setuppunchline"){
     if(!b.revealed && !(b.roasted>0)){ blog(lead+"<br><span class='red'>The setup needs material — expose the core (FIVE-WHY) or ROAST them first!</span>"); b.menu="next"; drawB(); return; }
     if(b.def.regen && b.verified===0){ blog(lead+"<br><span class='red'>It laughs it off and knits itself back! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
-    return dealt(a, 5+S.actors.wiki.lv+S.actors.papafoxx.lv, lead+"<br>WIKI feeds the setup from the index… FOXX brings it DOWN. Comedy is context, delivered."); }
+    return dealt(a, 5+S.actors.wiki.lv+S.actors.papafoxx.lv+bb, lead+"<br>WIKI feeds the setup from the index… FOXX brings it DOWN. Comedy is context, delivered."); }
   if(key==="pairprogramming"){
     living().forEach(x=>{ x.hp=Math.min(x.maxhp,x.hp+3); BFX.push("heal",{slot:slotOf(x.id)}); }); sfx("heal");
     if(!b.revealed){ blog(lead+"<br>The party heals <span class='num'>+3</span> — but <span class='red'>the strike glances off armor! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
     if(b.def.regen && b.verified===0){ blog(lead+"<br>The party heals <span class='num'>+3</span> — but <span class='red'>it regenerates! (CONTROL ARM.)</span>"); b.menu="next"; drawB(); return; }
-    return dealt(a, 4+S.actors.hero.lv, lead+"<br>Driver and navigator, one keyboard, zero blame — the fix lands and <span class='num'>the party heals +3</span>."); } }
+    return dealt(a, 4+S.actors.hero.lv+bb, lead+"<br>Driver and navigator, one keyboard, zero blame — the fix lands and <span class='num'>the party heals +3</span>."); } }
 function playerHit(a,dmg,txt){ const b=M.b;
   b.doubled=false;
   const wandBite = a.id==="hero" && S.equip.weapon==="wd1";
@@ -2179,6 +2234,10 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     living().forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+2); BFX.push("heal",{slot:slotOf(p.id)}); });
     if(b.heckled>0) b.heckled=0;
     sfx("heal"); blog(nm+" SANITIZES the party's inputs — <span class='num'>every ally +2 HP</span>, heckles scrubbed clean."); b.menu="next"; drawB(); return; }
+  if(id==="failoverfist"){
+    const weakest=living().filter(p=>p.id!==a.id && p.hp<p.maxhp).sort((x,y2)=>x.hp/x.maxhp-y2.hp/y2.maxhp)[0];
+    if(weakest){ weakest.hp=Math.min(weakest.maxhp,weakest.hp+2); BFX.push("heal",{slot:slotOf(weakest.id)}); }
+    return playerHit(a, 3+a.lv, nm+" closes the distance — <span class='gold'>FAILOVER FIST!</span>"+(weakest?" She patches "+MEMBERS[weakest.id].name+" <span class='num'>+2</span> on the follow-through.":"")); }
   if(id==="uptimeaura"){ b.aura=3; sfx("heal"); BFX.push("burst",{color:SKILL_FX.uptimeaura});
     blog(nm+" raises UPTIME AURA — <span class='gold'>five nines of care.</span> The party regenerates <span class='num'>+2 HP</span> at the end of each round (3 rounds)."); b.menu="next"; drawB(); return; }
   if(id==="promptia"||id==="fliptest"){ const base=(id==="promptia"?3:4)+a.lv;
@@ -2396,7 +2455,8 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
   const eq=S.equip;
   let roster="";
   partyActors().forEach(a=>{ const m=MEMBERS[a.id];
-    roster+="<span class='mut'>"+m.name+" · "+clsOf(a)+" · LV "+a.lv+" · "+a.hp+"/"+a.maxhp+" HP · "+a.mp+"/"+a.maxmp+" MP · skills: "+a.sk.map(s=>SP[s].name).join(", ")+"</span><br>"; });
+    const hearts=(a.id!=="hero" && bondLvl(a.id))? " · <span style='color:#f472b6'>"+"♥".repeat(bondLvl(a.id))+"</span>" : "";
+    roster+="<span class='mut'>"+m.name+" · "+clsOf(a)+" · LV "+a.lv+" · "+a.hp+"/"+a.maxhp+" HP · "+a.mp+"/"+a.maxmp+" MP"+hearts+" · skills: "+a.sk.map(s=>SP[s].name).join(", ")+"</span><br>"; });
   roster+="<span class='mut'>Resources: 🪵"+S.res.logs+" · ⛏"+S.res.metrics+" · 🌿"+S.res.traces+" · 🔮"+(S.res.sigils||0)+" (forge at Peg's)</span><br>";
   roster+="<span class='mut'>📡 Observability Lv "+S.skills.obs.lv+" · ⚒ Toolsmithing Lv "+S.skills.forge.lv+" · posture: "+STANCES[S.stance||"balanced"].name+"</span><br>";
   let h="<b class='gold'>☰ MENU</b><br><span class='mut'>"+OBJ[Math.min(S.stage,OBJ.length-1)]+"</span><br>⛁ "+S.tokens+"<br>"+roster+
@@ -2581,7 +2641,9 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
     if(zone.exits && zone.exits[dir]!==undefined){ const oldZ=S.z; S.z=zone.exits[dir]; delete M.roam[oldZ]; M.gathered={};
       if(dir==="right")S.x=0; if(dir==="left")S.x=11; if(dir==="down")S.y=0; if(dir==="up")S.y=8;
       if(S.stage<1){ S.stage=1; chapterCard(1); }
-      render(); } return; }
+      render();
+      if(S.z===10 && !S.bastionSeen){ S.bastionSeen=true; say(INTERSTITIALS.bastion, ()=>saveGame(0)); }
+      else if(S.z===11 && !S.nocSeen){ S.nocSeen=true; say(INTERSTITIALS.noc, ()=>saveGame(0)); } } return; }
   const chr=tileAt(zone,nx,ny);
   if(S.z===0){ const dk=nx+","+ny;
     if(dk===zone.inn){ enterInterior(6); return; }
@@ -2646,7 +2708,8 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
         if(i===0) openArmory(); else say(npc.lines); }); return; }
     if(npc){ if(npc.fight){ ask("STAGING DUMMY: 'Hit me! It's what staging is for.' Spar for XP? (Ippo rule: first rep each level pays full — every repeat pays less. No tokens; reps aren't loot.)", ["Spar!","Not now"], i=>{ if(i===0) startBattle("dummy",null); }); return; }
       if(npc.sharonCage && S.haxWon){ say(["The cage hangs open and empty, its firewall bars powered down for good.","She walks beside you now. Somewhere behind you, she's already refactoring your marching order."]); return; }
-      if(npc.talks==="sharon"){ say(["SHARONDUH: \""+sharonTalkLine()+"\""]); return; }
+      if(npc.talks==="sharon"){ bondUp("sharon"); say(["SHARONDUH: \""+sharonTalkLine()+"\""]); return; }
+      if(npc.inParty){ hangoutTalk(npc); return; }
       if(npc.name==="THE GUIDE" && S.won && !S.haxKnown){ say([
         "THE GUIDE: 'Kid. The postmortem turned up something that should not exist. The SEV-1 had a SIGNATURE. Someone CAUSED it.'",
         "THE GUIDE: 'A hacker. Handle: NULLBYTE. And there's more — all through the incident, someone kept patching from INSIDE the blast radius. Commits signed only: — S.'",
@@ -2664,6 +2727,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
     if(chr0==="="){ if(S.z===6 && x===7){ foxxBed(); return; }
       ask("A clean, counted bed. Rest here? (saves your progress)", ["Rest & save","Not yet"], i=>{ if(i===0){
         partyActors().forEach(a=>{ a.ko=false; a.hp=a.maxhp; a.mp=a.maxmp; }); saveGame(0); render();
+        if(S.party.includes("sharon") && !S.nightSeen){ S.nightSeen=true; say(INTERSTITIALS.rescueNight, ()=>saveGame(0)); return; }
         say(["♪ The whole party rests. HP/MP restored. Game saved.",
           "MARA: 'This inn runs on promises, hon. I PROMISE travelers a bed — that's my SLA: a contract with consequences. I COUNT clean beds every hour — that's my SLI: the thing I actually measure. And I AIM for 999 of every 1000 — that's my SLO: the target.'",
           "MARA: 'The one bed in a thousand I'm allowed to miss? My error budget. I spend it renovating. Chase 100% and you never improve anything — perfection is how inns die, sweetheart.'",
@@ -2860,7 +2924,7 @@ const TESTS = [
       && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
  ["shop catalog integrity (16 items)", ()=>SHOP_STOCK.length===16 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
- ["7 classes, 20 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===7 && Object.keys(SP).length===20
+ ["7 classes, 21 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===7 && Object.keys(SP).length===21
     && EN.monolith.hp===165 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
     return s.length===n && s.every(r=>r.length===n); })],
@@ -3479,12 +3543,21 @@ const TESTS = [
     castLimit(h);
     const ok=(99-M.b.hp)>=18;   // 10 base +1 lv +6 omega +1 awakened edge, before crit/combo bonuses
     window.setTimeout=st; M.b=null; M.state="test"; S=sb; return ok; }],
- ["SHARONDUH: White Mage, healer's kit, back row, bright", ()=>{
+ ["SHARONDUH: a White Mage who fights — fast, front line, fists AND healing hands", ()=>{
     const m=MEMBERS.sharon;
     if(!m || m.cls!=="White Mage" || m.spr!=="sharon") return false;
+    if(!(m.base.atk===4 && m.spd===7)) return false;
     const a1=mkActor("sharon",1), a5=mkActor("sharon",5);
-    return a1.sk.includes("hotfix") && a1.sk.includes("sanitize") && !a1.sk.includes("uptimeaura")
-      && a5.sk.includes("uptimeaura") && rowOf(a1)==="back" && a1.maxmp>=12; }],
+    return a1.sk.includes("failoverfist") && a1.sk.includes("hotfix") && a1.sk.includes("sanitize")
+      && !a1.sk.includes("uptimeaura") && a5.sk.includes("uptimeaura") && rowOf(a1)==="front"; }],
+ ["FAILOVER FIST: she strikes hard and patches the weakest on the follow-through", ()=>{ const sb=S; S=NEWS();
+    S.party=["sharon"]; const sh=mkActor("sharon",3); S.actors.sharon=sh;
+    S.actors.hero.hp=4;
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:44, maxhp:44, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
+    castSkill(sh,"failoverfist");
+    const struck=M.b.hp<=44-(3+3) && S.actors.hero.hp===6 && sh.mp===sh.maxmp-2;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return struck; }],
  ["HOTFIX: targeted heal 8 — or a revive at 8", ()=>{ const sb=S; S=NEWS();
     S.party=["sharon","wiki"]; const sh=mkActor("sharon",1); S.actors.sharon=sh; S.actors.wiki=mkActor("wiki",1);
     S.actors.wiki.ko=true; S.actors.wiki.hp=0; S.actors.hero.hp=1;
@@ -3583,6 +3656,35 @@ const TESTS = [
     const after=frontierDone()===true;
     const finale=/frontier/i.test(SHARON_TALKS_FINALE);
     S=sb; return before && after && finale; }],
+ ["BOND: talks and dual techs deepen it; deep bonds hit harder together", ()=>{ const sb=S; S=NEWS();
+    S.party=["sharon"]; S.actors.sharon=mkActor("sharon",1);
+    if(bondLvl("sharon")!==0) return false;
+    bondUp("sharon"); bondUp("sharon"); bondUp("sharon");
+    const l1=bondLvl("sharon")===1;
+    for(let i=0;i<20;i++) bondUp("sharon");
+    const capped=bondOf("sharon")===12 && bondLvl("sharon")===3;
+    S.party=["wiki","papafoxx"]; S.actors.wiki=mkActor("wiki",5); S.actors.papafoxx=mkActor("papafoxx",5);
+    S.bond={papafoxx:12};
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:EN.creep, hp:60, maxhp:60, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
+    castDual(S.actors.wiki,"setuppunchline");
+    const boosted=M.b.hp<=60-(5+5+5+3);   // base 5+lv+lv plus ♥×3
+    const grew=bondOf("wiki")>=1 && bondOf("papafoxx")===12;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return l1 && capped && boosted && grew; }],
+ ["home base: the whole recruited crew hangs out at the inn, and talking bonds", ()=>{ const sb=S; S=NEWS();
+    const before=!npcsFor(Z[6]).some(n=>n.inParty);
+    S.party=["sentinel","wiki","mender","refuter"];
+    const there=["SENTINEL","WIKI","MENDER","REFUTER"].every(nm=>npcsFor(Z[6]).some(n=>n.name===nm));
+    const linesOk=(Z[6].npcs||[]).filter(n=>n.inParty).every(n=>n.lines.length>=4);
+    const b0=bondOf("sentinel"); hangoutTalk(Z[6].npcs.find(n=>n.inParty==="sentinel"));
+    const bonded=bondOf("sentinel")===b0+1;
+    ov.hidden=true; M.state="test"; S=sb; return before && there && linesOk && bonded; }],
+ ["the story breathes: first-entry monologues for the Bastion and the NOC, and the rescue night", ()=>{
+    if(!(INTERSTITIALS.bastion && INTERSTITIALS.bastion.length>=3)) return false;
+    if(!(INTERSTITIALS.noc && INTERSTITIALS.noc.length>=3)) return false;
+    if(!(INTERSTITIALS.rescueNight && INTERSTITIALS.rescueNight.length>=5)) return false;
+    const voice=/2:07|pager|You /;
+    return voice.test(INTERSTITIALS.bastion.join(" ")+INTERSTITIALS.noc.join(" ")); }],
  ["the frontier's rewards: Eval Harness sharpens, Alignment shields", ()=>{ const sb=S; S=NEWS();
     if(!IT.ch7 || !IT.ch8 || DISCOVER.halluc!=="ch7" || DISCOVER.promptinj!=="ch8") return false;
     const base=critOf(S.actors.hero);
@@ -3622,7 +3724,8 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   comboBonus, xpPct, spdOf, statsOf, ARMOR_STOCK, AVIS, drawArmorOverlay, openArmory,
   FOXX_JOKES, FOXX_LINES, foxxJokeLine, foxxBedState, LB_MAX,
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
-  SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor };
+  SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
+  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS };
 tryMigrate();
 render();
 setInterval(()=>{ const el=document.getElementById("sptimer"); if(!el) return;   // speedrun clock (opt-in, SETTINGS)
