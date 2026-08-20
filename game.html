@@ -601,22 +601,22 @@ foxx:[
 "....kjj..jjk....",
 "....kww..wwk...."],
 sharon:[
-"....kkkkkkkk....",
-"...kkkkkkkkkk...",
-"..kksssssssskk..",
-"..kksksssskskk..",
-"..kksswwwwsskk..",
-"...kkssssssskk..",
-".k..kwwwwwwk..k.",
-".k.kwwrwwrwwk.k.",
-".k.kwwwwwwwwk.k.",
-"...kswwwwwwsk...",
-"....kwwwwwwk....",
-"....krrrrrrk....",
-"....kwwwwwwk....",
-"...kww....wwk...",
-"...kss....ssk...",
-"...krr....rrk..."],
+"....kkkkkkk.....",
+"..kkkkkkkkkk....",
+".kkkkkkkkkkkk...",
+".kkkhsssshkkk...",
+".kkksksskskkk...",
+".kkkssssssskk...",
+".kkkskwwskkkk...",
+".kk.kssssk.kk...",
+".kk.kwwwwk.kk...",
+".kk.swwwws.kk...",
+".kk.swwwws.kk...",
+".k..ksjjsk..k...",
+"....kjjjjjk.....",
+"....kss.ssk.....",
+"....krr.rrk.....",
+"....kkk.kkk....."],
 hax:[
 "....kkkkkkkk....",
 "...kddddddddk...",
@@ -1012,7 +1012,11 @@ const Z = [
   "KID BIT: I'm gonna be an incident commander when I grow up! Or a slime. Slimes seem relaxed.",
   "KID BIT: The Guide says the best engineers are 'always be scoping'. I scoped my chores down to ONE dish. Mom disagrees with my methodology.",
   "KID BIT: I heard if you beat the big SEV, something EVEN SCARIER wakes up on the mountain. Cooool."]},
- {x:9,y:4,spr:"dummy",name:"STAGING DUMMY",fight:"dummy"}],
+ {x:9,y:4,spr:"dummy",name:"STAGING DUMMY",fight:"dummy"},
+ {x:7,y:5,spr:"sharon",name:"SHARONDUH",when:"haxWon",talks:"sharon",lines:[
+  "SHARONDUH: 'Hi, love. I set up by the gateway — someone should be studying what he left behind.'",
+  "SHARONDUH: 'Come sit with me between incidents. I'll teach you the frontier — agents, evals, alignment. All of it.'",
+  "SHARONDUH: 'And bring the whole squad. Even the loud one. ESPECIALLY the loud one.'"]}],
  signs:{"5,3":"⚑ Reliability Village · INN: NW house (Mara — rest & save) · SUPPLY CLOSET: NE house (Peg) · east: Prompt Plains"} },
 { name:"Prompt Plains", ground:"#234a2e", maps:[
 "tttttttttttt","t.ggg..gg..t","tgggg..Egg.t","t.gg...t.g.t","pppppBpppBpp","t.g.gg..g..t","tb...g.gg..t","t..t.gg..c.t","tttttttttttt"],
@@ -1390,6 +1394,22 @@ function foxxBedState(){ if(S.party.includes("papafoxx")) return "companion";
   return ["sentinel","wiki","mender","refuter"].every(id=>S.party.includes(id)) ? "challenge" : "sleeping"; }
 function recruitSharon(){ if(!S.party.includes("sharon")){ S.party.push("sharon"); S.actors.sharon=mkActor("sharon", hero().lv); }
   S.haxWon=true; S.cleared["11:5,1"]=true; }
+// ---- Sharonduh's village heart-to-hearts: the love story is also a curriculum ----
+const SHARON_TALKS=[
+ "You know what I loved first? Your incident reports. Anyone can be brave, love — you were CLEAR. Clarity is how engineers say 'I care.'",
+ "Agentic AI, lesson one: an agent is just a loop — look, think, act, check. You've BEEN one all along. The pager was your event loop.",
+ "Lesson two: tools. An agent is only as honest as the tools it's given. Same as people. Give your agents runbooks, not vibes.",
+ "Lesson three: EVALS. Never trust a demo. A demo is a first date; an eval is a marriage. …That line works on two levels. I'm very proud of it.",
+ "Lesson four: memory. An agent that can't remember is a goldfish with an API key. Write things down — your wiki habit is genuinely beautiful.",
+ "Lesson five: alignment. THE MISALIGNED optimized perfectly for the wrong thing. Capability was never the hard part, love. The objective is.",
+ "NULLBYTE had root on everything and understood none of it. You had five whys and a keyboard. Understanding wins. It always wins.",
+ "My mom asked what you do. I said: he walks into fires and leaves runbooks behind so no one burns twice. She said 'marry the rollback engineer.' …Working on it.",
+ "The frontier isn't a place. It's a discipline: ship the thinnest thing, measure it, own the failure, teach the next one. You already live there." ];
+const SHARON_TALKS_FINALE="You did it. Every injection sanitized, every hallucination grounded, every objective aligned. There are labs out on the frontier building minds, love — and they hire engineers EXACTLY like you. Go. I'll be right beside you.";
+function sharonTalkLine(){ if(frontierDone() && (S.sharonTalk||0)%(SHARON_TALKS.length+1)===SHARON_TALKS.length){ S.sharonTalk=(S.sharonTalk||0)+1; return SHARON_TALKS_FINALE; }
+  const t=SHARON_TALKS[(S.sharonTalk||0)%SHARON_TALKS.length]; S.sharonTalk=(S.sharonTalk||0)+1; return t; }
+function frontierDone(){ return !!(S.cleared["9:5,6"] && S.cleared["10:6,6"] && S.cleared["11:5,5"]); }
+function npcsFor(zone){ return (zone.npcs||[]).filter(n=>!n.when || S[n.when]); }
 function awakOf(id){ return (S.awak && S.awak[id])||0; }
 function reawaken(id){ const a=S.actors[id]; if(!a || a.lv<10) return false;
   S.awak=S.awak||{}; S.awak[id]=(S.awak[id]||0)+1; const w=S.awak[id];
@@ -1489,7 +1509,7 @@ function labelsFor(zone, zi){
   if(zone.inn){ const [x,y]=zone.inn.split(",").map(Number); out.push({x,y,t:"INN · SAVE"}); }
   if(zone.shop){ const [x,y]=zone.shop.split(",").map(Number); out.push({x,y,t:"SHOP · FORGE"}); }
   if(zone.armory){ const [x,y]=zone.armory.split(",").map(Number); out.push({x,y,t:"ARMORY"}); }
-  (zone.npcs||[]).forEach(n=>{ if(n.fight) out.push({x:n.x,y:n.y,t:"SPAR · XP"}); });
+  npcsFor(zone).forEach(n=>{ if(n.fight) out.push({x:n.x,y:n.y,t:"SPAR · XP"}); if(n.talks) out.push({x:n.x,y:n.y,t:"💙 "+n.name}); });
   zone.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{
     if(ch==="L") out.push({x,y,t:"🏦 BANK"});
     if(ch==="A") out.push({x,y,t:"FORGE"}); }); });
@@ -1729,7 +1749,7 @@ function drawActorSpr(name,x,y,lift){
 function render(){
   const zone=Z[S.z];
   for(let y=0;y<9;y++)for(let x=0;x<12;x++) drawTile(tileAt(zone,x,y),x*T,y*T,zone);
-  (zone.npcs||[]).forEach(n=>drawActorSpr(n.spr,n.x,n.y,(M.frame+n.x)%2));
+  npcsFor(zone).forEach(n=>drawActorSpr(n.spr,n.x,n.y,(M.frame+n.x)%2));
   (zone.nodes||[]).forEach(n=>{ if(M.gathered[S.z+":"+n.x+","+n.y]) return;
     const tx=n.x*T, ty=n.y*T;
     if(n.t==="logs"){ ctx.fillStyle="#78350f"; ctx.fillRect(tx+7,ty+18,18,5); ctx.fillRect(tx+9,ty+12,14,5);
@@ -2498,7 +2518,7 @@ function ending(){ S.won=true; S.stage=4; tickClock();
   if(better){ best={score:score, grade:grade, ms:S.playMs};
     try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
   const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
-  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · seven classes, dual techs, time travel, a rescue inside the internet — the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
+  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · seven classes, dual techs, time travel, a rescue inside the internet — the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
   saveGame(0); ov.hidden=false; ov.classList.remove("center"); M.state="end"; sfx("level");
   box.innerHTML="<b class='gold'>👑 INCIDENT RESOLVED — MTTx: LEGENDARY</b>"+
   "<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
@@ -2514,6 +2534,8 @@ function ending(){ S.won=true; S.stage=4; tickClock();
   (era? "<span class='num'>⏳ HISTORIAN:</span> you walked 1999 and put out the FIRST fire. The timeline is documented end to end.<br>" :
         "<span class='mut'>⏳ A Time Rift now swirls in the village square — the past is asking for a postmortem…</span><br>")+
   (S.superWon? "" : "<span class='mut'>…and something stirs atop the Citadel. Return there when you're ready for THE UNKNOWN UNKNOWN.</span><br>")+
+  (frontierDone()? "<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px;margin:6px 0'><b class='gold'>🤖 THE FRONTIER ENDING.</b> Every injection sanitized, every hallucination grounded, every objective aligned. SHARONDUH: 'You came to save me and found the frontier.' The engineer who grabbed a keyboard at 2 AM now speaks agent, eval, and alignment as fluently as rollback and runbook — <b>world-class isn't a title, it's a discipline, practiced daily</b>. Somewhere out there, frontier labs are building minds. You're ready for them.</div>" :
+   (S.haxWon? "<span class='mut'>🤖 The frontier stirs: PROMPT INJECTION, THE HALLUCINATION, and THE MISALIGNED wait in the internet. Resolve all three for the FRONTIER ending.</span><br>" : ""))+
   (S.wizard? "<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px;margin:6px 0'><b class='gold'>🧙 TRUE ENDING — THE AI WIZARD.</b> Every incident resolved, every era understood, every artifact recovered ("+loot.got+"/"+loot.need+"). The kid who grabbed a keyboard at 2 AM is gone; the engineer who commands the room, cites the evidence, and teaches the next one — that's who's holding the pager now. Ippo would bow.</div>" :
    "<span class='mut'>Completion: artifacts "+loot.got+"/"+loot.need+" · era "+(era?"✔":"✘")+" · superboss "+(S.superWon?"✔":"✘")+" — all three = the TRUE ENDING.</span><br>")+"<br>"+
   "Your party was a real portfolio: <a href='https://github.com/LZBiala/agent-mutation-lab' style='color:var(--teal)'>agent-mutation-lab</a> · "+
@@ -2537,7 +2559,7 @@ function enterInterior(zi){ delete M.roam[S.z]; M.gathered={};
 function roamWalkable(zone,x,y){ if(x<0||x>11||y<0||y>8) return false;
   const chr=tileAt(zone,x,y);
   if(!(chr==="."||chr===","||chr==="g"||chr==="f")) return false;
-  if((zone.npcs||[]).some(n=>n.x===x&&n.y===y)) return false;
+  if(npcsFor(zone).some(n=>n.x===x&&n.y===y)) return false;
   return true; }
 function roamBattleNow(rm,mode){ M.roamBattle=true;
   battleTransition(()=>{ startBattle(rm.id, null, null, mode==="first"? {firstStrike:true} : {ambush:true}); }); }
@@ -2567,7 +2589,7 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
     if(dk===zone.armory){ enterInterior(8); return; } }
   if(chr==="D" && zone.doorTo){ const to=zone.doorTo; delete M.roam[S.z]; M.gathered={};
     S.z=to.z; S.x=to.x; S.y=to.y; render(); return; }
-  const npc=(zone.npcs||[]).find(n=>n.x===nx&&n.y===ny);
+  const npc=npcsFor(zone).find(n=>n.x===nx&&n.y===ny);
   if(npc||solid(chr)||chr==="c") return;
   const rm=M.roam[S.z];
   if(rm && rm.alive && rm.x===nx && rm.y===ny){ roamBattleNow(rm,"first"); return; }   // you touched it — Chrono rule
@@ -2617,13 +2639,14 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
       say(["⚰ You came back. Take your things.","Next time, bank what you can't afford to lose twice. <b>Redundancy is love.</b>"]); return; }
     const nd=(zone.nodes||[]).find(n2=>n2.x===x&&n2.y===y);
     if(nd && !M.gathered[S.z+":"+key]){ gatherNode(nd); render(); return; }
-    const npc=(zone.npcs||[]).find(n=>n.x===x&&n.y===y);
+    const npc=npcsFor(zone).find(n=>n.x===x&&n.y===y);
     if(npc && npc.shopkeeper){ ask("PEG: 'Browsing or chatting, hon?'", ["🛒 Shop & Forge","💬 Chat"], i=>{
         if(i===0) openShop(); else say(npc.lines); }); return; }
     if(npc && npc.armorer){ ask("SABLE: 'Fitting or philosophy, hon?'", ["🛡 Armor fitting","💬 Chat"], i=>{
         if(i===0) openArmory(); else say(npc.lines); }); return; }
     if(npc){ if(npc.fight){ ask("STAGING DUMMY: 'Hit me! It's what staging is for.' Spar for XP? (Ippo rule: first rep each level pays full — every repeat pays less. No tokens; reps aren't loot.)", ["Spar!","Not now"], i=>{ if(i===0) startBattle("dummy",null); }); return; }
       if(npc.sharonCage && S.haxWon){ say(["The cage hangs open and empty, its firewall bars powered down for good.","She walks beside you now. Somewhere behind you, she's already refactoring your marching order."]); return; }
+      if(npc.talks==="sharon"){ say(["SHARONDUH: \""+sharonTalkLine()+"\""]); return; }
       if(npc.name==="THE GUIDE" && S.won && !S.haxKnown){ say([
         "THE GUIDE: 'Kid. The postmortem turned up something that should not exist. The SEV-1 had a SIGNATURE. Someone CAUSED it.'",
         "THE GUIDE: 'A hacker. Handle: NULLBYTE. And there's more — all through the incident, someone kept patching from INSIDE the blast radius. Commits signed only: — S.'",
@@ -3539,9 +3562,27 @@ const TESTS = [
     if(SAVE_VERSION!==9 || saveKey(0)!=="aiquest9_auto") return false;
     const s=migrateV8({v:8, tokens:31, party:["sentinel"], actors:{hero:mkActor("hero",4), sentinel:mkActor("sentinel",4)}, won:true});
     return s.v===9 && s.tokens===31 && s.awak && typeof s.awak==="object" && s.foxxJoke===0 && s.timer===false && s.haxKnown===false; }],
- ["the new faces render: Sharonduh in white, the Hacker in his hood", ()=>{
-    return SPR.sharon && SPR.sharon.length===16 && SPR.sharon.some(r=>r.includes("w"))
-      && SPR.hax && SPR.hax.length===16 && SPR.hax.some(r=>r.includes("d")); }],
+ ["the new faces render: Sharonduh Tifa-style (long hair, white top, red boots), the Hacker hooded", ()=>{
+    if(!(SPR.sharon && SPR.sharon.length===16)) return false;
+    const top=SPR.sharon.some(r=>r.includes("w"));
+    const boots=SPR.sharon.slice(12).some(r=>r.includes("r"));
+    const hairSides=SPR.sharon.slice(7,11).every(r=>r.trimEnd().startsWith(".k")||r.startsWith("k"));
+    return top && boots && hairSides && SPR.hax && SPR.hax.length===16 && SPR.hax.some(r=>r.includes("d")); }],
+ ["her voice in the village: rotating heart-to-hearts that teach agentic AI", ()=>{ const sb=S; S=NEWS();
+    if(!(SHARON_TALKS.length>=9)) return false;
+    const pool=SHARON_TALKS.join(" ");
+    const teaches=/agent/i.test(pool) && /eval/i.test(pool) && /align/i.test(pool);
+    const t1=sharonTalkLine(), t2=sharonTalkLine();
+    const rotates=t1!==t2 && S.sharonTalk===2;
+    S.haxWon=false; const hidden=!npcsFor(Z[0]).some(n=>n.name==="SHARONDUH");
+    S.haxWon=true;  const there=npcsFor(Z[0]).some(n=>n.name==="SHARONDUH");
+    S=sb; return teaches && rotates && hidden && there; }],
+ ["the FRONTIER ending: master all three AI incidents and the path is named", ()=>{ const sb=S; S=NEWS();
+    const before=frontierDone()===false;
+    S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true; S.cleared["11:5,5"]=true;
+    const after=frontierDone()===true;
+    const finale=/frontier/i.test(SHARON_TALKS_FINALE);
+    S=sb; return before && after && finale; }],
  ["the frontier's rewards: Eval Harness sharpens, Alignment shields", ()=>{ const sb=S; S=NEWS();
     if(!IT.ch7 || !IT.ch8 || DISCOVER.halluc!=="ch7" || DISCOVER.promptinj!=="ch8") return false;
     const base=critOf(S.actors.hero);
@@ -3580,7 +3621,8 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   buildQueue, nextUnit, foeAct, unitSpd, rowOf, fightBase, labelsFor, isEnraged,
   comboBonus, xpPct, spdOf, statsOf, ARMOR_STOCK, AVIS, drawArmorOverlay, openArmory,
   FOXX_JOKES, FOXX_LINES, foxxJokeLine, foxxBedState, LB_MAX,
-  reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE };
+  reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
+  SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor };
 tryMigrate();
 render();
 setInterval(()=>{ const el=document.getElementById("sptimer"); if(!el) return;   // speedrun clock (opt-in, SETTINGS)
