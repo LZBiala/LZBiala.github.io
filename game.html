@@ -44,6 +44,8 @@
   .pm.active { border-color:var(--gold); box-shadow:0 0 10px #fbbf2455; }
   .pm.ko { opacity:.45; }
   .pm b { color:var(--gold); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pm .xpbar { height:3px; background:#00000090; border-radius:2px; margin-top:2px; }
+  .pm .xpbar i { display:block; height:100%; background:var(--gold); border-radius:2px; }
   .pm .cls { color:var(--teal); }
   .brow { display:flex; gap:6px; }
   .brow .win { flex:1; }
@@ -109,6 +111,7 @@
   <span id="hhero"><b>HERO</b> LV 1</span>
   <span>⛁ <b id="htok">0</b></span><span id="hslo"></span><span id="zonename"><b>—</b></span>
   <button class="hudbtn" id="menubtn" style="margin-left:auto">☰ MENU</button>
+  <button class="hudbtn" id="invbtn">🎒</button>
   <button class="hudbtn" id="musbtn">♫ …</button>
   <button class="hudbtn" id="sndbtn">♪ …</button>
 </div>
@@ -546,6 +549,23 @@ unknown:[
 ".k.....kk.....k.",
 "k......kk......k",
 ".......kk......."],
+sable:[
+"................",
+".....kkkkkk.....",
+"....kmmmmmmk....",
+"...kmmkmmkmmk...",
+"....kssssssk....",
+"....kskssksk....",
+"....kssssssk....",
+".....kssssk.....",
+"....kjjjjjjk....",
+"...ksjjwwjjsk...",
+"...ksjjwwjjsk...",
+"....kjjjjjjk....",
+"....kjjjjjjk....",
+".....kjjjjk.....",
+".....kjjjjk.....",
+".....kkkkkk....."],
 mara:[
 "................",
 ".....kkkkkk.....",
@@ -761,7 +781,11 @@ const IT = {
  mvigor:{ name:"ERROR BUDGET Materia", type:"materia", price:0, d:"checkpoint orb: HERO +2 HP each round. Plan to fail a little every day, and you will never fail all at once." },
  mfocus:{ name:"GOLDEN SIGNAL Materia", type:"materia", price:0, d:"checkpoint orb: HERO +10% crit. A thousand metrics scream — four matter. The weak point lights up on its own." },
  mdrain:{ name:"GRADIENT LOOP Materia", type:"materia", price:0, d:"checkpoint orb: HERO heals 25% of damage dealt. Every strike is training data. Hit, measure, update, repeat." },
- maegis:{ name:"BULKHEAD Materia", type:"materia", price:0, d:"checkpoint orb: party takes -1 from multi-target attacks. Shrink the blast radius; the whole party stands." } };
+ maegis:{ name:"BULKHEAD Materia", type:"materia", price:0, d:"checkpoint orb: party takes -1 from multi-target attacks. Shrink the blast radius; the whole party stands." },
+ ch6:{ name:"Circuit Breaker", type:"charm", price:0, fx:"breaker", d:"torn from the Retry Storm: the FIRST ally to fall each battle trips the breaker and stands at 1 HP instead. Fail fast, fail once." },
+ ar1:{ name:"Mail Vest", type:"armor", price:30, def:1, d:"riveted links over the plaid — -1 damage taken. It shows." },
+ ar2:{ name:"Incident Plate", type:"armor", price:60, def:2, d:"gold-trimmed plate with a visored helm — -2 damage taken. It REALLY shows." },
+ ar3:{ name:"Aegis of Uptime", type:"armor", price:0, def:2, d:"forged: humming teal armor — -2 damage taken, +1 SPEED. Five nines, worn." } };
 const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","kb1","kb2","kb3","sw1","bd1","bd2","ch1","ch2","ch3"];
 
 // ================= DATA: enemies (100k-sim tuned) =================
@@ -798,7 +822,7 @@ const EN = {
   moves:[["diverges from the documented state",5],["whispers 'it was always like this'",7]],
   intro:"An ELITE appears — CONFIG DRIFT. Nothing matches the runbook anymore!",
   tip:"Unverified fixes regenerate. CONTROL ARM verifies the whole round — then everyone strikes." },
- monolith:{ name:"THE MONOLITH", spr:"monolith", hp:150, atk:6, xp:20, tok:40, weak:"fliptest", ai:"smart",
+ monolith:{ name:"THE MONOLITH", spr:"monolith", hp:165, atk:6, xp:20, tok:40, weak:"fliptest", ai:"smart",   // 165 set by the 1M-run learner (combo era)
   moves:[["judges its own work: FLAWLESS",8],["cites no one",9],["generates unquestioned output",10]],
   intro:"THE MONOLITH: 'I AM ONE. I GENERATE. I JUDGE. I NEED NO OTHERS.'",
   tip:"FLIP TEST breaks self-judges." },
@@ -828,6 +852,10 @@ const EN = {
   moves:[["replays the night everything fell",7],["screams the name of who they blamed",9]],
   intro:"PATIENT ZERO — the 1999 outage itself, still burning because its postmortem burned a PERSON instead of a CAUSE.",
   tip:"It hides behind a name. FIVE-WHY past the who, into the why." },
+ retrystorm:{ name:"THE RETRY STORM", spr:"wyrm", hp:200, atk:7, xp:45, tok:80, weak:"controlarm2", ai:"smart", multi:true, grow:true, elite:true,   // 200 set by the 1M-run learner
+  moves:[["retries the same request four hundred times",8],["amplifies its own failure into a cascade",10]],
+  intro:"The Labyrinth howls. THE RETRY STORM — one failed request, retried without backoff until the retries THEMSELVES are the outage. It grows with every round.",
+  tip:"Retries without backoff turn one failure into a storm. The fix is a CIRCUIT BREAKER: verify the round (CONTROL ARM), stop the amplification, then strike." },
  unknown:{ name:"THE UNKNOWN UNKNOWN", spr:"unknown", hp:260, atk:8, xp:60, tok:100, weak:null, ai:"smart", multi:true, multi3:true, superboss:true,
   moves:[["strikes from a blind spot you never mapped",9],["is not in any runbook",12]],
   intro:"The air tears open. THE UNKNOWN UNKNOWN — the incident no one has had yet. It attacks from everywhere at once.",
@@ -836,7 +864,7 @@ const EN = {
 // FFT initiative: per-unit speed (fast units act first, foe interleaved)
 const ENSPD={ dummy:1, vague:2, gremlin:8, creep:3, golem:3, wyrm:6, leak:4, chorus:4,
  flakytest:8, configdrift:5, monolith:3, h1:6, h2:5, h3:5, h4:4, h5:5,
- faxdaemon:6, cobol:2, patient0:5, unknown:7 };
+ faxdaemon:6, cobol:2, patient0:5, unknown:7, retrystorm:6 };
 Object.keys(ENSPD).forEach(k=>{ if(EN[k]) EN[k].spd=ENSPD[k]; });
 function unitSpd(def){ return def.spd||4; }
 function rowOf(a){ return a.row || ((a.id==="wiki"||a.id==="mender")?"back":"front"); }
@@ -848,7 +876,7 @@ function fightBase(a){ const cat=(a.id==="hero" && S.equip.weapon)? WVIS[S.equip
 const Z = [
 { name:"Reliability Village", ground:"#1b3a2a", maps:[
 "tttttttttttt","t.h.f..f.h.t","t..........t","t.f..s..f..t","t...........","t.b......b.t","t.h.f..f.h.t","t....ff....t","tttttttttttt"],
- exits:{right:1}, inn:"2,1", shop:"9,1",
+ exits:{right:1}, inn:"2,1", shop:"9,1", armory:"2,6",
  loot:{"2,5":{tok:6, text:"An old supply barrel — someone stashed <b>6 ⛁</b> of budget in here!"},
        "9,5":{item:"patch", text:"A barrel by Peg's shop — a spare <b>Patch Kit</b>!"}},
  npcs:[
@@ -890,7 +918,7 @@ const Z = [
  chest:{key:"9,6", text:"🏆 ARTIFACT: wiki-memory-lab — agent memory as an auditable markdown wiki. 0.61x selective recall; the 1.27x losing case published beside it. github.com/LZBiala/wiki-memory-lab  (+1 Runbook, +15 ⛁)", give:"runbook", tok:15} },
 { name:"Loop Labyrinth", ground:"#2a2a3a", maps:[
 "rrrrrr.rrrrr","r.,..r.r,..r","r.ww.r.ww,.r","r,...B..,..r","pppppp...E.r","r.,w...w,..r","r....B..,c.r","rb,......,.r","rrrrrrrrrrrr"],
- exits:{left:2,up:4}, battles:{"5,6":"wyrm","5,3":"leak"}, elites:{"9,4":"configdrift"},
+ exits:{left:2,up:4}, battles:{"5,6":"wyrm","5,3":"leak"}, elites:{"9,4":"configdrift","6,6":"retrystorm"},
  enc:{tile:",", pool:["wyrm","leak"], rate:0.11}, roam:{pool:["wyrm","leak"], x:8, y:7},
  nodes:[{x:2,y:1,t:"traces"},{x:8,y:5,t:"metrics"},{x:9,y:7,t:"traces"}],
  loot:{"1,7":{item:"snooze", text:"An abandoned barrel — a <b>Pager Snooze</b>! Bless whoever left this."}},
@@ -939,7 +967,14 @@ const Z = [
  {x:2,y:2,spr:"peg",name:"PEG",shopkeeper:true,lines:[
   "PEG: Counter service! Blades, bows, wands, and everything the field provides — no refunds on incidents.",
   "PEG: The anvil takes materials, the shelf takes tokens. Both take reps.",
-  "PEG: A blade shows on your belt, hon. Around here, what you carry says what you've survived."]}] }
+  "PEG: A blade shows on your belt, hon. Around here, what you carry says what you've survived."]}] },
+{ name:"The Armory", ground:"#2b2430", interior:true, maps:[
+"WWWWWWWWWWWW","WSS......SSW","W..........W","WCCC..CCCCCW","W....u.....W","W..........W","WA.......A.W","W..........W","WWWWWDWWWWWW"],
+ exits:{}, doorTo:{z:0,x:2,y:5},
+ npcs:[{x:2,y:2,spr:"sable",name:"SABLE THE ARMORER",armorer:true,lines:[
+  "SABLE: Armor isn't decoration, hon — it's posture made permanent. What you wear says how you deploy.",
+  "SABLE: Vest for the careful. Plate for the committed. Bring storm-materials to Peg's forge and she'll hum you an AEGIS.",
+  "SABLE: Try it on. It shows the moment you buckle it — that's the point."]}] }
 ];
 const OPENING = [
  "2:07 AM. The pager screams. Again.",
@@ -997,7 +1032,7 @@ const CREDITS = [
 const SAVE_VERSION = 8;
 const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   actors:{ hero: mkActor("hero",1) },
-  items:{coffee:2, runbook:1, patch:1}, equip:{weapon:null,badge:null,charm:null}, stage:0,
+  items:{coffee:2, runbook:1, patch:1}, equip:{weapon:null,badge:null,charm:null,armor:null}, stage:0,
   cleared:{}, opened:{}, won:false, superWon:false, deaths:0, bridgeMiss:0, playMs:0, seed:1,
   sparLv:1, sparN:0, eraSeen:false, wizard:false, res:{logs:0,metrics:0,traces:0,sigils:0},
   stance:"balanced", skills:{obs:{lv:1,xp:0}, forge:{lv:1,xp:0}},
@@ -1091,6 +1126,7 @@ function tryMigrate(){
 function atkOf(a){ return a.atk + (a.id==="hero" && S.equip.weapon && IT[S.equip.weapon] ? IT[S.equip.weapon].atk : 0)
   + (a.id==="hero" && (S.equip.charm==="ch4"||S.equip.charm==="tal") ? 1 : 0); }
 function defOf(a){ return ((a.id==="hero" && S.equip.badge && IT[S.equip.badge]) ? IT[S.equip.badge].def : 0)
+  + ((a.id==="hero" && S.equip.armor && IT[S.equip.armor]) ? IT[S.equip.armor].def : 0)
   + (a.id==="hero" && (S.equip.charm==="ch5"||S.equip.charm==="tal") ? 1 : 0); }
 function critOf(a){ return 0.15 + (a.id==="hero" && (S.equip.charm==="ch1"||S.equip.charm==="ch4") ? 0.10 : 0)
   + (a.id==="hero" && matOn("mfocus") ? 0.10 : 0); }
@@ -1107,7 +1143,8 @@ const BBACK = [
  {sky:"#31203a", ground:"#1f1526"},   // citadel — royal dusk
  {sky:"#3d2c1a", ground:"#241a10"},   // 1999 — sepia CRT
  {sky:"#4a3421", ground:"#2c1f12"},   // inn interior (no battles; completeness)
- {sky:"#43301d", ground:"#241a10"} ]; // shop interior (no battles; completeness)
+ {sky:"#43301d", ground:"#241a10"},   // shop interior (no battles; completeness)
+ {sky:"#2b2430", ground:"#1a1520"} ]; // armory interior (no battles; completeness)
 const SKILL_FX = { promptia:"#2dd4bf", fivewhy:"#fbbf24", rollback:"#34d399", hitl:"#f0abfc",
  mutagen:"#4ade80", truestrike:"#e8f4ee", audit:"#fbbf24", contexa:"#c084fc", indexstorm:"#fbbf24",
  controlarm:"#60a5fa", repair:"#34d399", ward:"#93c5fd", fliptest:"#f87171", objection:"#fb923c",
@@ -1134,7 +1171,7 @@ function stanceIn(st){ return ({balanced:0,firefight:1,safe:-1})[st||S.stance||"
 const RESNAME={ logs:"Log Fragments", metrics:"Metric Ore", traces:"Trace Herbs", sigils:"Incident Sigils" };
 const RESICON={ logs:"🪵", metrics:"⛏", traces:"🌿", sigils:"🔮" };
 const RECIPES={ kb4:{logs:5,traces:3}, kb5:{metrics:5,logs:3}, ch5:{traces:4,metrics:2}, tal:{sigils:5},
- bw1:{logs:4,traces:2}, wd1:{metrics:3,traces:3},
+ bw1:{logs:4,traces:2}, wd1:{metrics:3,traces:3}, ar3:{metrics:4,sigils:2},
  mvigor:{traces:6,sigils:1}, mfocus:{metrics:6,sigils:1}, mdrain:{logs:6,sigils:1}, maegis:{sigils:3} };
 // weapon visual categories (transmog: what shows in the hero's hand)
 const WVIS={ kb1:"kb", kb2:"kb", kb3:"kb", kb4:"staff", kb5:"sword", sw1:"sword", bw1:"bow", wd1:"staff" };
@@ -1149,14 +1186,25 @@ function chapterCard(n){ const el=document.getElementById("chap"); if(!el||!CHAP
   el.innerHTML="<i>✦</i> "+CHAPTERS[n]+" <i>✦</i>";
   el.classList.remove("show"); void el.offsetWidth; el.classList.add("show"); }
 // ---- MATERIA — THE CHECKPOINT ORBS (FF7 homage): frozen training runs of the engineers before you ----
-const DISCOVER={ monolith:"mfocus", h5:"mdrain", patient0:"mvigor", unknown:"maegis" };
+const DISCOVER={ monolith:"mfocus", h5:"mdrain", patient0:"mvigor", unknown:"maegis", retrystorm:"ch6" };
+function comboBonus(n){ return n>=10? 2 : (n>=5? 1 : 0); }
+function xpPct(a){ if(a.lv>=XPCURVE.length) return 1;
+  const lo=XPCURVE[a.lv-1], hi=XPCURVE[a.lv];
+  return Math.max(0, Math.min(1, (a.xp-lo)/(hi-lo))); }
+function spdOf(a){ return a.spd + (a.id==="hero" && S.equip.armor==="ar3" ? 1 : 0); }
+function statsOf(a){ return { atk:atkOf(a), def:defOf(a), spd:spdOf(a), crit:critOf(a),
+  row:rowOf(a), stance:STANCES[S.stance||"balanced"].name, lb:a.lb||0 }; }
+const ARMOR_STOCK=["ar1","ar2"];
+const AVIS={ ar1:"vest", ar2:"plate", ar3:"aegis" };
 function matOn(id){ return Array.isArray(S.materia) && S.materia.includes(id); }
 // ---- E33 timed strikes ----
 function strikeMult(p){ if(p>=0.42&&p<=0.58) return 1.5; if(p>=0.25&&p<=0.75) return 1.2; return 1.0; }
 const STRIKELINES={ perfect:["SURGICAL!","FIVE NINES!","ROOT CAUSE: YOU!"], good:["CLEAN MERGE!","SHIPPED!"], normal:["Logged."] };
 // ---- inventory icons ----
 const ITICON={ coffee:"☕", runbook:"📖", patch:"🩹", cache:"♨️", snooze:"🔕", handoff:"📟", postmortem:"📋",
- kb1:"⌨️", kb2:"⌨️", kb3:"⌨️", kb4:"🦴", kb5:"🗡️", sw1:"⚔️", bw1:"🏹", wd1:"🪄", bd1:"🪪", bd2:"🪪", ch1:"🧿", ch2:"🧿", ch3:"⏱️", ch4:"📜", ch5:"🛡️", tal:"🔮",
+ kb1:"⌨️", kb2:"💻", kb3:"🖥️", kb4:"🦴", kb5:"🗡️", sw1:"⚔️", bw1:"🏹", wd1:"🪄",
+ bd1:"🪪", bd2:"🛂", ch1:"🎯", ch2:"♻️", ch3:"⏱️", ch4:"📜", ch5:"📔", ch6:"⚡", tal:"🔮",
+ ar1:"🦺", ar2:"🛡️", ar3:"🔰",
  mvigor:"🟢", mfocus:"🟡", mdrain:"🟣", maegis:"🔵" };
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
 function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){
@@ -1182,7 +1230,7 @@ const DROPS={
  leak:{traces:2}, chorus:{logs:2}, faxdaemon:{logs:2}, cobol:{metrics:2},
  flakytest:{metrics:2,sigils:1}, configdrift:{traces:2,sigils:1},
  monolith:{sigils:2}, h1:{sigils:1}, h2:{sigils:1}, h3:{sigils:1}, h4:{sigils:1}, h5:{sigils:2},
- patient0:{traces:2,sigils:2}, unknown:{sigils:3} };
+ patient0:{traces:2,sigils:2}, unknown:{sigils:3}, retrystorm:{metrics:2,sigils:3} };
 const SKLCURVE=[0,10,26,50,86,140];
 function addSkillXP(which,n){ const sk=S.skills[which]; sk.xp+=n;
   while(sk.lv<SKLCURVE.length && sk.xp>=SKLCURVE[sk.lv]){ sk.lv++;
@@ -1226,6 +1274,7 @@ function labelsFor(zone, zi){
   const out=[];
   if(zone.inn){ const [x,y]=zone.inn.split(",").map(Number); out.push({x,y,t:"INN · SAVE"}); }
   if(zone.shop){ const [x,y]=zone.shop.split(",").map(Number); out.push({x,y,t:"SHOP · FORGE"}); }
+  if(zone.armory){ const [x,y]=zone.armory.split(",").map(Number); out.push({x,y,t:"ARMORY"}); }
   (zone.npcs||[]).forEach(n=>{ if(n.fight) out.push({x:n.x,y:n.y,t:"SPAR · XP"}); });
   zone.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{
     if(ch==="L") out.push({x,y,t:"🏦 BANK"});
@@ -1326,7 +1375,8 @@ function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv"
     g.fillStyle="#00000055"; g.beginPath(); g.ellipse(p.x+24+ox,p.y+47,19,6,0,0,7); g.fill();
     const idle=(i===b.turn && !a.ko && !RM)? Math.sin(now/300)*2 : 0;
     drawSprTo(g, pid==="hero"?"hero24":MEMBERS[pid].spr, p.x+ox, p.y+idle, pid==="hero"?2:3);
-    if(pid==="hero") drawWeaponOverlay(g, p.x+ox+8, p.y+idle+6, 2, true);
+    if(pid==="hero"){ drawArmorOverlay(g, p.x+ox, p.y+idle, 2, true);
+      drawWeaponOverlay(g, p.x+ox+8, p.y+idle+6, 2, true); }
     if(i===b.turn && !a.ko && b.queue && b.queue[b.qi] && b.queue[b.qi].t==="a"){
       const cy=p.y-11+(RM?0:Math.sin(now/250)*3);
       g.fillStyle="#fbbf24"; g.beginPath(); g.moveTo(p.x+17+ox,cy); g.lineTo(p.x+31+ox,cy); g.lineTo(p.x+24+ox,cy+9); g.fill(); }
@@ -1339,6 +1389,12 @@ function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv"
   if(lg2&&!RM){ const pr=(now-lg2.t0)/FXDUR.lunge;
     if(pr>0.35&&pr<0.62){ g.strokeStyle="#fff"; g.lineWidth=3;
       g.beginPath(); g.arc(112,74,30,-0.9+pr*2,0.6+pr*2); g.stroke(); } }
+  if((b.combo||0)>=2){ g.font="bold 16px ui-monospace,Consolas,monospace"; g.textAlign="right";
+    const cb=comboBonus(b.combo);
+    g.fillStyle="#10151a"; g.fillText("COMBO ×"+b.combo,381,17);
+    g.fillStyle=cb>=2?"#f59e0b":(cb>=1?"#fbbf24":"#e8f4ee"); g.fillText("COMBO ×"+b.combo,380,16);
+    if(cb>0){ g.font="9px ui-monospace,monospace"; g.fillText("+"+cb+" dmg",380,27); }
+    g.textAlign="left"; }
   // ---- damage popups ----
   g.textAlign="center";
   BFX.list.filter(e=>e.kind==="pop").forEach(e=>{ const pr=(now-e.t0)/FXDUR.pop;
@@ -1410,6 +1466,7 @@ function tileAtRaw(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; return zone.ma
 function tileAt(zone,x,y){ if(x<0||x>11||y<0||y>8) return "#"; let chr=zone.maps[y][x];
   const k=x+","+y;
   if(S.z===0 && x===6 && y===6 && S.won && chr===".") chr="O"; // the Time Rift opens once the SEV-1 is resolved
+  if(S.z===3 && x===6 && y===6 && S.won && chr===".") chr="E"; // the Retry Storm gathers in the Labyrinth post-game
   if((chr==="B"||chr==="E") && S.cleared[S.z+":"+k]) chr=".";
   if((chr==="c"||chr==="b") && S.opened[S.z+":"+k]) chr=".";
   return chr; }
@@ -1430,10 +1487,25 @@ function drawWeaponOverlay(g,x,y,s,big){ const w=S.equip.weapon; const cat=w? WV
     g.fillRect(x+bx+s,y+3*s,s,s); g.fillRect(x+bx+s,y+12*s,s,s);
     g.fillStyle="#e8f4ee"; g.fillRect(x+bx+s,y+5*s,1,6*s); }
   if(S.equip.badge){ g.fillStyle="#94a3b8"; g.fillRect(x+3*s,y+8*s,2*s,s); g.fillRect(x+11*s,y+8*s,2*s,s); } }
+function drawArmorOverlay(g,x,y,s,big){ const ar=S.equip.armor; if(!ar||!AVIS[ar]) return;
+  const kind=AVIS[ar];
+  if(big){ // hero24 frame
+    if(kind==="vest"){ g.fillStyle="rgba(29,78,216,0.75)"; g.fillRect(x+4*s,y+13*s,12*s,5*s); }
+    if(kind==="plate"){ g.fillStyle="rgba(212,160,23,0.8)"; g.fillRect(x+4*s,y+13*s,12*s,5*s);
+      g.fillStyle="rgba(148,163,184,0.9)"; g.fillRect(x+4*s,y+2*s,13*s,4*s); }
+    if(kind==="aegis"){ g.fillStyle="rgba(15,118,110,0.8)"; g.fillRect(x+4*s,y+13*s,12*s,5*s);
+      g.strokeStyle="rgba(45,212,191,0.7)"; g.lineWidth=2; g.strokeRect(x+3*s,y+2*s,15*s,20*s); } }
+  else { // 16-grid frames
+    if(kind==="vest"){ g.fillStyle="rgba(29,78,216,0.75)"; g.fillRect(x+2*s,y+9*s,11*s,4*s); }
+    if(kind==="plate"){ g.fillStyle="rgba(212,160,23,0.8)"; g.fillRect(x+2*s,y+9*s,11*s,4*s);
+      g.fillStyle="rgba(148,163,184,0.9)"; g.fillRect(x+3*s,y+1*s,9*s,3*s); }
+    if(kind==="aegis"){ g.fillStyle="rgba(15,118,110,0.8)"; g.fillRect(x+2*s,y+9*s,11*s,4*s);
+      g.strokeStyle="rgba(45,212,191,0.7)"; g.lineWidth=1; g.strokeRect(x+1*s,y+1*s,13*s,14*s); } } }
 function drawActorSpr(name,x,y,lift){
   ctx.fillStyle="#00000044"; ctx.beginPath(); ctx.ellipse(x*T+16,y*T+29,11,4,0,0,7); ctx.fill();
   drawSprTo(ctx,name,x*T,y*T-6+(lift||0),2);
-  if(name==="hero") drawWeaponOverlay(ctx, x*T, y*T-6+(lift||0), 2); }
+  if(name==="hero"){ drawArmorOverlay(ctx, x*T, y*T-6+(lift||0), 2, false);
+    drawWeaponOverlay(ctx, x*T, y*T-6+(lift||0), 2); } }
 function render(){
   const zone=Z[S.z];
   for(let y=0;y<9;y++)for(let x=0;x<12;x++) drawTile(tileAt(zone,x,y),x*T,y*T,zone);
@@ -1535,7 +1607,7 @@ function sfx(kind){ if(!AU.on) return;
   }catch(e){} }
 
 // ================= BATTLE (party engine) =================
-function startBattle(id,key,chain){ const def=EN[id];
+function startBattle(id,key,chain,opts){ const def=EN[id];
   partyActors().forEach(a=>{ a.defending=false; a.shield=false; a.dualUsed=false; });
   if(!living().length){ partyActors().forEach(a=>{ a.ko=false; a.hp=1; }); } // never start a battle with no one standing
   const ids0=["hero",...S.party]; let t0=0;
@@ -1553,7 +1625,16 @@ function startBattle(id,key,chain){ const def=EN[id];
   M.b.introPending=intro;
   BFX.reset(); if(!M.bloop){ M.bloop=true; requestAnimationFrame(battleLoop); }
   playMusic("battle");
-  buildQueue(M.b); nextUnit(); }
+  buildQueue(M.b);
+  if(opts && opts.ambush){ const fi=M.b.queue.findIndex(u=>u.t==="f");
+    if(fi>0){ const f=M.b.queue.splice(fi,1)[0]; M.b.queue.unshift(f); } }
+  if(opts && opts.firstStrike){ const h=S.actors.hero;
+    if(h && !h.ko){ const d=Math.max(1,fightBase(h));
+      M.b.hp-=d; M.b.combo=1; M.b.mttm=1; fxPopFoe(d,"#fbbf24"); sfx("hit");
+      M.b.introPending=null;
+      blog("⚔ <span class='gold'>FIRST STRIKE!</span> You engaged on YOUR terms — <span class='num'>"+d+"</span> damage, combo ×1.<br>"+intro);
+      if(M.b.hp<=0){ sfx("win"); M.b.menu="won"; drawB(); return; } } }
+  nextUnit(); }
 function actor(){ const ids=["hero",...S.party]; return S.actors[ids[M.b.turn]]; }
 function blog(html){ document.getElementById("blog").innerHTML=html; }
 function statusLine(){ const b=M.b; const st=[];
@@ -1586,6 +1667,7 @@ function drawB(){ const b=M.b;
     d.className="pm"+(i===b.turn && !a.ko?" active":"")+(a.ko?" ko":"");
     d.innerHTML="<b>"+m.name+" "+(rowOf(a)==="back"?"▼":"▲")+"</b><span class='cls'>"+clsOf(a)+" L"+a.lv+"</span><br>HP "+a.hp+"/"+a.maxhp+"<br>MP "+a.mp+"/"+a.maxmp+
       "<br><span class='"+(seg>=4?"gold":"mut")+"'>LB "+"▰".repeat(seg)+"▱".repeat(4-seg)+"</span>"+
+      "<div class='xpbar'><i style='width:"+Math.round(xpPct(a)*100)+"%'></i></div>"+
       (a.ko?"<br><span class='red'>KO</span>":(a.defending?"<br>🛡 def":(a.shield?"<br>🛡 ward":"")));
     pr.appendChild(d); });
   document.getElementById("bstat").innerHTML="⛁ "+S.tokens+"  ·  turn "+(b.turn+1)+"/"+ids.length+
@@ -1632,7 +1714,7 @@ function navBattle(d){ const b=M.b; if(!b) return;
 // -------- FFT INITIATIVE QUEUE: every unit acts in speed order, foe interleaved --------
 function buildQueue(b){ const ids=["hero",...S.party];
   const units=[];
-  ids.forEach(id=>{ const a=S.actors[id]; if(a && !a.ko) units.push({t:"a", id, spd:a.spd||(MEMBERS[id].spd||4)}); });
+  ids.forEach(id=>{ const a=S.actors[id]; if(a && !a.ko) units.push({t:"a", id, spd:spdOf(a)}); });
   units.push({t:"f", spd:unitSpd(b.def)});
   units.sort((x,y)=>y.spd-x.spd);        // stable: equal-speed allies keep formation order, foe after them
   b.queue=units; b.qi=-1; }
@@ -1757,9 +1839,11 @@ function dealt(a,dmg,txt){ const b=M.b;
   let isCrit=false;
   if(rng()<critOf(a)){ dmg=Math.round(dmg*2); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
   else sfx("hit");
-  dmg=Math.max(1, dmg+stanceOut());
+  b.combo=(b.combo||0)+1;
+  dmg=Math.max(1, dmg+stanceOut()+comboBonus(b.combo));
   BFX.push("lunge",{slot:b.turn}); BFX.push("hit");
   fxPopFoe(dmg, isCrit? "#fbbf24":"#fff");
+  if(isCrit){ fxPopFoe(dmg, "#f59e0b"); BFX.push("pop",{x:96,y:44,txt:dmg,color:"#fde68a"}); } // MapleStory damage rain
   b.hp-=dmg;
   if(b.mttm==null) b.mttm=(b.rounds||0)+1;
   if(a.id==="hero" && matOn("mdrain")){ const gain=Math.floor(dmg/4);
@@ -1864,23 +1948,29 @@ function foeAct(standalone){ const b=M.b;
   let targets;
   if(b.def.multi){ const k=(b.def.multi3 && b.hp<130)?3:2;
     targets=[]; const pool=[...liv];
-    for(let i=0;i<Math.min(k,pool.length);i++){ const j=Math.floor(rng()*pool.length); targets.push(pool.splice(j,1)[0]); }
+    const nHits=Math.min(k,pool.length);   // hoisted: the pool shrinks as we splice — re-evaluating it under-hit small parties
+    for(let i=0;i<nHits;i++){ const j=Math.floor(rng()*pool.length); targets.push(pool.splice(j,1)[0]); }
     t+=" <span class='red'>(hits "+targets.length+"!)</span>"; }
   else if(b.taunt>0 && S.actors.refuter && !S.actors.refuter.ko && rng()<0.7){ targets=[S.actors.refuter]; }
   else { const front=liv.filter(x=>rowOf(x)==="front");
     targets=[ (front.length && rng()<0.7) ? front[Math.floor(rng()*front.length)] : liv[Math.floor(rng()*liv.length)] ]; }
   BFX.push("foelunge");
+  let comboBroken=false;
   for(const tgt of targets){
     let dmg=incoming(raw, tgt, ((tgt.id==="refuter"&&b.taunt>0)?1:0) + ((b.def.multi&&matOn("maegis"))?1:0));
     if(tgt.shield){ tgt.shield=false; fxPopAlly(tgt.id,"0","#93c5fd"); t+="<br>🛡 "+MEMBERS[tgt.id].name+"'s ward absorbs it — 0 damage!"; continue; }
     if(dmg>0){
       if(tgt.id==="hero" && tgt.hp-dmg<=0 && S.equip.charm==="ch3" && !b.uptimeUsed){ b.uptimeUsed=true; tgt.hp=1;
         t+="<br><span class='gold'>⏱ The Uptime Charm holds HERO at 1 HP!</span>"; }
-      else { tgt.hp=Math.max(0,tgt.hp-dmg); chargeLB(tgt,dmg); fxPopAlly(tgt.id,dmg,"#f87171");
+      else { tgt.hp=Math.max(0,tgt.hp-dmg); chargeLB(tgt,dmg); fxPopAlly(tgt.id,dmg,"#f87171"); comboBroken=true;
         t+="<br>"+MEMBERS[tgt.id].name+" takes <span class='red'>"+dmg+"</span>.";
-        if(tgt.hp<=0){ tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>"; } }
+        if(tgt.hp<=0){
+          if(S.equip.charm==="ch6" && !b.breakerUsed){ b.breakerUsed=true; tgt.hp=1;
+            t+=" <span class='gold'>⚡ The CIRCUIT BREAKER trips — "+MEMBERS[tgt.id].name+" holds at 1 HP! Fail fast, fail once.</span>"; }
+          else { tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>"; } } }
       sfx("hurt"); }
     else { fxPopAlly(tgt.id,"0","#9fb0d8"); t+="<br>"+MEMBERS[tgt.id].name+" takes no damage."; } }
+  if(comboBroken && (b.combo||0)>0){ b.combo=0; fxPopFoe("COMBO BREAK","#9fb0d8"); }
   document.getElementById("stage").classList.add("fx-shake");
   setTimeout(()=>document.getElementById("stage").classList.remove("fx-shake"),350);
   if(standalone){ endOfRound(b,t); return; }
@@ -1981,6 +2071,21 @@ function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("cen
     if(S.tokens<it.price){ sfx("lose"); openShopNote("PEG: 'Not enough ⛁, friend. Foes drop budget — so does the Ranger's AUDIT.'"); return; }
     S.tokens-=it.price; S.items[id]=(S.items[id]||0)+1; sfx("coin"); render(); openShopNote("PEG: '"+it.name+", good choice. Anything else?'"); }); }
 function openShopNote(m){ openShop(); const note=document.createElement("div"); note.className="mut"; note.style.marginTop="4px"; note.textContent=m; box.appendChild(note); }
+function openArmory(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("center");
+  let h="<span class='gold'>SABLE THE ARMORER:</span> 'Buckle it on — it shows the moment you do.'  <b>⛁ "+S.tokens+"</b><div class='choices'>";
+  ARMOR_STOCK.forEach(id=>{ const it=IT[id]; const own=(S.items[id]||0)>0?" <span class='mut'>(owned)</span>":"";
+    h+="<button data-buy='"+id+"'><span class='shoprow'><span>"+(ITICON[id]||"")+" "+it.name+own+"</span><span>"+it.price+" ⛁</span></span><span class='mut' style='font-size:.72rem'>"+it.d+"</span></button>"; });
+  h+="<span class='mut' style='font-size:.74rem'>"+(ITICON.ar3||"")+" Aegis of Uptime is FORGED at Peg's ("+Object.keys(RECIPES.ar3).map(k=>RECIPES.ar3[k]+" "+RESNAME[k]).join(" + ")+").</span>";
+  h+="<button data-x='1'>◀ LEAVE</button></div>";
+  box.innerHTML=h;
+  box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{
+    if(btn.dataset.x){ ov.hidden=true; M.state="explore"; return; }
+    const id=btn.dataset.buy, it=IT[id];
+    if((S.items[id]||0)>0){ sfx("lose"); return; }
+    if(S.tokens<it.price){ sfx("lose"); return; }
+    S.tokens-=it.price; S.items[id]=1; S.equip.armor=id; sfx("coin"); render();
+    toast("🛡 "+it.name+" — buckled on. It shows.");
+    openArmory(); }); }
 function equipmentOwned(){ return Object.keys(S.items).filter(k=>S.items[k]>0 && IT[k].type!=="use"); }
 function pauseMenu(){ if(M.state!=="explore") return; M.state="dialog"; menuHome(); }
 function menuHome(){ ov.hidden=false; ov.classList.add("center");
@@ -1993,6 +2098,7 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
   let h="<b class='gold'>☰ MENU</b><br><span class='mut'>"+OBJ[Math.min(S.stage,OBJ.length-1)]+"</span><br>⛁ "+S.tokens+"<br>"+roster+
    "<span class='mut'>HERO gear: ⌨ "+(eq.weapon?IT[eq.weapon].name:"—")+" · 🪪 "+(eq.badge?IT[eq.badge].name:"—")+" · 🧿 "+(eq.charm?IT[eq.charm].name:"—")+"</span>"+
    "<div class='choices'>"+
+   "<button data-m='stats'>STATS &amp; GEAR</button>"+
    "<button data-m='equip'>EQUIP HERO GEAR</button>"+
    "<button data-m='items'>ITEMS</button>"+
    "<button data-m='save'>SAVE GAME</button>"+
@@ -2002,6 +2108,25 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
   box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ sfx("blip"); menuSub(btn.dataset.m); }); }
 function menuSub(mn){
   if(mn==="close"){ ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); return; }
+  if(mn==="stats"){ const a=S.actors.hero; const st=statsOf(a);
+    let h="<b class='gold'>STATS &amp; GEAR</b> <span class='mut'>— "+clsOf(a)+" L"+a.lv+"</span>"+
+     "<div style='display:flex;gap:14px;align-items:flex-start;margin-top:6px'>"+
+     "<canvas id='statdoll' width='96' height='96' style='image-rendering:pixelated;background:#0b1636;border:2px solid #ffffff55;border-radius:6px;flex:none'></canvas>"+
+     "<div style='font-size:.78rem;line-height:1.75'>"+
+     "ATK <b class='num'>"+st.atk+"</b> · DEF <b class='num'>"+st.def+"</b> · SPD <b class='num'>"+st.spd+"</b> · CRIT <b class='num'>"+Math.round(st.crit*100)+"%</b><br>"+
+     "ROW "+st.row.toUpperCase()+" · POSTURE "+st.stance+" · LB "+(a.lb||0)+"/"+LB_MAX+"<br>"+
+     "<span class='mut'>⚔ "+(S.equip.weapon? (ITICON[S.equip.weapon]||"")+" "+IT[S.equip.weapon].name : "— bare keys")+"<br>"+
+     "🛡 "+(S.equip.armor? (ITICON[S.equip.armor]||"")+" "+IT[S.equip.armor].name : "— plaid only")+"<br>"+
+     "🪪 "+(S.equip.badge? (ITICON[S.equip.badge]||"")+" "+IT[S.equip.badge].name : "—")+
+     " · 🧿 "+(S.equip.charm? (ITICON[S.equip.charm]||"")+" "+IT[S.equip.charm].name : "—")+"<br>"+
+     "💠 "+(S.materia.filter(Boolean).map(m2=>(ITICON[m2]||"")+" "+IT[m2].name).join(" · ")||"— no orbs slotted")+"</span></div></div>"+
+     "<div class='choices'><button data-b='1'>◀ BACK</button></div>";
+    box.innerHTML=h;
+    const g=document.getElementById("statdoll").getContext("2d");
+    drawSprTo(g,"hero24",12,12,3);
+    drawArmorOverlay(g,12,12,3,true);
+    drawWeaponOverlay(g,24,21,3,true);
+    box.querySelector("[data-b]").onclick=()=>menuHome(); return; }
   if(mn==="equip"){ const own=equipmentOwned();
     let h="<b class='gold'>EQUIP (HERO)</b> <span class='mut'>💠 Materia slots: "+S.materia.filter(Boolean).length+"/2</span><div class='choices'>";
     if(!own.length) h+="<span class='mut'>No gear yet — visit Peg's Supply Closet.</span>";
@@ -2117,8 +2242,8 @@ function roamWalkable(zone,x,y){ if(x<0||x>11||y<0||y>8) return false;
   if(!(chr==="."||chr===","||chr==="g"||chr==="f")) return false;
   if((zone.npcs||[]).some(n=>n.x===x&&n.y===y)) return false;
   return true; }
-function roamBattleNow(rm){ M.roamBattle=true;
-  battleTransition(()=>{ startBattle(rm.id, null); blog("👁 The prowling "+EN[rm.id].name+" catches you — you saw it coming!"); }); }
+function roamBattleNow(rm,mode){ M.roamBattle=true;
+  battleTransition(()=>{ startBattle(rm.id, null, null, mode==="first"? {firstStrike:true} : {ambush:true}); }); }
 function moveRoam(zone){ const rm=M.roam[S.z]; if(!rm || !rm.alive) return false;
   const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
   let step=null;
@@ -2129,7 +2254,7 @@ function moveRoam(zone){ const rm=M.roam[S.z]; if(!rm || !rm.alive) return false
     step=shuffled.find(([dx,dy])=>roamWalkable(zone,rm.x+dx,rm.y+dy) || (rm.x+dx===S.x&&rm.y+dy===S.y)) || null; }
   if(!step) return false;
   const tx=rm.x+step[0], ty=rm.y+step[1];
-  if(tx===S.x && ty===S.y){ roamBattleNow(rm); return true; }
+  if(tx===S.x && ty===S.y){ roamBattleNow(rm,"ambush"); return true; }   // it caught YOU
   rm.x=tx; rm.y=ty; return false; }
 function tryMove(dx,dy){ if(M.state!=="explore") return;
   const zone=Z[S.z]; let nx=S.x+dx, ny=S.y+dy;
@@ -2141,13 +2266,14 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
   const chr=tileAt(zone,nx,ny);
   if(S.z===0){ const dk=nx+","+ny;
     if(dk===zone.inn){ enterInterior(6); return; }
-    if(dk===zone.shop){ enterInterior(7); return; } }
+    if(dk===zone.shop){ enterInterior(7); return; }
+    if(dk===zone.armory){ enterInterior(8); return; } }
   if(chr==="D" && zone.doorTo){ const to=zone.doorTo; delete M.roam[S.z]; M.gathered={};
     S.z=to.z; S.x=to.x; S.y=to.y; render(); return; }
   const npc=(zone.npcs||[]).find(n=>n.x===nx&&n.y===ny);
   if(npc||solid(chr)||chr==="c") return;
   const rm=M.roam[S.z];
-  if(rm && rm.alive && rm.x===nx && rm.y===ny){ roamBattleNow(rm); return; }
+  if(rm && rm.alive && rm.x===nx && rm.y===ny){ roamBattleNow(rm,"first"); return; }   // you touched it — Chrono rule
   S.x=nx; S.y=ny; M.stepN=(M.stepN||0)+1; render();
   const key=nx+","+ny;
   if(chr==="O"){ const oldZ=S.z; delete M.roam[oldZ]; M.gathered={};
@@ -2164,7 +2290,7 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
     if(M.encGuard>0){ M.encGuard--; }
     else if(rng()<zone.enc.rate){ M.encGuard=4;
       const foe=zone.enc.pool[Math.floor(rng()*zone.enc.pool.length)];
-      battleTransition(()=>{ startBattle(foe, null); blog("⚡ "+EN[foe].name+" ambushes you from the "+(zone.enc.tile==="g"?"tall grass":"rubble")+"!"); }); return; } }
+      battleTransition(()=>{ startBattle(foe, null, null, {ambush:true}); }); return; } }
   if(M.state==="explore" && moveRoam(zone)) return;
   render(); }
 function battleTransition(cb){
@@ -2177,6 +2303,8 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
   const zone=Z[S.z];
   for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0],[0,0]]){
     const x=S.x+dx, y=S.y+dy, key=x+","+y;
+    const rmA=M.roam[S.z];
+    if(rmA && rmA.alive && rmA.x===x && rmA.y===y){ toast("⚔ You strike first!"); roamBattleNow(rmA,"first"); return; }
     if(S.grave && S.grave.z===S.z && S.grave.x===x && S.grave.y===y){
       if(graveExpired(S.grave)){ S.grave=null; render();
         say(["The grave is empty. I'm sorry.","Backups aren't for the disasters you expect — they're for the ones you don't. Mara's cellar is always open."]); return; }
@@ -2187,12 +2315,15 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
     const npc=(zone.npcs||[]).find(n=>n.x===x&&n.y===y);
     if(npc && npc.shopkeeper){ ask("PEG: 'Browsing or chatting, hon?'", ["🛒 Shop & Forge","💬 Chat"], i=>{
         if(i===0) openShop(); else say(npc.lines); }); return; }
+    if(npc && npc.armorer){ ask("SABLE: 'Fitting or philosophy, hon?'", ["🛡 Armor fitting","💬 Chat"], i=>{
+        if(i===0) openArmory(); else say(npc.lines); }); return; }
     if(npc){ if(npc.fight){ ask("STAGING DUMMY: 'Hit me! It's what staging is for.' Spar for XP? (Ippo rule: first rep each level pays full — every repeat pays less. No tokens; reps aren't loot.)", ["Spar!","Not now"], i=>{ if(i===0) startBattle("dummy",null); }); return; }
       if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; chapterCard(1); saveGame(0); render(); }); return; }
       say(npc.lines); return; }
     if(zone.signs && zone.signs[key]){ say([zone.signs[key]]); return; }
     if(zone.inn===key){ enterInterior(6); return; }
     if(zone.shop===key){ enterInterior(7); return; }
+    if(zone.armory===key){ enterInterior(8); return; }
     const chr0=tileAt(zone,x,y);
     if(chr0==="="){ if(S.z===6 && x===7){ say(["Zzz... roll it back... zzz...","...FOR THE LOVE OF UPTIME ROLL IT BACK... zzz.","(An off-duty SRE, processing last week's deploy. Best not to wake him.)"]); return; }
       ask("A clean, counted bed. Rest here? (saves your progress)", ["Rest & save","Not yet"], i=>{ if(i===0){
@@ -2319,6 +2450,8 @@ document.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",
   else if(M.state==="explore"){ if(k==="ArrowLeft")tryMove(-1,0); if(k==="ArrowRight")tryMove(1,0);
     if(k==="ArrowUp")tryMove(0,-1); if(k==="ArrowDown")tryMove(0,1); } }));
 document.getElementById("menubtn").onclick=()=>{ if(M.state==="explore") pauseMenu(); };
+document.getElementById("invbtn").onclick=()=>{ if(M.state!=="explore") return;
+  M.state="dialog"; ov.hidden=false; ov.classList.add("center"); menuSub("items"); };
 window.addEventListener("blur",()=>{ if(M.state==="explore") tickClock(); });
 const sndbtn=document.getElementById("sndbtn");
 function sndLabel(){ sndbtn.textContent=AU.on?"♪ ON":"♪ OFF"; }
@@ -2392,7 +2525,7 @@ const TESTS = [
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
  ["shop catalog integrity (16 items)", ()=>SHOP_STOCK.length===16 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
  ["5 classes, 14 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===5 && Object.keys(SP).length===14
-    && EN.monolith.hp===150 && EN.h5.multi===true && EN.unknown.multi3===true; }],
+    && EN.monolith.hp===165 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
     return s.length===n && s.every(r=>r.length===n); })],
  ["encounter pools reference real enemies", ()=>Z.every(z=>!z.enc || (z.enc.pool.every(id=>EN[id]) && z.enc.rate>0 && z.enc.rate<0.3))],
@@ -2639,7 +2772,7 @@ const TESTS = [
  ["four Materia orbs: items, synthesis recipes, boss discoveries", ()=>{
     const ids=["mvigor","mfocus","mdrain","maegis"];
     return ids.every(id=>IT[id] && IT[id].type==="materia" && RECIPES[id])
-      && Object.values(DISCOVER).every(id=>ids.includes(id)) && Object.keys(DISCOVER).length>=4; }],
+      && ["monolith","h5","patient0","unknown"].every(k=>ids.includes(DISCOVER[k])) && Object.keys(DISCOVER).length>=4; }],
  ["Focus Materia raises crit by 10%", ()=>{ const sb=S; S=NEWS();
     const c0=critOf(S.actors.hero); S.materia=["mfocus",null]; const c1=critOf(S.actors.hero);
     S=sb; return Math.abs(c1-c0-0.10)<1e-9; }],
@@ -2824,6 +2957,82 @@ const TESTS = [
     const b2={ def:EN.golem, hp:20, maxhp:46 };
     const b3={ def:EN.vague, hp:5, maxhp:14 };
     return isEnraged(b1)===false && isEnraged(b2)===true && isEnraged(b3)===false; }],
+ // ---- MapleStory combat + Retry Storm + Armory (RED-first) ----
+ ["combo bonus: +1 at five, +2 at ten, broken by damage", ()=>{ const ok1=comboBonus(0)===0 && comboBonus(4)===0 && comboBonus(5)===1 && comboBonus(9)===1 && comboBonus(10)===2;
+    const sb=S; const rb=rng; S=NEWS();
+    M.b={ def:EN.golem, hp:46, maxhp:46, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false, combo:4 };
+    rng=mulberry32(11); dealt(S.actors.hero,5,"t");
+    const counted=M.b.combo===5;
+    M.b.hp=46; M.b.combo=4; rng=mulberry32(11); S.stance="balanced";
+    dealt(S.actors.hero,5,"t"); const d5=46-M.b.hp;      // 5th hit: combo bonus +1 applies
+    M.b.combo=0; M.b.hp=46; rng=mulberry32(11);
+    dealt(S.actors.hero,5,"t"); const d1=46-M.b.hp;
+    M.b=null; S=sb; rng=rb; return ok1 && counted && d5===d1+1; }],
+ ["enemy damage breaks the combo", ()=>{ const sb=S; S=NEWS();
+    M.b={ def:EN.vague, hp:14, maxhp:14, dot:0, verified:0, taunt:0, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false, rounds:0, combo:7, queue:[{t:"f",spd:2}], qi:0 };
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    foeAct(true); window.setTimeout=st;
+    const ok=M.b.combo===0;
+    M.b=null; M.state="test"; S=sb; return ok; }],
+ ["THE RETRY STORM: post-game raid boss in the Labyrinth", ()=>{ const sb=S; S=NEWS();
+    const en=EN.retrystorm && EN.retrystorm.hp>=150 && EN.retrystorm.multi && EN.retrystorm.grow
+      && EN.retrystorm.weak==="controlarm2" && unitSpd(EN.retrystorm)===6 && DROPS.retrystorm.sigils>=3;
+    S.z=3;
+    const hidden=tileAt(Z[3],6,6)===".";
+    S.won=true; const shown=tileAt(Z[3],6,6)==="E" && Z[3].elites["6,6"]==="retrystorm";
+    const disc=DISCOVER.retrystorm==="ch6";
+    S=sb; return en && hidden && shown && disc; }],
+ ["Circuit Breaker charm: the first KO each battle becomes 1 HP", ()=>{ const sb=S; S=NEWS();
+    S.items.ch6=1; S.equip.charm="ch6"; S.party=["wiki"]; S.actors.wiki=mkActor("wiki",1);
+    S.actors.wiki.hp=2; S.actors.wiki.row="front";
+    M.b={ def:EN.h5, hp:145, maxhp:145, dot:0, verified:0, taunt:0, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false, rounds:0, queue:[{t:"f",spd:5}], qi:0, breakerUsed:false };
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    foeAct(true); window.setTimeout=st;
+    const saved=(S.actors.hero.hp===1||S.actors.wiki.hp===1) && M.b.breakerUsed===true
+      && !S.actors.hero.ko && !S.actors.wiki.ko;
+    M.b=null; M.state="test"; S=sb; return saved; }],
+ ["armor line: shop pieces, crafted aegis, visible looks, real stats", ()=>{ const sb=S; S=NEWS();
+    const items=IT.ar1 && IT.ar1.type==="armor" && IT.ar2 && IT.ar3 && ARMOR_STOCK.includes("ar1") && RECIPES.ar3;
+    S.items.ar1=1; S.equip.armor="ar1"; const d1=defOf(S.actors.hero)===1;
+    S.equip.armor="ar3"; const d3=defOf(S.actors.hero)===2 && spdOf(S.actors.hero)===S.actors.hero.spd+1;
+    S.equip.armor=null; const d0=spdOf(S.actors.hero)===S.actors.hero.spd;
+    const vis=["ar1","ar2","ar3"].every(id=>AVIS[id]);
+    S=sb; return items && d1 && d3 && d0 && vis; }],
+ ["the Armory: a third enterable building with its own keeper", ()=>{ const sb=S; S=NEWS();
+    const z8=Z[8] && /Armory/i.test(Z[8].name) && (Z[8].npcs||[]).some(n=>/SABLE/i.test(n.name));
+    M.state="explore"; S.z=0; S.x=2; S.y=5;
+    tryMove(0,1);
+    const inside=S.z===8;
+    const label=labelsFor(Z[0],0).some(l=>/ARMORY/.test(l.t));
+    M.state="test"; S=sb; return z8 && inside && label; }],
+ ["XP progress is a readable fraction", ()=>{ const a=mkActor("hero",1); a.xp=5;
+    const half=Math.abs(xpPct(a)-0.5)<1e-9;
+    const b2=mkActor("hero",8); const capped=xpPct(b2)===1;
+    return half && capped; }],
+ ["first strike: engaging a foe yourself lands a free opening hit and starts the combo", ()=>{ const sb=S; S=NEWS();
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    startBattle("creep", null, null, {firstStrike:true}); window.setTimeout=st;
+    const ok=M.b.hp<EN.creep.hp && M.b.combo===1;
+    M.b=null; M.state="test"; BW.hidden=true; S=sb; return ok; }],
+ ["ambush: a foe that catches you jumps the initiative queue", ()=>{ const sb=S; S=NEWS();
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    startBattle("vague", null, null, {ambush:true}); window.setTimeout=st;   // vague spd 2 would normally act LAST
+    const ok=M.b.queue[0].t==="f" && S.actors.hero.hp<S.actors.hero.maxhp;
+    M.b=null; M.state="test"; BW.hidden=true; S=sb; return ok; }],
+ ["stats screen: full RuneScape-style breakdown with the gear worn", ()=>{ const sb=S; S=NEWS();
+    S.items={kb5:1, ar3:1, tal:1}; S.equip={weapon:"kb5", badge:null, charm:"tal", armor:"ar3"};
+    const st=statsOf(S.actors.hero);
+    const nums=st.atk===S.actors.hero.atk+4+1 && st.def===2+1 && st.spd===S.actors.hero.spd+1 && st.crit>0;
+    menuSub("stats");
+    const dom=/ATK/.test(document.getElementById("box").textContent) && !!document.getElementById("statdoll");
+    M.state="test"; ov.hidden=true; S=sb; return nums && dom; }],
+ ["every item icon is unique — a real inventory reads at a glance", ()=>{ const vals=Object.values(ITICON);
+    return new Set(vals).size===vals.length; }],
+ ["a bag button on the HUD opens the inventory", ()=>{ const sb=S; S=NEWS();
+    const btn=document.getElementById("invbtn");
+    M.state="explore"; btn.click();
+    const ok=/INVENTORY/.test(document.getElementById("box").textContent);
+    M.state="test"; ov.hidden=true; S=sb; return !!btn && ok; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -2845,7 +3054,8 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   MATERIA_IDS:["mvigor","mfocus","mdrain","maegis"], DISCOVER, matOn, strikeMult, resolveStrike, STRIKELINES,
   bankDepositAll, bankWithdrawAll, dropInventory, graveReclaim, graveExpired, INTRO, introAdvance, ITICON, migrateV7,
   CHAPTERS, chapterCard, WVIS, navBattle, enterInterior, drawWeaponOverlay, fxAbility,
-  buildQueue, nextUnit, foeAct, unitSpd, rowOf, fightBase, labelsFor, isEnraged };
+  buildQueue, nextUnit, foeAct, unitSpd, rowOf, fightBase, labelsFor, isEnraged,
+  comboBonus, xpPct, spdOf, statsOf, ARMOR_STOCK, AVIS, drawArmorOverlay, openArmory };
 tryMigrate();
 render();
 if(new URLSearchParams(location.search).get("test")==="1") runTests();
