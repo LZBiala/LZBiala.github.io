@@ -98,6 +98,31 @@
     background:var(--blue2); border:2px solid #fff; border-radius:8px; cursor:pointer; }
   .tiny { font-size:.7rem; color:var(--muted); margin-top:10px; max-width:min(94vw,672px); text-align:center; }
   .tiny a { color:var(--muted); }
+  /* ---- STORY PANEL: letterboxed cinematics (the world remembers itself) ---- */
+  #spanel { position:absolute; inset:0; z-index:30; background:#05070f; display:flex; flex-direction:column;
+    justify-content:center; gap:8px; animation:spfade .5s ease-out both; }
+  #spanel.sp-out { animation:spfade .35s ease-in reverse both; }
+  @keyframes spfade { from { opacity:0; } to { opacity:1; } }
+  #spanel::before, #spanel::after { content:""; position:absolute; left:0; right:0; height:11%; background:#000; z-index:2; }
+  #spanel::before { top:0; animation:spbarT .6s ease-out both; }
+  #spanel::after  { bottom:0; animation:spbarB .6s ease-out both; }
+  @keyframes spbarT { from { transform:translateY(-100%); } }
+  @keyframes spbarB { from { transform:translateY(100%); } }
+  .sp-view { position:relative; height:64%; overflow:hidden; background:#000; }
+  .sp-bg { position:absolute; left:-12%; top:-12%; width:124%; height:124%; object-fit:cover; image-rendering:pixelated;
+    filter:saturate(.85) contrast(1.05); animation:sppan 16s ease-in-out infinite alternate; }
+  @keyframes sppan { from { transform:scale(1); } to { transform:scale(1.16) translate(-2.5%,-3%); } }
+  .sp-view::after { content:""; position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(0deg,#0000 0 2px,#0003 2px 3px),radial-gradient(ellipse at center,#0000 55%,#000b 100%); }
+  .sp-fig { position:absolute; bottom:2%; right:5%; height:86%; z-index:1; image-rendering:pixelated;
+    filter:drop-shadow(0 6px 14px #000c); animation:spfig .55s cubic-bezier(.2,1.3,.3,1) both; }
+  .sp-fig.left { right:auto; left:5%; }
+  @keyframes spfig { from { opacity:0; transform:translateX(26px); } }
+  .sp-text { position:relative; z-index:3; margin:0 10px; animation:sprise .4s ease-out both; }
+  @keyframes sprise { from { opacity:0; transform:translateY(10px); } }
+  .sp-hint { position:absolute; right:12px; bottom:2%; z-index:3; color:var(--muted); font-size:.7rem; animation:spblink 1.6s steps(2) infinite; }
+  @keyframes spblink { 50% { opacity:.15; } }
+  @media (prefers-reduced-motion: reduce){ #spanel, #spanel::before, #spanel::after, .sp-bg, .sp-fig, .sp-text, .sp-hint { animation:none !important; } }
   .titlecard { text-align:center; padding:24px 16px; }
   .titlecard h2 { color:var(--gold); font-size:1.6rem; letter-spacing:.1em; margin-bottom:4px; }
   .titlecard .ed { color:var(--teal); font-size:.8rem; letter-spacing:.2em; margin-bottom:14px; }
@@ -168,6 +193,7 @@ function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
   let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
   return ((t^t>>>14)>>>0)/4294967296; }; }
 let rng = mulberry32(1);
+const NATIVE_ST = window.setTimeout.bind(window);   // pacing timers use the real clock even when tests stub setTimeout
 
 // ================= DATA: palette & sprites =================
 const PAL = { ".":null, k:"#10151a", w:"#e8f4ee", s:"#f3c89b", h:"#8a5a2b",
@@ -1200,7 +1226,9 @@ const BRIDGE = [
    good:"+12 XP each! A walking skeleton that breathes beats an architecture that sleeps. Evals from day one — or you'll never know if week two made it better.",
    bad:"Week two arrives with nothing runnable (party -2 HP). Demos age; skeletons walk." } ];
 const FINALE_CHAIN = [
- {en:"monolith"},{bridge:2},{en:"h1"},{bridge:0},{en:"h2"},{en:"h3"},{bridge:1},{en:"h4"},{bridge:3},{en:"h5"},{end:true}];
+ {en:"monolith"},{bridge:2},{en:"h1"},{bridge:0},{en:"h2"},
+ {say:["Between heads, a heartbeat of quiet — you check your review queue out of habit.","It's empty. Sharonduh hasn't pushed a commit in two days. The thought lodges somewhere under your ribs — and the next head ROARS."]},
+ {en:"h3"},{bridge:1},{en:"h4"},{bridge:3},{en:"h5"},{end:true}];
 const OBJ = [
  "⚑ Find THE GUIDE in the village square.",
  "⚑ Head east. Clear the gates. Recruit all four specialists.",
@@ -1224,7 +1252,7 @@ const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   cleared:{}, opened:{}, won:false, superWon:false, deaths:0, bridgeMiss:0, playMs:0, seed:1,
   sparLv:1, sparN:0, eraSeen:false, wizard:false, res:{logs:0,metrics:0,traces:0,sigils:0},
   stance:"balanced", skills:{obs:{lv:1,xp:0}, forge:{lv:1,xp:0}},
-  bank:{}, materia:[null,null], grave:null, foxxJoke:0, foxxWin:0,
+  bank:{}, materia:[null,null], grave:null, foxxJoke:0, foxxWin:0, autoNext:true,
   awak:{}, timer:false, haxKnown:false, haxWon:false, netSeen:false,
   bond:{}, hang:{}, bastionSeen:false, nocSeen:false, nightSeen:false,
   gear:{}, clue:{}, lesson:{}, core:null });
@@ -1455,6 +1483,13 @@ const LESSONS={
  promptinj:{t:"📚 FIELD LESSON — PROMPT ENGINEERING", d:"Instructions and data must never share a voice. The Injection spoke in your commander's tone — pin the system prompt, sanitize inputs, and treat untrusted text as cargo, never as commands."},
  halluc:{t:"📚 FIELD LESSON — CONTEXT ENGINEERING", d:"Confidence is not evidence. Ground every claim in retrieved context, cite the source, verify the citation. The right context in the window beats a bigger model guessing."},
  retrystorm:{t:"📚 FIELD LESSON — LOOP ENGINEERING", d:"An agent is a loop: look, think, act, check. Every loop needs an exit condition, a budget, and backoff — a loop without a breaker IS the outage."},
+ golem:{t:"📚 FIELD LESSON — RAG & THE KNOWLEDGE LAYER", d:"The Context Golem is what a model becomes without retrieval — heavy, stale, sure of yesterday. RAG fixes it: RETRIEVE the right documents, ground the answer in them, cite what you used. Knowledge lives outside the weights; go get it."},
+ leak:{t:"📚 FIELD LESSON — AGENT MEMORY", d:"The Memory Leak hoards everything and drowns. Working memory is hygiene: compact what matters, summarize the rest, and DECIDE what to forget. An agent's context window is a desk, not a warehouse."},
+ faxdaemon:{t:"📚 FIELD LESSON — MCP & THE TOOL LAYER", d:"The Fax Daemon speaks a protocol only it remembers — every legacy tool did. A tool interface is a contract: one standard socket (like MCP) beats a drawer of proprietary plugs. Agents are only as honest as the tools they can actually call."},
+ phish:{t:"📚 FIELD LESSON — GUARDRAILS", d:"The Phish got past charm, not code. Guardrails are the defense layer: screen untrusted input BEFORE the model sees it, screen output BEFORE the world does, and log every catch. Freedom inside fences."},
+ flakytest:{t:"📚 FIELD LESSON — EVAL RELIABILITY", d:"A flaky test lies in both directions. Held-out data is necessary but not sufficient — evals also need VARIANCE bounds, sample sizes big enough to mean something, and pass@k honesty. One green run proves one green run."},
+ botnet:{t:"📚 FIELD LESSON — ORCHESTRATION", d:"A thousand drones, one conductor — the Botnet IS orchestration, aimed wrong. Sound orchestrator-worker design fans work out, verifies it back, and keeps a human hand on the objective. Same architecture; choose your conductor."},
+ dummy:{t:"📚 FIELD LESSON — HARNESS ENGINEERING", d:"Before you build the wizard, build the rig: staging, seeds, replays, instrumentation. The dummy never lands a killing blow — that's the point. The loop AROUND the model is where reliability lives."},
  misaligned:{t:"📚 FIELD LESSON — ALIGNMENT & GRAPH ENGINEERING", d:"Capability optimizes; alignment chooses what FOR. And memory that links — notes pointing to notes an agent can walk — is a knowledge graph. github.com/LZBiala/wiki-memory-lab is that idea, running."} };
 // ---- D&D core stats: seven souls, seven attributes, 1-10 ----
 const CORE={
@@ -1519,10 +1554,14 @@ function heroTrial(answers){
 const SHARON_TALKS=[
  "You know what I loved first? Your incident reports. Anyone can be brave, love — you were CLEAR. Clarity is how engineers say 'I care.'",
  "MODULE ONE — ML BASICS: a model doesn't think, it interpolates. Training is memory, inference is recall, and EVALS are the only honest mirror. Never trust a demo — a demo is a first date; an eval is a marriage.",
- "MODULE TWO — PROMPT ENGINEERING: an instruction is an interface. Be specific, show examples, leave room for 'I don't know.' You already write world-class prompts, love — your runbooks.",
- "MODULE THREE — CONTEXT ENGINEERING: the model is only as right as its window. Retrieval, grounding, citations — feed it truth and it stops inventing. Context is the medicine.",
- "MODULE FOUR — LOOP ENGINEERING: an agent is a loop — look, think, act, check — with a budget, backoff, and an exit. You've BEEN one all along. The pager was your event loop.",
- "MODULE FIVE — GRAPH ENGINEERING: memory that LINKS is memory that thinks. Notes pointing to notes, a wiki an agent can walk — a knowledge graph. Your wiki-memory-lab is exactly this. You built module five before we ever met.",
+ "MODULE TWO — HARNESS ENGINEERING: before you build the wizard, build the rig — staging, seeds, replays, instrumentation. The loop AROUND the model is where reliability lives. Your dojo dummy knew this before either of us.",
+ "MODULE THREE — PROMPT ENGINEERING: an instruction is an interface. Be specific, show examples, leave room for 'I don't know.' You already write world-class prompts, love — your runbooks.",
+ "MODULE FOUR — CONTEXT & RAG: the model is only as right as its window. Retrieval, grounding, citations — feed it truth and it stops inventing. The knowledge layer is a library card, not a bigger brain.",
+ "MODULE FIVE — LOOP ENGINEERING: an agent is a loop — look, think, act, check — with a budget, backoff, and an exit. You've BEEN one all along. The pager was your event loop.",
+ "MODULE SIX — MCP & TOOLS: tools serve the loop, and an agent's hands need CONTRACTS. One standard socket beats a drawer of proprietary plugs — ask the Fax Daemon how proprietary worked out.",
+ "MODULE SEVEN — GUARDRAILS: freedom inside fences. Screen what comes in, screen what goes out, log every catch — and let the model be brilliant in between. The Bastion's walls, built right this time.",
+ "MODULE EIGHT — ORCHESTRATION & WORKFLOWS: one agent is a solo; a workflow is a symphony — deterministic where it matters, creative where it counts. The botnet was the cautionary tale: coordination without a conscience.",
+ "MODULE NINE — GRAPH ENGINEERING: memory that LINKS is memory that thinks. Notes pointing to notes, a wiki an agent can walk — a knowledge graph. Your wiki-memory-lab is exactly this. You built the last module before we ever met.",
  "And always: alignment. THE MISALIGNED optimized perfectly for the wrong thing. Capability was never the hard part, love. The objective is.",
  "My mom asked what you do. I said: he walks into fires and leaves runbooks behind so no one burns twice. She said 'marry the rollback engineer.' …Working on it.",
  "The frontier isn't a place. It's a discipline: ship the thinnest thing, measure it, own the failure, teach the next one. You already live there." ];
@@ -1571,7 +1610,43 @@ function reawaken(id){ const a=S.actors[id]; if(!a || a.lv<10) return false;
     if(pk==="VIT"){ n.maxhp+=3; } if(pk==="INT"){ n.maxmp+=2; } if(pk==="SPR"){ n.maxhp+=1; n.maxmp+=1; }
     n.hp=n.maxhp; n.mp=n.maxmp; }
   S.actors[id]=n; sfx("level"); return true; }
+function seedFromQuery(q){ const m2=/[?&]seed=(\d{1,9})(?:&|$)/.exec(q||""); return m2? parseInt(m2[1],10) : null; }
 function fmtTime(ms){ const m=Math.floor(ms/60000), s2=Math.floor(ms/1000)%60; return m+":"+String(s2).padStart(2,"0"); }
+// ================= STORY PANEL (cinematic beats; degrades to say()) =================
+// panelSay(beats, done) — beat = { t:"line", spr:"sharon"|null, left:bool, dark:0..1, from:"x% y%" }
+function panelSayFinale(lines, done){
+  panelSay(lines.map((t,i)=>({ t, spr: i===1||i===2||i===3? "sharon" : (i===0? "hax" : null),
+    left: i===3, dark: i===0? .4 : .1, from: ["50% 30%","40% 55%","55% 50%","45% 60%","50% 45%","50% 50%","45% 50%","50% 55%","50% 50%"][i]||"50% 50%" })), done); }
+function panelSayGuide(lines, done){
+  panelSay([
+    { t:lines[0], spr:null, dark:.15, from:"30% 40%" },
+    { t:lines[1], spr:"hax", dark:.3, from:"70% 30%" },
+    { t:lines[2], spr:"sharon", left:true, dark:.45, from:"20% 60%" },
+    { t:lines[3], spr:null, dark:.2, from:"55% 45%" },
+    { t:lines[4], spr:"hax", dark:.35, from:"75% 55%" } ], done); }
+function panelSay(beats, done){
+  if(reducedMotion() || document.getElementById("spanel")){ say(beats.map(b=>b.t), done); return; }
+  const el=document.createElement("div"); el.id="spanel";
+  el.innerHTML="<div class='sp-view'><canvas class='sp-bg'></canvas><canvas class='sp-fig' hidden></canvas></div>"+
+    "<div class='sp-text win'></div><div class='sp-hint'>▶ (Enter)</div>";
+  document.getElementById("stage").appendChild(el); M.state="panel";
+  const bg=el.querySelector(".sp-bg"), fig=el.querySelector(".sp-fig"), txt=el.querySelector(".sp-text");
+  const src=BW.hidden? cv : document.getElementById("bcv");     // Ken Burns over the LIVE scene — no new art
+  bg.width=src.width; bg.height=src.height; bg.getContext("2d").drawImage(src,0,0);
+  let i=-1;
+  function show(){ const b=beats[++i]; if(!b){ close(); return; }
+    bg.style.transformOrigin=b.from||"50% 50%";
+    bg.style.filter="saturate(.85) contrast(1.05) brightness("+(b.dark?1-b.dark:1)+")";
+    fig.hidden=!b.spr;
+    if(b.spr){ const n=SPR[b.spr].length, g=fig.getContext("2d");
+      fig.width=fig.height=n*8; g.clearRect(0,0,fig.width,fig.height);
+      drawSprTo(g,b.spr,0,0,8); fig.classList.toggle("left",!!b.left);
+      fig.style.animation="none"; void fig.offsetWidth; fig.style.animation=""; }
+    txt.innerHTML=b.t.replace(/^([A-Z0-9 !()'—·@.-]+):/,"<span class='gold'>$1:</span>");
+    txt.style.animation="none"; void txt.offsetWidth; txt.style.animation=""; }
+  function close(){ el.classList.add("sp-out"); delete M.panelAdv; delete M.panelEnd;
+    setTimeout(()=>{ el.remove(); if(M.state==="panel") M.state="explore"; if(done) done(); render(); },360); }
+  el.onclick=()=>show(); M.panelAdv=show; M.panelEnd=close; show(); }
 function foxxBed(){ const st=foxxBedState();
   if(st==="companion"){ bondUp("papafoxx"); say(["PAPAFOXX: \""+foxxJokeLine()+"\""]); return; }
   if(st==="challenge"){ say([
@@ -2095,7 +2170,7 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
   else if(b.menu==="style"){ Object.keys(STANCES).forEach(st=>{
       h+="<button data-st2='"+st+"'>"+((S.stance||"balanced")===st?"● ":"○ ")+STANCES[st].name+" <span class='mut' style='font-size:.7rem'>"+STANCES[st].d+"</span></button>"; });
     h+="<button data-a='back'>◀ BACK</button>"; }
-  else if(b.menu==="next"){ h="<button data-a='next'>▶ (Enter)</button>"; }
+  else if(b.menu==="next"){ h="<button data-a='next'>▶ (Enter)</button>"; armAutoNext(); }
   else if(b.menu==="won"){ h="<button data-a='won'>★ VICTORY (Enter)</button>"; }
   else if(b.menu==="dead"){ h=""; }
   m.innerHTML=h;
@@ -2115,6 +2190,8 @@ function buildQueue(b){ const ids=["hero",...S.party];
   units.push({t:"f", spd:unitSpd(b.def)});
   units.sort((x,y)=>y.spd-x.spd);        // stable: equal-speed allies keep formation order, foe after them
   b.queue=units; b.qi=-1; }
+function armAutoNext(){ if(S.autoNext===false) return; const tok=(M.autoTok=(M.autoTok||0)+1);
+  NATIVE_ST(()=>{ if(M.autoTok===tok && M.state==="battle" && M.b && M.b.menu==="next"){ nextUnit(); } }, 650); }
 function nextUnit(){ const b=M.b; if(!b) return;
   const ids=["hero",...S.party];
   const cur=b.queue && b.queue[b.qi];
@@ -2140,7 +2217,7 @@ function menuPick(d){ const b=M.b; const a=actor();
   if(d.a==="defend"){ a.defending=true; a.mp=Math.min(a.maxmp,a.mp+1);
     blog(MEMBERS[a.id].name+" braces — next hit <b>halved</b>, <span class='num'>+1 MP</span>."); b.menu="next"; drawB(); return; }
   if(d.a==="fight"){
-    if(reducedMotion()) return playerHit(a, fightBase(a)+(b.doubled?fightBase(a):0), MEMBERS[a.id].name+(b.doubled?" strikes the ROOT CAUSE — double damage!":" attacks!"));
+    if(reducedMotion()) return playerHit(a, Math.round((fightBase(a)+(b.doubled?fightBase(a):0))*1.2), MEMBERS[a.id].name+(b.doubled?" strikes the ROOT CAUSE — double damage!":" strikes true — measured and clean (steady 1.2×)."));
     b.menu="strike"; b.strikeT0=performance.now(); drawMenu(); return; }
   if(d.a==="strikestop"){ const t=((performance.now()-b.strikeT0)/700)%2; return resolveStrike(a, t>1? 2-t : t); }
   if(d.a==="skill"){ b.menu="skill"; drawMenu(); return; }
@@ -2492,19 +2569,21 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
         "SHARONDUH: 'Round two of round two, love. TOGETHER.'",
         "<b>THE FINAL BOSS RISES — again.</b>"],
         ()=>{ saveGame(0); runChain(chainNext||[{en:"nullroot"}]); }); return; }
-      say([
-      "The keyboard stops. NULLBYTE stares at his own hands like they betrayed him.",
-      "Behind you — a CLICK. The cage. She's out before the door finishes opening.",
-      "SHARONDUH: 'Took you long enough. ...Hi. HI. Okay — reunion AFTER. He's about to escalate; I can smell the sudo from here.'",
-      "💙 <b>SHARONDUH joins the party — mid-battle!</b> 'You came for me. So let's finish it TOGETHER.'",
-      "The floor drops away. The dark fills with root-shell green. <b>THE FINAL BOSS RISES.</b>"],
+      panelSay([
+      { t:"The keyboard stops. NULLBYTE stares at his own hands like they betrayed him.", spr:"hax", dark:.2, from:"60% 40%" },
+      { t:"Behind you — a CLICK. The cage. She's out before the door finishes opening.", spr:null, dark:.1, from:"30% 30%" },
+      { t:"SHARONDUH: 'Took you long enough. ...Hi. HI. Okay — reunion AFTER. He's about to escalate; I can smell the sudo from here.'", spr:"sharon", from:"40% 50%" },
+      { t:"💙 <b>SHARONDUH joins the party — mid-battle!</b> 'You came for me. So let's finish it TOGETHER.'", spr:"sharon", left:true, from:"50% 60%" },
+      { t:"The floor drops away. The dark fills with root-shell green. <b>THE FINAL BOSS RISES.</b>", spr:"hax", dark:.5, from:"50% 20%" } ],
       ()=>{ joinSharon(); saveGame(0); runChain(chainNext||[{en:"nullroot"}]); }); return; }
     if(rec && !S.party.includes(rec.id)){ S.party.push(rec.id);
       S.actors[rec.id]=mkActor(rec.id, hero().lv);
-      if(S.party.length>=4 && S.stage<2){ S.stage=2; chapterCard(2); }
-      say(rec.lines, ()=>{ saveGame(0); if(chainNext) runChain(chainNext); }); return; }
+      let recLines=rec.lines;
+      if(S.party.length>=4 && S.stage<2){ S.stage=2; chapterCard(2);
+        recLines=rec.lines.concat(["📟 Your pager buzzes — a message from SHARONDUH, the engineer who reviews the village's diffs: <i>'Full squad, huh? Told you you'd build something worth reviewing. Come find me in the square before you do anything heroic. — S. 💙'</i>"]); }
+      say(recLines, ()=>{ saveGame(0); if(chainNext) runChain(chainNext); }); return; }
     if(chainNext){ saveGame(0); runChain(chainNext); return; }
-    if(b.id==="nullroot"){ say([
+    if(b.id==="nullroot"){ panelSayFinale([
       "The kernel panics. ROOT@NULLBYTE dissolves into harmless, well-documented log lines.",
       "Silence. Then her fist — still glowing — finds your shoulder. Softly.",
       "SHARONDUH: 'WE did that. Write it down: resolved by the whole on-call.' …She smiles like a green build at 5 PM on a Friday. 'You came for me, love. Through the entire internet.'",
@@ -2527,6 +2606,7 @@ function runChain(chain){ const step=chain[0], rest=chain.slice(1);
   if(step.bridge!==undefined){ const br=BRIDGE[step.bridge];
     ask(br.t, br.a, i=>{ if(i===br.c){ say([br.good], ()=>{ gainXP(12, ()=>{ render(); runChain(rest); }); }); }
       else { living().forEach(a=>a.hp=Math.max(1,a.hp-2)); S.bridgeMiss=(S.bridgeMiss||0)+1; say([br.bad], ()=>{ render(); runChain(rest); }); } }); return; }
+  if(step.say){ say(step.say, ()=>runChain(rest)); return; }
   if(step.en){ startBattle(step.en, null, rest); return; }
   if(step.end){ chapterCard(4); ending(); return; } }
 
@@ -2583,6 +2663,7 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
    "<button data-m='equip'>EQUIP HERO GEAR</button>"+
    "<button data-m='items'>ITEMS</button>"+
    "<button data-m='awaken'>☯ REAWAKEN</button>"+
+   "<button data-m='lessons'>📚 LESSONS</button>"+
    "<button data-m='save'>SAVE GAME</button>"+
    "<button data-m='settings'>SETTINGS</button>"+
    "<button data-m='close'>CLOSE (Esc)</button></div>";
@@ -2590,6 +2671,13 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
   box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ sfx("blip"); menuSub(btn.dataset.m); }); }
 function menuSub(mn){
   if(mn==="close"){ ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); return; }
+  if(mn==="lessons"){ const earned=Object.keys(LESSONS).filter(k=>S.lesson&&S.lesson[k]);
+    const heard=Math.min(S.sharonTalk||0, SHARON_TALKS.length);
+    let h="<b class='gold'>📚 LESSONS</b> <span class='mut'>— field lessons "+earned.length+"/"+Object.keys(LESSONS).length+" · her modules "+heard+"/"+SHARON_TALKS.length+"</span><div style='max-height:260px;overflow:auto;font-size:.74rem;line-height:1.5;margin-top:6px'>";
+    if(!earned.length) h+="<span class='mut'>None yet — every boss teaches the discipline it embodies. Go learn the hard way, then reread here.</span>";
+    earned.forEach(k=>{ h+="<div style='margin-bottom:7px'><b class='gold'>"+LESSONS[k].t+"</b><br><span class='mut'>"+LESSONS[k].d+"</span></div>"; });
+    h+="</div><div class='choices'><button data-b='1'>◀ BACK</button></div>"; box.innerHTML=h;
+    box.querySelector("[data-b]").onclick=()=>menuHome(); return; }
   if(mn==="awaken"){ let h="<b class='gold'>☯ REAWAKEN</b><br><span class='mut'>LV 10+ only. Return to LV 1 with permanently higher base stats (+2 HP, +2 MP, +1 ATK per awakening), an Ω limit break, and a harder edge on every strike. The reps remain.</span><div class='choices'>";
     partyActors().forEach(a2=>{ const w=awakOf(a2.id);
       h+= a2.lv>=10 ? "<button data-aw='"+a2.id+"'>☯ "+MEMBERS[a2.id].name+" — LV "+a2.lv+" → 1"+(w?" (Ω×"+w+")":"")+"</button>"
@@ -2667,11 +2755,13 @@ function menuSub(mn){
     "<button data-st='snd'>Sound FX: "+(AU.on?"ON":"OFF")+"</button>"+
     "<button data-st='mus'>Music: "+(MUS.on?"ON":"OFF")+"</button>"+
     "<button data-st='spd'>⏱ Speedrun timer: "+(S.timer?"ON":"OFF")+"</button>"+
+    "<button data-st='anx'>⏩ Battle auto-advance: "+(S.autoNext!==false?"ON":"OFF")+"</button>"+
     "<span class='mut'>Motion honors your system's reduced-motion preference.</span>"+
     "<span class='mut'>Seed this run: #"+S.seed+"</span>"+
     "<button data-b='1'>◀ BACK</button></div>"; box.innerHTML=h;
     box.querySelectorAll("[data-st]").forEach(bx=>bx.onclick=()=>{ if(bx.dataset.st==="snd"){ AU.on=!AU.on; try{ localStorage.setItem("aiquest_snd",AU.on?"on":"off"); }catch(e){} sndLabel(); }
       else if(bx.dataset.st==="spd"){ S.timer=!S.timer; saveGame(0); }
+      else if(bx.dataset.st==="anx"){ S.autoNext=S.autoNext===false; saveGame(0); }
       else setMusic(!MUS.on);
       menuSub("settings"); });
     box.querySelector("[data-b]").onclick=()=>menuHome(); return; } }
@@ -2705,7 +2795,7 @@ function ending(){ S.won=true; S.stage=4; tickClock();
   if(better){ best={score:score, grade:grade, ms:S.playMs};
     try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
   const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
-  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · seven classes, dual techs, time travel, a rescue inside the internet — the final boss is a major incident. Can you beat it? https://lzbiala.github.io/game.html";
+  M.shareText="⚔️ AI Quest: SEV-1 — MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · seven classes, dual techs, time travel, a rescue inside the internet — the final boss is a major incident. Can you beat it? Race my exact seed: https://lzbiala.github.io/game.html?seed="+S.seed;
   saveGame(0); ov.hidden=false; ov.classList.remove("center"); M.state="end"; sfx("level");
   box.innerHTML="<b class='gold'>👑 INCIDENT RESOLVED — MTTx: LEGENDARY</b>"+
   "<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
@@ -2721,6 +2811,7 @@ function ending(){ S.won=true; S.stage=4; tickClock();
   (era? "<span class='num'>⏳ HISTORIAN:</span> you walked 1999 and put out the FIRST fire. The timeline is documented end to end.<br>" :
         "<span class='mut'>⏳ A Time Rift now swirls in the village square — the past is asking for a postmortem…</span><br>")+
   (S.superWon? "" : "<span class='mut'>…and something stirs atop the Citadel. Return there when you're ready for THE UNKNOWN UNKNOWN.</span><br>")+
+  (S.haxKnown? "" : "<span class='mut'>⚠ THE GUIDE is pacing the square with a postmortem he can't put down — and Sharonduh's desk is empty. Talk to him.</span><br>")+
   (frontierDone()? "<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px;margin:6px 0'><b class='gold'>🤖 THE FRONTIER ENDING.</b> Every injection sanitized, every hallucination grounded, every objective aligned. SHARONDUH: 'You came to save me and found the frontier.' The engineer who grabbed a keyboard at 2 AM now speaks agent, eval, and alignment as fluently as rollback and runbook — <b>world-class isn't a title, it's a discipline, practiced daily</b>. Somewhere out there, frontier labs are building minds. You're ready for them.</div>" :
    (S.haxWon? "<span class='mut'>🤖 The frontier stirs: PROMPT INJECTION, THE HALLUCINATION, and THE MISALIGNED wait in the internet. Resolve all three for the FRONTIER ending.</span><br>" : ""))+
   (S.wizard? "<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px;margin:6px 0'><b class='gold'>🧙 TRUE ENDING — THE AI WIZARD.</b> Every incident resolved, every era understood, every artifact recovered ("+loot.got+"/"+loot.need+"). The kid who grabbed a keyboard at 2 AM is gone; the engineer who commands the room, cites the evidence, and teaches the next one — that's who's holding the pager now. Ippo would bow.</div>" :
@@ -2839,7 +2930,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
                     : ["The cage hangs open — she picked it the moment his first form fell.","SHARONDUH (beside you): 'Eyes forward, love. KERNEL MODE is still up there. We finish it TOGETHER.'"]); return; }
       if(npc.talks==="sharon"){ bondUp("sharon"); say(["SHARONDUH: \""+sharonTalkLine()+"\""]); return; }
       if(npc.inParty){ hangoutTalk(npc); return; }
-      if(npc.name==="THE GUIDE" && S.won && !S.haxKnown){ say([
+      if(npc.name==="THE GUIDE" && S.won && !S.haxKnown){ panelSayGuide([
         "THE GUIDE: 'Kid. The postmortem turned up something that should not exist. The SEV-1 had a SIGNATURE. Someone CAUSED it.'",
         "THE GUIDE: 'That hooded contractor. The one who kept asking about our failover paths. Handle: NULLBYTE. Every question was reconnaissance — and we ANSWERED them.'",
         "THE GUIDE: 'And kid... Sharonduh is gone. Taken DURING the Hydra fight, while every eye in the village was on the bridge. She'd been quietly unwinding his work for weeks. She was the only one who could.'",
@@ -2896,7 +2987,7 @@ function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.cla
     else if(t==="snd"){ AU.on=!AU.on; try{ localStorage.setItem("aiquest_snd",AU.on?"on":"off"); }catch(e){} sndLabel(); titleScreen(); }
     else if(t==="mus"){ setMusic(!MUS.on); titleScreen(); }
     else if(t.startsWith("s")){ const d=loadSlot(parseInt(t.slice(1),10)); if(d){ S=d; M.resumeAt=Date.now(); rng=mulberry32(S.seed); ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); } } }); }
-function newGame(plus){ S=NEWS(); S.seed=(Date.now()%899999)+100003; rng=mulberry32(S.seed);
+function newGame(plus){ S=NEWS(); S.seed=seedFromQuery(location.search)||(Date.now()%899999)+100003; rng=mulberry32(S.seed);
   M.resumeAt=Date.now(); ov.classList.remove("center");
   if(plus){ M.state="explore"; render();
     say(["NEW GAME+. The pager remembers you. Seed #"+S.seed+". Go again — faster, cleaner, calmer.", OPENING[OPENING.length-1]],
@@ -2934,6 +3025,9 @@ function introLoop(){ if(M.state!=="intro"){ M.iloop=false; return; } drawIntro(
 
 // ================= INPUT =================
 document.addEventListener("keydown",e=>{ const k=e.key;
+  if(M.state==="panel"){ e.preventDefault(); if(e.repeat) return;
+    if(k==="Escape"){ if(M.panelEnd) M.panelEnd(); }
+    else if(k==="Enter"||k===" "){ if(M.panelAdv) M.panelAdv(); } return; }
   if(M.state==="battle"){
     if(k==="Enter"||k===" "||k==="ArrowUp"||k==="ArrowDown"||k==="ArrowLeft"||k==="ArrowRight") e.preventDefault(); // repeats must never scroll the page
     if(e.repeat) return;
@@ -2970,6 +3064,7 @@ document.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",
     else if(M.state==="dialog"){ if(box.querySelector("[data-m]")) menuSub("close");
       else { const bk=box.querySelector("[data-e='__back'],[data-b]"); if(bk) bk.click(); } } return; }
   if(M.state==="intro"){ if(k==="Enter") introAdvance(); return; }
+  if(M.state==="panel"){ if(k==="Enter" && M.panelAdv) M.panelAdv(); if(k==="Escape" && M.panelEnd) M.panelEnd(); return; }
   if(k==="Enter"){ if(M.state==="dialog") { const first=box.querySelector("button:not([data-buy]):not([data-forge])")||box.querySelector("button"); if(first) first.click(); }
     else if(M.state==="battle"){ const bs=[...document.querySelectorAll("#bmenu button")];
       const pick=bs[(M.b&&M.b.sel)||0]||bs[0]; if(pick) pick.click(); }
@@ -3893,6 +3988,32 @@ const TESTS = [
     S.core={stats:{STR:3,INT:3,DEF:3,VIT:3,SPD:3,SPR:3,LCK:10}, cls:"Trickster", perk:"LCK"};
     const lucky=critOf(S.actors.hero)>0.15+0.04;
     S=sb; return strong && lucky; }],
+
+ // ---- CURRICULUM v2 + STORY PANELS (written RED-first) ----
+ ["the full stack teaches: RAG, memory, MCP, guardrails, evals, orchestration each live at their boss", ()=>{
+    const need={ golem:/RAG|retriev|knowledge/i, leak:/memor/i, faxdaemon:/MCP|tool/i, phish:/guardrail/i, flakytest:/eval/i, botnet:/orchestr/i };
+    return Object.keys(need).every(k=>LESSONS[k] && need[k].test(LESSONS[k].t+" "+LESSONS[k].d)); }],
+ ["her curriculum reaches eight modules: harness, orchestration, guardrails and MCP join the ladder", ()=>{
+    const pool=SHARON_TALKS.join(" ");
+    return SHARON_TALKS.length>=12 && /harness/i.test(pool) && /orchestr/i.test(pool) && /guardrail/i.test(pool) && /MCP/i.test(pool); }],
+ ["the dojo teaches harness engineering on the first spar", ()=>{
+    return LESSONS.dummy && /harness/i.test(LESSONS.dummy.t+" "+LESSONS.dummy.d); }],
+ ["story panels: peak moments play as animated letterboxed scenes, honoring reduced motion", ()=>{
+    if(typeof panelSay!=="function") return false;
+    const css=document.querySelector("style").textContent;
+    return /spanel/.test(css) && /@keyframes/.test(css) && /prefers-reduced-motion/.test(css); }],
+
+ ["the lessons journal: every lesson earned is re-readable from the menu", ()=>{ const sb=S; S=NEWS();
+    S.lesson={monolith:1}; M.state="explore"; pauseMenu();
+    const btn=box.querySelector("[data-m='lessons']"); if(!btn){ ov.hidden=true; M.state="test"; S=sb; return false; }
+    btn.click();
+    const ok=/FIELD LESSON|LESSONS/i.test(box.textContent) && /ML BASICS/i.test(box.textContent);
+    ov.hidden=true; M.state="test"; S=sb; return ok; }],
+ ["seed racing: ?seed=N is honored, garbage is not", ()=>{
+    return seedFromQuery("?seed=777")===777 && seedFromQuery("?x=1&seed=42")===42
+      && seedFromQuery("?seed=abc")===null && seedFromQuery("")===null; }],
+ ["battle pacing: auto-advance exists, defaults on, and is a settings choice", ()=>{
+    return NEWS().autoNext===true && typeof armAutoNext==="function"; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -3919,7 +4040,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   FOXX_JOKES, FOXX_LINES, foxxJokeLine, foxxBedState, LB_MAX,
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
-  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS,
+  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
   joinSharon, finishRescue, CLUES, LESSONS, CORE, coreOf, starBar, heroTrial, equipGear, CONDS };
 tryMigrate();
 render();
