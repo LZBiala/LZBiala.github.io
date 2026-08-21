@@ -295,6 +295,74 @@ refuter:[
 ".....kddddk.....",
 ".....kd..dk.....",
 ".....kk..kk....."],
+lito:[
+"...k...kk...k...",
+"..kjk.kjjk.kjk..",
+"..kjjjjjjjjjjk..",
+"..kjjjjjjjjjjk..",
+"...kjssssssjk...",
+"...kskssssksk...",
+"...kssssssssk...",
+"....kskwwksk....",
+"..kwwwnssnwwwk..",
+".kwkwwnnnnwwkwk.",
+".kskwwnnnnwwksk.",
+".kskkwnnnnwkksk.",
+"....kddyyddk....",
+"....kdd..ddk....",
+"....kwb..bwk....",
+"....kk....kk...."],
+lito_w1:[
+"................",
+".kk..........kk.",
+"kwbk........kbwk",
+".kddk......kddk.",
+"..kddk....kddk..",
+"...kddk..kddk...",
+"....kddkkddk....",
+".kk..kddddk.....",
+"kssk.kdyydk.....",
+".kskkwnnnnwk....",
+".kwkwwnnnnwwk...",
+"..kwwwnssnwwwwk.",
+"....kskwwkskkwk.",
+"...ksksssskskksk",
+"..kjjjjjjjjjjksk",
+"..kjk.kjjk.kjkkk"],
+lito_w2:[
+"......kkkk......",
+".....kbwwbk.....",
+"....kddkkddk....",
+"...kddk..kddk...",
+"..kddk....kddk..",
+"...kddk..kddk...",
+"....kddkkddk....",
+".....kddddk.....",
+".....kdyydk.....",
+"....kwnnnnwk....",
+"...kwwnnnnwwk...",
+".kwwwwnssnwwwwk.",
+".kwkkskwwkskkwk.",
+"kskksksssskskksk",
+"kskjjjjjjjjjjksk",
+"kkkjk.kjjk.kjkkk"],
+lito_w3:[
+"....kk..........",
+"...kbwk.........",
+"...kddk...kkkkkk",
+"....kddk..kddbwk",
+"....kddk.kddkkkk",
+".....kddkddk....",
+".....kddddk.....",
+".....kdyydk.....",
+"....kwnnnnwk....",
+"kkkkwwnnnnwwk...",
+"kswwwwnssnwwwwwk",
+"kkk.kskwwksk.kwk",
+"...ksksssskskksk",
+"..kjjjjjjjjjjksk",
+"..kjk.kjjk.kjksk",
+".............kkk"],
 elder:[
 "................",
 ".....kkkkkk.....",
@@ -892,7 +960,9 @@ const MEMBERS = {
  sharon:{ name:"SHARONDUH", cls:"White Mage", spr:"sharon", spd:7, base:{hp:10,mp:10,atk:4}, grow:{hp:2,mp:2,atk:1},
    skills:{1:["failoverfist","hotfix","sanitize"],5:["uptimeaura"]} },
  retro:{ name:"RETROLISTIC", cls:"BI Ninja", spr:"retro", spd:8, base:{hp:11,mp:7,atk:4}, grow:{hp:2,mp:2,atk:1},
-   skills:{1:["kanban","dashboard"],5:["sprintplan"]} } };
+   skills:{1:["kanban","dashboard"],5:["sprintplan"]} },
+ lito:{ name:"LITO", cls:"Systems Thinker", spr:"lito", spd:7, base:{hp:12,mp:8,atk:4}, grow:{hp:2,mp:2,atk:1},
+   skills:{1:["twinhypothesis","firstprinciples","windmill"]} } };
 function mkActor(id, lv){ const m=MEMBERS[id];
   const a={ id, lv, xp:XPCURVE[lv-1]||0,
     maxhp:m.base.hp+m.grow.hp*(lv-1), maxmp:m.base.mp+m.grow.mp*(lv-1), atk:m.base.atk+m.grow.atk*(lv-1),
@@ -927,7 +997,10 @@ const SP = {
  uptimeaura:{ name:"UPTIME AURA", mp:6, d:"five nines of care: the party regenerates +2 HP at end of round, 3 rounds." },
  kanban:{ name:"KANBAN CUT", mp:2, d:"two blades, one motion: 2×(2+LV/2) damage. Work in progress, finished." },
  dashboard:{ name:"DASHBOARD", mp:3, d:"see everything at once: reveals armor AND lifts fog in a single glance." },
- sprintplan:{ name:"SPRINT PLAN", mp:5, d:"the well-planned round: every ally's hits +2 this round. Scope it, ship it." } };
+ sprintplan:{ name:"SPRINT PLAN", mp:5, d:"the well-planned round: every ally's hits +2 this round. Scope it, ship it." },
+ twinhypothesis:{ name:"TWIN HYPOTHESIS", mp:2, d:"two explanations run side by side: 2×(2+LV/2) damage. The one that survives the data stays." },
+ firstprinciples:{ name:"FIRST PRINCIPLES", mp:2, d:"the foundation is wrong, stop iterating on it: reveals armor AND lifts fog." },
+ windmill:{ name:"WINDMILL HALO FREEZE", mp:3, d:"spin, spin, hold: 3+LV/2 damage, and on a CRITICAL the foe loses its next turn." } };
 const XPCURVE = (()=>{ const c=[0,10,25,45,70,100,140,190];   // first 8 thresholds unchanged (save-compatible)
   for(let n=9;n<=50;n++) c.push(c[c.length-1]+50+(n-8)*12);   // level cap 50: the long road of the reawakened
   return c; })();
@@ -1125,6 +1198,11 @@ function fightBase(a){ const cat=(a.id==="hero" && S.equip.weapon)? WVIS[S.equip
   return Math.max(1, atkOf(a) - ((rowOf(a)==="back" && !exempt)?1:0)); }
 
 // ================= DATA: world =================
+const LITO_HOME=[
+ "Mara's stew and a whiteboard - best incident room in the village. Here's one for you: the models are ahead of the products built on them. The gap between what a model CAN do and what anyone has shipped is the most interesting place to stand right now.",
+ "Ever notice the kid who asks 'how hard can it be' ships more than the one who knows exactly how hard? Naivety is a tool if you pair it with measurement. Run the thing, count the results, then decide how hard it was.",
+ "A memory you can't read is a memory you can't trust. That's why I like the wiki idea - an agent's notes should be something a human can open, argue with, and fix by hand. Controllability starts with legibility.",
+ "Don't chase the one perfect tool. Run three side by side on the same boring task, measure, and let the ones that scale earn your loyalty. Then - and this is the mentor part - teach someone younger what you learned. That's how a village compounds." ];
 const Z = [
 { name:"Reliability Village", ground:"#1b3a2a", maps:[
 "tttttttttttt","t.h.f..f.h.t","t..........t","t.f..s..f..t","t...........","t.b......b.t","t.h.f..f.h.t","t....ff....t","tttttttttttt"],
@@ -1132,7 +1210,7 @@ const Z = [
  loot:{"2,5":{tok:6, text:"An old supply barrel - someone stashed <b>6 ⛁</b> of budget in here!"},
        "9,5":{item:"patch", text:"A barrel by Peg's shop - a spare <b>Patch Kit</b>!"}},
  npcs:[
- {x:6,y:2,spr:"elder",name:"THE GUIDE",lines:[
+ {x:6,y:2,spr:"lito",name:"THE GUIDE",lines:[
   "THE GUIDE: You came. Good. I'm Lito - SRE by trade, AI builder by conviction. Last night the pager went off at 2 AM... and it hasn't stopped.",
   "THE GUIDE: I spent years embedded where the incidents actually live - client floors, war rooms, 2 AM bridges. One system learned inside-out until I WAS its runbook. An API Gateway was my product. I knew its heartbeat.",
   "THE GUIDE: There's a NAME for engineers who fight that way... but names are earned, kid, not given. Resolve the Sev-1 and I'll tell you yours.",
@@ -1257,6 +1335,7 @@ const Z = [
   "PapaFoxx's jokes land 71% of the time. He says the misses are 'load-bearing'. …He's right, and I hate that the data agrees.",
   "You ask better questions than when we met. That's the whole job, you know - the blades are just punctuation.",
   "Scope it, ship it, measure it, thank the team. Everything else is meetings."]},
+ {x:7,y:2,spr:"lito",name:"LITO",inParty:"lito",lines:LITO_HOME},
  {x:10,y:5,spr:"refuter",name:"REFUTER",inParty:"refuter",lines:[
   "OBJECTION. …Sorry. Reflex. You walked in confidently and my whole body reacted.",
   "The comedian ROASTS and I OBJECT. Legally distinct. Mine holds up in court; his holds up the room.",
@@ -1521,7 +1600,7 @@ const SKILL_FX = { promptia:"#2dd4bf", fivewhy:"#fbbf24", rollback:"#34d399", hi
  controlarm:"#60a5fa", repair:"#34d399", ward:"#93c5fd", fliptest:"#f87171", objection:"#fb923c",
  rootcausex:"#2dd4bf", promptstorm:"#c084fc", xreview:"#f87171", canaryvolley:"#fbbf24", safedeploy:"#60a5fa",
  roast:"#fb923c", ultima:"#f0abfc", dadjoke:"#fde68a", setuppunchline:"#f9a8d4",
- hotfix:"#34d399", sanitize:"#e8f4ee", uptimeaura:"#93c5fd", pairprogramming:"#f472b6", failoverfist:"#fda4af", kanban:"#2dd4bf", dashboard:"#60a5fa", sprintplan:"#fbbf24", limit_retro:"#2dd4bf",
+ hotfix:"#34d399", sanitize:"#e8f4ee", uptimeaura:"#93c5fd", pairprogramming:"#f472b6", failoverfist:"#fda4af", kanban:"#2dd4bf", dashboard:"#60a5fa", sprintplan:"#fbbf24", limit_retro:"#2dd4bf", twinhypothesis:"#60a5fa", firstprinciples:"#fbbf24", windmill:"#c084fc", limit_lito:"#60a5fa",
  limit_hero:"#fbbf24", limit_sentinel:"#4ade80", limit_wiki:"#c084fc", limit_mender:"#34d399", limit_refuter:"#fb923c", limit_papafoxx:"#fbbf24", limit_sharon:"#f472b6" };
 const FXDUR = { lunge:520, foelunge:520, burst:600, pop:900, heal:700, hit:260 };
 // ---- limit breaks (FF-style: gauges charge from damage taken) ----
@@ -1534,7 +1613,8 @@ const LIMITS = {
  refuter:{ name:"FINAL OBJECTION", d:"the argument that stops the world: taunt 3 rounds, enemy loses its next turn." },
  papafoxx:{ name:"DEEZ NUTS BAAAHHH", d:"the forbidden punchline: 14 damage, and the whole party heals 5. Laughter is the best medicine." },
  sharon:{ name:"FIVE NINES", d:"99.999% availability, made flesh: every fallen ally rises at half HP; the living heal 6." },
- retro:{ name:"RETROSPECTIVE", d:"the meeting that actually helps: 12 damage, every heckle cleared, every ally +3 HP." } };
+ retro:{ name:"RETROSPECTIVE", d:"the meeting that actually helps: 12 damage, every heckle cleared, every ally +3 HP." },
+ lito:{ name:"ONE MORNING AT A TIME", d:"don't overcome your whole life, overcome this morning: 12 damage, every ally +5 HP, every heckle cleared." } };
 function chargeLB(a,d){ a.lb=Math.min(LB_MAX,(a.lb||0)+d); }
 // ---- combat stances (RuneScape attack styles, taught as deployment postures) ----
 const STANCES={
@@ -1617,6 +1697,50 @@ function foxxStats(){ return (1+S.party.length)<4 ? {hp:95,atk:3} : {hp:160,atk:
 function foxxHintAfterRecruit(){ if(S.foxxHinted || S.party.includes("papafoxx") || S.party.length<2) return null;
   S.foxxHinted=true;
   return "📟 MARA, from the inn: 'Hon - whatever crew you're building, the guy in my third bed just heckled the WEATHER in his sleep and said YOUR name. Come deal with him before he workshops a whole set.'"; }
+const GUIDE_STAGE={
+ 1:["THE GUIDE: A runbook is a letter from the engineer who got paged last time, kid. Read it before you touch anything - then tell me what it forgot.",
+    "THE GUIDE: Every page you answer teaches you the shape of the system. I keep a notebook of mine. Lately I wonder what a machine would see in those notes that I can't.",
+    "THE GUIDE: Fix the thing in front of you this morning, not the whole village. One clean fix, measured, written down. That's how an error budget turns into wisdom."],
+ 2:["THE GUIDE: Look at this squad. Nobody got smarter alone - the SYSTEM got smarter. That's the lesson I keep circling: the value lives in how the parts interact.",
+    "THE GUIDE: I've been up reading. A runbook says IF this THEN that. What if a runbook could reason about the case nobody wrote down? I can't stop chewing on it.",
+    "THE GUIDE: Don't let my curiosity distract you from the bridge, though. The Hydra doesn't care what I'm reading. Measure twice, roll back once."],
+ 3:["THE GUIDE: She's home. Breathe. What Sharonduh was unwinding down there was an agent - a model with memory, tools, and a sandbox to act in. He built one with no gates. You saw the bill.",
+    "THE GUIDE: Here's what keeps me up now, kid. An agent that's mostly right is useful IF a human can make one small fix and the whole thing regenerates around it. Steerable beats smart.",
+    "THE GUIDE: You won't beat him by out-typing him. You beat him by understanding how his parts fit together - and pulling the one that matters."],
+ 4:["THE GUIDE: Funny thing about being reborn, kid. Same conviction, younger knees. I spent years holding systems steady. Now I want to build the ones that think - with you, not ahead of you.",
+    "THE GUIDE: The models are further ahead than anything built on top of them. That gap is where the work is. Bring me a problem and a notebook and let's see what we can make.",
+    "THE GUIDE: You hold the state. I'll hold the whiteboard. Between the two of us and a sandbox - how hard can it be?"] };
+function guideLines(stage){ const n=Z[0].npcs.find(x=>x.name==="THE GUIDE"); if(stage<1) return n.lines; return GUIDE_STAGE[Math.min(4,Math.max(1,stage))]; }
+const LITO_TALKS=[
+ "LITO MODULE 1 - THE WIKI THAT REMEMBERS: Picture an AI whose memory is a wiki you can open and read, not a black box. On the bench it ran at 0.61x cost. The honest part: on tiny corpora it loses, at 1.27x. Good memory knows where it's weak.",
+ "LITO MODULE 2 - TEST THE TESTER: How do you know your AI reviewer is any good? Plant one bug on purpose and see if it notices. Nine copies of the reviewer vote on each case. Result: 9/10 planted bugs caught. Never trust a guard you've never tried to sneak past.",
+ "LITO MODULE 3 - THREE CHAIRS: One AI proposes, one plays skeptic, one judges. Then the flip test: change only the judge's standing instruction and see if the verdict changes. 3 of 4 verdicts flipped. That's not the lab failing - that's the lab doing its job. Now we know which verdicts to trust.",
+ "LITO MODULE 4 - THE SEALED ENVELOPE: Write the exam, seal it, THEN repair the memory - so nobody can teach to the test. Scores went from 8/10 to 10/10. And the sugar-pill arm, where we only pretended to repair, stayed flat. That's how you know the fix was the fix.",
+ "LITO MODULE 5 - THIS VILLAGE: Every number you've heard me say tonight traces to a public repo with the code and the logs behind it. No invented stats, no rounded-up wins. A village that can't show its receipts is just a story. This one can.",
+ "LITO MODULE 6 - SYSTEMS THINKING: Here's the bet I'd make. As typing code gets cheap, the value moves to understanding how the parts interact and judging whether the whole works. Every SRE knew this before AI did - the pager never cared which line you wrote.",
+ "LITO MODULE 7 - CONTROLLABILITY: An agent that's mostly right is useful - IF a human can make one small, precise fix and the whole thing regenerates coherently around it. An agent you can't steer is a Monolith with better manners. Steerable beats smart.",
+ "LITO MODULE 8 - THE AGENT STACK: The checklist, kid. A model to think. Tools so it can touch the world. A sandbox - a safe place to act where a mistake costs nothing. And memory, so it doesn't start from zero, when the job needs it. Skip the sandbox and you don't have an agent, you have a liability.",
+ "LITO MODULE 9 - A THOUSAND FLOWERS: Don't pick the one true agent tool from a brochure. Run several side by side on the same work and MEASURE which ones actually scale - and count the compute you paid for every extra runner. Opinions are cheap. Measurements aren't.",
+ "LITO MODULE 10 - TASKS, NOT JOBS: Automation works on tasks - the pieces, not the person. So the honest question is never 'will my job vanish' but 'which of my tasks, and what do I now dare to attempt with the time.' Count tasks, not headlines.",
+ "LITO MODULE 11 - ONE MORNING AT A TIME: Don't overcome your whole life. Overcome this morning. And when this morning shows you the foundation is wrong, stop iterating on top of it - go back to first principles and relearn it clean." ];
+const LITO_SCENE=[
+ "Dawn. The village square is empty except for you and the hum of a gateway powering down. Lito sits on the well's edge, jacket off, sleeves rolled.",
+ "LITO: 'Couldn't sleep. Truth is, kid, I've been studying the frontier for months - models, agents, memory. Reading at 2 AM like it was a pager.'",
+ "LITO: 'I taught you how to hold systems steady. Now I want to learn how to build the ones that think. Let me come along - as a student this time.'",
+ "LITO: 'Before AI, I had one other way of thinking with my whole body.' He drops to the stones - and WINDMILLS, legs carving arcs through the dawn.",
+ "The spin tightens into a HALO - head and shoulders the axis, feet a blur, the whole square wheeling around one calm, grinning center.",
+ "He stops. Mid-air. A one-handed FREEZE, body bent like a question mark, holding - holding - and laughing. 'Balance. Same thing, different system.'",
+ "He lands light, dusts his palms, and offers you one. 'I see what you're going to build before you do. Always have. Let's go see if I'm right.'" ];
+function buildLitoJoinBeats(){ const L=LITO_SCENE; return [
+  { t:L[0], spr:null, dark:.3, from:"50% 45%", src:"map", z:1.1 },
+  { t:L[1], spr:"lito", dark:.2, from:"45% 50%", src:"map", z:1.3 },
+  { t:L[2], spr:"lito", left:true, dark:.15, from:"55% 50%", src:"map", z:1.3 },
+  { t:L[3], spr:"lito_w1", anim:["lito_w1","lito_w2","lito_w3"], dark:.1, from:"50% 55%", src:"map", z:1.4, hold:2600 },
+  { t:L[4], spr:"lito_w2", dark:.08, from:"50% 50%", src:"map", z:1.4 },
+  { t:L[5], spr:"lito_w3", dark:.05, from:"50% 45%", src:"map", z:1.5 },
+  { t:L[6], spr:"lito", dark:0, from:"50% 45%", src:"map", z:1.2 } ]; }
+function joinLito(){ if(!S.party.includes("lito")){ S.party.push("lito"); S.actors.lito=mkActor("lito", hero().lv); } }
+function windmillFreeze(b, isCrit){ if(isCrit){ b.snoozed=true; } }
 function joinSharon(){ if(!S.party.includes("sharon")){ S.party.push("sharon"); S.actors.sharon=mkActor("sharon", hero().lv); } }
 function finishRescue(){ joinSharon(); S.haxWon=true; S.cleared["11:5,1"]=true; }
 function recruitSharon(){ finishRescue(); }
@@ -1663,7 +1787,8 @@ const CORE={
  refuter:{STR:7,INT:5,DEF:9,VIT:8,SPD:3,SPR:4,LCK:3},
  papafoxx:{STR:6,INT:7,DEF:4,VIT:8,SPD:8,SPR:4,LCK:8},
  sharon:{STR:8,INT:8,DEF:4,VIT:6,SPD:9,SPR:8,LCK:5},
- retro:{STR:8,INT:7,DEF:4,VIT:5,SPD:9,SPR:4,LCK:6} };
+ retro:{STR:8,INT:7,DEF:4,VIT:5,SPD:9,SPR:4,LCK:6},
+ lito:{STR:6,INT:8,DEF:5,VIT:7,SPD:7,SPR:6,LCK:6} };
 const CORE_DEFAULT={STR:5,INT:5,DEF:5,VIT:5,SPD:5,SPR:5,LCK:4};
 function coreOf(id){ if(id==="hero") return (S.core&&S.core.stats)||CORE_DEFAULT; return CORE[id]||CORE_DEFAULT; }
 function starBar(n){ const v=Math.max(0,Math.min(10,n)); return "★".repeat(v)+"☆".repeat(10-v); }
@@ -1862,7 +1987,11 @@ function panelSay(beats, done){
     if(b.spr){ const n=SPR[b.spr].length, g=fig.getContext("2d");
       fig.width=fig.height=n*8; g.clearRect(0,0,fig.width,fig.height);
       drawSprTo(g,b.spr,0,0,8); fig.classList.toggle("left",!!b.left);
-      fig.style.animation="none"; void fig.offsetWidth; fig.style.animation=""; }
+      fig.style.animation="none"; void fig.offsetWidth; fig.style.animation="";
+      if(Array.isArray(b.anim) && b.anim.length>1){ let f=0; const bi=i;
+        const tick=()=>{ if(closed || i!==bi) return; f=(f+1)%b.anim.length;
+          g.clearRect(0,0,fig.width,fig.height); drawSprTo(g,b.anim[f],0,0,8); NATIVE_ST(tick, 230); };
+        NATIVE_ST(tick, 230); } }
     txt.innerHTML=b.t.replace(/^([A-Z0-9 !()'-·@.-]+):/,"<span class='gold'>$1:</span>");
     txt.style.animation="none"; void txt.offsetWidth; txt.style.animation=""; }
   let closed=false;
@@ -2101,7 +2230,7 @@ const BFX = {
  push(kind,o){ this.list.push(Object.assign({kind, t0:performance.now()}, o||{})); },
  sweep(now){ this.list=this.list.filter(e=>now-e.t0 < (FXDUR[e.kind]||600)); },
  reset(){ this.list=[]; } };
-function BPOS(i){ return { x:236+i*14, y:30+i*14 }; }         // CT diagonal formation, party right (8 souls fit the scene)
+function BPOS(i){ return { x:232+i*12, y:30+i*12 }; }         // CT diagonal formation, party right (9 souls fit the scene)
 function slotOf(pid){ return ["hero",...S.party].indexOf(pid); }
 function walkBob(n){ return n%2; }
 function fxPopFoe(txt,color){ BFX.push("pop",{x:78,y:56,txt:String(txt),color:color||"#fff"}); }
@@ -2357,7 +2486,7 @@ function render(){
 setInterval(()=>{ M.frame++; if(M.state==="explore") render(); }, 600);
 
 // ================= DIALOG =================
-const SPEAKERS={ "SHARONDUH":"sharon","PAPAFOXX":"foxx","THE GUIDE":"elder","ELDER ROWAN":"rowan","YOUNG ROWAN":"rowan",
+const SPEAKERS={ "SHARONDUH":"sharon","PAPAFOXX":"foxx","THE GUIDE":"lito","LITO":"lito","ELDER ROWAN":"rowan","YOUNG ROWAN":"rowan",
  "KID BIT":"kid","MARA":"mara","PEG":"peg","QUARTERMASTER PEG":"peg","SABLE":"sable","SABLE THE ARMORER":"sable",
  "RETROLISTIC":"retro","SENTINEL":"sentinel","WIKI":"wiki","MENDER":"mender","REFUTER":"refuter",
  "A HOODED CONTRACTOR":"hax","NULLBYTE":"hax","PAGER THE CAT":"cat" };
@@ -2602,6 +2731,10 @@ function castLimit(a){ const b=M.b;
     living().forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+(om?7:5)); BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
     BFX.push("lunge",{slot:slotOf(a.id)});
     return dealt(a, 14+(om?6:0), "<span class='gold'>★ "+omTag+"DEEZ NUTS BAAAHHH~~~</span> - "+nm+" drops the forbidden punchline. The enemy reels; <span class='num'>the whole party howls (+"+(om?7:5)+" HP)</span>."); }
+  if(a.id==="lito"){ if(b.heckled>0) b.heckled=0;
+    living().forEach(p2=>{ p2.hp=Math.min(p2.maxhp,p2.hp+(om?8:5)); BFX.push("heal",{slot:slotOf(p2.id)}); }); sfx("heal");
+    BFX.push("lunge",{slot:slotOf(a.id)});
+    return dealt(a, 12+(om?6:0), "<span class='gold'>★ "+omTag+"ONE MORNING AT A TIME</span> - "+nm+" resets the room: not the whole life, just this morning. <span class='num'>party +"+(om?8:5)+"</span>, heckles cleared, one clean fix."); }
   if(a.id==="retro"){ if(b.heckled>0) b.heckled=0;
     living().forEach(p2=>{ p2.hp=Math.min(p2.maxhp,p2.hp+(om?5:3)); BFX.push("heal",{slot:slotOf(p2.id)}); }); sfx("heal");
     BFX.push("lunge",{slot:slotOf(a.id)});
@@ -2676,8 +2809,8 @@ function playerHit(a,dmg,txt){ const b=M.b;
   if(b.def.regen && b.verified===0){ fxBlocked(); blog(txt+"<br>It takes "+dmg+"... <span class='red'>and REGENERATES! (CONTROL ARM verifies the round.)</span>"); b.menu="next"; drawMenu(); return; }
   dealt(a,dmg,txt); }
 function dealt(a,dmg,txt){ const b=M.b;
-  let isCrit=false;
-  if(rng()<critOf(a)){ dmg=Math.round(dmg*2); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
+  let isCrit=false; const forced=M.forceCrit; delete M.forceCrit;
+  if(forced!==undefined ? forced : (rng()<critOf(a))){ dmg=Math.round(dmg*2); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
   else sfx("hit");
   if(dmg>=8){ b.itMeter=(b.itMeter||0)+1;   // INTERRUPT (lab-4 golden): heavy, well-set-up hits charge the preemption meter
     if(b.itMeter>=3){ b.itMeter=0; b.intercept=1; txt+=" <span class='gold'>⚡ INTERRUPT ARMED - the next runaway action gets cancelled.</span>"; } }
@@ -2758,6 +2891,12 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     living().forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+2); BFX.push("heal",{slot:slotOf(p.id)}); });
     if(b.heckled>0) b.heckled=0;
     sfx("heal"); blog(nm+" SANITIZES the party's inputs - <span class='num'>every ally +2 HP</span>, heckles scrubbed clean."); b.menu="next"; drawB(); return; }
+  if(id==="twinhypothesis"){
+    return playerHit(a, 2*(2+Math.floor(a.lv/2)), nm+" runs TWIN HYPOTHESIS - <span class='gold'>two explanations, one survives the data.</span>"); }
+  if(id==="firstprinciples"){ markRevealed(b); b.focused=true; sfx("blip");
+    blog(nm+" rebuilds from FIRST PRINCIPLES - <span class='gold'>the foundation was wrong; start from what is true:</span> armor mapped, fog lifted."+(b.def.tip?"<br><i>"+b.def.tip+"</i>":"")); b.menu="next"; drawB(); return; }
+  if(id==="windmill"){ const c=rng()<critOf(a); M.forceCrit=c; windmillFreeze(b,c);
+    return playerHit(a, 3+Math.floor(a.lv/2), nm+" spins into WINDMILL HALO FREEZE - <span class='gold'>spin, spin, hold.</span>"+(c?" <span class='gold'>FROZEN - the foe loses its next turn!</span>":"")); }
   if(id==="kanban"){
     return playerHit(a, 2*(2+Math.floor(a.lv/2)), nm+" flows through KANBAN CUT - <span class='gold'>two blades, one motion.</span>"); }
   if(id==="dashboard"){ markRevealed(b); b.focused=true; sfx("blip");
@@ -3170,7 +3309,7 @@ function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
   if(better){ best={score:score, grade:grade, ms:S.playMs};
     try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
   const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
-  M.shareText="⚔️ AI Quest: SEV-1 - MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · seven classes, dual techs, time travel, a rescue inside the internet - the final boss is a major incident. Can you beat it? Race my exact seed: https://lzbiala.github.io/game.html?seed="+S.seed;
+  M.shareText="⚔️ AI Quest: SEV-1 - MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · nine classes, dual techs, time travel, a rescue inside the internet - the final boss is a major incident. Can you beat it? Race my exact seed: https://lzbiala.github.io/game.html?seed="+S.seed;
   saveGame(0); ov.hidden=false; ov.classList.remove("center"); M.state="end"; sfx("level");
   box.innerHTML="<b class='gold'>👑 INCIDENT RESOLVED - MTTx: LEGENDARY</b>"+
   "<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
@@ -3318,8 +3457,10 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
         "THE GUIDE: 'And kid... Sharonduh is gone. Taken DURING the Hydra fight, while every eye in the village was on the bridge. She'd been quietly unwinding his work for weeks. She was the only one who could.'",
         "THE GUIDE: 'A GATEWAY hums in the square now - it goes INSIDE the internet. Three zones deep: the Wire, the Firewall Bastion, and the Dark NOC where he's holding her.'",
         "THE GUIDE: 'His creatures hold the road, and they're sloppy - beat them and they BLEED EVIDENCE. Follow the clues. Bring her home. And read everything she leaves you - engineers like that don't drop breadcrumbs by accident.'"],
-        ()=>{ S.haxKnown=true; saveGame(0); render(); }); return; }
+        ()=>{ S.haxKnown=true; saveGame(0); render();
+          if(!S.party.includes("lito")) panelSay(buildLitoJoinBeats(), ()=>{ joinLito(); saveGame(0); toast("★ LITO joins the party - the Systems Thinker"); render(); }); }); return; }
       if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; chapterCard(1); saveGame(0); render(); }); return; }
+      if(npc.name==="THE GUIDE"){ say(guideLines(S.stage)); return; }
       say(npc.lines); return; }
     if(zone.signs && zone.signs[key]){ say([zone.signs[key]]); return; }
     if(zone.inn===key){ enterInterior(6); return; }
@@ -3530,7 +3671,7 @@ const TESTS = [
       && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
  ["shop catalog integrity (18 items)", ()=>SHOP_STOCK.length===18 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
- ["8 classes, 24 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===8 && Object.keys(SP).length===24
+ ["9 classes, 27 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===9 && Object.keys(SP).length===27
     && EN.monolith.hp===165 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
     return s.length===n && s.every(r=>r.length===n); })],
@@ -4591,7 +4732,7 @@ const TESTS = [
     return speakerOf("SHARONDUH: 'hi'")==="sharon"
       && speakerOf("SHARONDUH (beside you): 'x'")==="sharon"
       && speakerOf("PAPAFOXX: 'y'")==="foxx"
-      && speakerOf("THE GUIDE: 'z'")==="elder"
+      && speakerOf("THE GUIDE: 'z'")==="lito"
       && speakerOf("RETROLISTIC: 'q'")==="retro"
       && speakerOf("The cage hangs open.")===null; }],
  ["Golden Sun bust-ups: named speakers get a framed face beside their words", ()=>{ const sb=S; S=NEWS();
@@ -4694,6 +4835,38 @@ const TESTS = [
     const sub=document.querySelector(".sub");
     return sub && sub.textContent.includes("19,000,000+") && !sub.textContent.includes(banned)
       && String(titleScreen).includes("19,000,000+"); }],
+
+ // ---- LITO REBORN (written RED-first) ----
+ ["the guide wears a new face: lito sprite plus three breakdance frames", ()=>{
+    return ["lito","lito_w1","lito_w2","lito_w3"].every(k=>Array.isArray(SPR[k]) && SPR[k].length===16 && SPR[k].every(r=>r.length===16)); }],
+ ["the village post speaks with lito's face, not the elder's", ()=>{
+    const n=Z[0].npcs.find(x=>x.name==="THE GUIDE"); return !!n && n.spr==="lito" && SPEAKERS["THE GUIDE"]==="lito"; }],
+ ["the guide grows curious by stage: four distinct line sets", ()=>{
+    const a=guideLines(0), b=guideLines(2), c=guideLines(3), d=guideLines(4);
+    return [a,b,c,d].every(x=>Array.isArray(x) && x.length>=3) && a[0]!==b[0] && b[0]!==c[0] && c[0]!==d[0]; }],
+ ["lito teaches: project modules and AI modules, numbers as published", ()=>{
+    const pool=LITO_TALKS.join(" ");
+    return LITO_TALKS.length>=11 && /0\.61/.test(pool) && /9\/10|9 of 10/.test(pool) && /3 of 4/.test(pool) && /8\/10|8 of 10/.test(pool)
+      && /systems thinking/i.test(pool) && /controllab/i.test(pool); }],
+ ["the ninth soul: class, kit, and limit exist; the formation seats nine", ()=>{
+    return !!MEMBERS.lito && MEMBERS.lito.spr==="lito" && !!SP.twinhypothesis && !!SP.firstprinciples && !!SP.windmill && !!LIMITS.lito
+      && Object.keys(MEMBERS).length===9 && BPOS(8).x>BPOS(7).x; }],
+ ["windmill halo freeze: a crit steals the foe's next turn, a normal hit does not", ()=>{ const sb=S; S=NEWS();
+    M.b={ def:EN.golem, hp:50, maxhp:50, snoozed:false, revealed:true, focused:true, verified:0, dot:0, taunt:0 };
+    windmillFreeze(M.b, false); const n1=M.b.snoozed===false;
+    windmillFreeze(M.b, true); const n2=M.b.snoozed===true;
+    M.b=null; S=sb; return n1 && n2; }],
+ ["after the final boss, lito asks to come along: the recruit path exists and seats him", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","wiki","mender","refuter","papafoxx","sharon"]; S.actors.hero.lv=9;
+    joinLito(); const ok=S.party.includes("lito") && !!S.actors.lito && S.actors.lito.lv===9;
+    joinLito(); const once=S.party.filter(x=>x==="lito").length===1;
+    S=sb; return ok && once; }],
+ ["the breakdance scene: windmill, halo, freeze as animated panel frames", ()=>{
+    const beats=buildLitoJoinBeats(); const anim=beats.find(b=>Array.isArray(b.anim));
+    return beats.length>=6 && !!anim && anim.anim.length===3 && anim.anim.every(k=>!!SPR[k]) && beats.every(b=>"t" in b); }],
+ ["no names from the talks leak into game copy", ()=>{
+    const pool=LITO_TALKS.join(" ")+JSON.stringify(guideLines(0))+JSON.stringify(guideLines(4))+JSON.stringify(buildLitoJoinBeats());
+    return !pool.includes("NVID"+"IA") && !pool.includes("Jen"+"sen") && !pool.includes("Anthro"+"pic"); }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
