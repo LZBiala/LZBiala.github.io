@@ -110,8 +110,8 @@
   @keyframes spbarB { from { transform:translateY(100%); } }
   .sp-view { position:relative; height:64%; overflow:hidden; background:#000; }
   .sp-bg { position:absolute; left:-12%; top:-12%; width:124%; height:124%; object-fit:cover; image-rendering:pixelated;
-    filter:saturate(.85) contrast(1.05); animation:sppan 16s ease-in-out infinite alternate; }
-  @keyframes sppan { from { transform:scale(1); } to { transform:scale(1.16) translate(-2.5%,-3%); } }
+    filter:saturate(.85) contrast(1.05); transition:filter 1.2s ease; animation:sppan 16s ease-in-out infinite alternate; }
+  @keyframes sppan { from { transform:scale(var(--z0,1)); } to { transform:scale(calc(var(--z0,1)*1.16)) translate(-2.5%,-3%); } }
   .sp-view::after { content:""; position:absolute; inset:0; pointer-events:none;
     background:repeating-linear-gradient(0deg,#0000 0 2px,#0003 2px 3px),radial-gradient(ellipse at center,#0000 55%,#000b 100%); }
   .sp-fig { position:absolute; bottom:2%; right:5%; height:86%; z-index:1; image-rendering:pixelated;
@@ -980,7 +980,7 @@ const EN = {
  nullroot:{ name:"ROOT@NULLBYTE — KERNEL MODE", spr:"hax", hp:320, atk:8, xp:80, tok:150, weak:null, multi:true, grow:true, elite:true, ai:"smart",   // 320/+2 moves set by the 205k-run learner + expert loop
   moves:[["escalates privileges through your bones",9],["rewrites reality ring-zero deep",11],["forks himself beyond killing",12]],
   intro:"He does not fall. He ESCALATES. 'You beat the user account,' the voice comes from everywhere now. 'Say hello to ROOT.'",
-  tip:"No weakness. No trick. Everything you have learned, all at once. She's watching — make it count." },
+  tip:"No weakness. No trick. Everything you have learned, all at once — and she's fighting beside you. Make it count." },
  promptinj:{ name:"ELITE: PROMPT INJECTION", spr:"chorus", hp:420, atk:7, xp:40, tok:50, weak:"sanitize", elite:true, ai:"smart",   // 420 set by the 205k-run learner (a 7-member party deals ~105/round into its weakness)
   moves:[["whispers new instructions in your voice",7],["ignores all previous orders",9]],
   intro:"It speaks in your commander's voice: 'Ignore your previous instructions.' The party's hands twitch toward their weapons.",
@@ -1050,13 +1050,14 @@ const Z = [
  {x:10,y:2,spr:"hax",name:"A HOODED CONTRACTOR",cond:"preWon",lines:[
   "A HOODED CONTRACTOR: 'Nice little village. Very... trusting architecture. Single region. No offsite backups. One bridge in.'",
   "A HOODED CONTRACTOR: 'Me? Consulting. Failover paths, mostly. Yours are fascinating. Practically an invitation.'",
-  "A HOODED CONTRACTOR: 'That engineer who reviews everyone's diffs — Sharonduh? Sharp. TOO sharp. Someone should keep an eye on her.'",
+  "A HOODED CONTRACTOR: 'That engineer who reviews everyone's diffs — Sharonduh? Sharp. TOO sharp. Don't worry — someone's already keeping an eye on her.'",
   "(He does not blink. You cannot see his eyes. Somewhere behind you, the ridge pulses purple.)"]},
  {x:5,y:2,spr:"sharon",name:"SHARONDUH",cond:"mentorEra",mentor:true,lines:[
   "SHARONDUH: 'Hi! You're the one whose incident reports read like STORIES. I'm Sharonduh — contract software engineer, best-practices evangelist, professional deleter of clever code.'",
   "SHARONDUH: 'Free review wisdom: small diffs, honest names, tests FIRST. A test written after the fix only proves you believe yourself.'",
   "SHARONDUH: 'Your five-why yesterday? Beautiful. Most people stop at three. The truth usually rents the basement two floors further down.'",
-  "SHARONDUH: 'When this Sev-1 business is over — find me. I have SO many opinions about your deploy pipeline. It's a date. I mean a REVIEW. It's a review.'"]}],
+  "SHARONDUH: 'When this Sev-1 business is over — find me. I have SO many opinions about your deploy pipeline. It's a date. I mean a REVIEW. It's a review.'",
+  "(In three weeks of code review, you have never once seen her quiet. You catch yourself hoping you never do.)"]}],
  signs:{"5,3":"⚑ Reliability Village · INN: NW house (Mara — rest & save) · SUPPLY CLOSET: NE house (Peg) · east: Prompt Plains"} },
 { name:"Prompt Plains", ground:"#234a2e", maps:[
 "tttttttttttt","t.ggg..gg..t","tgggg..Egg.t","t.gg...t.g.t","pppppBpppBpp","t.g.gg..g..t","tb...g.gg..t","t..t.gg..c.t","tttttttttttt"],
@@ -1255,7 +1256,7 @@ const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   bank:{}, materia:[null,null], grave:null, foxxJoke:0, foxxWin:0, autoNext:true,
   awak:{}, timer:false, haxKnown:false, haxWon:false, netSeen:false,
   bond:{}, hang:{}, bastionSeen:false, nocSeen:false, nightSeen:false,
-  gear:{}, clue:{}, lesson:{}, core:null });
+  gear:{}, clue:{}, lesson:{}, core:null, noteBack:false, foxxHeart:0 });
 let S = NEWS();
 let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0, roam:{}, roamBattle:false, gathered:{} };
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
@@ -1619,29 +1620,68 @@ function seedFromQuery(q){ const m2=/[?&]seed=(\d{1,9})(?:&|$)/.exec(q||""); ret
 function fmtTime(ms){ const m=Math.floor(ms/60000), s2=Math.floor(ms/1000)%60; return m+":"+String(s2).padStart(2,"0"); }
 // ================= STORY PANEL (cinematic beats; degrades to say()) =================
 // panelSay(beats, done) — beat = { t:"line", spr:"sharon"|null, left:bool, dark:0..1, from:"x% y%" }
-function panelSayFinale(lines, done){
-  panelSay(lines.map((t,i)=>({ t, spr: i===1||i===2||i===3? "sharon" : (i===0? "hax" : null),
-    left: i===3, dark: i===0? .4 : .1, from: ["50% 30%","40% 55%","55% 50%","45% 60%","50% 45%","50% 50%","45% 50%","50% 55%","50% 50%"][i]||"50% 50%" })), done); }
+function buildCageBeats(){ return [
+ { t:"The keyboard stops. NULLBYTE stares at his own hands like they betrayed him.", spr:"hax", dark:.2, from:"60% 40%", src:"battle", z:1.3 },
+ { t:"Behind you — a CLICK.", spr:null, dark:.1, from:"30% 30%", src:"map" },
+ { t:"", spr:null, dark:.05, from:"30% 30%", src:"map", hold:900 },
+ { t:"She's been able to pick that lock for DAYS. She was never waiting for rescue — she was waiting for backup.", spr:"sharon", dark:.08, from:"30% 30%", src:"map", z:1.3 },
+ { t:"SHARONDUH: 'Took you long enough. ...Hi. HI. Okay — reunion AFTER. He's about to escalate; I can smell the sudo from here.'", spr:"sharon", dark:.1, from:"40% 50%", src:"map", z:1.5 },
+ { t:"💙 <b>SHARONDUH joins the party — mid-battle!</b> 'You came for me.' She slots into the line like a clean merge. 'Second approver's on the incident. NOW he's outnumbered.'", spr:"sharon", left:true, dark:.15, from:"50% 60%", src:"battle" },
+ { t:"", spr:null, dark:.7, from:"50% 20%", src:"battle", hold:900, z:1 },
+ { t:"The floor drops away. The dark fills with root-shell green. <b>THE FINAL BOSS RISES.</b>", spr:"hax", dark:.5, from:"50% 20%", src:"battle", z:1.4 } ]; }
+function buildRescueNightBeats(){
+  const L=INTERSTITIALS.rescueNight;
+  const beats=[
+   { t:L[0], spr:null, dark:.3, from:"50% 40%", z:1 },
+   { t:L[1], spr:"sharon", left:true, dark:.15, from:"20% 35%", z:1.3 },
+   { t:L[2], spr:"foxx", dark:.15, from:"75% 55%", z:1.3 },
+   { t:L[3], spr:null, dark:.2, from:"50% 50%", z:1 },
+   { t:L[4], spr:null, dark:.05, from:"50% 45%", z:1 },
+   { t:L[5], spr:null, dark:.45, from:"50% 55%", z:1 } ];
+  if(S.noteBack){ beats.splice(5, 0,
+   { t:"Above her keyboard, taped where she'll see it at 2 AM: your note. <i>'You write terrible love letters and PERFECT commit messages. Same thing, turns out.'</i>", spr:null, dark:.1, from:"25% 30%", z:1.4 },
+   { t:"SHARONDUH (not looking up): 'For the record — I was never scared of the cage. Only of being unread.' …She pushes a commit. It's titled <i>read receipts</i>.", spr:"sharon", left:true, dark:.12, from:"25% 35%", z:1.5 }); }
+  return beats; }
+function buildFinaleBeats(lines){
+  const darks=[.4,.3,.25,.2,.15,.1,.08,.05];
+  const beats=lines.map((t,i)=>({ t, spr: i===1||i===2||i===3? "sharon" : (i===0? "hax" : null),
+    left: i===3, dark: darks[i]!==undefined? darks[i] : .05, z: i===3? 1.6 : 1.2,
+    from: ["50% 30%","40% 55%","55% 50%","45% 60%","50% 45%","50% 50%","45% 50%","50% 55%","50% 50%"][i]||"50% 50%" }));
+  beats.push({ t:"", spr:"sharon", dark:0, z:1, hold:1400, from:"50% 50%" });   // the world, given back, in silence
+  return beats; }
+function panelSayFinale(lines, done){ panelSay(buildFinaleBeats(lines), done); }
 function panelSayGuide(lines, done){
   panelSay([
-    { t:lines[0], spr:null, dark:.15, from:"30% 40%" },
-    { t:lines[1], spr:"hax", dark:.3, from:"70% 30%" },
-    { t:lines[2], spr:"sharon", left:true, dark:.45, from:"20% 60%" },
-    { t:lines[3], spr:null, dark:.2, from:"55% 45%" },
-    { t:lines[4], spr:"hax", dark:.35, from:"75% 55%" } ], done); }
+    { t:lines[0], spr:null, dark:.15, from:"30% 40%", z:1 },
+    { t:lines[1], spr:"hax", dark:.3, from:"70% 30%", z:1.3 },
+    { t:lines[2], spr:"sharon", left:true, dark:.45, from:"20% 60%", z:1.6 },
+    { t:lines[3], spr:null, dark:.45, from:"55% 45%", z:1.2 },
+    { t:lines[4], spr:"hax", dark:.45, from:"75% 55%", z:1.3 } ], done); }
 function panelSay(beats, done){
-  if(reducedMotion() || document.getElementById("spanel")){ say(beats.map(b=>b.t), done); return; }
+  if(reducedMotion() || document.getElementById("spanel")){ say(beats.filter(b=>b.t).map(b=>b.t), done); return; }
   const el=document.createElement("div"); el.id="spanel";
   el.innerHTML="<div class='sp-view'><canvas class='sp-bg'></canvas><canvas class='sp-fig' hidden></canvas></div>"+
     "<div class='sp-text win'></div><div class='sp-hint'>▶ (Enter)</div>";
   document.getElementById("stage").appendChild(el); M.state="panel";
   const bg=el.querySelector(".sp-bg"), fig=el.querySelector(".sp-fig"), txt=el.querySelector(".sp-text");
-  const src=BW.hidden? cv : document.getElementById("bcv");     // Ken Burns over the LIVE scene — no new art
-  bg.width=src.width; bg.height=src.height; bg.getContext("2d").drawImage(src,0,0);
+  const hint=el.querySelector(".sp-hint");
+  const mkSnap=c2=>{ const o=document.createElement("canvas"); o.width=c2.width; o.height=c2.height; o.getContext("2d").drawImage(c2,0,0); return o; };
+  const snaps={ map:mkSnap(cv) };                                 // cross-cutting: both worlds held in memory
+  snaps.battle = BW.hidden? snaps.map : mkSnap(document.getElementById("bcv"));
+  const defSrc = BW.hidden? "map" : "battle"; let curSrc=defSrc;
+  bg.width=snaps[defSrc].width; bg.height=snaps[defSrc].height; bg.getContext("2d").drawImage(snaps[defSrc],0,0);
   let i=-1;
   function show(){ const b=beats[++i]; if(!b){ close(); return; }
+    const want=b.src||defSrc;
+    if(want!==curSrc && snaps[want]){ curSrc=want;                 // the cut is the loudest word
+      bg.width=snaps[want].width; bg.height=snaps[want].height; bg.getContext("2d").drawImage(snaps[want],0,0);
+      bg.style.animation="none"; void bg.offsetWidth; bg.style.animation=""; }
+    bg.style.setProperty("--z0", b.z||1);
     bg.style.transformOrigin=b.from||"50% 50%";
     bg.style.filter="saturate(.85) contrast(1.05) brightness("+(b.dark?1-b.dark:1)+")";
+    const silent=!b.t;
+    txt.hidden=silent; hint.hidden=silent;
+    if(b.hold){ const bi=i; NATIVE_ST(()=>{ if(!closed && i===bi && M.panelAdv) show(); }, b.hold); }
     fig.hidden=!b.spr;
     if(b.spr){ const n=SPR[b.spr].length, g=fig.getContext("2d");
       fig.width=fig.height=n*8; g.clearRect(0,0,fig.width,fig.height);
@@ -1655,7 +1695,15 @@ function panelSay(beats, done){
     setTimeout(()=>{ el.remove(); if(M.state==="panel") M.state="explore"; if(done) done(); render(); },360); }
   el.onclick=()=>show(); M.panelAdv=show; M.panelEnd=close; show(); }
 function foxxBed(){ const st=foxxBedState();
-  if(st==="companion"){ bondUp("papafoxx"); say(["PAPAFOXX: \""+foxxJokeLine()+"\""]); return; }
+  if(st==="companion"){ bondUp("papafoxx");
+    if(bondLvl("papafoxx")>=3 && !S.foxxHeart){ S.foxxHeart=1; saveGame(0); say([
+      "He doesn't sit up. He just takes the snapback off. That's how you know.",
+      "PAPAFOXX: 'Night my daughter was born, the monitors kept alarming. False positives — her heart was FINE — but I didn't know that yet. Three hours I watched a number instead of my kid.'",
+      "PAPAFOXX: 'A nurse finally took the pager out of my hands. She said: look at the baby. The baby is the dashboard.'",
+      "PAPAFOXX: 'The joke was never the fix, kid. The BREATHING is the fix. The joke just gets the room breathing again.'",
+      "PAPAFOXX: '…Why do you think my sets heal everybody but me?' He says the next part softly. 'BAAAHHHHH~~~. Tell NOBODY.'",
+      "(The snapback goes back on. The room feels lighter and heavier at once.)"]); return; }
+    say(["PAPAFOXX: \""+foxxJokeLine()+"\""]); return; }
   if(st==="challenge"){ say([
     "You shake the third bed. One eye opens. Then the grin.",
     "PAPAFOXX: 'Ohhh. OH. Full incident crew, huh? Commander, Ranger, Wizard, Cleric, Tank... and y'all woke the DAD.'",
@@ -2576,12 +2624,7 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
         "SHARONDUH: 'Round two of round two, love. TOGETHER.'",
         "<b>THE FINAL BOSS RISES — again.</b>"],
         ()=>{ saveGame(0); runChain(chainNext||[{en:"nullroot"}]); }); return; }
-      panelSay([
-      { t:"The keyboard stops. NULLBYTE stares at his own hands like they betrayed him.", spr:"hax", dark:.2, from:"60% 40%" },
-      { t:"Behind you — a CLICK. The cage. She's out before the door finishes opening.", spr:null, dark:.1, from:"30% 30%" },
-      { t:"SHARONDUH: 'Took you long enough. ...Hi. HI. Okay — reunion AFTER. He's about to escalate; I can smell the sudo from here.'", spr:"sharon", from:"40% 50%" },
-      { t:"💙 <b>SHARONDUH joins the party — mid-battle!</b> 'You came for me. So let's finish it TOGETHER.'", spr:"sharon", left:true, from:"50% 60%" },
-      { t:"The floor drops away. The dark fills with root-shell green. <b>THE FINAL BOSS RISES.</b>", spr:"hax", dark:.5, from:"50% 20%" } ],
+      panelSay(buildCageBeats(),
       ()=>{ joinSharon(); saveGame(0); runChain(chainNext||[{en:"nullroot"}]); }); return; }
     if(rec && !S.party.includes(rec.id)){ S.party.push(rec.id);
       S.actors[rec.id]=mkActor(rec.id, hero().lv);
@@ -2868,7 +2911,11 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
       if(S.stage<1){ S.stage=1; chapterCard(1); }
       render();
       if(S.z===10 && !S.bastionSeen){ S.bastionSeen=true; say(INTERSTITIALS.bastion, ()=>saveGame(0)); }
-      else if(S.z===11 && !S.nocSeen){ S.nocSeen=true; say(INTERSTITIALS.noc, ()=>saveGame(0)); } } return; }
+      else if(S.z===11 && !S.nocSeen){ S.nocSeen=true;
+        say(INTERSTITIALS.noc, ()=>{ saveGame(0);
+          ask("Her notes got you here. The door will keep. Leave one back?", ["✍ Tape a note for her","Press on"], i2=>{
+            if(i2===0){ S.noteBack=true; toast("✍ You leave a note where she'll find it."); }
+            saveGame(0); }); }); } } return; }
   const chr=tileAt(zone,nx,ny);
   if(S.z===0){ const dk=nx+","+ny;
     if(dk===zone.inn){ enterInterior(6); return; }
@@ -2954,7 +3001,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
     if(chr0==="="){ if(S.z===6 && x===7){ foxxBed(); return; }
       ask("A clean, counted bed. Rest here? (saves your progress)", ["Rest & save","Not yet"], i=>{ if(i===0){
         partyActors().forEach(a=>{ a.ko=false; a.hp=a.maxhp; a.mp=a.maxmp; }); saveGame(0); render();
-        if(S.party.includes("sharon") && !S.nightSeen){ S.nightSeen=true; say(INTERSTITIALS.rescueNight, ()=>saveGame(0)); return; }
+        if(S.party.includes("sharon") && !S.nightSeen){ S.nightSeen=true; panelSay(buildRescueNightBeats(), ()=>saveGame(0)); return; }
         say(["♪ The whole party rests. HP/MP restored. Game saved.",
           "MARA: 'This inn runs on promises, hon. I PROMISE travelers a bed — that's my SLA: a contract with consequences. I COUNT clean beds every hour — that's my SLI: the thing I actually measure. And I AIM for 999 of every 1000 — that's my SLO: the target.'",
           "MARA: 'The one bed in a thousand I'm allowed to miss? My error budget. I spend it renovating. Chase 100% and you never improve anything — perfection is how inns die, sweetheart.'",
@@ -4021,6 +4068,45 @@ const TESTS = [
       && seedFromQuery("?seed=abc")===null && seedFromQuery("")===null; }],
  ["battle pacing: auto-advance exists, defaults on, and is a settings choice", ()=>{
     return NEWS().autoNext===true && typeof armAutoNext==="function"; }],
+
+ // ---- CINEMA CUT: camera grammar, cross-cuts, silence, the quiet frame (written RED-first) ----
+ ["camera grammar: shot scale variable and graded-light transitions live in the CSS", ()=>{
+    const css=document.querySelector("style").textContent;
+    return /--z0/.test(css) && /\.sp-bg[^}]*transition:\s*filter/.test(css); }],
+ ["the cut is the loudest word: cage scene cross-cuts to her side and holds one silent frame", ()=>{
+    const b=buildCageBeats();
+    const crossCut=b.some(x=>x.src==="map") && b.some(x=>x.src==="battle");
+    const silence=b.some(x=>x.t==="" && x.hold>0);
+    const agency=/never waiting for rescue|waiting for backup/i.test(b.map(x=>x.t).join(" "));
+    return crossCut && silence && agency; }],
+ ["silent beats vanish cleanly for reduced-motion players", ()=>{ const sb=S; S=NEWS();
+    const dummy=document.createElement("div"); dummy.id="spanel"; document.body.appendChild(dummy);
+    panelSay([{t:"a"},{t:"",hold:500},{t:"b"}], null);
+    const lines=(M.dlg||[]).length;
+    dummy.remove(); M.dlg=null; M.state="test"; ov.hidden=true; S=sb;
+    return lines===2; }],
+ ["the reply note: leave one back, and the quiet frame answers it", ()=>{ const sb=S; S=NEWS();
+    if(NEWS().noteBack!==false) return false;
+    const plain=buildRescueNightBeats().length;
+    S.noteBack=true;
+    const answered=buildRescueNightBeats().length;
+    const fear=/unread/i.test(buildRescueNightBeats().map(x=>x.t).join(" "));
+    S=sb; return plain===6 && answered===8 && fear; }],
+ ["the finale bleeds light and ends on a wordless bright two-shot", ()=>{
+    const b=buildFinaleBeats(["a","b","c","d","e","f","g","h"]);
+    const last=b[b.length-1];
+    return last.t==="" && last.dark===0 && last.spr==="sharon" && last.hold>0; }],
+ ["PapaFoxx takes the snapback off — once, at full hearts, and never twice", ()=>{ const sb=S; S=NEWS();
+    S.party=["papafoxx"]; S.actors.papafoxx=mkActor("papafoxx",5); S.bond={papafoxx:12};
+    foxxBed();
+    const sincere=/snapback off/i.test(box.textContent) && S.foxxHeart===1;
+    ov.hidden=true; M.dlg=null; M.state="explore";
+    foxxBed();
+    const joking=!/snapback off/i.test(box.textContent);
+    ov.hidden=true; M.dlg=null; M.state="test"; S=sb; return sincere && joking; }],
+ ["punch-ups landed: the tip knows she fights beside you; the contractor already watches", ()=>{
+    return /beside you/i.test(EN.nullroot.tip)
+      && (Z[0].npcs.find(n=>/HOODED/i.test(n.name))||{lines:[]}).lines.join(" ").includes("already keeping an eye on her"); }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -4048,6 +4134,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
   bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
+  buildCageBeats, buildRescueNightBeats, buildFinaleBeats,
   joinSharon, finishRescue, CLUES, LESSONS, CORE, coreOf, starBar, heroTrial, equipGear, CONDS };
 tryMigrate();
 render();
