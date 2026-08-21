@@ -2165,6 +2165,8 @@ function startBattle(id,key,chain,opts){ const def=EN[id];
 function actor(){ const ids=["hero",...S.party]; return S.actors[ids[M.b.turn]]; }
 function blog(html){ document.getElementById("blog").innerHTML=html; }
 function statusLine(){ const b=M.b; const st=[];
+  if(b.intercept) st.push("⚡ ARMED");
+  else if(b.itMeter>0) st.push("⚡ "+b.itMeter+"/3");
   if(b.verified>0) st.push("✔ verified round ×"+b.verified);
   if(b.taunt>0) st.push("🛡 taunted ×"+b.taunt);
   if(b.doubled) st.push("×2 next FIGHT");
@@ -2392,6 +2394,8 @@ function dealt(a,dmg,txt){ const b=M.b;
   let isCrit=false;
   if(rng()<critOf(a)){ dmg=Math.round(dmg*2); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
   else sfx("hit");
+  if(dmg>=8){ b.itMeter=(b.itMeter||0)+1;   // INTERRUPT (lab-4 golden): heavy, well-set-up hits charge the preemption meter
+    if(b.itMeter>=3){ b.itMeter=0; b.intercept=1; txt+=" <span class='gold'>⚡ INTERRUPT ARMED — the next runaway action gets cancelled.</span>"; } }
   b.combo=(b.combo||0)+1;
   dmg=Math.max(1, dmg+stanceOut()+comboBonus(b.combo)+awakOf(a.id)-(b.heckled>0?1:0));   // the reawakened hit harder with everything
   BFX.push("lunge",{slot:b.turn}); BFX.push("hit");
@@ -2512,6 +2516,9 @@ function pickMove(b){ const mv=b.def.moves;
 function enemyTurn(){ foeAct(true); }
 function foeAct(standalone){ const b=M.b;
   if(b.snoozed){ b.snoozed=false; const msg="🔕 The pager is snoozed — <b>"+b.def.name+"</b> misses its turn!";
+    if(standalone){ blog(msg); endOfRound(b,""); } else { blog(msg); b.menu="next"; drawB(); } return; }
+  if(b.intercept && (b.def.multi || b.def.grow)){ b.intercept=0;
+    const msg="⚡ <b>INTERRUPT!</b> "+b.def.name+"'s runaway action is <b>PREEMPTED</b> — the charge never lands. <span class='mut'>(Preemption: the scheduler's mercy.)</span>";
     if(standalone){ blog(msg); endOfRound(b,""); } else { blog(msg); b.menu="next"; drawB(); } return; }
   const mv=pickMove(b);
   let raw=Math.max(1, mv[1]+stanceIn());
@@ -4107,6 +4114,34 @@ const TESTS = [
  ["punch-ups landed: the tip knows she fights beside you; the contractor already watches", ()=>{
     return /beside you/i.test(EN.nullroot.tip)
       && (Z[0].npcs.find(n=>/HOODED/i.test(n.name))||{lines:[]}).lines.join(" ").includes("already keeping an eye on her"); }],
+
+ // ---- INTERRUPT (lab-4 golden mechanic; sim-faithful, written RED-first) ----
+ ["INTERRUPT: three heavy hits arm a preemption", ()=>{ const sb=S; S=NEWS();
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    M.b={ def:{name:"T", spr:"slime", atk:5, multi:true, moves:[["swings",5]], spd:4}, hp:400, maxhp:400, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:0, rounds:0, queue:[], qi:0 };
+    dealt(S.actors.hero, 8, "t"); dealt(S.actors.hero, 8, "t");
+    const charging=M.b.itMeter===2 && !M.b.intercept;
+    dealt(S.actors.hero, 8, "t");
+    const armed=M.b.intercept===1 && M.b.itMeter===0;
+    dealt(S.actors.hero, 3, "t");
+    const smallNoCharge=M.b.itMeter===0;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return charging && armed && smallNoCharge; }],
+ ["INTERRUPT preempts only runaway foes — and is spent by the save", ()=>{ const sb=S; S=NEWS();
+    const st=window.setTimeout; window.setTimeout=()=>0;
+    const hp0=S.actors.hero.hp;
+    M.b={ def:{name:"T", spr:"slime", atk:5, multi:true, moves:[["floods",6]], spd:4}, hp:99, maxhp:99, intercept:1, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:0, rounds:0, queue:[{t:"a",id:"hero",spd:5}], qi:0 };
+    foeAct(true);
+    const preempted=S.actors.hero.hp===hp0 && M.b.intercept===0;
+    M.b={ def:{name:"T", spr:"slime", atk:5, moves:[["swings",5]], spd:4}, hp:99, maxhp:99, intercept:1, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:0, rounds:0, queue:[{t:"a",id:"hero",spd:5}], qi:0 };
+    foeAct(true);
+    const heldForDanger=S.actors.hero.hp<hp0 && M.b.intercept===1;
+    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return preempted && heldForDanger; }],
+ ["the interrupt meter reads on the status line", ()=>{ const sb=S; S=NEWS();
+    M.b={ def:EN.retrystorm, hp:200, maxhp:200, itMeter:2, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:0, rounds:0, growN:0 };
+    const charging=/\u26A1 2\/3/.test(statusLine());
+    M.b.itMeter=0; M.b.intercept=1;
+    const armed=/\u26A1 ARMED/.test(statusLine());
+    M.b=null; S=sb; return charging && armed; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
