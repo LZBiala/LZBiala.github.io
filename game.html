@@ -1659,7 +1659,7 @@ const TRIAL_QS=[
  {q:"BOSS BATTLE — the boss is almost down but the party is struggling. What do you do?", o:[["A","Everything I have, one massive attack"],["B","Search for the hidden weakness"],["C","Protect everyone while they recover"],["D","Keep fighting no matter how hurt I am"],["E","Finish it before it gets another turn"],["F","Heal and strengthen the party"],["G","The dangerous ability — save us or fail spectacularly"]]},
  {q:"WHY DO YOU ADVENTURE — choose the motivation closest to yours.", o:[["A","To become stronger"],["B","To discover what nobody else knows"],["C","To protect the people important to me"],["D","To prove I can survive anything"],["E","To experience something exciting"],["F","To help people"],["G","Because you never know what might happen"]]} ];
 const PERK_TEXT={STR:"+1 ATK",INT:"+2 max MP",DEF:"−1 damage taken",VIT:"+3 max HP",SPD:"+1 SPEED",SPR:"+1 HP & +1 MP",LCK:"+5% crit"};
-function offerTrial(after){
+function offerTrial(after){ playMusic("trial");
   ask("Your journey begins. Before the pager, the trial: seven questions to discover what kind of engineer you would become. Take THE HERO'S TRIAL?",
     ["⚔ Take the trial","Skip — balanced start"], i=>{
     if(i!==0){ after(); return; }
@@ -1957,15 +1957,86 @@ function clsOf(a){ if(a.id==="hero"){ if(S.wizard) return "AI Wizard"; return a.
 // ---- chiptune music (toggleable, autoplay-safe) ----
 const MUS={ on:(function(){ try{ return localStorage.getItem("aiquest_mus")!=="off"; }catch(e){ return true; } })(),
  themes:{
-  overworld:{ tempo:126, wave:"triangle",
+  village:{ tempo:112, wave:"triangle",
+    bass:[130.81,0,98,0, 110,0,87.31,0, 130.81,0,98,0, 110,0,123.47,0],
+    notes:[523.25,587.33,659.25,783.99, 659.25,587.33,523.25,440, 493.88,523.25,587.33,659.25, 587.33,523.25,493.88,523.25] },
+  plains:{ tempo:126, wave:"triangle",
     bass:[110,0,146.83,0,110,0,164.81,0,110,0,146.83,0,98,0,110,0],
     notes:[440,523.25,659.25,587.33, 523.25,659.25,880,659.25, 587.33,523.25,440,523.25, 392,440,523.25,0] },
+  caverns:{ tempo:100, wave:"triangle",
+    bass:[110,0,0,110, 87.31,0,0,87.31, 98,0,0,98, 82.41,0,0,110],
+    notes:[220,0,261.63,0, 329.63,0,293.66,0, 261.63,0,220,0, 246.94,0,220,0] },
+  labyrinth:{ tempo:118, wave:"sawtooth",
+    bass:[110,110,0,98, 110,110,0,87.31, 110,110,0,98, 123.47,0,110,0],
+    notes:[440,0,466.16,440, 0,440,415.30,440, 523.25,0,466.16,440, 0,415.30,440,0] },
+  citadel:{ tempo:92, wave:"square",
+    bass:[110,0,110,0, 87.31,0,87.31,0, 98,0,98,0, 82.41,0,110,0],
+    notes:[440,523.25,659.25,0, 698.46,659.25,523.25,0, 587.33,698.46,880,0, 659.25,587.33,523.25,440] },
+  y1999:{ tempo:120, wave:"square",
+    bass:[130.81,0,130.81,98, 110,0,110,82.41, 130.81,0,130.81,98, 87.31,98,110,0],
+    notes:[523.25,659.25,523.25,392, 440,523.25,440,329.63, 523.25,659.25,783.99,659.25, 523.25,440,392,440] },
+  wire:{ tempo:140, wave:"sawtooth",
+    bass:[110,110,146.83,110, 110,110,164.81,110, 110,110,146.83,110, 98,98,110,110],
+    notes:[440,659.25,440,659.25, 587.33,880,587.33,880, 659.25,987.77,659.25,987.77, 880,659.25,587.33,523.25] },
+  bastion:{ tempo:116, wave:"square",
+    bass:[87.31,0,87.31,87.31, 98,0,98,98, 87.31,0,87.31,87.31, 110,110,98,98],
+    notes:[349.23,0,415.30,349.23, 466.16,0,415.30,349.23, 523.25,466.16,415.30,349.23, 311.13,349.23,415.30,0] },
+  noc:{ tempo:84, wave:"triangle",
+    bass:[82.41,0,0,0, 87.31,0,0,0, 82.41,0,0,0, 73.42,0,0,0],
+    notes:[329.63,0,0,311.13, 0,329.63,0,0, 349.23,0,329.63,0, 0,311.13,0,0] },
+  inn:{ tempo:96, wave:"triangle",
+    bass:[130.81,0,98,110, 130.81,0,98,110, 146.83,0,110,123.47, 130.81,0,98,0],
+    notes:[523.25,659.25,587.33,523.25, 493.88,523.25,587.33,0, 659.25,587.33,523.25,493.88, 523.25,0,392,0] },
+  shop:{ tempo:124, wave:"square",
+    bass:[130.81,130.81,0,130.81, 110,110,0,110, 146.83,146.83,0,146.83, 130.81,0,110,0],
+    notes:[659.25,523.25,659.25,783.99, 659.25,523.25,587.33,659.25, 698.46,587.33,698.46,880, 783.99,659.25,587.33,523.25] },
   battle:{ tempo:168, wave:"square",
     bass:[110,110,0,110, 130.81,0,110,98, 110,110,0,110, 87.31,0,98,110],
-    notes:[440,0,523.25,440, 659.25,587.33,523.25,587.33, 440,0,523.25,659.25, 698.46,659.25,587.33,523.25] } },
+    notes:[440,0,523.25,440, 659.25,587.33,523.25,587.33, 440,0,523.25,659.25, 698.46,659.25,587.33,523.25] },
+  bosselite:{ tempo:176, wave:"square",
+    bass:[110,110,110,0, 98,98,98,0, 87.31,87.31,87.31,0, 110,98,87.31,82.41],
+    notes:[440,466.16,523.25,466.16, 440,0,659.25,622.25, 587.33,0,698.46,659.25, 622.25,587.33,523.25,466.16] },
+  bosshydra:{ tempo:172, wave:"sawtooth",
+    bass:[110,0,110,110, 87.31,0,87.31,87.31, 98,0,98,98, 82.41,82.41,98,110],
+    notes:[440,523.25,622.25,523.25, 440,622.25,698.46,622.25, 587.33,698.46,830.61,698.46, 622.25,587.33,523.25,440] },
+  bosshacker:{ tempo:160, wave:"sawtooth",
+    bass:[82.41,0,82.41,0, 87.31,0,87.31,0, 82.41,0,82.41,0, 98,98,87.31,82.41],
+    notes:[329.63,415.30,329.63,466.16, 329.63,415.30,523.25,466.16, 415.30,329.63,311.13,329.63, 466.16,415.30,349.23,329.63] },
+  bossfinal:{ tempo:180, wave:"square",
+    bass:[110,110,87.31,87.31, 98,98,82.41,82.41, 110,110,87.31,87.31, 123.47,110,98,87.31],
+    notes:[880,0,830.61,880, 698.46,0,659.25,698.46, 587.33,622.25,698.46,830.61, 880,830.61,698.46,622.25] },
+  battlefoxx:{ tempo:150, wave:"square",
+    bass:[130.81,0,164.81,0, 174.61,0,164.81,0, 130.81,0,164.81,0, 196,0,164.81,130.81],
+    notes:[523.25,659.25,783.99,659.25, 698.46,880,698.46,659.25, 523.25,659.25,783.99,880, 1046.5,880,783.99,659.25] },
+  love:{ tempo:88, wave:"triangle",
+    bass:[130.81,0,0,110, 0,0,98,0, 0,87.31,0,0, 98,0,110,0],
+    notes:[523.25,0,659.25,783.99, 0,880,783.99,659.25, 698.46,0,659.25,587.33, 659.25,0,523.25,0] },
+  trial:{ tempo:104, wave:"triangle",
+    bass:[110,0,0,130.81, 0,0,146.83,0, 0,164.81,0,0, 146.83,0,130.81,0],
+    notes:[440,0,554.37,0, 659.25,0,554.37,440, 493.88,0,587.33,0, 440,0,493.88,0] },
+  ending:{ tempo:100, wave:"triangle",
+    bass:[130.81,0,110,0, 98,0,87.31,0, 130.81,0,110,0, 98,0,130.81,0],
+    notes:[523.25,587.33,659.25,783.99, 880,783.99,659.25,587.33, 698.46,659.25,587.33,523.25, 587.33,659.25,523.25,0] },
+  frontier:{ tempo:132, wave:"triangle",
+    bass:[130.81,0,146.83,0, 164.81,0,146.83,0, 130.81,0,146.83,0, 196,0,164.81,0],
+    notes:[659.25,783.99,880,1046.5, 880,783.99,659.25,783.99, 698.46,880,1046.5,880, 783.99,698.46,659.25,523.25] } },
  cur:"overworld", kicked:false, step:0, timer:null, nextT:0 };
+function overworldThemeFor(){
+  if(S.z===0) return frontierDone()? "frontier" : "village";
+  return ({1:"plains",2:"caverns",3:"labyrinth",4:"citadel",5:"y1999",6:"inn",7:"shop",8:"shop",9:"wire",10:"bastion",11:"noc"})[S.z]||"village"; }
+function battleThemeFor(){ const b=M.b; if(!b||!b.def) return "battle";
+  if(b.def.superboss) return "bossfinal";
+  if(b.id==="nullbyte"||b.id==="nullroot") return "bosshacker";
+  if(/^h\d/.test(b.id||"")) return "bosshydra";
+  if(b.id==="papafoxx") return "battlefoxx";
+  if(b.def.elite || b.id==="monolith") return "bosselite";
+  return "battle"; }
 function stopMusic(){ if(MUS.timer){ clearInterval(MUS.timer); MUS.timer=null; } }
-function playMusic(theme){ MUS.cur=theme||MUS.cur;
+function playMusic(theme){
+  if(theme==="overworld") theme=overworldThemeFor();
+  else if(theme==="battle") theme=battleThemeFor();
+  if(theme && !MUS.themes[theme]) theme="village";
+  MUS.cur=theme||MUS.cur;
   if(!MUS.on || !MUS.kicked) return;
   stopMusic();
   try{ AU.ctx=AU.ctx||new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
@@ -2034,14 +2105,21 @@ function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv"
     for(let i=0;i<10;i++){ const a2=i/10*6.28+p*3; const r=8+p*46;
       g.fillRect(78+Math.cos(a2)*r, 76+Math.sin(a2)*r*0.7, 5,5); } g.globalAlpha=1; });
   // ---- party (right, diagonal) ----
+  const ht=BFX.list.find(e=>e.kind==="hit");
+  if(ht && !RM){ const pr=Math.max(0,Math.min(1,(now-ht.t0)/FXDUR.hit));   // impact rays — the hit lands visibly
+    g.save(); g.globalAlpha=0.8*(1-pr); g.strokeStyle="#ffffff"; g.lineWidth=2;
+    for(let r5=0;r5<6;r5++){ const an=r5*Math.PI/3 + 0.4; const rr=8+pr*22;
+      g.beginPath(); g.moveTo(100+Math.cos(an)*8, 70+Math.sin(an)*8);
+      g.lineTo(100+Math.cos(an)*rr, 70+Math.sin(an)*rr); g.stroke(); }
+    g.restore(); }
   const ids=["hero",...S.party];
   ids.forEach((pid,i)=>{ const a=S.actors[pid]; if(!a) return; const p=BPOS(i);
-    let ox=0; const lg=BFX.list.find(e=>e.kind==="lunge" && e.slot===i);
-    if(lg && !RM){ const pr=(now-lg.t0)/FXDUR.lunge; ox=-Math.sin(pr*Math.PI)*95; }
+    let ox=0, sc=1; const lg=BFX.list.find(e=>e.kind==="lunge" && e.slot===i);
+    if(lg && !RM){ const pr=(now-lg.t0)/FXDUR.lunge; ox=-Math.sin(pr*Math.PI)*95; sc=lungeScale(pr); }
     g.globalAlpha=a.ko?0.35:1;
     g.fillStyle="#00000055"; g.beginPath(); g.ellipse(p.x+24+ox,p.y+47,19,6,0,0,7); g.fill();
     const idle=(i===b.turn && !a.ko && !RM)? Math.sin(now/300)*2 : 0;
-    drawSprTo(g, pid==="hero"?"hero24":MEMBERS[pid].spr, p.x+ox, p.y+idle, pid==="hero"?2:3);
+    drawSprTo(g, pid==="hero"?"hero24":MEMBERS[pid].spr, p.x+ox, p.y+idle, (pid==="hero"?2:3)*sc);
     if(pid==="hero"){ drawArmorOverlay(g, p.x+ox, p.y+idle, 2, true);
       drawWeaponOverlay(g, p.x+ox+8, p.y+idle+6, 2, true); }
     if(i===b.turn && !a.ko && b.queue && b.queue[b.qi] && b.queue[b.qi].t==="a"){
@@ -2078,10 +2156,17 @@ function battleLoop(){ if(M.state!=="battle"||BW.hidden){ M.bloop=false; return;
 // ================= RENDER =================
 function drawSprTo(g,name,tx,ty,s){ const spr=SPR[name]; const n=spr.length;
   for(let r=0;r<n;r++)for(let q=0;q<n;q++){ const c=spr[r][q]; if(PAL[c]){ g.fillStyle=PAL[c]; g.fillRect(tx+q*s,ty+r*s,s,s);} } }
+function tileHash(x,y){ let h=(x*73856093) ^ (y*19349663); h=(h^(h>>>13))>>>0; return h; }
+function lungeScale(pr){ return 1+0.18*Math.sin(Math.max(0,Math.min(1,pr))*Math.PI); }
 function drawTile(chr,tx,ty,zone){
   ctx.fillStyle=zone.ground; ctx.fillRect(tx,ty,T,T);
   if(((tx/T)+(ty/T))%2===0){ ctx.fillStyle="#00000018"; ctx.fillRect(tx,ty,T,T); }
-  const gx=tx/T, gy=ty/T, hsh=(gx*7+gy*13)%7;    // deterministic tone dither — no rng
+  const gx=tx/T, gy=ty/T, hsh=tileHash(gx,gy)%7;    // deterministic tone dither — no rng
+  if(chr==="g"){ ctx.fillStyle="#00000030";               // grass blades (RPG-Maker texture, seeded per tile)
+    const b1=tileHash(gx,gy)%20, b2=tileHash(gy,gx)%20;
+    ctx.fillRect(tx+6+b1%12, ty+18+(b1%6), 2, 6); ctx.fillRect(tx+14+b2%10, ty+12+(b2%8), 2, 5); }
+  if(chr==="p" && tileHash(gx,gy)%4===0){ ctx.fillStyle="#00000028"; ctx.fillRect(tx+8+(tileHash(gy,gx)%14), ty+10+(tileHash(gx,gy)%14), 4, 3); }
+  if(chr==="." && zone.interior){ ctx.fillStyle="#00000014"; ctx.fillRect(tx, ty+((gy%2)?9:21), T, 1); }
   if(hsh===0){ ctx.fillStyle="#ffffff0a"; ctx.fillRect(tx+((gx*11)%18),ty+((gy*17)%18),7,7); }
   if(hsh===3){ ctx.fillStyle="#00000016"; ctx.fillRect(tx+((gx*13)%16),ty+((gy*7)%16),9,6); }
   if(hsh===5 && chr==="."){ ctx.fillStyle="#00000022"; ctx.fillRect(tx+8,ty+20,2,3); ctx.fillRect(tx+20,ty+9,2,3); }
@@ -2173,9 +2258,11 @@ function drawArmorOverlay(g,x,y,s,big){ const ar=S.equip.armor; if(!ar||!AVIS[ar
       g.fillStyle="rgba(148,163,184,0.9)"; g.fillRect(x+3*s,y+1*s,9*s,3*s); }
     if(kind==="aegis"){ g.fillStyle="rgba(15,118,110,0.8)"; g.fillRect(x+2*s,y+9*s,11*s,4*s);
       g.strokeStyle="rgba(45,212,191,0.7)"; g.lineWidth=1; g.strokeRect(x+1*s,y+1*s,13*s,14*s); } } }
-function drawActorSpr(name,x,y,lift){
+function drawActorSpr(name,x,y,lift,flip){
   ctx.fillStyle="#00000044"; ctx.beginPath(); ctx.ellipse(x*T+16,y*T+29,11,4,0,0,7); ctx.fill();
-  drawSprTo(ctx,name,x*T,y*T-6+(lift||0),2);
+  if(flip){ ctx.save(); ctx.translate(x*T+32,0); ctx.scale(-1,1);
+    drawSprTo(ctx,name,0,y*T-6+(lift||0),2); ctx.restore(); }
+  else drawSprTo(ctx,name,x*T,y*T-6+(lift||0),2);
   if(name==="hero"){ drawArmorOverlay(ctx, x*T, y*T-6+(lift||0), 2, false);
     drawWeaponOverlay(ctx, x*T, y*T-6+(lift||0), 2); } }
 function render(){
@@ -2193,7 +2280,7 @@ function render(){
       ctx.fillStyle="#4ade80"; ctx.fillRect(tx+10,ty+10,5,5); ctx.fillRect(tx+18,ty+8,5,5); ctx.fillRect(tx+14,ty+14,5,4); } });
   const rm=ensureRoam();
   if(rm && rm.alive) drawActorSpr(EN[rm.id].spr, rm.x, rm.y, M.frame%2);
-  drawActorSpr("hero",S.x,S.y,walkBob(M.stepN||0));
+  drawActorSpr("hero",S.x,S.y,walkBob(M.stepN||0),M.face==="left");
   if(S.grave && S.grave.z===S.z && !graveExpired(S.grave)){
     const gx=S.grave.x*T, gy=S.grave.y*T;
     ctx.fillStyle="#94a3b8"; ctx.fillRect(gx+10,gy+10,12,16); ctx.fillRect(gx+8,gy+14,16,12);
@@ -3023,7 +3110,7 @@ function allLootDone(){ let need=0, got=0;
     if((ch==="c" && z.chest && z.chest.key===x+","+y) || (ch==="b" && z.loot && z.loot[x+","+y])){ need++; if(S.opened[zi+":"+x+","+y]) got++; } }); }); });
   return {need, got, done: got>=need && need>0}; }
 function eraCleared(){ return !!S.cleared["5:5,2"]; }
-function ending(){ S.won=true; S.stage=4; tickClock();
+function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
   const pad=n=>String(n).padStart(2,"0");
   const min=Math.floor(S.playMs/60000), sec=Math.floor(S.playMs/1000)%60;
   const score=(S.deaths*2)+S.bridgeMiss+(min>=18?2:min>=12?1:0);
@@ -3095,6 +3182,7 @@ function moveRoam(zone){ const rm=M.roam[S.z]; if(!rm || !rm.alive) return false
   if(tx===S.x && ty===S.y){ roamBattleNow(rm,"ambush"); return true; }   // it caught YOU
   rm.x=tx; rm.y=ty; return false; }
 function tryMove(dx,dy){ if(M.state!=="explore") return;
+  if(dx<0) M.face="left"; else if(dx>0) M.face="right";
   const zone=Z[S.z]; let nx=S.x+dx, ny=S.y+dy;
   if(nx<0||nx>11||ny<0||ny>8){ const dir=dx<0?"left":dx>0?"right":dy<0?"up":"down";
     if(zone.exits && zone.exits[dir]!==undefined){ const oldZ=S.z; S.z=zone.exits[dir]; delete M.roam[oldZ]; M.gathered={};
@@ -3194,7 +3282,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
     if(chr0==="="){ if(S.z===6 && x===7){ foxxBed(); return; }
       ask("A clean, counted bed. Rest here? (saves your progress)", ["Rest & save","Not yet"], i=>{ if(i===0){
         partyActors().forEach(a=>{ a.ko=false; a.hp=a.maxhp; a.mp=a.maxmp; }); saveGame(0); render();
-        if(S.party.includes("sharon") && !S.nightSeen){ S.nightSeen=true; panelSay(buildRescueNightBeats(), ()=>saveGame(0)); return; }
+        if(S.party.includes("sharon") && !S.nightSeen){ S.nightSeen=true; playMusic("love"); panelSay(buildRescueNightBeats(), ()=>{ saveGame(0); playMusic("overworld"); }); return; }
         say(["♪ The whole party rests. HP/MP restored. Game saved.",
           "MARA: 'This inn runs on promises, hon. I PROMISE travelers a bed — that's my SLA: a contract with consequences. I COUNT clean beds every hour — that's my SLI: the thing I actually measure. And I AIM for 999 of every 1000 — that's my SLO: the target.'",
           "MARA: 'The one bed in a thousand I'm allowed to miss? My error budget. I spend it renovating. Chase 100% and you never improve anything — perfection is how inns die, sweetheart.'",
@@ -3560,7 +3648,7 @@ const TESTS = [
     const t4=clsOf(mkActor("wiki",3))==="Wizard";
     S=sb; return t1 && t2 && t3 && t4; }],
  ["anime hero battle sprite is 24×24", ()=>SPR.hero24 && SPR.hero24.length===24 && SPR.hero24.every(r=>r.length===24)],
- ["music themes exist and the toggle persists", ()=>{ const ok1=MUS.themes.overworld.notes.length>7 && MUS.themes.battle.notes.length>7 && MUS.themes.overworld.tempo>0;
+ ["music themes exist and the toggle persists", ()=>{ const ok1=MUS.themes.village.notes.length>7 && MUS.themes.battle.notes.length>7 && MUS.themes.village.tempo>0;
     const bak=localStorage.getItem("aiquest_mus");
     setMusic(false); const off=localStorage.getItem("aiquest_mus")==="off";
     setMusic(true); const on=localStorage.getItem("aiquest_mus")==="on";
@@ -4465,6 +4553,36 @@ const TESTS = [
     const css=document.querySelector("style").textContent;
     return /@keyframes gszoom/.test(css) && /gs-flash/.test(css) && typeof castPulse==="function"
       && /prefers-reduced-motion[^}]*\}[\s\S]*gs-cast|gs-cast[\s\S]*prefers-reduced-motion/.test(css); }],
+
+ // ---- RPG-MAKER GRAPHICS PASS (written RED-first) ----
+ ["the hero faces where they walk", ()=>{ const sb=S; S=NEWS();
+    M.state="explore"; S.z=0; S.x=5; S.y=4;
+    tryMove(-1,0); const left=M.face==="left";
+    tryMove(1,0); const right=M.face==="right";
+    M.state="test"; S=sb; return left && right; }],
+ ["tile detail is deterministic — no flicker, ever", ()=>{
+    return typeof tileHash==="function" && tileHash(3,4)===tileHash(3,4) && tileHash(3,4)!==tileHash(4,3); }],
+ ["lunges squash and stretch: still at the ends, alive in the middle", ()=>{
+    return Math.abs(lungeScale(0)-1)<0.01 && lungeScale(0.5)>1.12 && Math.abs(lungeScale(1)-1)<0.01; }],
+
+ // ---- THE SCORE: 21 themes, dynamically routed (written RED-first) ----
+ ["a real soundtrack: twenty-plus themes, every one playable", ()=>{
+    const keys=Object.keys(MUS.themes);
+    return keys.length>=20 && keys.every(k=>{ const t=MUS.themes[k];
+      return t.tempo>0 && t.wave && Array.isArray(t.bass) && t.bass.length>=16 && Array.isArray(t.notes) && t.notes.length>=16; }); }],
+ ["the world chooses its own song: zones, bosses, and the comedian each get theirs", ()=>{ const sb=S; S=NEWS();
+    S.z=0; const v=overworldThemeFor()==="village";
+    S.z=9; const w=overworldThemeFor()==="wire";
+    S.z=11; const n=overworldThemeFor()==="noc";
+    S.z=0; S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true; S.cleared["11:5,5"]=true;
+    const fr=overworldThemeFor()==="frontier";
+    M.b={ def:EN.misaligned, id:"misaligned" };
+    const bf=battleThemeFor()==="bossfinal";
+    M.b={ def:EN.h3, id:"h3" };
+    const bh=battleThemeFor()==="bosshydra";
+    M.b={ def:EN.papafoxx, id:"papafoxx" };
+    const bx=battleThemeFor()==="battlefoxx";
+    M.b=null; S=sb; return v && w && n && fr && bf && bh && bx; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -4492,7 +4610,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
   bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
-  buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse,
+  buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse, tileHash, lungeScale, overworldThemeFor, battleThemeFor,
   joinSharon, finishRescue, CLUES, LESSONS, CORE, coreOf, starBar, heroTrial, equipGear, CONDS };
 tryMigrate();
 render();
