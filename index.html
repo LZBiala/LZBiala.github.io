@@ -3,295 +3,397 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lito Zarate Biala — Platform Engineering · AI Reliability</title>
-<meta name="description" content="SRE → AI reliability → next: forward deployed. I ship GenAI to production inside a regulated enterprise and build AI systems that publish their own measurements — four open-source evaluation frameworks and memory harnesses with CI that fails when a claim drifts.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
-<meta property="og:title" content="Lito Zarate Biala — AI systems you can audit">
-<meta property="og:description" content="Governed GenAI · SRE · four CI-verified evaluation frameworks. Every published number regenerates in CI — the build fails if a claim drifts.">
+<title>Lito Zarate Biala — AI Reliability Engineering · Minneapolis</title>
+<meta name="description" content="I build AI systems that show their work: four open-source test kits for AI judgment and memory, a playable 8-bit portfolio, and a career spent keeping critical banking systems honest. Every published number re-checks itself; every front page says where the design loses.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌆</text></svg>">
+<meta property="og:title" content="Lito Zarate Biala — AI that shows its work">
+<meta property="og:description" content="Four open-source test kits for AI judgment and memory. Every published number re-checks itself in CI — and every front page says where the design loses.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-site.png">
 <meta property="og:url" content="https://lzbiala.github.io/">
 <meta name="twitter:card" content="summary_large_image">
 <style>
   :root {
-    --paper: #f6f5ef; --ink: #16211c; --muted: #5a6b62; --line: #ddE0d6;
-    --teal: #0f766e; --teal-soft: #0f766e12; --amber: #a3540a; --red: #b91c1c;
-    --card: #fffefb;
-    --term: #0c1512; --term-ink: #dcefe7; --term-mut: #7fa294; --term-line: #23372e;
-    --term-teal: #2dd4bf; --term-amber: #fbbf24;
+    --paper: #faf7f1; --ink: #232a35; --muted: #5b6675; --line: #e6e0d4; --card: #ffffff;
+    --teal: #0e7c72; --teal-soft: #0e7c7212; --amber: #a3540a;
+    --dusk-deep: #141b33; --dusk: #1e2a4a; --dusk-glow: #4a5d94;
+    --gold: #f2a93b; --gold-ink: #7e520c; --ember: #e2734a;
+    --dusk-ink: #f4eddd; --dusk-mut: #b9c2d8;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper: #0e1411; --ink: #e6ebe7; --muted: #93a69b; --line: #24312a;
-      --teal: #2dd4bf; --teal-soft: #2dd4bf12; --amber: #fbbf24; --red: #f87171;
-      --card: #151d18;
+      --paper: #10162a; --ink: #e8eaf2; --muted: #97a2b8; --line: #263252; --card: #17203a;
+      --teal: #35c2b3; --teal-soft: #35c2b318; --amber: #f0a860; --gold-ink: #f2a93b;
     }
   }
   * { box-sizing: border-box; margin: 0; }
   html { scroll-behavior: smooth; }
-  body {
-    background: var(--paper); color: var(--ink); line-height: 1.65;
-    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  }
+  body { background: var(--paper); color: var(--ink); line-height: 1.65;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
   .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 0 22px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 22px; }
   a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
-  a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 2px; }
+  a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+  .dusk a:focus-visible, .gamecard a:focus-visible { outline-color: var(--gold); }
 
-  /* ---------- the terminal hero ---------- */
-  .term { color: var(--term-ink); border-bottom: 1px solid var(--term-line);
-    background: radial-gradient(900px 420px at 18% -5%, #2dd4bf17, transparent 60%),
-                radial-gradient(700px 380px at 95% 30%, #2dd4bf0c, transparent 55%),
-                var(--term); }
-  h1 { text-shadow: 0 0 46px #2dd4bf30; }
-  .termbar { display: flex; align-items: center; gap: 8px; padding: 12px 0 0;
-    font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.74rem;
-    color: var(--term-mut); }
-  .termbar .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--term-line); }
-  .termbar .dot:first-child { background: #f87171aa; }
-  .termbar .dot:nth-child(2) { background: #fbbf24aa; }
-  .termbar .dot:nth-child(3) { background: #34d399aa; }
-  .termbar .path { margin-left: 8px; }
-  header.hero { padding: 30px 0 40px; }
-  .hero-grid { display: flex; gap: 30px; align-items: flex-start; }
+  /* ---------- the dusk hero: blue hour over the Mississippi ---------- */
+  .dusk { color: var(--dusk-ink); position: relative; overflow: hidden;
+    background: linear-gradient(180deg, #10152b 0%, var(--dusk-deep) 30%, var(--dusk) 62%, #33456d 86%, var(--dusk-glow) 100%); }
+  header.hero { padding: 56px 0 0; position: relative; z-index: 2; }
+  .hero-grid { display: flex; gap: 34px; align-items: flex-start; }
   .hero-main { flex: 1; min-width: 0; }
-  .hero img.face { width: 118px; height: 118px; border-radius: 14px; object-fit: cover;
-    border: 2px solid var(--term-teal); margin-top: 14px; box-shadow: 0 8px 30px #0008; }
+  .hero img.face { width: 124px; height: 124px; border-radius: 16px; object-fit: cover;
+    border: 2px solid #f2a93b99; margin-top: 12px; box-shadow: 0 10px 34px #00000066; }
   @media (max-width: 640px) { .hero img.face { display: none; } }
-  .eyebrow { font-family: ui-monospace, Consolas, monospace; font-size: 0.72rem;
-    letter-spacing: 0.2em; color: var(--term-teal); text-transform: uppercase; margin-top: 22px; }
-  .heroname { font-family: ui-monospace, Consolas, monospace; font-size: 0.95rem;
-    color: var(--term-ink); margin-top: 6px; }
-  h1 { font-size: clamp(2.2rem, 6vw, 3.3rem); line-height: 1.06; letter-spacing: -0.02em;
-    text-wrap: balance; margin: 10px 0 8px; color: #fff; font-weight: 650; }
-  .arrowline { font-family: ui-monospace, Consolas, monospace; font-size: 0.92rem;
-    color: var(--term-mut); margin-bottom: 4px; }
-  .arrowline b { color: var(--term-teal); font-weight: 700; }
-  .thesis { font-size: 1.06rem; max-width: 46em; color: var(--term-ink); margin: 20px 0 0; }
-  .thesis em { color: var(--term-mut); font-style: italic; }
-  .thesis b { color: var(--term-teal); }
+  .heroname { font-size: 1.02rem; letter-spacing: 0.04em; color: var(--dusk-mut); }
+  .eyebrow { font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 10px; }
+  h1 { font-size: clamp(2.3rem, 6vw, 3.5rem); line-height: 1.05; letter-spacing: -0.02em;
+    text-wrap: balance; margin: 10px 0 6px; color: #ffffff; font-weight: 650;
+    text-shadow: 0 2px 30px #f2a93b26; }
+  .tagline { font-size: 1.08rem; color: var(--dusk-mut); font-style: italic; margin-bottom: 2px; }
+  .thesis { font-size: 1.05rem; max-width: 46em; color: var(--dusk-ink); margin: 20px 0 0; }
+  .thesis b { color: var(--gold); }
+  .links { display: flex; gap: 10px; flex-wrap: wrap; margin: 28px 0 6px; }
+  .links a { font-size: 0.92rem; text-decoration: none; border: 1px solid #ffffff2e;
+    border-radius: 999px; padding: 9px 18px; color: var(--dusk-ink);
+    background: #ffffff10; transition: all .15s; }
+  .links a:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-1px); }
+  .links a.primary { background: var(--gold); color: #21160a; border-color: var(--gold); font-weight: 700; }
+  .links a.primary:hover { filter: brightness(1.07); color: #21160a; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; }
+    .links a, .card, .tourcta { transition: none !important; }
+    .links a:hover, .card:hover { transform: none !important; } }
+  .skyline-band { display: block; width: 100%; height: auto; margin-top: 26px; position: relative; z-index: 1; }
 
-  .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
-  .links a { font-family: ui-monospace, Consolas, monospace; font-size: 0.84rem;
-    text-decoration: none; border: 1px solid var(--term-line); border-radius: 999px;
-    padding: 8px 17px; color: var(--term-ink); background: #ffffff08; transition: all .15s; }
-  .links a:hover { border-color: var(--term-teal); color: var(--term-teal); transform: translateY(-1px); }
-  .links a.primary { background: var(--term-teal); color: #0c1512; border-color: var(--term-teal); font-weight: 700; }
-  .links a.primary:hover { filter: brightness(1.1); color: #0c1512; }
-
-  /* ---------- sections on paper ---------- */
-  section { padding: 52px 0 16px; }
+  /* ---------- body sections ---------- */
+  section { padding: 54px 0 18px; }
   section + section { border-top: 1px solid var(--line); }
   section h2 { font-size: 1.7rem; letter-spacing: -0.015em; margin-bottom: 8px; text-wrap: balance; }
   section h2::after { content: ""; display: block; width: 48px; height: 3px;
-    background: var(--teal); border-radius: 2px; margin-top: 10px; }
+    background: linear-gradient(90deg, var(--teal), var(--gold)); border-radius: 2px; margin-top: 10px; }
   .lead { color: var(--muted); max-width: 52em; margin-bottom: 26px; font-size: 1.02rem; }
-
-  .stackline { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem;
-    color: var(--muted); background: var(--teal-soft); border: 1px solid var(--line);
-    border-radius: 10px; padding: 12px 16px; margin-bottom: 22px; overflow-x: auto; white-space: nowrap; }
-  .stackline b { color: var(--teal); }
 
   .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-    padding: 22px 24px; display: flex; flex-direction: column; gap: 8px; position: relative;
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px 26px; display: flex; flex-direction: column; gap: 9px; position: relative;
     transition: transform .18s, box-shadow .18s, border-color .18s; }
-  .card::before { content: ""; position: absolute; inset: 0 auto auto 0; height: 3px; width: 44px;
-    background: var(--teal); border-radius: 14px 0 6px 0; }
+  .card::before { content: ""; position: absolute; inset: 0 auto auto 0; height: 3px; width: 46px;
+    background: var(--teal); border-radius: 16px 0 6px 0; }
   .card:hover { transform: translateY(-3px); border-color: var(--teal);
-    box-shadow: 0 14px 34px -18px #0f766e66; }
-  @media (prefers-reduced-motion: reduce) { .card, .links a { transition: none; }
-    .card:hover, .links a:hover { transform: none; } }
-  .card .layer { font-family: ui-monospace, Consolas, monospace; font-size: 0.68rem;
-    letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); }
-  .card h3 { font-size: 1.16rem; }
+    box-shadow: 0 16px 36px -20px #1e2a4a55; }
+  .card .layer { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal); }
+  .card h3 { font-size: 1.18rem; }
   .card h3 a { text-decoration: none; color: var(--ink); }
   .card h3 a:hover { color: var(--teal); }
-  .card p.pitch { font-size: 0.93rem; }
-  .card .num { font-family: ui-monospace, Consolas, monospace; font-size: 0.84rem;
-    color: var(--teal); }
+  .card p.pitch { font-size: 0.95rem; }
+  .card .num { font-size: 0.88rem; color: var(--teal); }
   .card .num::before { content: "✓ "; }
-  .card .loss { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem;
-    color: var(--amber); }
+  .card .loss { font-size: 0.86rem; color: var(--amber); }
   .card .loss::before { content: "▲ "; }
-  .card .go { margin-top: auto; padding-top: 10px; font-family: ui-monospace, Consolas, monospace;
-    font-size: 0.8rem; display: flex; gap: 14px; flex-wrap: wrap; }
-  .cardnote { font-size: 0.85rem; color: var(--muted); margin-top: 18px; max-width: 54em; }
+  .card .go { margin-top: auto; padding-top: 10px; font-size: 0.86rem; display: flex; gap: 14px; flex-wrap: wrap; }
+  .cardnote { font-size: 0.87rem; color: var(--muted); margin-top: 18px; max-width: 56em; }
 
+  /* plain-English on-ramp */
+  .tour { background: linear-gradient(135deg, var(--teal-soft), #f2a93b14); border: 1px solid var(--line);
+    border-radius: 18px; padding: 26px 28px; margin-top: 26px; display: flex; gap: 22px;
+    align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .tour p { max-width: 38em; font-size: 0.98rem; }
+  .tour p b { color: var(--gold-ink); }
+  .tourcta { white-space: nowrap; font-weight: 700; text-decoration: none; font-size: 1rem;
+    background: #0e7c72; color: #ffffff; border-radius: 12px; padding: 13px 24px; transition: filter .15s; }
+  .tourcta:hover { filter: brightness(1.1); color: #fff; }
+
+  /* game band */
   .gamecard { display: flex; gap: 18px; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; background: var(--term); border: 1px solid var(--term-line);
-    border-radius: 14px; padding: 22px 24px; margin-top: 6px;
-    box-shadow: 0 16px 40px -24px #000c; }
-  .gamecard .gc-left div { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem;
-    color: var(--term-mut); line-height: 1.7; }
-  .gamecard .gc-left div:first-child { color: #f87171; }
-  .gamecard .gc-left div:last-child { color: var(--term-amber); }
-  .gc-play { font-family: ui-monospace, Consolas, monospace; font-size: 1rem; font-weight: 700;
-    text-decoration: none; color: #0c1512; background: var(--term-teal); padding: 13px 28px;
-    border-radius: 10px; letter-spacing: 0.06em; }
-  .gc-play:hover { filter: brightness(1.12); }
+    flex-wrap: wrap; color: var(--dusk-ink);
+    background: linear-gradient(160deg, var(--dusk-deep), var(--dusk) 70%, #33456d);
+    border: 1px solid #33456d; border-radius: 16px; padding: 24px 26px; margin-top: 6px;
+    box-shadow: 0 18px 44px -26px #141b33cc; }
+  .gamecard .gc-left div { font-size: 0.95rem; line-height: 1.8; color: var(--dusk-mut); }
+  .gamecard .gc-left div:first-child { color: #ff9d8a; }
+  .gamecard .gc-left div:last-child { color: var(--gold); }
+  .gc-play { font-size: 1rem; font-weight: 700; text-decoration: none; color: #21160a;
+    background: var(--gold); padding: 13px 28px; border-radius: 12px; letter-spacing: 0.05em; }
+  .gc-play:hover { filter: brightness(1.1); }
 
   .laws { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
   @media (max-width: 720px) { .laws { grid-template-columns: 1fr; } }
   .law { border-left: 3px solid var(--teal); padding: 6px 0 6px 18px; background: var(--teal-soft);
     border-radius: 0 10px 10px 0; }
   .law h3 { font-size: 1rem; }
-  .law p { font-size: 0.92rem; color: var(--muted); }
+  .law p { font-size: 0.93rem; color: var(--muted); }
   .laws .law:last-child { grid-column: 1 / -1; max-width: 46em; }
 
   .bg2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 30px; }
   @media (max-width: 720px) { .bg2 { grid-template-columns: 1fr; } }
   .bg2 p { font-size: 0.97rem; margin-bottom: 14px; max-width: 46em; }
-  .facts { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  .facts { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
     padding: 20px 22px; align-self: start; position: sticky; top: 18px; }
-  .facts dt { font-family: ui-monospace, Consolas, monospace; font-size: 0.68rem;
-    letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); margin-top: 13px; }
+  .facts dt { font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--teal); margin-top: 13px; }
   .facts dt:first-child { margin-top: 0; }
   .facts dd { font-size: 0.9rem; margin: 2px 0 0; }
 
-  footer { padding: 48px 0 70px; border-top: 1px solid var(--line); color: var(--muted);
-    font-size: 0.92rem; }
-  footer .stamp { color: var(--teal); }
-  footer .mono { font-size: 0.78rem; }
+  footer { padding: 48px 0 66px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.93rem; }
 </style>
 </head>
 <body>
 
-<div class="term">
-<div class="wrap">
-  <div class="termbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
-    <span class="path">lito@prod:~/verify — every claim on this page regenerates in CI</span></div>
-</div>
+<div class="dusk">
 <header class="hero"><div class="wrap">
   <div class="hero-grid">
     <div class="hero-main">
-      <div class="eyebrow">Digital platform &amp; AI reliability engineering · Minneapolis–St. Paul</div>
+      <div class="eyebrow">AI reliability engineering · Minneapolis–St.&nbsp;Paul</div>
       <div class="heroname">Lito Zarate Biala</div>
-      <h1>AI systems you can audit.</h1>
-      <div class="arrowline">Site Reliability <b>→</b> AI Reliability <b>→</b> next: Forward Deployed</div>
-      <p class="thesis">I make complicated systems trustworthy. At Wells Fargo I lead SRE and
-      incident-management work for critical banking applications — and I build governed GenAI
-      there today: two AI products in delivery (incident-notification quality and Daily 5-Why QA),
-      designed with human review and explicit approval gates before any production
-      connectivity — GenAI built to pass a bank's risk gates, not around them. The through-line of my
-      career is one question: <em>how do we know this is actually working?</em> So I also
-      build AI systems that answer it themselves: four open-source evaluation frameworks and
-      memory harnesses whose every published number regenerates in CI — <b>the build fails if a
-      claim drifts</b> — and whose READMEs publish where the designs <em>lose</em>, above
-      the fold.</p>
+      <h1>AI that shows its work.</h1>
+      <p class="tagline">I build systems worth trusting — and show you exactly where they lose.</p>
+      <p class="thesis">I make complicated systems worth trusting. At Wells Fargo I keep
+      critical banking apps running and lead the response when they break. I also build AI
+      there: two products in delivery — one grades outage alerts, one grades daily
+      root-cause reviews — each with human review and a sign-off before touching live
+      systems. That's AI built to pass a bank's safety checks, not slip past them. My whole
+      career asks one question: <em>how do we know this is actually working?</em> So I
+      built four open-source test kits for AI judgment and memory. <b>If a published
+      number drifts, the build fails.</b> And every front page says where the design loses.</p>
       <div class="links">
         <a class="primary" href="Lito-Biala-Resume.pdf">Resume (PDF)</a>
+        <a href="walkthrough.html">Guided tour</a>
         <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>
         <a href="https://github.com/LZBiala">GitHub</a>
         <a href="game.html">Play: AI Quest 🎮</a>
         <a href="mailto:lzbiala@gmail.com">Email</a>
-        <a href="#work">The four projects</a>
-        <a href="#how">How I work</a>
       </div>
     </div>
-    <img class="face" src="images/Profile.jpg" alt="Portrait of Lito Zarate Biala"
-         onerror="this.remove()">
+    <img class="face" src="images/Profile.jpg" alt="Portrait of Lito Zarate Biala" onerror="this.remove()">
   </div>
 </div></header>
+
+<!-- Original art: stylized Minneapolis skyline at blue hour, freeway light-trails below.
+     To use a licensed photograph instead, replace this <svg> with
+     <img class="skyline-band" src="images/twin-cities.jpg" alt="..."> and keep the class. -->
+<svg id="skyline" class="skyline-band" viewBox="0 0 1440 330" preserveAspectRatio="xMidYMax slice"
+     role="img" aria-label="Stylized Minneapolis skyline at dusk — the Twin Cities at blue hour, with freeway light trails below the towers" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="horizon" cx="50%" cy="100%" r="75%">
+      <stop offset="0%" stop-color="#6880b0" stop-opacity=".34"/>
+      <stop offset="60%" stop-color="#4a5d94" stop-opacity=".14"/>
+      <stop offset="100%" stop-color="#4a5d94" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="goldTrail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f2a93b" stop-opacity="0"/>
+      <stop offset=".2" stop-color="#f7c469" stop-opacity=".85"/>
+      <stop offset=".8" stop-color="#f2a93b" stop-opacity=".85"/>
+      <stop offset="1" stop-color="#f2a93b" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="emberTrail" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#e2734a" stop-opacity="0"/>
+      <stop offset=".25" stop-color="#ff8f66" stop-opacity=".8"/>
+      <stop offset=".75" stop-color="#e2734a" stop-opacity=".8"/>
+      <stop offset="1" stop-color="#e2734a" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="win" width="7" height="11" patternUnits="userSpaceOnUse">
+      <rect x="1.5" y="2" width="3" height="4.5" fill="#f2a93b" opacity=".8"/>
+    </pattern>
+    <pattern id="winSparse" width="10" height="14" patternUnits="userSpaceOnUse">
+      <rect x="2" y="3" width="3" height="4" fill="#f7c469" opacity=".45"/>
+    </pattern>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.1"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="120" width="1440" height="210" fill="url(#horizon)"/>
+
+  <!-- back row: hazy towers -->
+  <g fill="#2b3a63" opacity=".75">
+    <rect x="60"  y="200" width="52" height="100"/>
+    <rect x="250" y="180" width="44" height="120"/>
+    <rect x="395" y="165" width="40" height="135"/>
+    <rect x="560" y="185" width="58" height="115"/>
+    <rect x="800" y="175" width="46" height="125"/>
+    <rect x="935" y="195" width="60" height="105"/>
+    <rect x="1105" y="185" width="42" height="115"/>
+    <rect x="1290" y="205" width="70" height="95"/>
+  </g>
+
+  <!-- front row: the recognizable silhouette -->
+  <g fill="#151d38">
+    <rect x="0" y="238" width="88" height="62"/>
+    <rect x="96" y="176" width="42" height="124"/>
+    <!-- Foshay obelisk -->
+    <polygon points="152,300 180,300 175,166 171,152 161,152 157,166"/>
+    <rect x="165" y="122" width="2.5" height="32" fill="#0f1730"/>
+    <rect x="206" y="204" width="56" height="96"/>
+    <!-- stepped art-deco tower -->
+    <rect x="278" y="196" width="66" height="104" fill="#1b2544"/>
+    <rect x="287" y="176" width="48" height="22" fill="#1b2544"/>
+    <rect x="296" y="156" width="30" height="22" fill="#1b2544"/>
+    <rect x="304" y="144" width="14" height="14" fill="#1b2544"/>
+    <rect x="352" y="182" width="50" height="118"/>
+    <!-- IDS: the tall slab -->
+    <rect x="424" y="96" width="86" height="204" fill="#1d2747"/>
+    <rect x="436" y="88" width="62" height="9" fill="#1d2747"/>
+    <rect x="443" y="96" width="2" height="204" fill="#0f1730"/>
+    <rect x="466" y="96" width="2" height="204" fill="#0f1730"/>
+    <rect x="489" y="96" width="2" height="204" fill="#0f1730"/>
+    <rect x="522" y="192" width="42" height="108"/>
+    <!-- rounded-crown tower with halo -->
+    <path d="M580 300 L580 152 Q580 122 615 122 Q650 122 650 152 L650 300 Z"/>
+    <circle cx="615" cy="116" r="24" fill="none" stroke="#f2a93b" stroke-opacity=".38" stroke-width="3.4"/>
+    <circle cx="615" cy="116" r="24" fill="none" stroke="#f7d08a" stroke-opacity=".5" stroke-width="1.2"/>
+    <!-- pyramid-top tower -->
+    <rect x="668" y="158" width="58" height="142"/>
+    <polygon points="668,158 697,126 726,158"/>
+    <rect x="740" y="192" width="46" height="108"/>
+    <rect x="798" y="216" width="62" height="84"/>
+    <rect x="872" y="176" width="38" height="124"/>
+    <rect x="922" y="222" width="72" height="78"/>
+    <rect x="1006" y="200" width="46" height="100"/>
+    <rect x="1064" y="232" width="58" height="68"/>
+    <rect x="1134" y="208" width="42" height="92"/>
+    <rect x="1188" y="238" width="66" height="62"/>
+    <rect x="1266" y="222" width="48" height="78"/>
+    <rect x="1326" y="252" width="114" height="48"/>
+  </g>
+
+  <!-- lit windows -->
+  <g>
+    <rect x="100" y="182" width="34" height="112" fill="url(#winSparse)"/>
+    <rect x="282" y="200" width="58" height="94" fill="url(#win)" opacity=".55"/>
+    <rect x="428" y="102" width="78" height="192" fill="url(#win)" opacity=".7"/>
+    <rect x="584" y="150" width="62" height="144" fill="url(#winSparse)" opacity=".9"/>
+    <rect x="672" y="164" width="50" height="130" fill="url(#win)" opacity=".45"/>
+    <rect x="356" y="188" width="42" height="106" fill="url(#winSparse)"/>
+    <rect x="876" y="182" width="30" height="112" fill="url(#winSparse)"/>
+    <rect x="1010" y="206" width="38" height="88" fill="url(#winSparse)" opacity=".8"/>
+    <rect x="1138" y="214" width="34" height="80" fill="url(#winSparse)" opacity=".7"/>
+    <!-- a few bright rooms -->
+    <rect x="450" y="130" width="4" height="5" fill="#ffd98f"/>
+    <rect x="482" y="205" width="4" height="5" fill="#ffd98f"/>
+    <rect x="610" y="170" width="4" height="5" fill="#ffd98f"/>
+    <rect x="700" y="200" width="4" height="5" fill="#ffd98f"/>
+    <rect x="310" y="182" width="4" height="5" fill="#ffd98f"/>
+  </g>
+
+  <!-- ground + freeway light trails -->
+  <rect x="0" y="298" width="1440" height="32" fill="#0f1730"/>
+  <g filter="url(#soft)" fill="none" stroke-linecap="round">
+    <path d="M-20 308 C 320 300, 760 316, 1460 305" stroke="url(#goldTrail)" stroke-width="5"/>
+    <path d="M-20 305 C 420 299, 900 312, 1460 302" stroke="url(#goldTrail)" stroke-width="2" opacity=".8"/>
+    <path d="M-20 318 C 400 324, 950 310, 1460 317" stroke="url(#emberTrail)" stroke-width="4"/>
+    <path d="M-20 322 C 500 326, 1000 315, 1460 321" stroke="url(#emberTrail)" stroke-width="2" opacity=".7"/>
+  </g>
+</svg>
 </div>
 
 <section id="work"><div class="wrap">
-  <h2>Four projects, one architecture</h2>
-  <p class="lead">Not a pile of demos — a stack. Each layer answers a different form of
-  the trust question, every repo runs in seconds with zero API keys, and each ships an
-  interactive walkthrough a non-engineer can click through.</p>
-  <div class="stackline"><b>memory</b> → <b>evaluation</b> → <b>decision calibration</b> → <b>the control loop</b> that closes over the memory layer</div>
+  <h2>Four projects, one question</h2>
+  <p class="lead">These four projects aren't a pile of demos — they're a stack. Each layer
+  answers a different form of one question: <em>how do we know it works?</em> Every one
+  runs in seconds with zero API keys (nothing to sign up for or pay for), and every one
+  ships a click-through tour you can hand to any stakeholder.</p>
   <div class="cards">
     <div class="card">
-      <div class="layer">Memory layer</div>
+      <div class="layer">Memory</div>
       <h3><a href="https://github.com/LZBiala/wiki-memory-lab">wiki-memory-lab</a></h3>
-      <p class="pitch">Agent long-term memory as a human-readable markdown wiki —
-      index-first selective recall, extend-before-create, and prune-with-a-written-reason:
-      an audit log for what your agent believes.</p>
-      <div class="num">selective recall: 0.61× the context tokens of loading everything</div>
-      <div class="loss">published loss: on a small hot corpus, stuffing wins 1.27×</div>
+      <p class="pitch">This AI keeps its memory in a wiki of plain-text pages anyone can
+      read. It checks an index and pulls only the pages it needs, adds to old pages before
+      making new ones, and must write a reason before deleting anything. A paper trail for
+      what your AI believes.</p>
+      <div class="num">Pulling only the pages it needs costs 0.61× of loading everything</div>
+      <div class="loss">With a small, constantly-used set of notes, loading everything wins (1.27×)</div>
       <div class="go"><a href="https://lzbiala.github.io/wiki-memory-lab/docs/">walkthrough</a>
         <a href="https://github.com/LZBiala/wiki-memory-lab">source</a></div>
     </div>
     <div class="card">
-      <div class="layer">Evaluation layer</div>
+      <div class="layer">Evaluation</div>
       <h3><a href="https://github.com/LZBiala/agent-mutation-lab">agent-mutation-lab</a></h3>
-      <p class="pitch">Mutation testing where the subject under test is an AI code
-      reviewer: plant one documented defect, mix in byte-identical clean controls, score
-      at the planted line — crying wolf scores zero.</p>
-      <div class="num">9/10 planted defects flagged at the planted line; 0 false alarms</div>
-      <div class="loss">published loss: one deliberate blind spot, so the scorecard shows a real miss</div>
+      <p class="pitch">I test AI code reviewers the way you'd test a proofreader: plant one
+      known mistake, mix in clean copies, and only count a catch on the exact planted
+      line — crying wolf scores zero. New: nine imperfect copies voting together get more
+      accurate at just the rate the math predicts, while a copycat control stays flat.</p>
+      <div class="num">Caught 9/10 planted bugs on the exact line, with 0 false alarms</div>
+      <div class="loss">One blind spot left in on purpose, so the scorecard shows a real miss</div>
       <div class="go"><a href="https://lzbiala.github.io/agent-mutation-lab/docs/">walkthrough</a>
         <a href="https://github.com/LZBiala/agent-mutation-lab">source</a></div>
     </div>
     <div class="card">
-      <div class="layer">Decision calibration</div>
+      <div class="layer">Judgment</div>
       <h3><a href="https://github.com/LZBiala/adversarial-chambers">adversarial-chambers</a></h3>
-      <p class="pitch">Generator, dedicated refuter, and judge as structurally separated
-      roles, a kill ledger where every verdict carries its cause of death — and the flip
-      test, which cross-examines the judge itself.</p>
-      <div class="num">flip test: evidence-driven judge 0/8; deferential judge 3/8 — exactly the ambiguous items</div>
-      <div class="loss">case study (labeled, not a benchmark): 3 of 4 real verdicts flipped on one instruction change</div>
+      <p class="pitch">A courtroom for AI claims: one AI argues, a second's only job is to
+      attack, a third judges — nobody plays two roles. Every rejected claim gets a written
+      cause of death. And the flip test cross-examines the judge itself: change only the
+      judge's standing instruction, and see if verdicts change.</p>
+      <div class="num">Evidence-led judge: 0/8 verdicts flipped. Agreeable judge: 3/8 — exactly the ambiguous cases</div>
+      <div class="loss">Case study, clearly labeled (not a benchmark): 3 of 4 real verdicts flipped on one instruction change</div>
       <div class="go"><a href="https://lzbiala.github.io/adversarial-chambers/docs/">walkthrough</a>
         <a href="https://github.com/LZBiala/adversarial-chambers">source</a></div>
     </div>
     <div class="card">
-      <div class="layer">The control loop</div>
+      <div class="layer">The improvement loop</div>
       <h3><a href="https://github.com/LZBiala/memory-repair-lab">memory-repair-lab</a></h3>
-      <p class="pitch">The model never learns; the notes do. Retrieval failures are filed
-      as typed notes, repairs cite the failure that motivated them, and generations are
-      re-measured against a held-out split sealed before generation zero.</p>
-      <div class="num">held-out recall 8/10 → 10/10; blind placebo arm, same budget: unchanged</div>
-      <div class="loss">published on purpose: a Goodhart arm that games recall and pays for it in tokens</div>
+      <p class="pitch">The AI never changes — its notebook does. Every miss gets filed as a
+      labeled note about what went wrong, every fix names the miss it repairs, and progress
+      is graded on an exam sealed before work began. A sugar-pill arm (same effort, fake
+      fixes) checks the gains are real.</p>
+      <div class="num">Sealed-exam recall: 8/10 → 10/10. Sugar-pill arm on the same budget: unchanged</div>
+      <div class="loss">Published on purpose: an arm that teaches to the test — and pays for it in tokens</div>
       <div class="go"><a href="https://lzbiala.github.io/memory-repair-lab/docs/">walkthrough</a>
         <a href="https://github.com/LZBiala/memory-repair-lab">source</a></div>
     </div>
   </div>
-  <p class="cardnote">Every number above is regenerated by each repo's own CI on Windows
-  and Linux — the committed artifacts are the claims, and the drift gate proves they
-  regenerate. Live-model results are kept out of drift-gated READMEs by design; the
-  bundled agents are deterministic, so the numbers characterize the harnesses, never a
-  model.</p>
+  <p class="cardnote">Every number above regenerates from scratch on each repo's automated
+  build, on Windows and Linux — if a fresh run disagrees with the published claim, the
+  build fails. The bundled agents are deliberately simple scripts, so these numbers prove
+  the measuring instruments, never any AI model's intelligence.</p>
+
+  <div class="tour">
+    <p><b>Want the guided tour?</b> Every project explained the way I'd brief a
+    decision-maker — precise analogies (sealed exam envelopes, sugar pills, smoke alarms),
+    a working vocabulary for terms like <em>best-of-k</em> and <em>unhobbling</em>, and
+    the questions I'd genuinely love to be asked about each project.</p>
+    <a class="tourcta" href="walkthrough.html">Take the tour →</a>
+  </div>
 </div></section>
 
 <section id="gamesec"><div class="wrap">
   <h2>⚔️ Play the portfolio — AI Quest: SEV-1</h2>
-  <p class="lead">An 8-bit JRPG where AI engineering is magic and the final boss is a major
-  incident. Recruit a party of four — each companion is one of the projects above — learn
-  spells like <span class="mono">FIVE-WHY</span> and <span class="mono">CONTROL ARM</span>,
-  level up, and run the incident bridge that takes down the SEV-1 Hydra.</p>
+  <p class="lead">An 8-bit adventure where AI engineering is the magic and the final boss
+  is a major outage. Recruit a party of four — each companion is one of the projects
+  above — learn their real techniques, and run the incident bridge that takes down the
+  five-headed Hydra. Every number quoted in-game is a checkable claim from the repos.</p>
   <div class="gamecard">
     <div class="gc-left">
       <div>&gt; THE SEV-1 HYDRA rises!</div>
       <div>&gt; You cast FIVE-WHY… the root cause is exposed!</div>
-      <div>&gt; MTTx GRADE: S — think you can beat it?</div>
+      <div>&gt; Grade: S — think you can beat it?</div>
     </div>
     <a class="gc-play" href="game.html">▶ PLAY NOW</a>
   </div>
-  <p class="cardnote">~10 minutes · saves at the INN · shops, gear &amp; a party of four ·
-  speedrun grading · plays on your phone · one static file, no frameworks, no API keys —
-  and every real-world number quoted in-game is a CI-verified claim from the repos above.</p>
+  <p class="cardnote">~10 minutes · saves at the inn · gear, shops &amp; a party of four ·
+  speedrun grading · plays on your phone · one static file, no sign-ups, no downloads.</p>
 </div></section>
 
 <section id="how"><div class="wrap">
   <h2>How I work</h2>
-  <p class="lead">The habits are the résumé. These are the laws every repo above obeys —
-  and they are the same instincts that keep a bank's critical applications reliable, pointed at AI.</p>
+  <p class="lead">The habits are the résumé. These are the rules every project above
+  obeys — the same instincts that keep a bank's critical applications reliable, pointed at AI.</p>
   <div class="laws">
-    <div class="law"><h3>Claims are treated like SLOs.</h3>
-      <p>Each published number ships with its measurement command and its honest caveat
-      in the same table row, rendered from metrics — never typed by hand. If
-      regeneration disagrees, the build fails loudly.</p></div>
+    <div class="law"><h3>Every claim is re-tested on every change.</h3>
+      <p>Each published number ships with how it was measured and its honest caveat in
+      the same row, generated from data — never typed by hand. If a fresh run disagrees,
+      the build fails loudly.</p></div>
     <div class="law"><h3>Losses publish above the fold.</h3>
-      <p>The crossover where the design loses, the deliberate blind spot, the flipped
+      <p>The case where the design loses, the deliberate blind spot, the flipped
       verdicts — leading with the boundary is what makes the rest of the page
       believable.</p></div>
     <div class="law"><h3>Every deletion carries its reason.</h3>
       <p>Kill ledgers, prune records, repair citations: an unrecorded decision gets
-      re-litigated in a month by someone who never saw it die. Audit trails are a
-      product feature, not paperwork.</p></div>
+      re-argued in a month by someone who never saw it die. Audit trails are a product
+      feature, not paperwork.</p></div>
     <div class="law"><h3>Demos run where the customer is.</h3>
-      <p>Every project installs with nothing, runs in seconds with zero API keys, and
+      <p>Every project installs with nothing, runs in seconds without API keys, and
       carries a walkthrough a stakeholder can click through — because the room where
       engineering meets the customer is where systems earn trust or lose it.</p></div>
     <div class="law"><h3>Hard things get explained simply.</h3>
@@ -305,32 +407,31 @@
   <div class="bg2">
     <div>
       <p>I'm a technology leader at Wells Fargo — 12+ years of leadership, 5+ years across
-      SRE and incident management for critical banking applications: monitoring designed to catch
-      negative trends before customers feel them, 5-why root-cause discipline, platform
-      engineering through cloud migrations, and distributed teams across the US and
+      site reliability and incident management for critical banking applications:
+      monitoring built to catch trouble before customers feel it, root-cause discipline,
+      platform work through cloud migrations, and distributed teams across the US and
       India. Regulated industry, real stakes, enterprise reality.</p>
       <p>The AI chapter started inside that reality, not outside it: I lead delivery of
-      two governed GenAI products — an incident-notification quality assistant and a
-      Daily 5-Why QA platform — built hands-on (Python, Streamlit, TypeScript, and
-      agentic tooling: Claude Code, Codex, Devin) with evidence provenance, fail-closed
-      behavior, and human-review gates on the road to production. Then I took the same
-      discipline public — the four harnesses above,
-      measured, auditable, and honest about where they break. I run my own knowledge
-      system the same way: a markdown wiki my AI agents read and write as long-term
-      memory, which is where the memory-layer projects came from.</p>
+      two governed GenAI products — one grades outage notifications, one grades daily
+      root-cause reviews — built hands-on (Python, Streamlit, TypeScript, and agentic
+      tooling: Claude Code, Codex, Devin) with evidence trails, fail-closed behavior, and
+      human sign-off gates on the road to production. Then I took the same discipline
+      public: the four projects above, measured, auditable, and honest about where they
+      break. I run my own knowledge system the same way — a markdown wiki my AI agents
+      read and write as long-term memory, which is where the memory projects came from.</p>
       <p>Before engineering leadership: a psychology degree and years managing a busy
       bar — which is to say, translating between systems and the humans who depend on
-      them has always been the job. That's the part of me that fits forward-deployed
-      work: I like the room where the demo has to run, the question has to land, and
-      the system has to earn its keep in someone else's environment — and years of
-      incident bridges have made ambiguity, discovery under pressure, and honest
-      push-back my home turf.</p>
+      them has always been the job. I like the room where the demo has to run, the
+      question has to land, and the system has to earn its keep in someone else's
+      environment — and years of incident bridges have made ambiguity, discovery under
+      pressure, and honest push-back my home turf.</p>
     </div>
     <dl class="facts">
-      <dt>Now</dt><dd>Vice President, Lead Digital Product Service Manager, Wells Fargo — SRE &amp; incident management · governed GenAI product delivery</dd>
-      <dt>GenAI at work</dt><dd>Two governed AI products in delivery (incident-notification quality · Daily 5-Why QA) · human-in-the-loop by design · risk-gated roadmap to production</dd>
+      <dt>Now</dt><dd>Vice President, Lead Digital Product Service Manager, Wells Fargo — site reliability &amp; incident management · governed GenAI product delivery</dd>
+      <dt>AI at work</dt><dd>Two governed AI products in delivery · human-in-the-loop by design · risk-gated road to production</dd>
       <dt>Focus</dt><dd>AI agent evaluation · LLM observability · agent memory · multi-agent orchestration</dd>
-      <dt>Foundation</dt><dd>SRE &amp; incident management (MTTx, 5-why RCA) · observability (Splunk, Grafana) · platform engineering &amp; cloud migration · ITIL</dd>
+      <dt>Foundation</dt><dd>SRE &amp; incident management · observability (Splunk, Grafana) · platform engineering &amp; cloud migration · ITIL</dd>
+      <dt>Training &amp; courses</dt><dd>Anthropic Academy: Claude Code in Action · Introduction to Model Context Protocol (2026) · Splunk Fundamentals 1–3 &amp; Cloud Observability</dd>
       <dt>Education</dt><dd>Data Analytics Boot Camp, University of Minnesota · B.A. Psychology, Metropolitan State University</dd>
       <dt>Building with</dt><dd>Python · Claude Code &amp; Claude API workflows · GPT-5.6 via Codex · GitHub Actions CI</dd>
     </dl>
@@ -341,9 +442,11 @@
   <p>Let's build something trustworthy. Reach me by
   <a href="mailto:lzbiala@gmail.com">email</a>, on
   <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>, or through
-  <a href="https://github.com/LZBiala">GitHub</a>.</p>
-  <p class="mono" style="margin-top:10px">This page: one static file, no frameworks, no
-  trackers, no external requests — the same way the projects are built.</p>
+  <a href="https://github.com/LZBiala">GitHub</a> — or start with the
+  <a href="walkthrough.html">guided tour</a>.</p>
+  <p style="margin-top:10px">This page: one static file, no frameworks, no trackers, no
+  external requests — the same way the projects are built. Skyline: original artwork,
+  drawn in code, of the city I call home.</p>
 </div></footer>
 
 </body>

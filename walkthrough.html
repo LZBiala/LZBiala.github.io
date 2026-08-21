@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Guided Tour — Lito Zarate Biala</title>
+<meta name="description" content="Five AI projects, explained the way I'd brief a decision-maker: the mechanism, what each number means in practice, a working glossary for terms like best-of-k and unhobbling, and the questions worth asking about each.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗺️</text></svg>">
+<meta property="og:title" content="The Guided Tour — five AI projects, clearly explained">
+<meta property="og:description" content="Sealed exam envelopes, sugar pills, smoke alarms: an AI evaluation portfolio, explained with precision.">
+<meta property="og:url" content="https://lzbiala.github.io/walkthrough.html">
+<style>
+  :root {
+    --paper: #faf7f1; --ink: #232a35; --muted: #5b6675; --line: #e6e0d4; --card: #ffffff;
+    --teal: #0e7c72; --teal-soft: #0e7c7212; --amber: #a3540a;
+    --dusk-deep: #141b33; --dusk: #1e2a4a; --gold: #f2a93b; --gold-ink: #7e520c;
+    --dusk-ink: #f4eddd; --dusk-mut: #b9c2d8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10162a; --ink: #e8eaf2; --muted: #97a2b8; --line: #263252; --card: #17203a;
+      --teal: #35c2b3; --teal-soft: #35c2b318; --amber: #f0a860; --gold-ink: #f2a93b;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--ink); line-height: 1.7;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 22px; }
+  a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+  .duskband a:focus-visible { outline-color: var(--gold); }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  .duskband { background: linear-gradient(180deg, #10152b, var(--dusk-deep) 55%, var(--dusk));
+    color: var(--dusk-ink); padding: 40px 0 34px; }
+  .duskband .crumb { font-size: 0.85rem; }
+  .duskband .crumb a { color: var(--gold); text-decoration: none; }
+  .duskband .crumb a:hover { text-decoration: underline; }
+  .duskband h1 { font-size: clamp(1.9rem, 5vw, 2.7rem); line-height: 1.1; margin: 12px 0 10px;
+    color: #fff; letter-spacing: -0.02em; text-wrap: balance; }
+  .duskband .sub { color: var(--dusk-mut); max-width: 44em; }
+
+  section { padding: 44px 0 10px; }
+  section + section { border-top: 1px solid var(--line); }
+  h2 { font-size: 1.55rem; letter-spacing: -0.015em; margin-bottom: 14px; text-wrap: balance; }
+  h2::after { content: ""; display: block; width: 44px; height: 3px;
+    background: linear-gradient(90deg, var(--teal), var(--gold)); border-radius: 2px; margin-top: 9px; }
+
+  .tourcard { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 26px 28px; margin-bottom: 22px; }
+  .tourcard .kicker { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal); }
+  .tourcard h3 { font-size: 1.3rem; margin: 4px 0 4px; }
+  .tourcard .oneliner { font-style: italic; color: var(--muted); margin-bottom: 14px; }
+  .tourcard h4 { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold-ink); margin: 16px 0 4px; }
+  .tourcard p { font-size: 0.97rem; max-width: 52em; }
+  .qa { background: var(--teal-soft); border-left: 3px solid var(--teal);
+    border-radius: 0 10px 10px 0; padding: 12px 16px; margin-top: 16px; font-size: 0.95rem; }
+  .qa b { color: var(--teal); }
+  .golink { margin-top: 14px; font-size: 0.9rem; }
+
+  .gloss { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .gloss { grid-template-columns: 1fr; } }
+  .term { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .term h3 { font-size: 1.02rem; color: var(--gold-ink); margin-bottom: 6px; }
+  .term p { font-size: 0.93rem; }
+  .term .ex { margin-top: 8px; color: var(--muted); font-size: 0.9rem; font-style: italic; }
+
+  footer { padding: 40px 0 64px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.95rem; }
+</style>
+</head>
+<body>
+
+<div class="duskband"><div class="wrap">
+  <div class="crumb"><a href="index.html">← lzbiala.github.io</a></div>
+  <h1>The Guided Tour</h1>
+  <p class="sub">I hold my work to a standard I learned running incident bridges: if I
+  can't explain a system clearly, I don't understand it yet. This page walks through
+  five projects the way I'd brief a decision-maker — the mechanism, what each number
+  means in practice, and the questions worth asking me about each. Every figure comes
+  straight from the published results, losses included, because a result you can't
+  check is just a story — and the bundled agents are deliberately simple scripts,
+  so every number proves the measuring instrument, never any AI model's intelligence. The <a href="#glossary" style="color:var(--gold)">working
+  vocabulary</a> at the bottom defines the field's terms the way I use them.</p>
+</div></div>
+
+<section><div class="wrap">
+  <h2>The five projects</h2>
+
+  <div class="tourcard">
+    <div class="kicker">Memory</div>
+    <h3>wiki-memory-lab</h3>
+    <p class="oneliner">An AI's long-term memory, kept as a wiki a human can read and check.</p>
+    <h4>The intuition</h4>
+    <p>Imagine a doctor who, before every appointment, re-reads your entire file back to
+    page one — every cold, every checkup, thirty years of paperwork. This project teaches
+    the AI to work like a good nurse instead: keep the chart organized, pull only the
+    pages that matter for today's visit, and leave the rest in the cabinet.</p>
+    <h4>What the numbers mean</h4>
+    <p>Selective reading used 0.61× the tokens of loading everything — about 61 cents on
+    the dollar, and tokens are the meter AI bills run on. On a small pile of notes,
+    though, the simple load-everything approach won (selective reading cost 1.27× there),
+    and that loss is published rather than buried.</p>
+    <h4>What this demonstrates</h4>
+    <p>I measure cost honestly and publish the exact case where the clever method loses.</p>
+    <div class="qa"><b>Ask me:</b> "Why publish the result where your own approach lost?"
+    — Because the loss is the finding. The wiki pays off when memory is big and messy;
+    below that size, simpler is cheaper, and now I know where the line sits. If I only
+    showed you the win, you'd have no reason to trust the win either.</div>
+    <p class="golink"><a href="https://lzbiala.github.io/wiki-memory-lab/docs/">Click-through demo</a> ·
+    <a href="https://github.com/LZBiala/wiki-memory-lab">source</a></p>
+  </div>
+
+  <div class="tourcard">
+    <div class="kicker">Evaluation</div>
+    <h3>agent-mutation-lab</h3>
+    <p class="oneliner">Tests AI code reviewers by hiding one known bug and checking they find it at the right line.</p>
+    <h4>The intuition</h4>
+    <p>It's a fire drill for AI reviewers. Instead of waiting for a real fire, I plant
+    one — a single known bug in otherwise clean code — and check whether the alarm goes
+    off at the right spot. Clean files are mixed in too, because an alarm that shrieks at
+    burnt toast every morning is as useless as one that never rings.</p>
+    <h4>What the numbers mean</h4>
+    <p>The reviewer caught 9 of 10 planted bugs; the tenth is a deliberate blind spot
+    shown as a red miss, in public. And in the new <em>best-of-k</em> study, nine slightly
+    different copies of one reviewer vote on findings: accuracy climbs and tracks the
+    textbook jury math — but nine copies sharing the same mistakes stay exactly flat, and
+    a panel that's wrong more often than right votes itself <em>worse</em>.</p>
+    <h4>What this demonstrates</h4>
+    <p>I test the testers — and know when a committee adds judgment and when it's just an echo.</p>
+    <div class="qa"><b>Ask me:</b> "When does adding more AI reviewers stop helping?" —
+    When they share the same blind spot, or when they're wrong more often than right. My
+    controls showed both: nine copies making identical mistakes stayed exactly flat, and a
+    bug no copy can see stayed missed at every panel size. Voting multiplies the judgment
+    you feed it — it can't create judgment that isn't there.</div>
+    <p class="golink"><a href="https://lzbiala.github.io/agent-mutation-lab/docs/">Click-through demo</a> ·
+    <a href="https://github.com/LZBiala/agent-mutation-lab">source</a></p>
+  </div>
+
+  <div class="tourcard">
+    <div class="kicker">Judgment</div>
+    <h3>adversarial-chambers</h3>
+    <p class="oneliner">Splits AI decisions into a proposer, a professional skeptic, and a judge — then cross-examines the judge.</p>
+    <h4>The intuition</h4>
+    <p>Think of buying a used car. One person falls in love with it, so you bring a
+    mechanic friend whose only job is to find what's wrong, and a level-headed third
+    person makes the final call. This project wires an AI the same way — and keeps a
+    notebook of every car they walked away from, and why.</p>
+    <h4>What the numbers mean</h4>
+    <p>In one real case, 3 of 4 verdicts flipped when nothing changed but the judge's
+    standing instruction. Same facts, same arguments, different outcome — meaning the
+    referee, not the evidence, was deciding the game. The flip test exists to catch
+    exactly that before anyone trusts the verdicts.</p>
+    <h4>What this demonstrates</h4>
+    <p>A verdict is only as trustworthy as its judge — so I built the tool that puts the judge on the stand.</p>
+    <div class="qa"><b>Ask me:</b> "What is the ledger of killed ideas actually for?" —
+    Rejections are data. Every time the skeptic kills an idea, the reason goes in the
+    ledger, so later we can ask whether the graveyard was fair. If you never write down
+    why you said no, you can never discover your no's were wrong.</div>
+    <p class="golink"><a href="https://lzbiala.github.io/adversarial-chambers/docs/">Click-through demo</a> ·
+    <a href="https://github.com/LZBiala/adversarial-chambers">source</a></p>
+  </div>
+
+  <div class="tourcard">
+    <div class="kicker">The improvement loop</div>
+    <h3>memory-repair-lab</h3>
+    <p class="oneliner">When the AI's memory fails, the failure gets written down, fixed, and re-tested on sealed questions.</p>
+    <h4>The intuition</h4>
+    <p>Before touching anything, I wrote a set of test questions and sealed them in an
+    envelope. Then came the fixes — each one citing, in writing, the exact failure it
+    repairs, like a mechanic's work order. Only at the end does the envelope open. If the
+    score climbs on questions nobody could have studied for, the improvement is real.</p>
+    <h4>What the numbers mean</h4>
+    <p>The sealed questions went from 8 out of 10 to 10 out of 10 after the fixes. The
+    proof it wasn't luck: a placebo arm — the same amount of effort, aimed at nothing in
+    particular — stayed flat. The targeted fixes did the work; the busywork alone did
+    nothing.</p>
+    <h4>What this demonstrates</h4>
+    <p>I run self-improvement like a clinical trial, sugar pill included.</p>
+    <div class="qa"><b>Ask me:</b> "Why bother with a placebo arm on a memory system?" —
+    Because effort alone can look like improvement. If any tinkering would have raised the
+    score, my fixes deserve no credit — so I spent the same effort on generic tinkering as
+    a control, and it moved nothing. That flat line is what lets me say the 8-to-10 jump
+    came from the fixes, not the fuss.</div>
+    <p class="golink"><a href="https://lzbiala.github.io/memory-repair-lab/docs/">Click-through demo</a> ·
+    <a href="https://github.com/LZBiala/memory-repair-lab">source</a></p>
+  </div>
+
+  <div class="tourcard">
+    <div class="kicker">The playable portfolio</div>
+    <h3>AI Quest: SEV-1</h3>
+    <p class="oneliner">A retro browser game where every party member, boss, and number comes from the real projects.</p>
+    <h4>The intuition</h4>
+    <p>Think of a chef who, instead of handing you a résumé, cooks you dinner from it.
+    This 8-bit game plays in your browser: each party member is one of the four labs
+    above, each boss is a real way AI systems fail — made-up facts, smuggled
+    instructions, runaway retries — and every number a character quotes can be checked
+    against the repos.</p>
+    <h4>What the numbers mean</h4>
+    <p>The game quotes the portfolio's real results — the 0.61× memory cost, the 9 of
+    10 bugs caught, the 8-to-10 sealed-envelope jump — as in-game facts. Nothing was
+    invented for drama. If a boss fight cites a number, that number lives in a repo you
+    can open.</p>
+    <h4>What this demonstrates</h4>
+    <p>I can teach hard ideas to anyone — and I kept the fun on the same honesty rules as the labs.</p>
+    <div class="qa"><b>Ask me:</b> "Why put a video game in a job portfolio?" — Teaching
+    is the sharpest test of understanding: if I can make prompt injection make sense to
+    someone fighting it as an 8-bit boss, I actually understand it. The constraint made
+    me better, too — every number in the game had to trace back to a published claim, so
+    even the entertainment is auditable.</div>
+    <p class="golink"><a href="game.html">▶ Play it</a> (~10 minutes, phone-friendly)</p>
+  </div>
+</div></section>
+
+<section id="glossary"><div class="wrap">
+  <h2>Working vocabulary</h2>
+  <div class="gloss">
+    <div class="term"><h3>Best-of-k / test-time compute</h3>
+      <p>Ask the AI several times and take the best or majority answer — spending extra
+      thinking time instead of waiting for a smarter AI.</p>
+      <p class="ex">Ask nine doctors who have not talked to each other and take the
+      majority — but if all nine trained at the same school with the same blind spot,
+      nine opinions are really one.</p></div>
+    <div class="term"><h3>Unhobbling / product overhang</h3>
+      <p>Getting more out of the AI we already have by removing the clumsy ways we use
+      it — no new model needed.</p>
+      <p class="ex">Like discovering your microwave had a defrost button all along — the
+      machine didn't get better, you finally used what it could already do.</p></div>
+    <div class="term"><h3>Mutation testing</h3>
+      <p>Deliberately planting a known bug to check whether your tests — or your AI
+      reviewer — actually catch it.</p>
+      <p class="ex">A safety inspector hides one fake violation in the factory to see if
+      the auditors flag it — miss the plant, and they're missing real ones too.</p></div>
+    <div class="term"><h3>Drift gate</h3>
+      <p>An automatic check that re-runs every published number on each change and blocks
+      the change if a claim stops being true.</p>
+      <p class="ex">Like a restaurant re-weighing every advertised portion each morning —
+      the menu isn't allowed to say eight ounces on a day the scale says six.</p></div>
+    <div class="term"><h3>Placebo / control arm</h3>
+      <p>A comparison group that gets the same effort but not the real fix, so you can
+      tell what caused the improvement.</p>
+      <p class="ex">Half the patients get the real pill and half get a sugar pill — if
+      both groups improve the same, the pill wasn't the reason.</p></div>
+    <div class="term"><h3>Held-out sealed test</h3>
+      <p>Test questions locked away before any fixes begin, so nobody can tune the system
+      to the test.</p>
+      <p class="ex">The final exam stays in a sealed envelope while you study — you can't
+      rehearse the exact questions, so your grade actually means something.</p></div>
+    <div class="term"><h3>Calibration</h3>
+      <p>How well confidence matches reality: when a system says it's 90% sure, it should
+      be right about 90% of the time.</p>
+      <p class="ex">A weather forecaster who says "70% chance of rain" is well calibrated
+      if it rains on about seven of every ten such days.</p></div>
+    <div class="term"><h3>Defense-in-depth (against prompt injection)</h3>
+      <p>Several independent safeguards layered together, so a malicious instruction that
+      slips past one still runs into the next.</p>
+      <p class="ex">A bank doesn't trust the front-door lock alone — there's a guard, a
+      vault, and an alarm, so one picked lock doesn't empty the safe.</p></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p>Thanks for taking the tour. Everything here — the wins, the losses, the flat placebo
+  lines — is public and checkable, and I'd genuinely enjoy walking you through any of it.
+  If something raised a question, or you'd like a live demo,
+  <a href="mailto:lzbiala@gmail.com">get in touch</a>. The repos are open; so am I.</p>
+  <p style="margin-top:10px"><a href="index.html">← Back to the main page</a></p>
+</div></footer>
+
+</body>
+</html>
