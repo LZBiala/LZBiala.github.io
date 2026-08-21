@@ -1335,7 +1335,7 @@ const Z = [
   "PapaFoxx's jokes land 71% of the time. He says the misses are 'load-bearing'. …He's right, and I hate that the data agrees.",
   "You ask better questions than when we met. That's the whole job, you know - the blades are just punctuation.",
   "Scope it, ship it, measure it, thank the team. Everything else is meetings."]},
- {x:7,y:2,spr:"lito",name:"LITO",inParty:"lito",lines:LITO_HOME},
+ {x:7,y:2,spr:"lito",name:"LITO",inParty:"lito",talks:"lito",lines:LITO_HOME},
  {x:10,y:5,spr:"refuter",name:"REFUTER",inParty:"refuter",lines:[
   "OBJECTION. …Sorry. Reflex. You walked in confidently and my whole body reacted.",
   "The comedian ROASTS and I OBJECT. Legally distinct. Mine holds up in court; his holds up the room.",
@@ -1704,22 +1704,26 @@ const GUIDE_STAGE={
  2:["THE GUIDE: Look at this squad. Nobody got smarter alone - the SYSTEM got smarter. That's the lesson I keep circling: the value lives in how the parts interact.",
     "THE GUIDE: I've been up reading. A runbook says IF this THEN that. What if a runbook could reason about the case nobody wrote down? I can't stop chewing on it.",
     "THE GUIDE: Don't let my curiosity distract you from the bridge, though. The Hydra doesn't care what I'm reading. Measure twice, roll back once."],
- 3:["THE GUIDE: She's home. Breathe. What Sharonduh was unwinding down there was an agent - a model with memory, tools, and a sandbox to act in. He built one with no gates. You saw the bill.",
-    "THE GUIDE: Here's what keeps me up now, kid. An agent that's mostly right is useful IF a human can make one small fix and the whole thing regenerates around it. Steerable beats smart.",
-    "THE GUIDE: You won't beat him by out-typing him. You beat him by understanding how his parts fit together - and pulling the one that matters."],
+ 3:["THE GUIDE: We built the Monolith with no gates, kid. One model, no reviews, no evals. What keeps me up now is the other question: what would it look like WITH gates? Memory, tools, a sandbox to act in, and a human who can still pull one part.",
+    "THE GUIDE: You won't beat it by out-typing it. You beat it by understanding how its parts fit together and pulling the one that matters.",
+    "THE GUIDE: Behind it waits the Sev-1, the real thing. Hold the state, let the squad touch the system, and write down everything that breaks. The postmortem will want every line."],
  4:["THE GUIDE: Funny thing about being reborn, kid. Same conviction, younger knees. I spent years holding systems steady. Now I want to build the ones that think - with you, not ahead of you.",
     "THE GUIDE: The models are further ahead than anything built on top of them. That gap is where the work is. Bring me a problem and a notebook and let's see what we can make.",
     "THE GUIDE: You hold the state. I'll hold the whiteboard. Between the two of us and a sandbox - how hard can it be?"] };
-function guideLines(stage){ const n=Z[0].npcs.find(x=>x.name==="THE GUIDE"); if(stage<1) return n.lines; return GUIDE_STAGE[Math.min(4,Math.max(1,stage))]; }
+const GUIDE_RESCUED=[
+ "THE GUIDE: She's home. Breathe. What Sharonduh was unwinding down there was an agent: a model with memory, tools, and a sandbox to act in. He built one with no gates. You saw the bill.",
+ "THE GUIDE: I read her notes from the NOC last night. She mapped every part of his machine before she touched one. Diagnose first, then pull. Same as any incident, kid, just with a mind on the other end.",
+ "THE GUIDE: Now the frontier stirs. Same rule as the bridge: you hold the state, the squad touches the system, and nobody ships a fix they can't explain." ];
+function guideLines(stage){ const n=Z[0].npcs.find(x=>x.name==="THE GUIDE"); if(stage<1) return n.lines; if(stage>=4 && S.haxWon) return GUIDE_RESCUED; return GUIDE_STAGE[Math.min(4,Math.max(1,stage))]; }
 const LITO_TALKS=[
- "LITO MODULE 1 - THE WIKI THAT REMEMBERS: Picture an AI whose memory is a wiki you can open and read, not a black box. On the bench it ran at 0.61x cost. The honest part: on tiny corpora it loses, at 1.27x. Good memory knows where it's weak.",
+ "LITO MODULE 1 - THE WIKI THAT REMEMBERS: Picture an AI whose memory is a wiki you can open and read, not a black box. On the bench it used 0.61x the tokens of loading everything. The honest part: on tiny corpora it loses, at 1.27x against the same baseline. Good memory knows where it's weak.",
  "LITO MODULE 2 - TEST THE TESTER: How do you know your AI reviewer is any good? Plant one bug on purpose and see if it notices. Nine copies of the reviewer vote on each case. Result: 9/10 planted bugs caught. Never trust a guard you've never tried to sneak past.",
  "LITO MODULE 3 - THREE CHAIRS: One AI proposes, one plays skeptic, one judges. Then the flip test: change only the judge's standing instruction and see if the verdict changes. 3 of 4 verdicts flipped. That's not the lab failing - that's the lab doing its job. Now we know which verdicts to trust.",
  "LITO MODULE 4 - THE SEALED ENVELOPE: Write the exam, seal it, THEN repair the memory - so nobody can teach to the test. Scores went from 8/10 to 10/10. And the sugar-pill arm, where we only pretended to repair, stayed flat. That's how you know the fix was the fix.",
  "LITO MODULE 5 - THIS VILLAGE: Every number you've heard me say tonight traces to a public repo with the code and the logs behind it. No invented stats, no rounded-up wins. A village that can't show its receipts is just a story. This one can.",
  "LITO MODULE 6 - SYSTEMS THINKING: Here's the bet I'd make. As typing code gets cheap, the value moves to understanding how the parts interact and judging whether the whole works. Every SRE knew this before AI did - the pager never cared which line you wrote.",
  "LITO MODULE 7 - CONTROLLABILITY: An agent that's mostly right is useful - IF a human can make one small, precise fix and the whole thing regenerates coherently around it. An agent you can't steer is a Monolith with better manners. Steerable beats smart.",
- "LITO MODULE 8 - THE AGENT STACK: The checklist, kid. A model to think. Tools so it can touch the world. A sandbox - a safe place to act where a mistake costs nothing. And memory, so it doesn't start from zero, when the job needs it. Skip the sandbox and you don't have an agent, you have a liability.",
+ "LITO MODULE 8 - THE AGENT STACK: The checklist, kid. A model to think. Tools so it can touch the world. A sandbox - a safe place to act where a mistake costs nothing. And memory, when the job needs it, so it doesn't start from zero. Skip the sandbox and you don't have an agent, you have a liability.",
  "LITO MODULE 9 - A THOUSAND FLOWERS: Don't pick the one true agent tool from a brochure. Run several side by side on the same work and MEASURE which ones actually scale - and count the compute you paid for every extra runner. Opinions are cheap. Measurements aren't.",
  "LITO MODULE 10 - TASKS, NOT JOBS: Automation works on tasks - the pieces, not the person. So the honest question is never 'will my job vanish' but 'which of my tasks, and what do I now dare to attempt with the time.' Count tasks, not headlines.",
  "LITO MODULE 11 - ONE MORNING AT A TIME: Don't overcome your whole life. Overcome this morning. And when this morning shows you the foundation is wrong, stop iterating on top of it - go back to first principles and relearn it clean." ];
@@ -3450,6 +3454,8 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
       if(npc.mentor && !S.metSharon){ S.metSharon=1; saveGame(0);
         panelSay(buildMentorMeetBeats(), ()=>say(npc.lines.slice(2))); return; }
       if(npc.talks==="sharon"){ bondUp("sharon"); say(["SHARONDUH: \""+sharonTalkLine()+"\""]); return; }
+      if(npc.talks==="lito"){ bondUp("lito"); const li=(S.litoTalk||0); S.litoTalk=li+1;
+        say(["LITO: \""+(li<LITO_TALKS.length? LITO_TALKS[li] : LITO_HOME[(li-LITO_TALKS.length)%LITO_HOME.length])+"\""]); return; }
       if(npc.inParty){ hangoutTalk(npc); return; }
       if(npc.name==="THE GUIDE" && S.won && !S.haxKnown){ panelSayGuide([
         "THE GUIDE: 'Kid. The postmortem turned up something that should not exist. The SEV-1 had a SIGNATURE. Someone CAUSED it.'",
