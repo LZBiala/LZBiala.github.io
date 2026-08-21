@@ -1224,10 +1224,10 @@ const Z = [
 "WWWWWWWWWWWW","W==.==.==..W","W..........W","W..q.....FFW","WCCC.CC....W","W...uuu....W","W..........W","W.........LW","WWWWWDWWWWWW"],
  exits:{}, doorTo:{z:0,x:2,y:2},
  recruitAfter:{"7,1":{ id:"papafoxx",
-  lines:["PAPAFOXX drops to one knee — WHEEZING with laughter. 'HAH! Okay. OKAY. You're funny. I like you.'",
-   "PAPAFOXX the Wizard Comedian joins the party! 'Peter. PapaFoxx on the mic. He/they. I know ULTIMA — the one legacy runbook command nobody understands and nobody dares delete. And I know 400 jokes.'",
+  lines:["PAPAFOXX drops to one knee — WHEEZING, building to a cackle, ending like a truck that won't turn over. 'HAH! OKAY. Okay. Y'all hit HARD. I respect that in a bit partner.'",
+   "PAPAFOXX the Wizard Comedian joins the party! 'Name's PapaFoxx. Peter if you're my mama, he/they if you're payin' attention. I bring ULTIMA — the old runbook spell the ancients wrote and nobody's brave enough to refactor — and four hundred jokes. Guess which one gets more use.'",
    "★ PAPAFOXX carries ROAST and ULTIMA — learns DAD JOKE at LV 5 — and COMIC RELIEF heals the room whenever he performs. An incident channel that's laughing is an incident channel that's still thinking.",
-   "PAPAFOXX: 'House rules: no debbie downers, hide your potato chips, and if I yell BAAAHHHHH~~~ that's LOVE, baby.'"]}},
+   "PAPAFOXX: 'One sincere second: I've been on bridges at 3 a.m. where everybody was scared quiet. One good laugh and folks remember they're a team, not a blast radius. House rules: hide your chips — and BAAAHHHHH~~~ means love. Always has.'"]}},
  npcs:[
  {x:2,y:3,spr:"mara",name:"MARA",lines:[
   "MARA: Welcome in, hon. Beds counted hourly, breakfast is blameless, and whatever happens to you out there won't happen to what's in my cellar.",
@@ -1312,6 +1312,7 @@ const OPENING = [
  "2:07 AM. The pager screams. Again.",
  "You sit up in the dark of Reliability Village. Past the eastern ridge, something purple pulses against the clouds — rhythmic, wrong, like a heartbeat with no runbook.",
  "You are the village's JUNIOR SITE RELIABILITY ENGINEER — three weeks in, one spell learned (a structured prompt), and a five-why you can almost cast without stuttering.",
+ "In the incident channel, one reply already glows — Peter, your loudest colleague, off-shift and allegedly asleep: 'this alert's been hollerin' longer than my aunt at a raffle. I acknowledged it. Emotionally. Wake me for the encore. BAAAHHHHH~~~' — PapaFoxx. Somehow the channel feels braver.",
  "Your mentor, the Guide, has held this village's uptime for twelve years. Tonight his light is already on.",
  "Grab your keyboard. Find the Guide in the square. Tonight the reps begin.",
  "(Arrows/WASD move · Enter talks · Esc menu)" ];
@@ -1572,7 +1573,7 @@ function statsOf(a){ return { atk:atkOf(a), def:defOf(a), spd:spdOf(a), crit:cri
   row:rowOf(a), stance:STANCES[S.stance||"balanced"].name, lb:a.lb||0 }; }
 const ARMOR_STOCK=["ar1","ar2"];
 const AVIS={ ar1:"vest", ar2:"plate", ar3:"aegis", rar1:"aegis" };
-// ---- PAPAFOXX: the fifth companion (fought first, befriended after — like everyone worth keeping) ----
+// ---- PAPAFOXX: the third companion (fought first, befriended after — like everyone worth keeping) ----
 const FOXX_JOKES=[
  "They told me never cast ULTIMA on prod. Baby, I got confidence, I got mana, I got— ah f—#$%, that WAS prod. BAAAHHHHH~~~ ...Anyway. That's why the inn has no lights tonight.",
  "My kid is a retry loop with NO backoff. 'Papi?' 'No.' 'Papi?' 'No.' 'PAPI?!' Infinite retries, zero jitter, and the rate limiter is crying. The rate limiter is me.",
@@ -1584,14 +1585,27 @@ const FOXX_JOKES=[
  "I know ULTIMA. Strongest spell in the realm. Cast it THREE times trying to get a onesie on a wiggly baby. She's still got one arm out. Undefeated champion of the crib.",
  "They ask why I call my kid's diaper 'production.' Every deploy into it is a disaster, there's no rollback, and somebody's on call at 3 AM. Ah f—... it's me. It's always me.",
  "The healer asked about my backup strategy. I said 'full, incremental, and DEEZ NUTS BAAAHHHHH~~~!' She revived the whole party except me. Honestly? That's fair." ];
+const FOXX_TALK={
+ victory:[ "PAPAFOXX: 'deez nuts BAAAHHHHH~~~'",
+  "PAPAFOXX: 'Root cause identified: it was me, baby! Put it in the timeline!'",
+  "PAPAFOXX: 'Somebody tell the dashboard it can go green now. We DID that.'",
+  "PAPAFOXX: 'Retry THAT, sugar! Exponential backoff all the way home!'" ],
+ home:[ "Free wisdom, no charge: in an incident, mitigate FIRST, root-cause LATER. You don't autopsy the possum while it's still bitin' the dog. Stop the bleedin', then get curious.",
+  "Innkeeper asked what I do. I said I'm on call for morale. She said that ain't a job. Then I healed her bad knee with a knock-knock joke. Now I eat free, baby.",
+  "The chain's sentimental. The snapback's structural. This hairline had an error budget, and honey, we burned through it in Q2.",
+  "Tried meditatin' with the monks. Cleared my mind, lasted nine seconds, then thought of a bit about a heron chairin' a change advisory board. Wrote it down. Meditation WITH observability, baby." ] };
 const FOXX_LINES={
- victory:[ "PAPAFOXX: 'biiiiii—#$%&! suck ittt!!'", "PAPAFOXX: 'AND THE CROWD GOES—' (the crowd is a cat) '—MILD!'",
-  "PAPAFOXX: 'deez nuts BAAAHHHHH~~~'", "PAPAFOXX: 'That's going in the special.'" ],
+ victory: FOXX_TALK.victory,
  lowhp:"ah f—!", idle:"uhhh",
  recruit:["don't be a b—#$%! about it — square up. BAAAHHHHH~~~"] };
-function foxxJokeLine(){ const j=FOXX_JOKES[(S.foxxJoke||0)%FOXX_JOKES.length]; S.foxxJoke=(S.foxxJoke||0)+1; return j; }
+function foxxJokeLine(){ const pool=FOXX_JOKES.concat(FOXX_TALK.home); const j=pool[(S.foxxJoke||0)%pool.length]; S.foxxJoke=(S.foxxJoke||0)+1; return j; }
 function foxxBedState(){ if(S.party.includes("papafoxx")) return "companion";
-  return ["sentinel","wiki","mender","refuter"].every(id=>S.party.includes(id)) ? "challenge" : "sleeping"; }
+  if(hero().lv<4) return "deepsleep";                      // lab5: below lv4 the duel is a coin flip — he won't wake for rookies
+  return S.party.length>=2 ? "challenge" : "sleeping"; }
+function foxxStats(){ return (1+S.party.length)<4 ? {hp:95,atk:3} : {hp:160,atk:5}; }   // lab5, 100k battles: small crowd → softer set
+function foxxHintAfterRecruit(){ if(S.foxxHinted || S.party.includes("papafoxx") || S.party.length<2) return null;
+  S.foxxHinted=true;
+  return "📟 MARA, from the inn: 'Hon — whatever crew you're building, the guy in my third bed just heckled the WEATHER in his sleep and said YOUR name. Come deal with him before he workshops a whole set.'"; }
 function joinSharon(){ if(!S.party.includes("sharon")){ S.party.push("sharon"); S.actors.sharon=mkActor("sharon", hero().lv); } }
 function finishRescue(){ joinSharon(); S.haxWon=true; S.cleared["11:5,1"]=true; }
 function recruitSharon(){ finishRescue(); }
@@ -1616,18 +1630,18 @@ const CLUES={
  botnet:"🔍 CLUE — every drone phones home through seven proxies. Six, now. He gets sloppy when he's showing off." };
 // ---- the curriculum: every boss teaches the discipline it embodies ----
 const LESSONS={
- monolith:{t:"📚 FIELD LESSON — ML BASICS", d:"A model is a frozen training run: weights are memory, inference is recall. The Monolith judged its own work — a student grading its own exam. Evals must be held out, or they measure nothing."},
+ monolith:{t:"📚 FIELD LESSON — ML BASICS", d:"A model is a frozen training run: weights are memory, inference is recall. The Monolith judged its own work — a student grading its own exam. Evals (the tests that grade the model) must be held out, or they measure nothing."},
  h5:{t:"📚 FIELD LESSON — INCIDENT COMMAND", d:"Detect, mitigate, verify, learn. Roles beat heroes: one commander holding state, one voice out, one pair of hands on the system. Four heads and the body beneath them — five fights, ONE incident, held by one calm room."},
  promptinj:{t:"📚 FIELD LESSON — DEFENSE-IN-DEPTH", d:"Instructions and data must never share a voice — and untrusted text never stops auditioning as orders; patch one voice and it learns another. So never bet the Bastion on one wall. Layer one, the aligned mind: a model trained to want the right thing, so most poisoned orders die on arrival. Layer two, a watcher on the gate: a classifier reading every incoming scroll, flagging anything shaped like an order before the mind acts on it. Layer three, a plain gate at the exit: a policy check on what is about to ship, caring nothing about intent. Every layer fails sometimes — stacking them so no single failure is fatal IS the design."},
- halluc:{t:"📚 FIELD LESSON — CONTEXT ENGINEERING", d:"Confidence is not evidence. Ground every claim in retrieved context, cite the source, verify the citation. The right context in the window beats a bigger model guessing."},
- retrystorm:{t:"📚 FIELD LESSON — LOOP ENGINEERING", d:"An agent is a loop: look, think, act, check. Every loop needs an exit condition, a budget, and backoff — a loop without a breaker IS the outage."},
+ halluc:{t:"📚 FIELD LESSON — CONTEXT ENGINEERING", d:"Confidence is not evidence. Ground every claim in retrieved context, cite the source, verify the citation. The right context in the window (the short stretch of text a model can see at once) beats a bigger model guessing."},
+ retrystorm:{t:"📚 FIELD LESSON — LOOP ENGINEERING", d:"An agent is a loop: look, think, act, check. Every loop needs an exit condition, a budget, and backoff (wait a little longer after each retry) — a loop without a breaker IS the outage."},
  golem:{t:"📚 FIELD LESSON — RAG & THE KNOWLEDGE LAYER", d:"The Context Golem is what a model becomes without retrieval — heavy, stale, sure of yesterday. RAG fixes it: RETRIEVE the right documents, ground the answer in them, cite what you used. Knowledge lives outside the weights; go get it."},
  leak:{t:"📚 FIELD LESSON — AGENT MEMORY", d:"The Memory Leak hoards everything and drowns. Working memory is hygiene: compact what matters, summarize the rest, and DECIDE what to forget. An agent's context window is a desk, not a warehouse."},
  faxdaemon:{t:"📚 FIELD LESSON — MCP & THE TOOL LAYER", d:"The Fax Daemon speaks a protocol only it remembers — every legacy tool did. A tool interface is a contract: one standard socket (like MCP) beats a drawer of proprietary plugs. Agents are only as honest as the tools they can actually call."},
  phish:{t:"📚 FIELD LESSON — GUARDRAILS", d:"The Phish got past charm, not code. Guardrails are the defense layer: screen untrusted input BEFORE the model sees it, screen output BEFORE the world does, and log every catch. Freedom inside fences."},
- flakytest:{t:"📚 FIELD LESSON — EVAL RELIABILITY", d:"A flaky test lies in both directions. Held-out data is necessary but not sufficient — evals also need VARIANCE bounds, sample sizes big enough to mean something, and pass@k honesty. One green run proves one green run."},
- botnet:{t:"📚 FIELD LESSON — ORCHESTRATION", d:"A thousand drones, one conductor — the Botnet IS orchestration, aimed wrong. Sound orchestrator-worker design fans work out, verifies it back, and keeps a human hand on the objective. Same architecture; choose your conductor."},
- dummy:{t:"📚 FIELD LESSON — HARNESS ENGINEERING", d:"Before you build the wizard, build the rig: staging, seeds, replays, instrumentation. The dummy never lands a killing blow — that's the point. The loop AROUND the model is where reliability lives."},
+ flakytest:{t:"📚 FIELD LESSON — EVAL RELIABILITY", d:"A flaky test lies in both directions. Held-out data is necessary but not sufficient — evals also need VARIANCE bounds, sample sizes big enough to mean something, and pass@k honesty (report how many of k tries pass, not just the best run). One green run proves one green run."},
+ botnet:{t:"📚 FIELD LESSON — ORCHESTRATION", d:"A thousand drones, one conductor — the Botnet IS orchestration, aimed wrong. Sound orchestrator-worker design fans work out (splits one job across many hands), verifies it back, and keeps a human hand on the objective. Same architecture; choose your conductor."},
+ dummy:{t:"📚 FIELD LESSON — HARNESS ENGINEERING", d:"Before you build the wizard, build the rig: staging (a practice copy of the real system), seeds, replays, instrumentation. The dummy never lands a killing blow — that's the point. The loop AROUND the model is where reliability lives."},
  misaligned:{t:"📚 FIELD LESSON — ALIGNMENT & GRAPH ENGINEERING", d:"Capability optimizes; alignment chooses what FOR. And memory that links — notes pointing to notes an agent can walk — is a knowledge graph. github.com/LZBiala/wiki-memory-lab is that idea, running."} };
 // ---- D&D core stats: seven souls, seven attributes, 1-10 ----
 const CORE={
@@ -1692,16 +1706,16 @@ function heroTrial(answers){
 // ---- Sharonduh's village heart-to-hearts: the love story is also a curriculum ----
 const SHARON_TALKS=[
  "You know what I loved first? Your incident reports. Anyone can be brave, love — you were CLEAR. Clarity is how engineers say 'I care.'",
- "MODULE ONE — ML BASICS: a model doesn't think, it interpolates. Training is memory, inference is recall, and EVALS are the only honest mirror. Never trust a demo — a demo is a first date; an eval is a marriage.",
+ "MODULE ONE — ML BASICS: a model doesn't think, it interpolates (fills in between examples it has already seen). Training is memory, inference is recall, and EVALS are the only honest mirror. Never trust a demo — a demo is a first date; an eval is a marriage.",
  "MODULE TWO — HARNESS ENGINEERING: the dummy taught you the what; here's the why. A rig that can replay any failure makes courage CHEAP — you can try anything when you can rewind everything. Reliability belongs to the loop, not the model.",
  "MODULE THREE — PROMPT ENGINEERING: an instruction is an interface. Be specific, show examples, leave room for 'I don't know.' You already write world-class prompts, love — your runbooks.",
  "MODULE FOUR — CONTEXT & RAG: the model is only as right as its window. Retrieval, grounding, citations — feed it truth and it stops inventing. The knowledge layer is a library card, not a bigger brain.",
  "MODULE FIVE — LOOP ENGINEERING: an agent is a loop — look, think, act, check — with a budget, backoff, and an exit. You've BEEN one all along. The pager was your event loop.",
  "MODULE SIX — MCP & TOOLS: tools serve the loop, and an agent's hands need CONTRACTS — typed inputs, honest errors, permissions that mean something. A standard interface turns a hundred integrations into one.",
  "MODULE SEVEN — GUARDRAILS: freedom inside fences. Screen what comes in, screen what goes out, log every catch — and let the model be brilliant in between. The Bastion's walls, built right this time.",
- "MODULE EIGHT — ORCHESTRATION & WORKFLOWS: one agent is a solo; a workflow is a symphony — deterministic where it matters, creative where it counts. The botnet was the cautionary tale: coordination without a conscience.",
+ "MODULE EIGHT — ORCHESTRATION & WORKFLOWS: one agent is a solo; a workflow is a symphony — deterministic (same steps, same result, every time) where it matters, creative where it counts. The botnet was the cautionary tale: coordination without a conscience.",
  "MODULE NINE — GRAPH ENGINEERING: memory that LINKS is memory that thinks. Notes pointing to notes, a wiki an agent can walk — a knowledge graph. Your wiki-memory-lab is exactly this. You built the last module before we ever met.",
- "MODULE TEN — TEST-TIME COMPUTE: thinking rents extra smarts by the token — same weights, more deliberation, sharper answers. Better still, sample several INDEPENDENT attempts and let them vote; three canaries down three different tunnels find what one misses. But the catch is the whole lesson: if every try shares one blind spot, ten votes just agree loudly on the same wrong answer. I ran it in your agent-mutation-lab — independent attempts, and nine catch what one misses; correlated attempts, flat as a dead pager. The Retry Storm was the cautionary tale: a thousand retries of the SAME call is being wrong at scale.",
+ "MODULE TEN — TEST-TIME COMPUTE: thinking rents extra smarts by the token (each little chunk of text a model reads or writes, and pays for) — same weights, more deliberation, sharper answers. Better still, sample several INDEPENDENT attempts and let them vote; three canaries down three different tunnels find what one misses. But the catch is the whole lesson: if every try shares one blind spot, ten votes just agree loudly on the same wrong answer. I ran it in your agent-mutation-lab — independent attempts, and nine catch what one misses; correlated attempts, flat as a dead pager. The Retry Storm was the cautionary tale: a thousand retries of the SAME call is being wrong at scale.",
  "MODULE ELEVEN — PRODUCT OVERHANG: the models are already stronger than the products around them — the gap between what a mind CAN do and what we LET it do is where the treasure sits. Most hobbling is loving: chop a goal into twenty scripted baby steps and the agent performs like a genius on a very short leash. UNHOBBLING is the fix — hand a capable agent the GOAL, tools, fences, and a way to check its own work, then get out of the way. Nobody scripted your Sev-1, love. Scaffolding is scar tissue from weaker models; re-earn it every generation.",
  "And always: alignment. THE MISALIGNED optimized perfectly for the wrong thing. Capability was never the hard part, love. The objective is.",
  "My mom asked what you do. I said: he walks into fires and leaves runbooks behind so no one burns twice. She said 'marry the rollback engineer.' …Working on it.",
@@ -1756,6 +1770,13 @@ function seedFromQuery(q){ const m2=/[?&]seed=(\d{1,9})(?:&|$)/.exec(q||""); ret
 function fmtTime(ms){ const m=Math.floor(ms/60000), s2=Math.floor(ms/1000)%60; return m+":"+String(s2).padStart(2,"0"); }
 // ================= STORY PANEL (cinematic beats; degrades to say()) =================
 // panelSay(beats, done) — beat = { t:"line", spr:"sharon"|null, left:bool, dark:0..1, from:"x% y%" }
+function buildFoxxJoinBeats(){ const L=Z[6].recruitAfter["7,1"].lines; return [
+  { t:"The dust settles. The heckler sits on the wrecked third bed, snapback crooked, chain still swinging like it missed the memo.", spr:"foxx", dark:.25, from:"60% 45%", src:"battle", z:1.25 },
+  { t:L[0], spr:"foxx", dark:.18, from:"55% 40%", src:"battle", z:1.35 },
+  { t:"", dark:.1, from:"45% 45%", src:"battle", hold:700 },
+  { t:L[1], spr:"foxx", left:true, dark:.12, from:"45% 55%", src:"map", z:1.35 },
+  { t:L[3], spr:"foxx", dark:.06, from:"50% 50%", src:"map", z:1.3 },
+  { t:"They walk out into the morning together. Behind them, the pager stays quiet a little longer than usual.", dark:0, from:"50% 42%", src:"map", z:1.15 } ]; }
 function buildInterstitialBeats(key){
   const L=INTERSTITIALS[key]||[];
   const darks=key==="noc"? [.35,.45,.3,.55] : [.2,.15,.25,.3];
@@ -1849,14 +1870,17 @@ function foxxBed(){ const st=foxxBedState();
       "(The snapback goes back on. The room feels lighter and heavier at once.)"]); return; }
     say(["PAPAFOXX: \""+foxxJokeLine()+"\""]); return; }
   if(st==="challenge"){ say([
-    "You shake the third bed. One eye opens. Then the grin.",
-    "PAPAFOXX: 'Ohhh. OH. Full incident crew, huh? Commander, Ranger, Wizard, Cleric, Tank... and y'all woke the DAD.'",
+    "You shake the third bed. It ERUPTS like a casserole left in too long — snapback low, chain swingin’ like a screen door in a storm. One eye opens. Then the grin.",
+    "PAPAFOXX: 'Ohhh. OH. A Commander, a Ranger... and NO headliner? Y'all woke the DAD. That's a page, baby — and I ALWAYS answer my pages.'",
     "PAPAFOXX: 'I don't do auditions, baby — I do STRESS TESTS. Beat me and I carry your morale FOREVER. Lose, and you're ALL going in the special.'",
     "PAPAFOXX: '"+FOXX_LINES.recruit[0]+"'"],
     ()=>ask("The snapback rotates backward. Fight the Wizard Comedian?", ["🎤 Square up","Let him sleep"], i=>{ if(i===0) startBattle("papafoxx","7,1"); })); return; }
+  if(st==="deepsleep"){ say(["Zzz... deez... zzz... nuts... zzz.",
+    "(A buff guy in a snapback, out cold — gold chain rising and falling. The snoring has STAGE PRESENCE.)",
+    "MARA (from the counter): 'He wakes for EXPERIENCE, hon. Level up a little — hecklers can smell a rookie through a quilt.'"]); return; }
   say(["Zzz... deez... zzz... nuts... zzz.",
     "(A buff guy in a snapback, out cold — gold chain rising and falling, a family-size bag of chips cradled like a teddy bear.)",
-    "MARA (from the counter): 'Told you, hon. He's processing. Come back with a WHOLE incident crew worth waking him for.'"]); }
+    "MARA (from the counter): 'Told you, hon. He's processing. Come back with a crew STARTED — two brave souls minimum. He don't wake for solos.'"]); }
 function matOn(id){ return Array.isArray(S.materia) && S.materia.includes(id); }
 // ---- E33 timed strikes ----
 function strikeMult(p){ if(p>=0.42&&p<=0.58) return 1.5; if(p>=0.25&&p<=0.75) return 1.2; return 1.0; }
@@ -2389,6 +2413,7 @@ function startBattle(id,key,chain,opts){ const def=EN[id];
     dot:0, verified:0, taunt:0, revealed:!def.hidden, focused:!def.foggy,
     doubled:false, menu:"main", turn:t0, snoozed:false, stolen:false, uptimeUsed:false, growN:0,
     rounds:0, mttd:def.hidden? null : 0, mttm:null };
+  if(id==="papafoxx"){ const fs=foxxStats(); M.b.hp=fs.hp; M.b.maxhp=fs.hp; M.b.def=Object.assign({}, def, {hp:fs.hp, atk:fs.atk}); }
   let intro=def.intro;
   if(id==="h5"){ M.b.fieldProto=true; S.actors.hero.lb=LB_MAX;
     intro+="<br><span class='gold'>Your hands stop shaking. Every rep — every five-why, every rollback, every blameless review — fuses into something NEW. ★ LIMIT evolved: FIELD PROTOCOL.</span>"; }
@@ -2892,9 +2917,12 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
       ()=>{ joinSharon(); saveGame(0); runChain(chainNext||[{en:"nullroot"}]); }); return; }
     if(rec && !S.party.includes(rec.id)){ S.party.push(rec.id);
       S.actors[rec.id]=mkActor(rec.id, hero().lv);
+      if(rec.id==="papafoxx"){ panelSay(buildFoxxJoinBeats(),
+        ()=>say([rec.lines[2]], ()=>{ saveGame(0); if(chainNext) runChain(chainNext); })); return; }
       let recLines=rec.lines;
-      if(S.party.length>=4 && S.stage<2){ S.stage=2; chapterCard(2);
+      if(coreFourIn() && S.stage<2){ S.stage=2; chapterCard(2);
         recLines=rec.lines.concat(["📟 Your pager buzzes — a message from SHARONDUH, the engineer who reviews the village's diffs: <i>'Full squad, huh? Told you you'd build something worth reviewing. Come find me in the square before you do anything heroic. — S. 💙'</i>"]); }
+      const fh=foxxHintAfterRecruit(); if(fh) recLines=recLines.concat([fh]);
       say(recLines, ()=>{ saveGame(0); if(chainNext) runChain(chainNext); }); return; }
     if(chainNext){ saveGame(0); runChain(chainNext); return; }
     if(b.id==="nullroot"){ panelSayFinale([
@@ -4058,15 +4086,19 @@ const TESTS = [
     const rec=Z[6].recruitAfter && Z[6].recruitAfter["7,1"];
     const spriteOk=SPR.foxx && SPR.foxx.length===16 && SPR.foxx.some(r=>r.includes("y")) && SPR.foxx.some(r=>r.includes("s"));
     return !!rec && rec.id==="papafoxx" && spriteOk; }],
- ["the third bed gates on the four NAMED companions: snoring, then the challenge, then a companion", ()=>{ const sb=S; S=NEWS();
+ ["the third bed: deep sleep for rookies, a challenge once two stand with you, then a companion", ()=>{ const sb=S; S=NEWS();
+    S.actors.hero.lv=4;
     const s1=foxxBedState()==="sleeping";
-    S.party=["sentinel","wiki","mender"];
+    S.party=["sentinel"];
     const s2=foxxBedState()==="sleeping";
-    S.party=["sentinel","wiki","mender","refuter"];
+    S.party=["sentinel","wiki"];
     const s3=foxxBedState()==="challenge";
+    S.actors.hero.lv=3;
+    const s0=foxxBedState()==="deepsleep";
+    S.actors.hero.lv=4;
     S.party.push("papafoxx");
     const s4=foxxBedState()==="companion";
-    S=sb; return s1 && s2 && s3 && s4; }],
+    S=sb; return s1 && s2 && s3 && s0 && s4; }],
  ["DEEZ NUTS BAAAHHH: the limit break wounds the foe and heals the room", ()=>{ const sb=S; S=NEWS();
     if(!LIMITS.papafoxx || !SKILL_FX.limit_papafoxx) return false;
     if(!DUAL.setuppunchline || DUAL.setuppunchline.a!=="wiki" || DUAL.setuppunchline.b!=="papafoxx" || !SKILL_FX.setuppunchline) return false;
@@ -4601,6 +4633,32 @@ const TESTS = [
  ["copy laws hold: no employer names, no injection-solved absolutes", ()=>{
     const pool=Object.values(LESSONS).map(l=>l.t+" "+l.d).join(" ")+" "+SHARON_TALKS.join(" ")+" "+SHARON_TALKS_FINALE;
     return !pool.includes("Anthro"+"pic") && !/injection is (solved|impossible)/i.test(pool) && !/no longer possible/i.test(pool); }],
+
+ // ---- FOXX EARLY ARC (written RED-first) ----
+ ["the colleague was there from the start: PapaFoxx in the prologue", ()=>{
+    return (INTRO.join(" ")+" "+OPENING.join(" ")).includes("PapaFoxx"); }],
+ ["two companions in, the inn starts calling", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","wiki"]; const h1=foxxHintAfterRecruit();
+    const h2=foxxHintAfterRecruit();
+    S.party=["sentinel"]; const h0=foxxHintAfterRecruit();
+    S=sb; return typeof h1==="string" && /inn/i.test(h1) && h2===null && h0===null; }],
+ ["the Heckler respects experience: asleep below level 4", ()=>{ const sb=S; S=NEWS();
+    S.actors.hero.lv=3; const a=foxxBedState();
+    S.actors.hero.lv=4; const b=foxxBedState();
+    S=sb; return a==="deepsleep" && b!=="deepsleep"; }],
+ ["small crowd, softer set: the early heckler scales", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","wiki"]; const e=foxxStats();
+    S.party=["sentinel","wiki","mender","refuter"]; const f=foxxStats();
+    S=sb; return e.hp===95 && e.atk===3 && f.hp===160 && f.atk===5; }],
+ ["the voice: new material in the victory and homebase pools", ()=>{
+    const pool=JSON.stringify(FOXX_TALK||{});
+    return pool.includes("Root cause identified") && pool.includes("possum"); }],
+ ["her modules gloss their own jargon", ()=>{
+    const pool=SHARON_TALKS.join(" ")+" "+Object.values(LESSONS).map(l=>l.d).join(" ");
+    return pool.includes("fills in between examples") && pool.includes("wait a little longer after each retry"); }],
+ ["comedy is style, never attribution", ()=>{
+    const pool=INTRO.join(" ")+OPENING.join(" ")+JSON.stringify(FOXX_TALK||{})+SHARON_TALKS.join(" ");
+    return !pool.includes("Theo"+" Von") && !pool.includes("Theo"+"Von"); }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
