@@ -140,7 +140,7 @@
 </head>
 <body>
 <h1>⚔️ AI QUEST: SEV-1</h1>
-<div class="sub">sre edition · limit breaks · dual techs · crafting · time travel · chiptune music · balance tuned on 16,000,000 simulated battles · by Lito Zarate Biala</div>
+<div class="sub">sre edition · limit breaks · dual techs · crafting · time travel · chiptune music · balance tuned on 19,000,000+ simulated battles · by Lito Zarate Biala</div>
 <div class="hudtop">
   <span id="hhero"><b>HERO</b> LV 1</span>
   <span>⛁ <b id="htok">0</b></span><span id="hslo"></span><span id="zonename"><b>—</b></span><span id="sptimer" hidden style="color:var(--gold)">⏱ 0:00</span>
@@ -1574,6 +1574,17 @@ function statsOf(a){ return { atk:atkOf(a), def:defOf(a), spd:spdOf(a), crit:cri
 const ARMOR_STOCK=["ar1","ar2"];
 const AVIS={ ar1:"vest", ar2:"plate", ar3:"aegis", rar1:"aegis" };
 // ---- PAPAFOXX: the third companion (fought first, befriended after — like everyone worth keeping) ----
+const CODEX=[
+ { term:"BEST-OF-K", plain:"Ask several independent tries and take the majority. Works only when the tries fail DIFFERENTLY — nine copies with one shared blind spot are one opinion wearing nine hats." },
+ { term:"UNHOBBLING", plain:"Getting more from the model you already have by removing the clumsy ways you use it. Yesterday's guardrail may be today's leash — re-earn the scaffolding every generation." },
+ { term:"MUTATION TESTING", plain:"Plant one known bug on purpose and check your reviewer catches it at the right line. An alarm that misses planted smoke is missing real fires too." },
+ { term:"DRIFT GATE", plain:"A build check that re-runs every published number and fails loudly if a claim stopped being true — the menu gets re-weighed every single morning." },
+ { term:"PLACEBO ARM", plain:"A control that spends the same effort on fake fixes. If the sugar pill works as well as the medicine, the medicine wasn't the reason." },
+ { term:"HELD-OUT TEST", plain:"Exam questions sealed in an envelope before any studying begins, so nobody can rehearse the answers and the grade actually means something." },
+ { term:"CALIBRATION", plain:"Confidence that matches reality: say 70% and be right about seven times in ten. The forecaster's virtue — and the on-call engineer's." },
+ { term:"DEFENSE-IN-DEPTH", plain:"Layers against injected orders: an aligned mind, a watcher on the gate, a check at the exit. Every layer fails sometimes — stacking them IS the design." },
+ { term:"TOKENS", plain:"The little chunks of text a model reads and writes — and pays for. Thinking rents extra smarts by the token; budget it like MP." },
+ { term:"MTTx", plain:"The incident clocks: time to DETECT, to ACKNOWLEDGE, to MITIGATE, to RESOLVE. You cannot improve what you never put a stopwatch on." } ];
 const FOXX_JOKES=[
  "They told me never cast ULTIMA on prod. Baby, I got confidence, I got mana, I got— ah f—#$%, that WAS prod. BAAAHHHHH~~~ ...Anyway. That's why the inn has no lights tonight.",
  "My kid is a retry loop with NO backoff. 'Papi?' 'No.' 'Papi?' 'No.' 'PAPI?!' Infinite retries, zero jitter, and the rate limiter is crying. The rate limiter is me.",
@@ -3016,6 +3027,7 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
    "<button data-m='items'>ITEMS</button>"+
    "<button data-m='awaken'>☯ REAWAKEN</button>"+
    "<button data-m='lessons'>📚 LESSONS</button>"+
+   "<button data-m='codex'>📖 CODEX</button>"+
    "<button data-m='save'>SAVE GAME</button>"+
    "<button data-m='settings'>SETTINGS</button>"+
    "<button data-m='close'>CLOSE (Esc)</button></div>";
@@ -3023,6 +3035,11 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
   box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ sfx("blip"); menuSub(btn.dataset.m); }); }
 function menuSub(mn){
   if(mn==="close"){ ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); return; }
+  if(mn==="codex"){
+    let h="<b class='gold'>📖 CODEX</b> <span class='mut'>— the field's words, in plain words. The same ideas the bosses teach the hard way.</span><div style='max-height:260px;overflow:auto;font-size:.74rem;line-height:1.5;margin-top:6px'>";
+    CODEX.forEach(c=>{ h+="<div style='margin-bottom:7px'><b class='gold'>"+c.term+"</b><br><span class='mut'>"+c.plain+"</span></div>"; });
+    h+="</div><div class='choices'><button data-b='1'>◀ BACK</button></div>"; box.innerHTML=h;
+    box.querySelector("[data-b]").onclick=()=>menuHome(); return; }
   if(mn==="lessons"){ const earned=Object.keys(LESSONS).filter(k=>S.lesson&&S.lesson[k]);
     const heard=Math.min(S.sharonTalk||0, SHARON_TALKS.length);
     let h="<b class='gold'>📚 LESSONS</b> <span class='mut'>— field lessons "+earned.length+"/"+Object.keys(LESSONS).length+" · her modules "+heard+"/"+SHARON_TALKS.length+"</span><div style='max-height:260px;overflow:auto;font-size:.74rem;line-height:1.5;margin-top:6px'>";
@@ -3338,7 +3355,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.classList.add("center");
   const auto=loadSlot(0);
   let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>— SRE EDITION —</div>"+
-   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 16,000,000 simulated battles</div>"+
+   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 19,000,000+ simulated battles</div>"+
    "<div class='choices' style='max-width:360px;margin:0 auto;text-align:left'>";
   if(auto) h+="<button data-t='cont'>▶ CONTINUE (HERO LV "+auto.actors.hero.lv+" · "+Z[auto.z].name+")</button>";
   h+="<button data-t='new'>✦ NEW ADVENTURE</button>";
@@ -4659,6 +4676,24 @@ const TESTS = [
  ["comedy is style, never attribution", ()=>{
     const pool=INTRO.join(" ")+OPENING.join(" ")+JSON.stringify(FOXX_TALK||{})+SHARON_TALKS.join(" ");
     return !pool.includes("Theo"+" Von") && !pool.includes("Theo"+"Von"); }],
+
+ // ---- CODEX + honest count (written RED-first) ----
+ ["the codex: ten terms, each with a plain-words handle", ()=>{
+    if(typeof CODEX==="undefined") return false;
+    const pool=JSON.stringify(CODEX);
+    return CODEX.length>=10 && CODEX.every(c=>c.term && c.plain && c.plain.length>30)
+      && pool.includes("BEST-OF-K") && pool.includes("UNHOBBLING") && pool.includes("MTT"); }],
+ ["the pause menu opens the codex", ()=>{ const sb=S; S=NEWS(); M.state="explore";
+    pauseMenu();
+    const btn=box.querySelector("[data-m='codex']"); if(!btn){ ov.hidden=true; M.state="test"; S=sb; return false; }
+    btn.click();
+    const ok=/CODEX/i.test(box.textContent) && /BEST-OF-K/i.test(box.textContent) && /nine hats|shared blind spot/i.test(box.textContent);
+    ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return ok; }],
+ ["the title screen tells the truth about the battle count", ()=>{
+    const banned="16,0"+"00,000";
+    const sub=document.querySelector(".sub");
+    return sub && sub.textContent.includes("19,000,000+") && !sub.textContent.includes(banned)
+      && String(titleScreen).includes("19,000,000+"); }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
