@@ -123,6 +123,15 @@
   .sp-hint { position:absolute; right:12px; bottom:2%; z-index:3; color:var(--muted); font-size:.7rem; animation:spblink 1.6s steps(2) infinite; }
   @keyframes spblink { 50% { opacity:.15; } }
   @media (prefers-reduced-motion: reduce){ #spanel, #spanel::before, #spanel::after, .sp-bg, .sp-fig, .sp-text, .sp-hint { animation:none !important; } }
+  .dlgbust { float:left; margin:0 10px 4px 0; border:2px solid var(--gold); border-radius:6px;
+    background:#0b1636; image-rendering:pixelated; width:72px; height:72px; }
+  /* ---- GOLDEN SUN battle juice: the camera reacts ---- */
+  @keyframes gszoom { 0% { transform:scale(1); } 40% { transform:scale(1.055); } 100% { transform:scale(1); } }
+  .bscene.gs-cast canvas { animation:gszoom .45s ease-out; }
+  @keyframes gsflash { from { opacity:.85; } to { opacity:0; } }
+  .bscene .gs-flash { position:absolute; inset:0; z-index:5; pointer-events:none;
+    background:radial-gradient(ellipse at center,#ffffff88 0%,#fbbf2444 45%,#0000 75%); animation:gsflash .6s ease-out both; }
+  @media (prefers-reduced-motion: reduce){ .bscene.gs-cast canvas { animation:none !important; } .bscene .gs-flash { display:none; } }
   .titlecard { text-align:center; padding:24px 16px; }
   .titlecard h2 { color:var(--gold); font-size:1.6rem; letter-spacing:.1em; margin-bottom:4px; }
   .titlecard .ed { color:var(--teal); font-size:.8rem; letter-spacing:.2em; margin-bottom:14px; }
@@ -1991,7 +2000,10 @@ function fxPopFoe(txt,color){ BFX.push("pop",{x:78,y:56,txt:String(txt),color:co
 function fxPopAlly(pid,txt,color){ const i=slotOf(pid); if(i<0) return;
   const p=BPOS(i); BFX.push("pop",{x:p.x+24,y:p.y+4,txt:String(txt),color:color||"#f87171"}); }
 function fxBlocked(){ fxPopFoe("BLOCKED","#9fb0d8"); }
-function fxAbility(name){ const el=document.getElementById("abanner"); if(!el) return;
+function castPulse(big){ if(reducedMotion()) return; const sc=document.getElementById("bscene"); if(!sc) return;
+  sc.classList.remove("gs-cast"); void sc.offsetWidth; sc.classList.add("gs-cast");
+  if(big){ const f=document.createElement("div"); f.className="gs-flash"; sc.appendChild(f); setTimeout(()=>f.remove(),650); } }
+function fxAbility(name){ castPulse(/^\u2605/.test(String(arguments[0]||""))); const el=document.getElementById("abanner"); if(!el) return;
   el.textContent=name; el.classList.remove("show"); void el.offsetWidth; el.classList.add("show"); }
 function fxActive(kind){ const now=performance.now();
   return BFX.list.find(e=>e.kind===kind && now-e.t0<(FXDUR[kind]||600)); }
@@ -2221,10 +2233,20 @@ function render(){
 setInterval(()=>{ M.frame++; if(M.state==="explore") render(); }, 600);
 
 // ================= DIALOG =================
+const SPEAKERS={ "SHARONDUH":"sharon","PAPAFOXX":"foxx","THE GUIDE":"elder","ELDER ROWAN":"rowan","YOUNG ROWAN":"rowan",
+ "KID BIT":"kid","MARA":"mara","PEG":"peg","QUARTERMASTER PEG":"peg","SABLE":"sable","SABLE THE ARMORER":"sable",
+ "RETROLISTIC":"retro","SENTINEL":"sentinel","WIKI":"wiki","MENDER":"mender","REFUTER":"refuter",
+ "A HOODED CONTRACTOR":"hax","NULLBYTE":"hax","PAGER THE CAT":"cat" };
+function speakerOf(line){ const t=String(line).replace(/<[^>]*>/g,"").replace(/^[^A-Z]*/,"");
+  const m2=/^([A-Z][A-Z0-9 .'’-]{1,26}?)(?:\s*\([^)]*\))?:/.exec(t); if(!m2) return null;
+  const key=m2[1].trim(); return SPEAKERS[key]||null; }
 function say(lines,done){ M.state="dialog"; M.dlg=lines; M.dlgi=0; M.done=done||null; showDlg(); }
 function showDlg(){ ov.hidden=false; ov.classList.remove("center");
-  box.innerHTML=M.dlg[M.dlgi].replace(/^([A-Z !()'★⚑-]+):/,"<span class='gold'>$1:</span>")
+  const spkr=speakerOf(M.dlg[M.dlgi]);
+  box.innerHTML=(spkr&&SPR[spkr]? "<canvas class='dlgbust' width='72' height='72'></canvas>" : "")+M.dlg[M.dlgi].replace(/^([A-Z !()'★⚑-]+):/,"<span class='gold'>$1:</span>")
     +"<div class='choices'><button>▶ (Enter)</button></div>";
+  const bc=box.querySelector(".dlgbust");
+  if(bc){ const g=bc.getContext("2d"); g.fillStyle="#0b1636"; g.fillRect(0,0,72,72); drawSprTo(g, spkr, 4, 2, 6); }
   box.querySelector("button").onclick=advDlg; }
 function advDlg(){ if(!M.dlg) return; M.dlgi++;
   if(M.dlgi>=M.dlg.length){ ov.hidden=true; const d=M.done; M.dlg=null; M.done=null;
@@ -4424,6 +4446,25 @@ const TESTS = [
     S.party=["retro"];
     const there=npcsFor(Z[6]).some(n=>n.inParty==="retro" && n.lines.length>=4);
     S=sb; return there; }],
+
+ // ---- GOLDEN SUN CUT (written RED-first) ----
+ ["every named line knows its face: the speaker parser", ()=>{
+    return speakerOf("SHARONDUH: 'hi'")==="sharon"
+      && speakerOf("SHARONDUH (beside you): 'x'")==="sharon"
+      && speakerOf("PAPAFOXX: 'y'")==="foxx"
+      && speakerOf("THE GUIDE: 'z'")==="elder"
+      && speakerOf("RETROLISTIC: 'q'")==="retro"
+      && speakerOf("The cage hangs open.")===null; }],
+ ["Golden Sun bust-ups: named speakers get a framed face beside their words", ()=>{ const sb=S; S=NEWS();
+    say(["MARA: 'Welcome in, hon.'","(narration has no face)"]);
+    const bust1=!!box.querySelector(".dlgbust");
+    advDlg();
+    const bust2=!box.querySelector(".dlgbust");
+    ov.hidden=true; M.dlg=null; M.done=null; M.state="test"; S=sb; return bust1 && bust2; }],
+ ["the camera reacts: cast-pulse and limit-flash live in the CSS, silenced under reduced motion", ()=>{
+    const css=document.querySelector("style").textContent;
+    return /@keyframes gszoom/.test(css) && /gs-flash/.test(css) && typeof castPulse==="function"
+      && /prefers-reduced-motion[^}]*\}[\s\S]*gs-cast|gs-cast[\s\S]*prefers-reduced-motion/.test(css); }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -4451,7 +4492,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
   bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
-  buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn,
+  buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse,
   joinSharon, finishRescue, CLUES, LESSONS, CORE, coreOf, starBar, heroTrial, equipGear, CONDS };
 tryMigrate();
 render();
