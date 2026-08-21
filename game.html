@@ -1618,7 +1618,7 @@ const CLUES={
 const LESSONS={
  monolith:{t:"📚 FIELD LESSON — ML BASICS", d:"A model is a frozen training run: weights are memory, inference is recall. The Monolith judged its own work — a student grading its own exam. Evals must be held out, or they measure nothing."},
  h5:{t:"📚 FIELD LESSON — INCIDENT COMMAND", d:"Detect, mitigate, verify, learn. Roles beat heroes: one commander holding state, one voice out, one pair of hands on the system. Four heads and the body beneath them — five fights, ONE incident, held by one calm room."},
- promptinj:{t:"📚 FIELD LESSON — PROMPT ENGINEERING", d:"Instructions and data must never share a voice. The Injection spoke in your commander's tone — pin the system prompt, sanitize inputs, and treat untrusted text as cargo, never as commands."},
+ promptinj:{t:"📚 FIELD LESSON — DEFENSE-IN-DEPTH", d:"Instructions and data must never share a voice — and untrusted text never stops auditioning as orders; patch one voice and it learns another. So never bet the Bastion on one wall. Layer one, the aligned mind: a model trained to want the right thing, so most poisoned orders die on arrival. Layer two, a watcher on the gate: a classifier reading every incoming scroll, flagging anything shaped like an order before the mind acts on it. Layer three, a plain gate at the exit: a policy check on what is about to ship, caring nothing about intent. Every layer fails sometimes — stacking them so no single failure is fatal IS the design."},
  halluc:{t:"📚 FIELD LESSON — CONTEXT ENGINEERING", d:"Confidence is not evidence. Ground every claim in retrieved context, cite the source, verify the citation. The right context in the window beats a bigger model guessing."},
  retrystorm:{t:"📚 FIELD LESSON — LOOP ENGINEERING", d:"An agent is a loop: look, think, act, check. Every loop needs an exit condition, a budget, and backoff — a loop without a breaker IS the outage."},
  golem:{t:"📚 FIELD LESSON — RAG & THE KNOWLEDGE LAYER", d:"The Context Golem is what a model becomes without retrieval — heavy, stale, sure of yesterday. RAG fixes it: RETRIEVE the right documents, ground the answer in them, cite what you used. Knowledge lives outside the weights; go get it."},
@@ -1701,6 +1701,8 @@ const SHARON_TALKS=[
  "MODULE SEVEN — GUARDRAILS: freedom inside fences. Screen what comes in, screen what goes out, log every catch — and let the model be brilliant in between. The Bastion's walls, built right this time.",
  "MODULE EIGHT — ORCHESTRATION & WORKFLOWS: one agent is a solo; a workflow is a symphony — deterministic where it matters, creative where it counts. The botnet was the cautionary tale: coordination without a conscience.",
  "MODULE NINE — GRAPH ENGINEERING: memory that LINKS is memory that thinks. Notes pointing to notes, a wiki an agent can walk — a knowledge graph. Your wiki-memory-lab is exactly this. You built the last module before we ever met.",
+ "MODULE TEN — TEST-TIME COMPUTE: thinking rents extra smarts by the token — same weights, more deliberation, sharper answers. Better still, sample several INDEPENDENT attempts and let them vote; three canaries down three different tunnels find what one misses. But the catch is the whole lesson: if every try shares one blind spot, ten votes just agree loudly on the same wrong answer. I ran it in your agent-mutation-lab — independent attempts, and nine catch what one misses; correlated attempts, flat as a dead pager. The Retry Storm was the cautionary tale: a thousand retries of the SAME call is being wrong at scale.",
+ "MODULE ELEVEN — PRODUCT OVERHANG: the models are already stronger than the products around them — the gap between what a mind CAN do and what we LET it do is where the treasure sits. Most hobbling is loving: chop a goal into twenty scripted baby steps and the agent performs like a genius on a very short leash. UNHOBBLING is the fix — hand a capable agent the GOAL, tools, fences, and a way to check its own work, then get out of the way. Nobody scripted your Sev-1, love. Scaffolding is scar tissue from weaker models; re-earn it every generation.",
  "And always: alignment. THE MISALIGNED optimized perfectly for the wrong thing. Capability was never the hard part, love. The objective is.",
  "My mom asked what you do. I said: he walks into fires and leaves runbooks behind so no one burns twice. She said 'marry the rollback engineer.' …Working on it.",
  "The frontier isn't a place. It's a discipline: ship the thinnest thing, measure it, own the failure, teach the next one. You already live there." ];
@@ -4288,7 +4290,7 @@ const TESTS = [
     return CLUES.zeroday && CLUES.ransomworm && CLUES.botnet
       && /NULLBYTE|SEV-1/i.test(CLUES.zeroday) && /east|wire|NOC/i.test(CLUES.ransomworm); }],
  ["the curriculum: field lessons teach ML, prompts, context, loops, and graphs at the bosses that embody them", ()=>{
-    const need={ monolith:/ML|model|training/i, h5:/incident|command/i, promptinj:/prompt/i, halluc:/context/i, retrystorm:/loop/i, misaligned:/align|graph/i };
+    const need={ monolith:/ML|model|training/i, h5:/incident|command/i, promptinj:/layer|classifier/i, halluc:/context/i, retrystorm:/loop/i, misaligned:/align|graph/i };
     return Object.keys(need).every(k=>LESSONS[k] && need[k].test(LESSONS[k].t+" "+LESSONS[k].d)); }],
  ["her modules ladder all the way to graph engineering, citing the real lab", ()=>{
     const pool=SHARON_TALKS.join(" ");
@@ -4583,6 +4585,22 @@ const TESTS = [
     M.b={ def:EN.papafoxx, id:"papafoxx" };
     const bx=battleThemeFor()==="battlefoxx";
     M.b=null; S=sb; return v && w && n && fr && bf && bh && bx; }],
+
+ // ---- CHERNY WAVE: defense-in-depth + her new modules (written RED-first) ----
+ ["defense in depth: the injection lesson teaches layers, not walls", ()=>{
+    const d=LESSONS.promptinj.d;
+    return /align/i.test(d) && /classifier/i.test(d) && /polic/i.test(d) && /every layer fails/i.test(d); }],
+ ["her curriculum grows: test-time compute and unhobbling, correctly numbered", ()=>{
+    const pool=SHARON_TALKS.join(" ");
+    const i9=SHARON_TALKS.findIndex(t=>/MODULE NINE/.test(t));
+    const i10=SHARON_TALKS.findIndex(t=>/MODULE TEN/.test(t));
+    const i11=SHARON_TALKS.findIndex(t=>/MODULE ELEVEN/.test(t));
+    return SHARON_TALKS.length>=15 && i10===i9+1 && i11===i10+1
+      && /TEST-TIME/.test(pool) && /vot/i.test(pool) && /independent/i.test(pool)
+      && /overhang/i.test(pool) && /unhobbl/i.test(pool); }],
+ ["copy laws hold: no employer names, no injection-solved absolutes", ()=>{
+    const pool=Object.values(LESSONS).map(l=>l.t+" "+l.d).join(" ")+" "+SHARON_TALKS.join(" ")+" "+SHARON_TALKS_FINALE;
+    return !pool.includes("Anthro"+"pic") && !/injection is (solved|impossible)/i.test(pool) && !/no longer possible/i.test(pool); }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
