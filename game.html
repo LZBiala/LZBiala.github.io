@@ -670,22 +670,22 @@ mara:[
 ".....kbbbbk.....",
 ".....kkkkkk....."],
 foxx:[
-"....kkkkkkkk....",
-"...kjjjjjjjjk...",
-"..kjjjjjjjjjjkk.",
-"..kkkkkkkkkkkkk.",
-"...kssssssssk...",
-"...kskssssksk...",
-"...kssssssssk...",
-"...kskwwwwksk...",
-"....kssssssk....",
-"....kyyyyyyk....",
-"..kjsjjjjjjsjk..",
-"..kjsjwwwwjsjk..",
-"..kjsjjjjjjsjk..",
-"...kkjjjjjjkk...",
-"....kjj..jjk....",
-"....kww..wwk...."],
+".....kkkkkk.....",
+"kkkkkttTtttk....",
+"kppptttttttTk...",
+"kPPPPPPnnPPPk...",
+"kkkknnnnnnnnk...",
+"...ksknnnnkskkk.",
+"...knnnnhnnnkmMk",
+"...kkwwwwwwkkmMk",
+"....khnnnnhk.kk.",
+"....kynnnnykknnk",
+"kwwwwwyyyywwwnnk",
+"knnwwwwwwwwwwnnk",
+"knnwwwwwwwwwwnnk",
+"kkkkjjjjjjjjkkkk",
+"...kjjj..jjjk...",
+"...kwww..wwwk..."],
 sharon:[
 "....kkkkkkk.....",
 "..kkkkkkkkkk....",
@@ -955,7 +955,7 @@ const MEMBERS = {
  // PapaFoxx: real 3d6 rolls mapped into the envelope - might 10→atk 2, agi 14→spd 6, grit 14→hp 11, kno 13→mp 8.
  // Spirit rolled 8 (his worst): his heals are FLAT, joke-powered, never spirit-scaled - the healing is the friends we laughed at along the way.
  papafoxx:{ name:"PAPAFOXX", cls:"Wizard Comedian", spr:"foxx", spd:6, base:{hp:11,mp:8,atk:2}, grow:{hp:3,mp:2,atk:1},
-   skills:{1:["roast","ultima"],5:["dadjoke"]} },
+   skills:{1:["roast","crowdwork","ultima"],5:["dadjoke"]} },
  // Sharonduh reworked (LZB 2026-08-20): a White Mage who ran out of patience - fast, front line, fists AND healing hands
  sharon:{ name:"SHARONDUH", cls:"White Mage", spr:"sharon", spd:7, base:{hp:10,mp:10,atk:4}, grow:{hp:2,mp:2,atk:1},
    skills:{1:["failoverfist","hotfix","sanitize"],5:["uptimeaura"]} },
@@ -998,6 +998,7 @@ const SP = {
  kanban:{ name:"KANBAN CUT", mp:2, d:"two blades, one motion: 2×(2+LV/2) damage. Work in progress, finished." },
  dashboard:{ name:"DASHBOARD", mp:3, d:"see everything at once: reveals armor AND lifts fog in a single glance." },
  sprintplan:{ name:"SPRINT PLAN", mp:5, d:"the well-planned round: every ally's hits +2 this round. Scope it, ship it." },
+ crowdwork:{ name:"CROWD WORK", mp:3, d:"the whole room turns on the heckler: enemy defense -2 for two rounds, every ally's hits +2 this round. Nobody boos alone." },
  twinhypothesis:{ name:"TWIN HYPOTHESIS", mp:2, d:"two explanations run side by side: 2×(2+LV/2) damage. The one that survives the data stays." },
  firstprinciples:{ name:"FIRST PRINCIPLES", mp:2, d:"the foundation is wrong, stop iterating on it: reveals armor AND lifts fog." },
  windmill:{ name:"WINDMILL HALO FREEZE", mp:3, d:"spin, spin, hold: 3+LV/2 damage, and on a CRITICAL the foe loses its next turn." } };
@@ -1174,7 +1175,7 @@ const EN = {
   tip:"The final lesson of the frontier: capability without alignment. Bring every discipline you own." },
  papafoxx:{ name:"PAPAFOXX THE HECKLER", spr:"foxx", hp:160, atk:5, xp:30, tok:0, weak:"fliptest", flee:true, ai:"smart",   // 160/heckle-6 set by the 205k-run learner + expert loop
   moves:[["warms up the crowd at your expense",4],["ROASTS your whole runbook",6,"heckle"],["opens the LAST PAGE OF THE LEGACY RUNBOOK - U · L · T · I · M · A",9]],
-  intro:"The third bed ERUPTS. A buff man in a snapback rises, gold chain swinging, grin already loaded. PAPAFOXX THE HECKLER: 'You woke the dad. Big mistake. HUGE material.'",
+  intro:"The third bed erupts like a casserole left in too long - blankets everywhere, a snapback already spun backwards, a gold chain catching the lamplight, and a mic that came out of nowhere. PAPAFOXX THE HECKLER: 'HECKLER in the house! Who wants to go first?'",
   tip:"Heckle the heckler - a cross-examination (FLIP TEST) breaks any comedian's rhythm." },
  retrystorm:{ name:"THE RETRY STORM", spr:"wyrm", hp:200, atk:7, xp:45, tok:80, weak:"controlarm2", ai:"smart", multi:true, grow:true, elite:true,   // 200 set by the 1M-run learner
   moves:[["retries the same request four hundred times",8],["amplifies its own failure into a cascade",10]],
@@ -1303,9 +1304,9 @@ const Z = [
  exits:{}, doorTo:{z:0,x:2,y:2},
  recruitAfter:{"7,1":{ id:"papafoxx",
   lines:["PAPAFOXX drops to one knee - WHEEZING, building to a cackle, ending like a truck that won't turn over. 'HAH! OKAY. Okay. Y'all hit HARD. I respect that in a bit partner.'",
-   "PAPAFOXX the Wizard Comedian joins the party! 'Name's PapaFoxx. Peter if you're my mama, he/they if you're payin' attention. I bring ULTIMA - the old runbook spell the ancients wrote and nobody's brave enough to refactor - and four hundred jokes. Guess which one gets more use.'",
-   "★ PAPAFOXX carries ROAST and ULTIMA - learns DAD JOKE at LV 5 - and COMIC RELIEF heals the room whenever he performs. An incident channel that's laughing is an incident channel that's still thinking.",
-   "PAPAFOXX: 'One sincere second: I've been on bridges at 3 a.m. where everybody was scared quiet. One good laugh and folks remember they're a team, not a blast radius. House rules: hide your chips - and BAAAHHHHH~~~ means love. Always has.'"]}},
+   "PAPAFOXX the Wizard Comedian joins the party! 'Name's PapaFoxx. Dad, console gamer, professional laugh-getter. I bring ULTIMA - the legacy runbook spell nobody's brave enough to refactor - and four hundred jokes. The jokes have the better uptime.'",
+   "★ PAPAFOXX carries ROAST, CROWD WORK, and ULTIMA - learns DAD JOKE at LV 5 - and COMIC RELIEF heals the room whenever he performs. Every set is a heal, every heckle is a buff, and the snapback stays backwards because his kid said so.",
+   "PAPAFOXX: 'House rules: nobody fights alone, nobody skips the save point, and BAAAHHHHH~~~ means love. I've been on 3 a.m. bridges where nobody laughed and ones where somebody did. The second kind fixed it faster. So on this whole journey, I'm the one who laughs. You build the thing. I got you, best friend.'"]}},
  npcs:[
  {x:2,y:3,spr:"mara",name:"MARA",lines:[
   "MARA: Welcome in, hon. Beds counted hourly, breakfast is blameless, and whatever happens to you out there won't happen to what's in my cellar.",
@@ -1391,7 +1392,7 @@ const OPENING = [
  "2:07 AM. The pager screams. Again.",
  "You sit up in the dark of Reliability Village. Past the eastern ridge, something purple pulses against the clouds - rhythmic, wrong, like a heartbeat with no runbook.",
  "You are the village's JUNIOR SITE RELIABILITY ENGINEER - three weeks in, one spell learned (a structured prompt), and a five-why you can almost cast without stuttering.",
- "In the incident channel, one reply already glows - Peter, your loudest colleague, off-shift and allegedly asleep: 'this alert's been hollerin' longer than my aunt at a raffle. I acknowledged it. Emotionally. Wake me for the encore. BAAAHHHHH~~~' - PapaFoxx. Somehow the channel feels braver.",
+ "In the incident channel, one reply already glows - PapaFoxx, your loudest colleague, off-shift: 'Who paged the whole building? I was mid-boss-fight with my kid. Ack it, open the runbook, and somebody laugh - that's an order. BAAAHHHHH~~~' Somehow the channel feels braver.",
  "Your mentor, the Guide, has held this village's uptime for twelve years. Tonight his light is already on.",
  "Grab your keyboard. Find the Guide in the square. Tonight the reps begin.",
  "(Arrows/WASD move · Enter talks · Esc menu)" ];
@@ -1600,7 +1601,7 @@ const SKILL_FX = { promptia:"#2dd4bf", fivewhy:"#fbbf24", rollback:"#34d399", hi
  controlarm:"#60a5fa", repair:"#34d399", ward:"#93c5fd", fliptest:"#f87171", objection:"#fb923c",
  rootcausex:"#2dd4bf", promptstorm:"#c084fc", xreview:"#f87171", canaryvolley:"#fbbf24", safedeploy:"#60a5fa",
  roast:"#fb923c", ultima:"#f0abfc", dadjoke:"#fde68a", setuppunchline:"#f9a8d4",
- hotfix:"#34d399", sanitize:"#e8f4ee", uptimeaura:"#93c5fd", pairprogramming:"#f472b6", failoverfist:"#fda4af", kanban:"#2dd4bf", dashboard:"#60a5fa", sprintplan:"#fbbf24", limit_retro:"#2dd4bf", twinhypothesis:"#60a5fa", firstprinciples:"#fbbf24", windmill:"#c084fc", limit_lito:"#60a5fa",
+ hotfix:"#34d399", sanitize:"#e8f4ee", uptimeaura:"#93c5fd", pairprogramming:"#f472b6", failoverfist:"#fda4af", kanban:"#2dd4bf", dashboard:"#60a5fa", sprintplan:"#fbbf24", limit_retro:"#2dd4bf", crowdwork:"#fb923c", twinhypothesis:"#60a5fa", firstprinciples:"#fbbf24", windmill:"#c084fc", limit_lito:"#60a5fa",
  limit_hero:"#fbbf24", limit_sentinel:"#4ade80", limit_wiki:"#c084fc", limit_mender:"#34d399", limit_refuter:"#fb923c", limit_papafoxx:"#fbbf24", limit_sharon:"#f472b6" };
 const FXDUR = { lunge:520, foelunge:520, burst:600, pop:900, heal:700, hit:260 };
 // ---- limit breaks (FF-style: gauges charge from damage taken) ----
@@ -1666,29 +1667,43 @@ const CODEX=[
  { term:"TOKENS", plain:"The little chunks of text a model reads and writes - and pays for. Thinking rents extra smarts by the token; budget it like MP." },
  { term:"MTTx", plain:"The incident clocks: time to DETECT, to ACKNOWLEDGE, to MITIGATE, to RESOLVE. You cannot improve what you never put a stopwatch on." } ];
 const FOXX_JOKES=[
- "They told me never cast ULTIMA on prod. Baby, I got confidence, I got mana, I got- ah f-#$%, that WAS prod. BAAAHHHHH~~~ ...Anyway. That's why the inn has no lights tonight.",
- "My kid is a retry loop with NO backoff. 'Papi?' 'No.' 'Papi?' 'No.' 'PAPI?!' Infinite retries, zero jitter, and the rate limiter is crying. The rate limiter is me.",
- "Last night's incident report: one family-size bag of chips, zero survivors. Root cause: 'I said just one.' Status: won't fix. Recurrence: nightly. Postmortem: delicious.",
- "Yo, you seen my new load balancer? It distributes all incoming traffic evenly across DEEZ NUTS BAAAHHHHH~~~!! Whew. Been holding that one since the tutorial zone.",
- "My mami keeps every baby photo on her phone, in the cloud, AND printed at the pharmacy. Three copies, two formats, one offsite. Dominican grandmas invented the 3-2-1 backup rule!",
- "YAML took down prod over ONE missing space. ONE. I've cast ULTIMA on villains who disrespected me less than that, b-#$%!",
- "My baby asked why the server room was cold. I said it left its Windows open. She's four months old and didn't laugh, but her papi is FUNNY and one day she gonna know it.",
- "I know ULTIMA. Strongest spell in the realm. Cast it THREE times trying to get a onesie on a wiggly baby. She's still got one arm out. Undefeated champion of the crib.",
- "They ask why I call my kid's diaper 'production.' Every deploy into it is a disaster, there's no rollback, and somebody's on call at 3 AM. Ah f-... it's me. It's always me.",
- "The healer asked about my backup strategy. I said 'full, incremental, and DEEZ NUTS BAAAHHHHH~~~!' She revived the whole party except me. Honestly? That's fair." ];
+ "My kid asks for a snack. No. Asks again in two seconds. No. Four seconds. No. Eight, sixteen - by the time she asks again, dinner's ready and she gets it anyway. That's exponential backoff. The router taught her. She taught me.",
+ "My abuela keeps three copies of every recipe - one in the drawer, one in her head, one in my tia's head in another city. That's a backup strategy. Because a backup you never tested is just a rumor, and my abuela does not cook from rumors.",
+ "At my house the rule is: when the plantains burn, we don't ask WHO burned them. We ask WHY the smoke alarm was unplugged and why the timer was set to 'vibes.' Blameless postmortem. Fix the kitchen, not the cousin. The cousin was me.",
+ "Every time I get up to check the rice, I hit the save point. Every time. Because one night I lost a dragon AND a pot of rice in the same five minutes, and only one of those had a reload. Checkpoint before you step away. Always.",
+ "My kid 'updated' my phone to help. Now my alarm speaks French. So I rolled back - not because she was wrong, because the last version WORKED. Get back to working first, investigate the French second. She's eight. Great taste in bugs.",
+ "Couch co-op with my kid is the only time I'm glad somebody's watching my screen. She yells 'Papi, behind you!' like an alert with perfect context. My pager could learn from her. My pager just says 'behind you' and hangs up.",
+ "My cousin's cookout: the speaker is all merengue, the grill is all my uncle. No dashboard, no runbook, nobody knows what the smoke means. Four nines. That man has never dropped a chicken. Some systems run on love and a spatula.",
+ "Why's the snapback backwards? Two reasons. One: I'm a wizard, the brim blocks the spells. Two: my kid turned it around while I napped on the couch, and when I woke up she said 'Papi, now you look cool.' That change shipped. No rollback.",
+ "My mami doesn't rage-quit. She saves, powers down, says 'we'll see tomorrow.' Tomorrow the boss is STILL there, but I'm rested and I had a plate. That's an incident commander ending the shift before somebody breaks a chair.",
+ "People ask which I'd keep - four hundred jokes or the one spell. Easy. The jokes. ULTIMA fixes the server. A joke at 3 a.m. fixes the person watching the server. Keep the humans up and the machines follow. Then you run the spell." ];
+const FOXX_BITS=[
+ "Look at him - standing there like a loading screen. Forty percent and proud of it. Hit him, we got places to be!",
+ "You got the same energy as my kid's sticky controller - pushing hard, nothing happening, everybody annoyed.",
+ "My abuela has scarier things in her freezer and she KEEPS those. You? You she'd throw out.",
+ "Your whole plan is a retry storm - same mistake, faster, and somehow louder. I respect the commitment, though!",
+ "He thinks he's the final boss, but his health bar has a loading spinner. Baby, you're a tutorial.",
+ "You showed up like a 3 a.m. page with no runbook - loud, confusing, and nobody asked for you.",
+ "My mami would look at you, say 'ay, mi amor, you look hungry,' and hand you a plate. That's all the mercy you get.",
+ "He's got the menace of a plantain I forgot on the counter - dark, soft, and about to get turned into something.",
+ "Ladies and gentlemen, the monster! He drove all the way here to get rolled back. Give him a hand on the way out!",
+ "He burned his whole error budget on a Tuesday and now he's yelling at the dashboard. Mijo, it's still red.",
+ "Every time he roars I hear a pager nobody's on call for. Who is this for? Somebody ack him already!",
+ "You're like merengue at my cousin's cookout - loud, repetitive, and my tia is about to shut you down." ];
 const FOXX_TALK={
  victory:[ "PAPAFOXX: 'deez nuts BAAAHHHHH~~~'",
   "PAPAFOXX: 'Root cause identified: it was me, baby! Put it in the timeline!'",
-  "PAPAFOXX: 'Somebody tell the dashboard it can go green now. We DID that.'",
-  "PAPAFOXX: 'Retry THAT, sugar! Exponential backoff all the way home!'" ],
+  "PAPAFOXX: 'Closed the ticket, saved the game. Somebody text my mami, she worries.'",
+  "PAPAFOXX: 'Monster down, error budget intact. Plantains on me tonight!'",
+  "PAPAFOXX: 'Thank you, thank you - tip your healers, hug your kids, back up your saves!'" ],
  home:[ "Free wisdom, no charge: in an incident, mitigate FIRST, root-cause LATER. You don't autopsy the possum while it's still bitin' the dog. Stop the bleedin', then get curious.",
   "Innkeeper asked what I do. I said I'm on call for morale. She said that ain't a job. Then I healed her bad knee with a knock-knock joke. Now I eat free, baby.",
   "The chain's sentimental. The snapback's structural. This hairline had an error budget, and honey, we burned through it in Q2.",
   "Tried meditatin' with the monks. Cleared my mind, lasted nine seconds, then thought of a bit about a heron chairin' a change advisory board. Wrote it down. Meditation WITH observability, baby." ] };
 const FOXX_LINES={
  victory: FOXX_TALK.victory,
- lowhp:"ah f-!", idle:"uhhh",
- recruit:["don't be a b-#$%! about it - square up. BAAAHHHHH~~~"] };
+ lowhp:"Okay. Okay. This is where my kid would say 'Papi, just use the potion.' Somebody? Anybody?", idle:"uhhh",
+ recruit:["Third bed's mine, rookie. Come get it - and hope your healer's awake, because my set doesn't miss."] };
 function foxxJokeLine(){ const pool=FOXX_JOKES.concat(FOXX_TALK.home); const j=pool[(S.foxxJoke||0)%pool.length]; S.foxxJoke=(S.foxxJoke||0)+1; return j; }
 function foxxBedState(){ if(S.party.includes("papafoxx")) return "companion";
   if(hero().lv<4) return "deepsleep";                      // lab5: below lv4 the duel is a coin flip - he won't wake for rookies
@@ -2014,7 +2029,7 @@ function foxxBed(){ const st=foxxBedState();
       "(The snapback goes back on. The room feels lighter and heavier at once.)"]); return; }
     say(["PAPAFOXX: \""+foxxJokeLine()+"\""]); return; }
   if(st==="challenge"){ say([
-    "You shake the third bed. It ERUPTS like a casserole left in too long - snapback low, chain swingin’ like a screen door in a storm. One eye opens. Then the grin.",
+    "You shake the third bed. It ERUPTS like a casserole left in too long - snapback spun backwards, mic already up, chain swingin’ like a screen door in a storm. One eye opens. Then the grin.",
     "PAPAFOXX: 'Ohhh. OH. A Commander, a Ranger... and NO headliner? Y'all woke the DAD. That's a page, baby - and I ALWAYS answer my pages.'",
     "PAPAFOXX: 'I don't do auditions, baby - I do STRESS TESTS. Beat me and I carry your morale FOREVER. Lose, and you're ALL going in the special.'",
     "PAPAFOXX: '"+FOXX_LINES.recruit[0]+"'"],
@@ -2813,13 +2828,15 @@ function playerHit(a,dmg,txt){ const b=M.b;
   if(b.def.regen && b.verified===0){ fxBlocked(); blog(txt+"<br>It takes "+dmg+"... <span class='red'>and REGENERATES! (CONTROL ARM verifies the round.)</span>"); b.menu="next"; drawMenu(); return; }
   dealt(a,dmg,txt); }
 function dealt(a,dmg,txt){ const b=M.b;
+  if(a.id==="papafoxx" && typeof FOXX_BITS!=="undefined"){ const bit=FOXX_BITS[Math.floor(rng()*FOXX_BITS.length)]; M.lastBit=bit;
+    txt+=" <span class='mut'>🎤 "+bit+"</span>"; }
   let isCrit=false; const forced=M.forceCrit; delete M.forceCrit;
   if(forced!==undefined ? forced : (rng()<critOf(a))){ dmg=Math.round(dmg*2); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
   else sfx("hit");
   if(dmg>=8){ b.itMeter=(b.itMeter||0)+1;   // INTERRUPT (lab-4 golden): heavy, well-set-up hits charge the preemption meter
     if(b.itMeter>=3){ b.itMeter=0; b.intercept=1; txt+=" <span class='gold'>⚡ INTERRUPT ARMED - the next runaway action gets cancelled.</span>"; } }
   b.combo=(b.combo||0)+1;
-  dmg=Math.max(1, dmg+stanceOut()+comboBonus(b.combo)+awakOf(a.id)+(b.sprint>0?2:0)-(b.heckled>0?1:0));   // the reawakened hit harder; a planned sprint lifts everyone
+  dmg=Math.max(1, dmg+stanceOut()+comboBonus(b.combo)+awakOf(a.id)+(b.sprint>0?2:0)+(b.softened>0?2:0)-(b.heckled>0?1:0));   // the reawakened hit harder; a planned sprint lifts everyone
   BFX.push("lunge",{slot:b.turn}); BFX.push("hit");
   fxPopFoe(dmg, isCrit? "#fbbf24":"#fff");
   if(isCrit){ fxPopFoe(dmg, "#f59e0b"); BFX.push("pop",{x:96,y:44,txt:dmg,color:"#fde68a"}); } // MapleStory damage rain
@@ -2882,6 +2899,8 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     blog(nm+" ROLLS BACK to last known good state - <span class='num'>+7 HP</span>."); b.menu="next"; drawB(); return; }
   if(id==="objection"){ b.taunt=2;
     blog(nm+": <span class='gold'>\"OBJECTION!\"</span> The enemy can't resist arguing - it targets the Tank for 2 turns (-1 dmg)."); b.menu="next"; drawB(); return; }
+  if(id==="crowdwork"){ b.softened=2; b.sprint=Math.max(b.sprint||0,1); sfx("heal"); BFX.push("burst",{color:SKILL_FX.crowdwork});
+    blog(nm+" works the crowd - <span class='gold'>CROWD WORK!</span> The whole room turns on the heckler: <span class='num'>enemy defense -2 (2 rounds), every ally's hits +2 this round.</span> Nobody boos alone."); b.menu="next"; drawB(); return; }
   if(id==="roast"){ b.roasted=2;
     return dealt(a, 2, nm+" ROASTS the enemy - a burn so precise it compiles! <span class='gold'>Its attack drops (2 rounds).</span> <span class='mut'>Blameless, but not painless.</span>"); }
   if(id==="ultima"){
@@ -3011,6 +3030,7 @@ function endOfRound(b,t){
   if(b.roasted>0) b.roasted--;
   if(b.heckled>0) b.heckled--;
   if(b.sprint>0) b.sprint--;
+  if(b.softened>0) b.softened--;
   if(b.aura>0){ b.aura--; const L2=living();
     if(L2.length){ L2.forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+2); }); t+=" <span class='num'>(UPTIME AURA: party +2)</span>"; } }
   // wipe takes precedence over a DOT kill in the same round - no false victories
@@ -3677,7 +3697,7 @@ const TESTS = [
       && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
  ["shop catalog integrity (18 items)", ()=>SHOP_STOCK.length===18 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
- ["9 classes, 27 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===9 && Object.keys(SP).length===27
+ ["9 classes, 28 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===9 && Object.keys(SP).length===28
     && EN.monolith.hp===165 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
     return s.length===n && s.every(r=>r.length===n); })],
@@ -4873,6 +4893,32 @@ const TESTS = [
  ["no names from the talks leak into game copy", ()=>{
     const pool=LITO_TALKS.join(" ")+JSON.stringify(guideLines(0))+JSON.stringify(guideLines(4))+JSON.stringify(buildLitoJoinBeats());
     return !pool.includes("NVID"+"IA") && !pool.includes("Jen"+"sen") && !pool.includes("Anthro"+"pic"); }],
+
+ // ---- FOXX FACELIFT (written RED-first) ----
+ ["the facelift: backwards two-tone cap and a microphone in the sprite", ()=>{
+    const g=SPR.foxx.join(""); return SPR.foxx.length===16 && /[tT]/.test(g) && /[pP]/.test(g) && /[mM]/.test(g); }],
+ ["clean comedy: no grawlix, no Peter, no pronoun line anywhere in his copy", ()=>{
+    const rec=Z[6].recruitAfter["7,1"].lines.join(" ");
+    const pool=FOXX_JOKES.join(" ")+JSON.stringify(FOXX_LINES)+JSON.stringify(FOXX_TALK)+(typeof FOXX_BITS==="undefined"?"":FOXX_BITS.join(" "))+rec+EN.papafoxx.intro+OPENING.join(" ");
+    return !pool.includes("#"+"$%") && !pool.includes("f-!") && !pool.includes("Pet"+"er") && !/he\/they/i.test(pool); }],
+ ["twelve bits in the roster, each a one-liner", ()=>{
+    return typeof FOXX_BITS!=="undefined" && FOXX_BITS.length>=12 && FOXX_BITS.every(b=>b.length>0 && b.length<=140); }],
+ ["crowd work: the room turns on the foe - defense down two rounds, allies hit harder", ()=>{ const sb=S; S=NEWS();
+    S.party=["papafoxx"]; S.actors.papafoxx=mkActor("papafoxx",6); S.actors.papafoxx.mp=9;
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:200, maxhp:200, snoozed:false, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0 };
+    castSkill(S.actors.papafoxx,"crowdwork");
+    const set=M.b.softened===2 && M.b.sprint>=1;
+    M.b.hp=200; M.b.softened=0; M.b.sprint=0; M.forceCrit=false; dealt(S.actors.papafoxx,3,""); const d1=200-M.b.hp;
+    M.b.hp=200; M.b.softened=2; M.forceCrit=false; dealt(S.actors.papafoxx,3,""); const d2=200-M.b.hp;
+    M.b=null; M.state="test"; S=sb; return set && d2===d1+2; }],
+ ["every swing is a bit: his attacks carry a random joke", ()=>{ const sb=S; S=NEWS();
+    S.party=["papafoxx"]; S.actors.papafoxx=mkActor("papafoxx",6); S.actors.papafoxx.mp=9;
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:200, maxhp:200, snoozed:false, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0 };
+    delete M.lastBit; castSkill(S.actors.papafoxx,"roast");
+    const ok=typeof M.lastBit==="string" && FOXX_BITS.includes(M.lastBit);
+    M.b=null; M.state="test"; S=sb; return ok; }],
+ ["the kit knows the new move", ()=>{
+    return !!SP.crowdwork && MEMBERS.papafoxx && JSON.stringify(MEMBERS.papafoxx.skills).includes("crowdwork") && Object.keys(SP).length===28; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
