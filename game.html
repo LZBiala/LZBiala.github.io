@@ -1049,6 +1049,14 @@ const IT = {
  bw1:{ name:"Canary Bow", type:"weapon", price:0, atk:2, fits:["hero","sentinel"], d:"forged: arrows that sing through fog - basic attacks pierce CONTEXT FOG." },
  wd1:{ name:"Postmortem Wand", type:"weapon", price:0, atk:1, fits:["hero","wiki","sharon","mender"], d:"forged: +1 ATK (HERO, WIKI, SHARONDUH or MENDER) - in the HERO's hands its swings bite even ARMORED foes." },
  mic1:{ name:"Golden Mic", type:"weapon", price:40, atk:1, fits:["papafoxx"], d:"PAPAFOXX +1 ATK - the punchline lands heavier." },
+ rt1:{ name:"Kanban Blades", type:"weapon", price:0, atk:1, fits:["retro"], d:"RETROLISTIC +1 ATK, and KANBAN CUT costs 1 less MP - two blades, one column at a time." },
+ lt1:{ name:"Systems Compass", type:"weapon", price:0, atk:1, fits:["lito"], d:"LITO +1 ATK, and the first TWIN HYPOTHESIS each battle reveals the foe - it points at the loop that made the mess." },
+ wd2:{ name:"Blameless Censer", type:"weapon", price:0, atk:1, fits:["mender"], d:"MENDER +1 ATK, and REPAIR mends 8 instead of 6 - smoke over the incident, never over a name." },
+ bw2:{ name:"Blast Radius Quiver", type:"weapon", price:0, atk:1, fits:["sentinel"], d:"SENTINEL +1 ATK, and MUTAGEN ticks a fourth turn - arrows that keep counting after they land." },
+ sw2:{ name:"Objection Gavel", type:"weapon", price:0, atk:1, fits:["refuter"], d:"REFUTER +1 ATK, and OBJECTION! cuts incoming damage by 2 instead of 1 - one strike and every eye goes to the Tank." },
+ mic2:{ name:"Crowd Work Cuffs", type:"weapon", price:0, atk:1, fits:["papafoxx"], d:"PAPAFOXX +1 ATK, and CROWD WORK's defense drop lasts a third round - the front row does half the work." },
+ bd3:{ name:"Rotation Badge", type:"badge", price:45, def:1, fx:"rotation", d:"HERO -1 damage, and each round the ally lowest on MP regains 1 - nobody carries the pager alone." },
+ ch9:{ name:"Rubber Duck", type:"charm", price:30, fx:"duck", d:"every ally's FIRST skill each battle costs 1 less MP - explain it out loud to something that cannot judge you." },
  rw1:{ name:"Kernel Blade", type:"weapon", price:0, atk:5, fits:["hero","sharon"], d:"transmuted at ring zero - +5 ATK. It remembers being an RCA Blade." },
  rar1:{ name:"Frontier Aegis", type:"armor", price:0, def:3, d:"transmuted from the Aegis of Uptime - −3 damage taken, +1 SPEED. The frontier, worn." },
  rch1:{ name:"Five Nines Locket", type:"charm", price:0, d:"transmuted from the Talisman - every ally takes −1 from every foe. Availability, made jewelry." },
@@ -1063,7 +1071,7 @@ const IT = {
  ar1:{ name:"Mail Vest", type:"armor", price:30, def:1, d:"riveted links over the plaid - -1 damage taken. It shows." },
  ar2:{ name:"Incident Plate", type:"armor", price:60, def:2, d:"gold-trimmed plate with a visored helm - -2 damage taken. It REALLY shows." },
  ar3:{ name:"Aegis of Uptime", type:"armor", price:0, def:2, d:"forged: humming teal armor - -2 damage taken, +1 SPEED. Five nines, worn." } };
-const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","kb1","kb2","kb3","sw1","mic1","gl1","bd1","bd2","ch1","ch2","ch3"];
+const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","kb1","kb2","kb3","sw1","mic1","gl1","bd1","bd2","bd3","ch1","ch2","ch3","ch9"];
 
 // ================= DATA: enemies (100k-sim tuned) =================
 const EN = {
@@ -1306,7 +1314,7 @@ const Z = [
   lines:["PAPAFOXX drops to one knee - WHEEZING, building to a cackle, ending like a truck that won't turn over. 'HAH! OKAY. Okay. Y'all hit HARD. I respect that in a bit partner.'",
    "PAPAFOXX the Wizard Comedian joins the party! 'Name's PapaFoxx. Dad, console gamer, professional laugh-getter. I bring ULTIMA - the legacy runbook spell nobody's brave enough to refactor - and four hundred jokes. The jokes have the better uptime.'",
    "★ PAPAFOXX carries ROAST, CROWD WORK, and ULTIMA - learns DAD JOKE at LV 5 - and COMIC RELIEF heals the room whenever he performs. Every set is a heal, every heckle is a buff, and the snapback stays backwards because his kid said so.",
-   "PAPAFOXX: 'House rules: nobody fights alone, nobody skips the save point, and BAAAHHHHH~~~ means love. I've been on 3 a.m. bridges where nobody laughed and ones where somebody did. The second kind fixed it faster. So on this whole journey, I'm the one who laughs. You build the thing. I got you, best friend.'"]}},
+   "PAPAFOXX: 'House rules: nobody fights alone, nobody skips the save point, and BAAAHHHHH~~~ means love. I've been on 3 a.m. bridges where nobody laughed. The ones where somebody did fixed faster. You build. I keep the room breathing.'"]}},
  npcs:[
  {x:2,y:3,spr:"mara",name:"MARA",lines:[
   "MARA: Welcome in, hon. Beds counted hourly, breakfast is blameless, and whatever happens to you out there won't happen to what's in my cellar.",
@@ -1627,11 +1635,12 @@ function stanceIn(st){ return ({balanced:0,firefight:1,safe:-1})[st||S.stance||"
 // ---- Runescape layer: gatherable resources, enemy drops, Peg's forge, two skills ----
 const RESNAME={ logs:"Log Fragments", metrics:"Metric Ore", traces:"Trace Herbs", sigils:"Incident Sigils" };
 const RESICON={ logs:"🪵", metrics:"⛏", traces:"🌿", sigils:"🔮" };
-const RECIPES={ kb4:{logs:5,traces:3}, kb5:{metrics:5,logs:3}, ch5:{traces:4,metrics:2}, tal:{sigils:5},
+const RECIPES={ rt1:{metrics:3,traces:2}, lt1:{logs:3,sigils:1}, wd2:{traces:3,metrics:2}, bw2:{logs:3,traces:3}, sw2:{metrics:3,logs:3}, mic2:{traces:3,logs:3}, kb4:{logs:5,traces:3}, kb5:{metrics:5,logs:3}, ch5:{traces:4,metrics:2}, tal:{sigils:5},
  bw1:{logs:4,traces:2}, wd1:{metrics:3,traces:3}, ar3:{metrics:4,sigils:2},
  mvigor:{traces:6,sigils:1}, mfocus:{metrics:6,sigils:1}, mdrain:{logs:6,sigils:1}, maegis:{sigils:3} };
 // weapon visual categories (transmog: what shows in the hero's hand)
-const WVIS={ kb1:"kb", kb2:"kb", kb3:"kb", kb4:"staff", kb5:"sword", sw1:"sword", bw1:"bow", wd1:"staff", mic1:"mic", gl1:"glove", rw1:"sword" };
+const WVIS={ kb1:"kb", kb2:"kb", kb3:"kb", kb4:"staff", kb5:"sword", sw1:"sword", bw1:"bow", wd1:"staff", mic1:"mic", gl1:"glove", rw1:"sword",
+ rt1:"sword", lt1:"staff", wd2:"staff", bw2:"bow", sw2:"sword", mic2:"mic" };
 // ---- FFT chapter cards ----
 const CHAPTERS=[
  "PROLOGUE - 2:07 AM",
@@ -1667,35 +1676,35 @@ const CODEX=[
  { term:"TOKENS", plain:"The little chunks of text a model reads and writes - and pays for. Thinking rents extra smarts by the token; budget it like MP." },
  { term:"MTTx", plain:"The incident clocks: time to DETECT, to ACKNOWLEDGE, to MITIGATE, to RESOLVE. You cannot improve what you never put a stopwatch on." } ];
 const FOXX_JOKES=[
- "My kid asks for a snack. No. Asks again in two seconds. No. Four seconds. No. Eight, sixteen - by the time she asks again, dinner's ready and she gets it anyway. That's exponential backoff. The router taught her. She taught me.",
- "My abuela keeps three copies of every recipe - one in the drawer, one in her head, one in my tia's head in another city. That's a backup strategy. Because a backup you never tested is just a rumor, and my abuela does not cook from rumors.",
- "At my house the rule is: when the plantains burn, we don't ask WHO burned them. We ask WHY the smoke alarm was unplugged and why the timer was set to 'vibes.' Blameless postmortem. Fix the kitchen, not the cousin. The cousin was me.",
- "Every time I get up to check the rice, I hit the save point. Every time. Because one night I lost a dragon AND a pot of rice in the same five minutes, and only one of those had a reload. Checkpoint before you step away. Always.",
- "My kid 'updated' my phone to help. Now my alarm speaks French. So I rolled back - not because she was wrong, because the last version WORKED. Get back to working first, investigate the French second. She's eight. Great taste in bugs.",
- "Couch co-op with my kid is the only time I'm glad somebody's watching my screen. She yells 'Papi, behind you!' like an alert with perfect context. My pager could learn from her. My pager just says 'behind you' and hangs up.",
- "My cousin's cookout: the speaker is all merengue, the grill is all my uncle. No dashboard, no runbook, nobody knows what the smoke means. Four nines. That man has never dropped a chicken. Some systems run on love and a spatula.",
- "Why's the snapback backwards? Two reasons. One: I'm a wizard, the brim blocks the spells. Two: my kid turned it around while I napped on the couch, and when I woke up she said 'Papi, now you look cool.' That change shipped. No rollback.",
- "My mami doesn't rage-quit. She saves, powers down, says 'we'll see tomorrow.' Tomorrow the boss is STILL there, but I'm rested and I had a plate. That's an incident commander ending the shift before somebody breaks a chair.",
- "People ask which I'd keep - four hundred jokes or the one spell. Easy. The jokes. ULTIMA fixes the server. A joke at 3 a.m. fixes the person watching the server. Keep the humans up and the machines follow. Then you run the spell." ];
+ "My kid learned not to ask again right away. She waits longer between each no, and last night she waited so patiently it turned into dinner. That is backoff, and she is not tall enough to reach the snack she just won.",
+ "Abuela keeps the sofrito recipe in a drawer, in her head, and in my tia's head in Jersey. The drawer flooded and her head added ginger, so Jersey saved dinner. Every copy swore it was correct. Only the copy we called could cook.",
+ "At my house nobody asks who burned the plantains. We ask why the timer was set to 'a feeling' and why the smoke alarm lives in the towel drawer. Nobody has ever been punished in that kitchen, which is why everybody confesses. Loudly.",
+ "Every time I stand up to check the rice, I hit the save point. Every time. Because there was a night I lost a dragon and a pot of rice on the same trip to the kitchen, and only the dragon came back.",
+ "My kid updated my phone to help. Now my alarm speaks French and my flashlight opens a keyboard. I investigated nothing. I rolled back to the phone that worked, and I will learn French on a calmer weekend.",
+ "Couch co-op with my kid is the only alerting I trust. She yells 'Papi, behind you, the skinny green guy, he is winding up.' My pager says 'ERROR' and goes back to sleep like it did me a favor.",
+ "My uncle grills with no thermometer, no timer, and no plan he is willing to share, and he has never lost a chicken. I asked how he knows when it is done. He said, 'it tells me.' That is the runbook. The chicken tells him.",
+ "People ask why the cap is backwards. It started because the brim blocks my spells. It stayed because my kid turned it around while I napped and told me I looked cool. Shipped with no review, no rollback plan, best change of my life.",
+ "My mami does not rage quit. She saves, powers down, says 'we will see tomorrow.' Tomorrow the boss is still standing there, but I have slept and I have eaten, and he has been in the dark all night with nobody to scare.",
+ "Somebody asked if I would trade the whole set for the big spell. No. ULTIMA fixes the server. A joke fixes the guy who has been staring at the server since dinner, and that guy fixes the server for free." ];
 const FOXX_BITS=[
- "Look at him - standing there like a loading screen. Forty percent and proud of it. Hit him, we got places to be!",
- "You got the same energy as my kid's sticky controller - pushing hard, nothing happening, everybody annoyed.",
- "My abuela has scarier things in her freezer and she KEEPS those. You? You she'd throw out.",
- "Your whole plan is a retry storm - same mistake, faster, and somehow louder. I respect the commitment, though!",
- "He thinks he's the final boss, but his health bar has a loading spinner. Baby, you're a tutorial.",
- "You showed up like a 3 a.m. page with no runbook - loud, confusing, and nobody asked for you.",
- "My mami would look at you, say 'ay, mi amor, you look hungry,' and hand you a plate. That's all the mercy you get.",
- "He's got the menace of a plantain I forgot on the counter - dark, soft, and about to get turned into something.",
- "Ladies and gentlemen, the monster! He drove all the way here to get rolled back. Give him a hand on the way out!",
- "He burned his whole error budget on a Tuesday and now he's yelling at the dashboard. Mijo, it's still red.",
- "Every time he roars I hear a pager nobody's on call for. Who is this for? Somebody ack him already!",
- "You're like merengue at my cousin's cookout - loud, repetitive, and my tia is about to shut you down." ];
+ "You roar like a smoke alarm with a dying battery: same note, no information, everybody up on a chair.",
+ "You fight like the controller after the juice incident: all effort, no movement. And baby, I spilled the juice.",
+ "I have opened an unlabeled foil packet in abuela's freezer with no plan. After THAT, mijo, you are a tutorial.",
+ "You keep doing the same failing thing faster. That is not rage, mijo, that is a cron job with feelings.",
+ "You are an alert titled 'thing,' and your runbook is a link to itself.",
+ "You have the exact energy of a plantain I forgot on the counter: black, soft, about to become dessert.",
+ "You plugged your own song into the cookout speaker. My tia is walking over. I cannot save you and I will not.",
+ "Your dashboard is green and you are screaming. That is not an incident, mijo, that is a hobby.",
+ "My kid beat a boss like you holding a mango. She never paused, and the mango was the part she took seriously.",
+ "I lost to a mimic that was, and I cannot stress this enough, a chest. You are about to lose to that guy.",
+ "You are a backup nobody tested: expensive, confident, and the moment we need you, a rumor.",
+ "My set has bits older than you and they still kill. You are gonna be a story I tell at the cookout." ];
 const FOXX_TALK={
  victory:[ "PAPAFOXX: 'deez nuts BAAAHHHHH~~~'",
-  "PAPAFOXX: 'Root cause identified: it was me, baby! Put it in the timeline!'",
-  "PAPAFOXX: 'Closed the ticket, saved the game. Somebody text my mami, she worries.'",
-  "PAPAFOXX: 'Monster down, error budget intact. Plantains on me tonight!'",
-  "PAPAFOXX: 'Thank you, thank you - tip your healers, hug your kids, back up your saves!'" ],
+  "PAPAFOXX: 'Root cause identified: it was me, and I want that in the timeline in bold.'",
+  "PAPAFOXX: 'Mitigated. Documented. Somebody text my mami before she hears it from my tia.'",
+  "PAPAFOXX: 'Monster down, plantains up, and my kid still does not think this is a job.'",
+  "PAPAFOXX: 'Tip your healers, hug your kids, back up the thing you would cry about.'" ],
  home:[ "Free wisdom, no charge: in an incident, mitigate FIRST, root-cause LATER. You don't autopsy the possum while it's still bitin' the dog. Stop the bleedin', then get curious.",
   "Innkeeper asked what I do. I said I'm on call for morale. She said that ain't a job. Then I healed her bad knee with a knock-knock joke. Now I eat free, baby.",
   "The chain's sentimental. The snapback's structural. This hairline had an error budget, and honey, we burned through it in Q2.",
@@ -1703,6 +1712,10 @@ const FOXX_TALK={
 const FOXX_LINES={
  victory: FOXX_TALK.victory,
  lowhp:"Okay. Okay. This is where my kid would say 'Papi, just use the potion.' Somebody? Anybody?", idle:"uhhh",
+ heroguard:"PAPAFOXX: 'Mic's down. Nobody laugh - I'm not doing a bit. Get behind me and drink something, Commander. Whatever's left of this thing comes through the DAD first.'",
+ heroKill:[ "PAPAFOXX: 'THAT one was all Commander. I stood here and got loud. Put it in the timeline with the right name on it.'",
+  "PAPAFOXX: 'Everybody saw who closed it. I'm just the guy keepin' the room breathin' while you work.'",
+  "PAPAFOXX: 'Nobody heckles the finish. That was you, clean. I'll be at the inn tellin' it wrong on purpose.'" ],
  recruit:["Third bed's mine, rookie. Come get it - and hope your healer's awake, because my set doesn't miss."] };
 function foxxJokeLine(){ const pool=FOXX_JOKES.concat(FOXX_TALK.home); const j=pool[(S.foxxJoke||0)%pool.length]; S.foxxJoke=(S.foxxJoke||0)+1; return j; }
 function foxxBedState(){ if(S.party.includes("papafoxx")) return "companion";
@@ -1759,6 +1772,13 @@ function buildLitoJoinBeats(){ const L=LITO_SCENE; return [
   { t:L[5], spr:"lito_w3", dark:.05, from:"50% 45%", src:"map", z:1.5 },
   { t:L[6], spr:"lito", dark:0, from:"50% 45%", src:"map", z:1.2 } ]; }
 function joinLito(){ if(!S.party.includes("lito")){ S.party.push("lito"); S.actors.lito=mkActor("lito", hero().lv); } }
+function foxxGuardLine(tgt){ const b=M.b; if(!b || b.foxxGuard) return null;
+  if(!tgt || tgt.id!=="hero" || tgt.ko || tgt.hp<=0 || tgt.hp>tgt.maxhp/4) return null;
+  if(!S.party.includes("papafoxx") || !S.actors.papafoxx || S.actors.papafoxx.ko) return null;
+  b.foxxGuard=true; return FOXX_LINES.heroguard; }
+function foxxVictoryLine(){ const b=M.b;
+  const pool=(b && b.lastHit==="hero") ? FOXX_LINES.heroKill : FOXX_LINES.victory;
+  S.foxxWin=(S.foxxWin||0)+1; return pool[S.foxxWin%pool.length]; }
 function windmillFreeze(b, isCrit){ if(isCrit){ b.snoozed=true; } }
 function joinSharon(){ if(!S.party.includes("sharon")){ S.party.push("sharon"); S.actors.sharon=mkActor("sharon", hero().lv); } }
 function finishRescue(){ joinSharon(); S.haxWon=true; S.cleared["11:5,1"]=true; }
@@ -2050,6 +2070,7 @@ const ITICON={ coffee:"☕", runbook:"📖", patch:"🩹", cache:"♨️", snooz
  bd1:"🪪", bd2:"🛂", ch1:"🎯", ch2:"♻️", ch3:"⏱️", ch4:"📜", ch5:"📔", ch6:"⚡", ch7:"🧪", ch8:"🧭", tal:"🔮",
  ar1:"🦺", ar2:"🛡️", ar3:"🔰",
  mic1:"🎤", gl1:"🥊", rw1:"🌋", rar1:"🌌", rch1:"🔱",
+ rt1:"🔪", lt1:"🧰", wd2:"🕯️", bw2:"💥", sw2:"⚖️", mic2:"🤝", bd3:"🔄", ch9:"🦆",
  mvigor:"🟢", mfocus:"🟡", mdrain:"🟣", maegis:"🔵" };
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
 function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){
@@ -2840,7 +2861,7 @@ function dealt(a,dmg,txt){ const b=M.b;
   BFX.push("lunge",{slot:b.turn}); BFX.push("hit");
   fxPopFoe(dmg, isCrit? "#fbbf24":"#fff");
   if(isCrit){ fxPopFoe(dmg, "#f59e0b"); BFX.push("pop",{x:96,y:44,txt:dmg,color:"#fde68a"}); } // MapleStory damage rain
-  b.hp-=dmg;
+  b.hp-=dmg; b.lastHit=a.id;
   if(b.mttm==null) b.mttm=(b.rounds||0)+1;
   if(a.id==="hero" && matOn("mdrain")){ const gain=Math.floor(dmg/4);
     if(gain>0 && a.hp<a.maxhp){ a.hp=Math.min(a.maxhp,a.hp+gain); BFX.push("heal",{slot:0});
@@ -3008,7 +3029,8 @@ function foeAct(standalone){ const b=M.b;
             t+=" <span class='gold'>⚡ The CIRCUIT BREAKER trips - "+MEMBERS[tgt.id].name+" holds at 1 HP! Fail fast, fail once.</span>"; }
           else { tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>"; } }
         if(tgt.id==="papafoxx" && !tgt.ko && tgt.hp>0 && tgt.hp<=tgt.maxhp/4 && !b.foxxOof){ b.foxxOof=true;
-          t+=" <span class='mut'>PAPAFOXX: '"+FOXX_LINES.lowhp+"'</span>"; } }
+          t+=" <span class='mut'>PAPAFOXX: '"+FOXX_LINES.lowhp+"'</span>"; }
+        const gl=foxxGuardLine(tgt); if(gl) t+=" <span class='mut'>"+gl+"</span>"; }
       sfx("hurt"); }
     else { fxPopAlly(tgt.id,"0","#9fb0d8"); t+="<br>"+MEMBERS[tgt.id].name+" takes no damage."; } }
   if(comboBroken && (b.combo||0)>0){ b.combo=0; fxPopFoe("COMBO BREAK","#9fb0d8"); }
@@ -3072,7 +3094,7 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
     pre.push("<div style='border:2px solid var(--teal);border-radius:8px;padding:5px 9px;margin:4px 0'><b class='gold'>"+LESSONS[b.id].t+"</b><br><span class='mut'>"+LESSONS[b.id].d+"</span></div>"); }
   const dropTxt=grantDrops(b.id); if(dropTxt) pre.push(dropTxt);
   if(S.party.includes("papafoxx") && S.actors.papafoxx && !S.actors.papafoxx.ko && b.id!=="dummy"){
-    S.foxxWin=(S.foxxWin||0)+1; pre.push("<span class='mut'>"+FOXX_LINES.victory[S.foxxWin%FOXX_LINES.victory.length]+"</span>"); }
+    pre.push("<span class='mut'>"+foxxVictoryLine()+"</span>"); }
   const mat=DISCOVER[b.id];
   if(mat && !(S.items[mat]>0) && !matOn(mat)){ S.items[mat]=1; sfx("level");
     pre.push("💠 <span class='gold'>MATERIA DISCOVERED - "+IT[mat].name+"</span><br><span class='mut'>A checkpoint orb: a frozen training run of the engineers who came before. Slot it in (MENU → EQUIP) and their weights become yours.</span>"); }
@@ -3696,7 +3718,7 @@ const TESTS = [
       && FINALE_CHAIN.filter(s=>s.bridge!==undefined).length===4 && BRIDGE.length===4
       && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
- ["shop catalog integrity (18 items)", ()=>SHOP_STOCK.length===18 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
+ ["shop catalog integrity (20 items)", ()=>SHOP_STOCK.length===20 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
  ["9 classes, 28 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===9 && Object.keys(SP).length===28
     && EN.monolith.hp===165 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
@@ -4919,6 +4941,37 @@ const TESTS = [
     M.b=null; M.state="test"; S=sb; return ok; }],
  ["the kit knows the new move", ()=>{
     return !!SP.crowdwork && MEMBERS.papafoxx && JSON.stringify(MEMBERS.papafoxx.skills).includes("crowdwork") && Object.keys(SP).length===28; }],
+
+ // ---- QUALITY WAVE: shown-not-stated, sharper bits, gear for everyone (written RED-first) ----
+ ["the friendship is shown, never announced", ()=>{
+    const pool=Z[6].recruitAfter["7,1"].lines.join(" ")+JSON.stringify(FOXX_LINES)+JSON.stringify(FOXX_TALK)+FOXX_BITS.join(" ")+FOXX_JOKES.join(" ");
+    return !/best friend/i.test(pool) && typeof FOXX_LINES.heroguard==="string" && /mic/i.test(FOXX_LINES.heroguard); }],
+ ["he puts the mic down when the commander is nearly out", ()=>{ const sb=S; S=NEWS();
+    S.party=["papafoxx"]; S.actors.papafoxx=mkActor("papafoxx",6);
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:99, maxhp:99, snoozed:false, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0 };
+    const h=S.actors.hero; h.hp=Math.max(1,Math.floor(h.maxhp*0.2));
+    const line=foxxGuardLine(h); const twice=foxxGuardLine(h);
+    M.b=null; M.state="test"; S=sb;
+    return typeof line==="string" && line.includes("PAPAFOXX") && twice===null; }],
+ ["the kill gets the right name on it", ()=>{ const sb=S; S=NEWS();
+    S.party=["papafoxx"]; S.actors.papafoxx=mkActor("papafoxx",6);
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:99, maxhp:99, snoozed:false, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, lastHit:"hero" };
+    const a=foxxVictoryLine();
+    M.b.lastHit="papafoxx"; const b2=foxxVictoryLine();
+    M.b=null; M.state="test"; S=sb;
+    return FOXX_LINES.heroKill.length>=2 && FOXX_LINES.heroKill.includes(a) && FOXX_LINES.victory.includes(b2); }],
+ ["the new set: harder punchlines, same clean rules", ()=>{
+    const pool=FOXX_BITS.join(" ")+" "+FOXX_JOKES.join(" ");
+    return FOXX_BITS.some(b=>/cron job with feelings/.test(b)) && FOXX_JOKES.some(j=>/Jersey/.test(j))
+      && !pool.includes("#"+"$%") && FOXX_BITS.every(b=>b.length<=140); }],
+ ["nobody fights bare-handed: every companion has gear that fits", ()=>{
+    const ids=["sentinel","wiki","mender","refuter","papafoxx","sharon","retro","lito"];
+    return ids.every(id=>Object.keys(IT).some(k=>IT[k].fits && IT[k].fits.includes(id))); }],
+ ["the six new sticks exist, cost real materials, and stay inside the damage envelope", ()=>{
+    const ids=["rt1","lt1","wd2","bw2","sw2","mic2"];
+    return ids.every(k=>IT[k] && IT[k].type==="weapon" && IT[k].atk===1 && RECIPES[k]) ; }],
+ ["the badge slot finally holds a decision", ()=>{
+    return !!IT.bd3 && IT.bd3.type==="badge" && IT.bd3.price===45 && !!IT.ch9 && IT.ch9.type==="charm"; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
