@@ -1539,7 +1539,12 @@ function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d
 function tryMigrate(){
   try{ localStorage.getItem(saveKey(0)); }catch(e){ return false; }   // per-slot never-clobber guards below make migration safely resumable
   let migratedAuto=false;
-  for(const s8 of [0,1,2,3]){ try{           // v8 maplestory saves first (per-slot try; never clobber a newer save)
+  for(const s9 of [0,1,2,3]){ try{           // v9 saves FIRST: the freshest save must claim the slot before any older one
+    if(localStorage.getItem(saveKey(s9))) continue;
+    const d9=localStorage.getItem(s9?"aiquest9_s"+s9:"aiquest9_auto");
+    if(d9){ localStorage.setItem(saveKey(s9), JSON.stringify(migrateV9(JSON.parse(d9)))); if(s9===0) migratedAuto=true; }
+  }catch(e){} }
+  for(const s8 of [0,1,2,3]){ try{           // v8 maplestory saves next (per-slot try; never clobber a newer save)
     if(localStorage.getItem(saveKey(s8))) continue;
     const d8=localStorage.getItem(s8?"aiquest8_s"+s8:"aiquest8_auto");
     if(d8){ localStorage.setItem(saveKey(s8), JSON.stringify(migrateV8(JSON.parse(d8)))); if(s8===0) migratedAuto=true; }
@@ -1597,7 +1602,8 @@ function critOf(a){ return 0.15 + (a.id==="hero" && treeHas("s1") ? 0.03 : 0) + 
   + (a.id==="hero" && matOn("mfocus") ? 0.10 : 0)
   + (S.equip.charm==="ch7" ? 0.05 : 0)   // Eval Harness: the whole party measures before it trusts
   + ((a.id==="hero" && S.core && S.core.perk==="LCK") ? 0.05 : 0); }
-function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0) - (rowOf(a)==="back"?1:0));
+function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0) - (rowOf(a)==="back"?(treeHas("r2")?2:1):0)
+    - ((treeHas("r5") && a.hp<=Math.ceil(a.maxhp*0.25)) ? 2 : 0));
   if(a.defending) d=Math.ceil(d/2); return d; }
 
 // ================= CHRONO REMASTER: battle-scene FX engine =================
@@ -1685,14 +1691,22 @@ const TREE={
  s5:{lane:"SIGNAL", tier:5, cost:5, name:"CALIBRATION", d:"KEYSTONE: the party crits more often and criticals hit harder, but every ordinary hit lands 1 lighter. A trap unless you commit."} };
 const REP_CAP=28, REP_LEVEL_CAP=25;
 function treeInit(){ if(!S.tree || typeof S.tree!=="object" || Array.isArray(S.tree)) S.tree={taken:{}};
-  if(!S.tree.taken || typeof S.tree.taken!=="object") S.tree.taken={};
-  Object.keys(S.tree.taken).forEach(k=>{ if(!TREE[k]) delete S.tree.taken[k]; });
+  if(!S.tree.taken || typeof S.tree.taken!=="object" || Array.isArray(S.tree.taken)) S.tree.taken={};
+  const own=k=>Object.prototype.hasOwnProperty.call(TREE,k);
+  Object.keys(S.tree.taken).forEach(k=>{ if(!own(k)) delete S.tree.taken[k]; });
+  let changed=true;                       // drop any node whose tier prefix or fork twin is violated
+  while(changed){ changed=false;
+    Object.keys(S.tree.taken).forEach(k=>{ const nd=TREE[k];
+      const twin=nd.fork && S.tree.taken[nd.fork];
+      const prefix=nd.tier>1 && !Object.keys(TREE).some(o=>own(o) && TREE[o].lane===nd.lane && TREE[o].tier===nd.tier-1 && S.tree.taken[o]);
+      if(twin || prefix){ delete S.tree.taken[k]; changed=true; } }); }
   return S.tree; }
 function treeHas(id){ return !!(S.tree && S.tree.taken && S.tree.taken[id]); }
 function treeEarned(){ const lv=(S.actors && S.actors.hero) ? S.actors.hero.lv : 1;
   const byLevel=Math.min(REP_LEVEL_CAP, Math.max(0, lv-1));
-  const byAwak=(S.awak && S.awak.hero) ? S.awak.hero : 0;
-  return Math.min(REP_CAP, byLevel+byAwak); }
+  const banked=(S.tree && S.tree.banked) ? S.tree.banked : 0;
+  const byAwak=Math.min(3, (S.awak && S.awak.hero) ? S.awak.hero : 0);   // the treadmill cannot buy a keystone by itself
+  return Math.min(REP_CAP, Math.max(byLevel, banked)+byAwak); }
 function treeSpent(){ if(!S.tree || !S.tree.taken) return 0;
   return Object.keys(S.tree.taken).reduce((n,k)=>n+((TREE[k]&&TREE[k].cost)||0), 0); }
 function treePts(){ return treeEarned()-treeSpent(); }
@@ -2012,7 +2026,7 @@ function reawaken(id){ const a=S.actors[id]; if(!a || a.lv<10) return false;
     if(pk==="VIT"){ n.maxhp+=3; } if(pk==="INT"){ n.maxmp+=2; } if(pk==="SPR"){ n.maxhp+=1; n.maxmp+=1; }
     n.hp=n.maxhp; n.mp=n.maxmp; }
   S.actors[id]=n;
-  if(id==="hero"){ treeInit(); S.tree.taken={}; }   // the reps remain, the spending does not
+  if(id==="hero"){ treeInit(); S.tree.banked=Math.min(REP_LEVEL_CAP, Math.max(0,(a.lv||1)-1)); S.tree.taken={}; }   // the reps remain: banked at the level you reached
   sfx("level"); return true; }
 function seedFromQuery(q){ const m2=/[?&]seed=(\d{1,9})(?:&|$)/.exec(q||""); return m2? parseInt(m2[1],10) : null; }
 function fmtTime(ms){ const m=Math.floor(ms/60000), s2=Math.floor(ms/1000)%60; return m+":"+String(s2).padStart(2,"0"); }
@@ -2135,7 +2149,9 @@ function foxxBed(){ const st=foxxBedState();
     "MARA (from the counter): 'Told you, hon. He's processing. Come back with a crew STARTED - two brave souls minimum. He don't wake for solos.'"]); }
 function matOn(id){ return Array.isArray(S.materia) && S.materia.includes(id); }
 // ---- E33 timed strikes ----
-function strikeMult(p){ if(p>=0.42&&p<=0.58) return 1.5; if(p>=0.25&&p<=0.75) return 1.2; return 1.0; }
+function strikeMult(p){ const w=treeHas("v3a");
+  if(p>=(w?0.36:0.42)&&p<=(w?0.64:0.58)) return 1.5;
+  if(p>=(w?0.20:0.25)&&p<=(w?0.80:0.75)) return 1.2; return 1.0; }
 const STRIKELINES={ perfect:["SURGICAL!","FIVE NINES!","ROOT CAUSE: YOU!"], good:["CLEAN MERGE!","SHIPPED!"], normal:["Logged."] };
 // ---- inventory icons ----
 const ITICON={ coffee:"☕", runbook:"📖", patch:"🩹", cache:"♨️", snooze:"🔕", handoff:"📟", postmortem:"📋",
@@ -2631,7 +2647,7 @@ function gainXP(n,after,pre){
     a.xp+=n;
     while(a.lv<XPCURVE.length && a.xp>=XPCURVE[a.lv]){
       a.lv++; sfx("level");
-      if(a.id==="hero" && treePts()>0) toast("🌱 "+treePts()+" rep"+(treePts()===1?"":"s")+" to spend - open GROWTH in the menu");
+      if(a.id==="hero" && a.lv-1<=REP_LEVEL_CAP && treePts()>0) toast("🌱 "+treePts()+" rep"+(treePts()===1?"":"s")+" to spend - open GROWTH in the menu");   // past the cap a level earns nothing, so it says nothing
       const m=MEMBERS[a.id];
       a.maxhp+=m.grow.hp; a.maxmp+=m.grow.mp; a.atk+=m.grow.atk; a.hp=a.maxhp; a.mp=a.maxmp;
       const learned=(m.skills[a.lv]||[]).filter(s=>!a.sk.includes(s));
@@ -2664,7 +2680,7 @@ function startBattle(id,key,chain,opts){ const def=EN[id];
   while(t0<ids0.length && S.actors[ids0[t0]] && S.actors[ids0[t0]].ko) t0++;
   if(t0>=ids0.length) t0=0;
   M.state="battle"; M.b={ id, key, chain:chain||null, def, hp:def.hp, maxhp:def.hp,
-    dot:0, verified:0, taunt:0, revealed:!def.hidden, focused:!def.foggy,
+    dot:0, verified:0, taunt:0, revealed:(!def.hidden || treeHas("s3a")), focused:(!def.foggy || treeHas("s3b")),
     doubled:false, menu:"main", turn:t0, snoozed:false, stolen:false, uptimeUsed:false, growN:0,
     rounds:0, mttd:def.hidden? null : 0, mttm:null };
   if(id==="papafoxx"){ const fs=foxxStats(); M.b.hp=fs.hp; M.b.maxhp=fs.hp; M.b.def=Object.assign({}, def, {hp:fs.hp, atk:fs.atk}); }
@@ -2773,7 +2789,8 @@ function buildQueue(b){ const ids=["hero",...S.party];
   const units=[];
   ids.forEach(id=>{ const a=S.actors[id]; if(a && !a.ko) units.push({t:"a", id, spd:spdOf(a)}); });
   units.push({t:"f", spd:unitSpd(b.def)});
-  units.sort((x,y)=>y.spd-x.spd);        // stable: equal-speed allies keep formation order, foe after them
+  if(treeHas("v4") && (b.rounds||0)===0) units.sort((x,y)=>(x.t!==y.t ? (x.t==="a"?-1:1) : y.spd-x.spd));
+  else units.sort((x,y)=>y.spd-x.spd);        // stable: equal-speed allies keep formation order, foe after them
   b.queue=units; b.qi=-1; }
 function armAutoNext(){ if(S.autoNext===false) return; const tok=(M.autoTok=(M.autoTok||0)+1);
   NATIVE_ST(()=>{ if(M.autoTok===tok && M.state==="battle" && M.b && M.b.menu==="next"){ nextUnit(); } }, 650); }
@@ -2800,8 +2817,10 @@ function menuPick(d){ const b=M.b; const a=actor();
   if(d.a==="flee"){ M.roamBattle=false; BW.hidden=true; M.state="explore"; playMusic("overworld"); render(); say(["You retreat to fight another day."]); return; }
   if(d.a==="grit"){ a.mp=Math.min(a.maxmp,a.mp+2); blog(MEMBERS[a.id].name+" steadies their breathing. <span class='num'>+2 MP</span>."); b.menu="next"; drawB(); return; }
   if(d.a==="defend"){ a.defending=true; a.mp=Math.min(a.maxmp,a.mp+1);
-    blog(MEMBERS[a.id].name+" braces - next hit <b>halved</b>, <span class='num'>+1 MP</span>."); b.menu="next"; drawB(); return; }
+    if(treeHas("r4")) chargeLB(a,3);
+    blog(MEMBERS[a.id].name+" braces - next hit <b>halved</b>, <span class='num'>+1 MP</span>"+(treeHas("r4")?", <span class='gold'>+3 limit</span>":"")+"."); b.menu="next"; drawB(); return; }
   if(d.a==="fight"){
+    if(treeHas("v3b")) return playerHit(a, Math.round((fightBase(a)+(b.doubled?fightBase(a):0))*1.25), MEMBERS[a.id].name+" runs it <span class='gold'>AUTOMATED</span> - no bar, no fumble.");
     if(reducedMotion()) return playerHit(a, Math.round((fightBase(a)+(b.doubled?fightBase(a):0))*1.2), MEMBERS[a.id].name+(b.doubled?" strikes the ROOT CAUSE - double damage!":" strikes true - measured and clean (steady 1.2×)."));
     b.menu="strike"; b.strikeT0=performance.now(); drawMenu(); return; }
   if(d.a==="strikestop"){ const t=((performance.now()-b.strikeT0)/700)%2; return resolveStrike(a, t>1? 2-t : t); }
@@ -2946,12 +2965,12 @@ function dealt(a,dmg,txt){ const b=M.b;
   if(a.id==="papafoxx" && typeof FOXX_BITS!=="undefined"){ const bit=FOXX_BITS[Math.floor(rng()*FOXX_BITS.length)]; M.lastBit=bit;
     txt+=" <span class='mut'>🎤 "+bit+"</span>"; }
   let isCrit=false; const forced=M.forceCrit; delete M.forceCrit;
-  if(forced!==undefined ? forced : (rng()<critOf(a))){ dmg=Math.round(dmg*2); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
+  if(forced!==undefined ? forced : (rng()<critOf(a))){ dmg=Math.round(dmg*(treeHas("s5")?2.25:2)); isCrit=true; txt+=" <span class='gold'>CRITICAL!</span>"; sfx("crit"); }
   else sfx("hit");
-  if(dmg>=8){ b.itMeter=(b.itMeter||0)+1;   // INTERRUPT (lab-4 golden): heavy, well-set-up hits charge the preemption meter
+  if(dmg>=itThreshold()){ b.itMeter=(b.itMeter||0)+1;   // INTERRUPT (lab-4 golden): heavy, well-set-up hits charge the preemption meter
     if(b.itMeter>=3){ b.itMeter=0; b.intercept=1; txt+=" <span class='gold'>⚡ INTERRUPT ARMED - the next runaway action gets cancelled.</span>"; } }
   b.combo=(b.combo||0)+1;
-  dmg=Math.max(1, dmg+stanceOut()+comboBonus(b.combo)+awakOf(a.id)+(b.sprint>0?2:0)+(b.softened>0?2:0)-(b.heckled>0?1:0));   // the reawakened hit harder; a planned sprint lifts everyone
+  dmg=Math.max(1, dmg+stanceOut()+comboBonus(b.combo)+awakOf(a.id)+(b.sprint>0?2:0)+(b.softened>0?2:0)+(treeHas("v5")?((b.rounds||0)<3?2:-1):0)-((treeHas("s5")&&!isCrit)?1:0)-(b.heckled>0?1:0));   // the reawakened hit harder; a planned sprint lifts everyone
   BFX.push("lunge",{slot:b.turn}); BFX.push("hit");
   fxPopFoe(dmg, isCrit? "#fbbf24":"#fff");
   if(isCrit){ fxPopFoe(dmg, "#f59e0b"); BFX.push("pop",{x:96,y:44,txt:dmg,color:"#fde68a"}); } // MapleStory damage rain
@@ -2965,12 +2984,16 @@ function dealt(a,dmg,txt){ const b=M.b;
   setTimeout(()=>sc.classList.remove("fx-flash"),350);
   if(b.hp<=0){ blog(txt+"<br><span class='num'>"+dmg+"</span> damage... <span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; }
   blog(txt+"<br><span class='num'>"+dmg+"</span> damage!"); b.menu="next"; drawB(); }
+const READERS=["fivewhy","contexa","dashboard","firstprinciples","controlarm","audit"];
+function skillCost(sp,id){ return Math.max(1, sp.mp - ((treeHas("s2") && READERS.indexOf(id)>=0) ? 1 : 0)); }
+function itThreshold(){ return treeHas("s4") ? 6 : 8; }
 function castSkill(a,id){ const b=M.b, sp=SP[id];
   const staffFree = id==="fivewhy" && S.equip.weapon==="kb4"; // the Fishbone Staff makes FIVE-WHY truly free
-  if(a.mp<sp.mp && !staffFree){ blog("<span class='red'>Not enough MP!</span> (Coffee, Cache Warmer, DEFEND, or GRIT.)"); b.menu="main"; drawMenu(); return; }
+  const _cost=skillCost(sp,id);
+  if(a.mp<_cost && !staffFree){ blog("<span class='red'>Not enough MP!</span> (Coffee, Cache Warmer, DEFEND, or GRIT.)"); b.menu="main"; drawMenu(); return; }
   // targeted skills open target submenu
   if(id==="repair"||id==="hitl"||id==="hotfix"){ b.targeting={skill:id, ko:false, any:id!=="repair"}; b.menu="target"; drawMenu(); return; }
-  if(!staffFree) a.mp-=sp.mp;
+  if(!staffFree) a.mp-=_cost;
   if(a.id==="papafoxx") b.foxxRelief=true;   // COMIC RELIEF triggers only on a real performance (MP spent)
   fxAbility(sp.name);
   if(SKILL_FX[id]) BFX.push("burst",{color:SKILL_FX[id]});
@@ -3119,7 +3142,9 @@ function foeAct(standalone){ const b=M.b;
       else { tgt.hp=Math.max(0,tgt.hp-dmg); chargeLB(tgt,dmg); fxPopAlly(tgt.id,dmg,"#f87171"); comboBroken=true;
         t+="<br>"+MEMBERS[tgt.id].name+" takes <span class='red'>"+dmg+"</span>.";
         if(tgt.hp<=0){
-          if(S.equip.charm==="ch6" && !b.breakerUsed){ b.breakerUsed=true; tgt.hp=1;
+          if(treeHas("r3b") && !b.treeHold){ b.treeHold=true; tgt.hp=1;
+            t+=" <span class='gold'>🌱 CIRCUIT DISCIPLINE - "+MEMBERS[tgt.id].name+" holds at 1 HP. Insurance, once.</span>"; }
+          else if(S.equip.charm==="ch6" && !b.breakerUsed){ b.breakerUsed=true; tgt.hp=1;
             t+=" <span class='gold'>⚡ The CIRCUIT BREAKER trips - "+MEMBERS[tgt.id].name+" holds at 1 HP! Fail fast, fail once.</span>"; }
           else { tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>"; } }
         if(tgt.id==="papafoxx" && !tgt.ko && tgt.hp>0 && tgt.hp<=tgt.maxhp/4 && !b.foxxOof){ b.foxxOof=true;
@@ -3141,6 +3166,8 @@ function endOfRound(b,t){
   const h=S.actors.hero;
   if(S.equip.charm==="ch2" && !h.ko && h.mp<h.maxmp){ h.mp++; t+=" <span class='mut'>(Regen Charm: HERO +1 MP)</span>"; }
   if(matOn("mvigor") && !h.ko && h.hp<h.maxhp){ h.hp=Math.min(h.maxhp,h.hp+2); t+=" <span class='mut'>(ERROR BUDGET: HERO +2 HP)</span>"; }
+  if(treeHas("r3a")){ let fed=0; living().forEach(p2=>{ if(p2.hp<p2.maxhp){ p2.hp=Math.min(p2.maxhp,p2.hp+1); fed++; } });
+    if(fed) t+=" <span class='mut'>(🌱 ERROR BUDGET: party +1 HP)</span>"; }
   if(b.verified>0) b.verified--;
   if(b.taunt>0) b.taunt--;
   if(b.roasted>0) b.roasted--;
@@ -3156,7 +3183,7 @@ function endOfRound(b,t){
       if(b.hp<=0){ blog(t+"<br><span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; } } }
   partyActors().forEach(a=>{ a.defending=false; a.dualUsed=false; a.acted=false; });
   if(!living().length){ S.deaths=(S.deaths||0)+1; b.menu="dead"; sfx("lose"); M.roamBattle=false;
-    const toll=Math.ceil(S.tokens*0.1); S.tokens-=toll;
+    const toll=Math.ceil(S.tokens*(treeHas("r5")?0.2:0.1)); S.tokens-=toll;
     blog(t+"<br><span class='red'>The party falls…</span>"); drawB();
     setTimeout(()=>{ BW.hidden=true;
       const dropped=dropInventory(); const gz=S.grave? S.grave.z : 0;
@@ -3317,7 +3344,7 @@ function menuSub(mn){
   if(mn==="close"){ ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); return; }
   if(mn==="tree"){ treeInit();
     const lanes=["RELIABILITY","VELOCITY","SIGNAL"];
-    let h="<b class='gold'>\🌱 GROWTH</b> <span class='mut'>- "+treePts()+" rep"+(treePts()===1?"":"s")+" unspent, "+treeSpent()+" of "+treeEarned()+" earned. One rep a level. Tiers open in order. A fork closes the other door until you reawaken.</span><div style='max-height:250px;overflow:auto;font-size:.72rem;line-height:1.45;margin-top:6px'>";
+    let h="<b class='gold'>\🌱 GROWTH</b> <span class='mut'>- "+treePts()+" rep"+(treePts()===1?"":"s")+" unspent, "+treeSpent()+" of "+treeEarned()+" earned. One rep a level through LV 26. Tiers open in order. A fork closes the other door until you reawaken.</span><div style='max-height:250px;overflow:auto;font-size:.72rem;line-height:1.45;margin-top:6px'>";
     lanes.forEach(L=>{
       h+="<div style='margin-top:6px'><b class='gold'>"+L+"</b></div>";
       Object.keys(TREE).filter(k=>TREE[k].lane===L).sort((a,b)=>TREE[a].tier-TREE[b].tier).forEach(k=>{
@@ -4264,8 +4291,9 @@ const TESTS = [
     const b3={ def:EN.vague, hp:5, maxhp:14 };
     return isEnraged(b1)===false && isEnraged(b2)===true && isEnraged(b3)===false; }],
  // ---- MapleStory combat + Retry Storm + Armory (RED-first) ----
- ["combo bonus: +1 at five, +2 at ten, broken by damage", ()=>{ const ok1=comboBonus(0)===0 && comboBonus(4)===0 && comboBonus(5)===1 && comboBonus(9)===1 && comboBonus(10)===2;
-    const sb=S; const rb=rng; S=NEWS();
+ ["combo bonus: +1 at five, +2 at ten, broken by damage", ()=>{ const sb0=S; S=NEWS(); treeInit();
+    const ok1=comboBonus(0)===0 && comboBonus(4)===0 && comboBonus(5)===1 && comboBonus(9)===1 && comboBonus(10)===2;
+    S=sb0; const sb=S; const rb=rng; S=NEWS();
     M.b={ def:EN.golem, hp:46, maxhp:46, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false, combo:4 };
     rng=mulberry32(11); dealt(S.actors.hero,5,"t");
     const counted=M.b.combo===5;
@@ -5160,8 +5188,8 @@ const TESTS = [
  ["reawakening returns every rep", ()=>{ const sb=S; S=NEWS(); treeInit();
     S.actors.hero.lv=20; treeTake("r1"); treeTake("r2");
     const spent=treeSpent();
-    S.actors.hero.lv=10; reawaken("hero");
-    const cleared=treeSpent()===0 && Object.keys(S.tree.taken).length===0;
+    S.actors.hero.lv=10; const earnedBefore=treeEarned(); reawaken("hero");
+    const cleared=treeSpent()===0 && Object.keys(S.tree.taken).length===0 && treePts()>=earnedBefore;
     S=sb; return spent===3 && cleared; }],
  ["old saves grow a tree without breaking", ()=>{
     const old={v:9, tokens:5, party:[], actors:{hero:mkActor("hero",3)}, res:{logs:0,metrics:0,traces:0,sigils:0}};
@@ -5185,8 +5213,10 @@ const TESTS = [
     ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return ok; }],
  ["taking a node spends the rep and redraws", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
     S.actors.hero.lv=4;
+    const bak=localStorage.getItem(saveKey(0));
     pauseMenu(); box.querySelector("[data-m='tree']").click();
     box.querySelector("[data-node='v1']").click();
+    if(bak===null) localStorage.removeItem(saveKey(0)); else localStorage.setItem(saveKey(0), bak);
     const ok=treeHas("v1") && treePts()===2 && /2 rep/.test(box.textContent);
     ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return ok; }],
  ["the level-up says a rep is waiting", ()=>{ const sb=S; S=NEWS(); treeInit();
@@ -5195,6 +5225,98 @@ const TESTS = [
     gainXP(XPCURVE[1]+1);
     const after=treePts();
     S=sb; return before===0 && after>=1; }],
+
+ ["every node the player can buy actually fires somewhere in the code", ()=>{
+    const src=document.documentElement.innerHTML;
+    const dead=Object.keys(TREE).filter(id=>src.split('treeHas("'+id+'")').length-1 < 1);
+    if(dead.length) console.log("nodes with no hook:", dead.join(", "));
+    return dead.length===0; }],   // one declaration in TREE plus at least one live hook
+ ["BACK LINE thickens the back row", ()=>{ const sb=S; S=NEWS(); treeInit();
+    const w=S.actors.hero; w.row="back";
+    const before=incoming(9, w, 0);
+    S.actors.hero.lv=20; treeTake("r1"); treeTake("r2");
+    const after=incoming(9, w, 0);
+    S=sb; return after===before-2; }],   // r1 gives 1, r2 gives another 1 to the back row
+ ["ERROR BUDGET drips, CIRCUIT DISCIPLINE catches", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=20; treeTake("r1"); treeTake("r2");
+    const dripArmed=treeTake("r3a") && treeHas("r3a");
+    const twinShut=!treeCan("r3b");
+    S=sb; return dripArmed && twinShut; }],
+ ["BLAMELESS BRACE pays the gauge", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=30; ["r1","r2","r3b","r4"].forEach(k=>treeTake(k));
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:99, maxhp:99, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false };
+    const h=S.actors.hero; h.lb=0;
+    menuPick({a:"defend"});
+    const paid=h.lb>=3;
+    M.b=null; M.state="test"; S=sb; return paid; }],
+ ["CANARY DEPLOY puts the party first for one round", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",5);
+    S.actors.hero.lv=30; ["v1","v2","v3b","v4"].forEach(k=>treeTake(k));
+    const b={ def:{spd:9}, rounds:0 };
+    buildQueue(b); const q=b.queue||[];
+    const firstIsAlly=q.length>0 && q[0].t==="a" && q[q.length-1].t==="f";
+    b.rounds=1; buildQueue(b); const q2=b.queue||[];
+    const laterIsSpeed=q2.length>0 && q2[0].t==="f";
+    S=sb; return firstIsAlly && laterIsSpeed; }],
+ ["the SIGNAL lane sees before it is asked", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=30; treeTake("s1"); treeTake("s2");
+    const cheaper=skillCost(SP.fivewhy, "fivewhy")===SP.fivewhy.mp-1;
+    treeTake("s3a");
+    startBattle("h2","test");
+    const preRead=M.b.revealed===true;
+    M.b=null; M.state="test"; S=sb; return cheaper && preRead; }],
+ ["PREEMPTION arms the interrupt sooner", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=30; ["s1","s2","s3b","s4"].forEach(k=>treeTake(k));
+    const armed=itThreshold()===6;
+    S=sb; const stock=itThreshold()===8;
+    return armed && stock; }],
+
+ ["a v9 save survives the hop to v10, and beats a stale v8 to the slot", ()=>{
+    const bak={}; [0,1].forEach(k=>{ bak[k]=localStorage.getItem(saveKey(k)); });
+    const b8=localStorage.getItem("aiquest8_auto"), b9=localStorage.getItem("aiquest9_auto");
+    try{
+      localStorage.removeItem(saveKey(0));
+      localStorage.setItem("aiquest8_auto", JSON.stringify({v:8, tokens:11, actors:{hero:mkActor("hero",2)}, party:[]}));
+      localStorage.setItem("aiquest9_auto", JSON.stringify({v:9, tokens:77, actors:{hero:mkActor("hero",9)}, party:["sentinel"], tree:{taken:{v1:1}}}));
+      tryMigrate();
+      const raw=localStorage.getItem(saveKey(0)); const got=raw? JSON.parse(raw) : null;
+      return !!got && got.v===SAVE_VERSION && got.tokens===77 && got.tree && got.tree.taken && got.tree.taken.v1===1;
+    } finally {
+      [0,1].forEach(k=>{ if(bak[k]===null) localStorage.removeItem(saveKey(k)); else localStorage.setItem(saveKey(k), bak[k]); });
+      if(b8===null) localStorage.removeItem("aiquest8_auto"); else localStorage.setItem("aiquest8_auto", b8);
+      if(b9===null) localStorage.removeItem("aiquest9_auto"); else localStorage.setItem("aiquest9_auto", b9); } }],
+ ["reawakening truly refunds: the reps come back, not just the nodes", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=20; ["r1","r2","r3a"].forEach(k=>treeTake(k));
+    const spent=treeSpent(), earnedBefore=treeEarned();
+    reawaken("hero");
+    const after=treePts();
+    S=sb; return spent>0 && earnedBefore===19 && after>=earnedBefore; }],
+ ["the SIGNAL keystone charges its stated price", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=40; ["s1","s2","s3a","s4","s5"].forEach(k=>treeTake(k));
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:200, maxhp:200, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    M.forceCrit=false; M.b.hp=200; dealt(S.actors.hero, 6, ""); const plain=200-M.b.hp;
+    S.tree.taken={}; M.forceCrit=false; M.b.hp=200; dealt(S.actors.hero, 6, ""); const stock=200-M.b.hp;
+    M.b=null; M.state="test"; S=sb; return plain===stock-1; }],
+ ["a hostile save cannot smuggle in an illegal build", ()=>{ const sb=S; S=NEWS();
+    S.tree={taken:{r5:1, v5:1, constructor:1}};
+    treeInit();
+    const cleaned=!treeHas("r5") && !treeHas("v5") && !Object.prototype.hasOwnProperty.call(S.tree.taken,"constructor");
+    S=sb; return cleaned; }],
+ ["the header tells the truth about when reps stop", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
+    S.actors.hero.lv=40;
+    pauseMenu(); box.querySelector("[data-m='tree']").click();
+    const t=box.textContent; const honest=/LV 26|through LV/.test(t);
+    ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return honest; }],
+
+ ["a level past the rep cap does not claim it paid you", ()=>{ const sb=S; const tb=window.toast; S=NEWS(); treeInit();
+    let said=[]; window.toast=(m)=>{ said.push(m); };
+    try{
+      const h=S.actors.hero; h.lv=5; h.xp=XPCURVE[5]-1; gainXP(1);
+      const early=said.some(m=>/rep/.test(m)) && h.lv===6;
+      said=[]; h.lv=30; h.xp=XPCURVE[30]-1; gainXP(1);
+      const late=said.some(m=>/rep/.test(m));
+      return early && h.lv===31 && !late;
+    } finally { window.toast=tb; S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -5222,7 +5344,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
   bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
-  TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, migrateV9,
+  TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, migrateV9, skillCost, itThreshold, incoming, buildQueue, tryMigrate, dealt, reawaken, gainXP, XPCURVE, REP_LEVEL_CAP,
   buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse, tileHash, lungeScale, overworldThemeFor, battleThemeFor,
   joinSharon, finishRescue, CLUES, LESSONS, CORE, coreOf, starBar, heroTrial, equipGear, CONDS };
 tryMigrate();
