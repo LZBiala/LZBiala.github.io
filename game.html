@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Quest: SEV-1 - SRE Edition</title>
-<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Five classes, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 23,000,000 simulated battles behind the balance. One static file, no frameworks, no API keys.">
+<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Nine playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 23,000,000 simulated battles behind the balance. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
 <meta property="og:title" content="AI Quest: SEV-1 - the 8-bit party JRPG of AI engineering">
-<meta property="og:description" content="Five classes, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 23,000,000 simulated battles.">
+<meta property="og:description" content="Nine playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 23,000,000 simulated battles.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-game.png">
 <meta property="og:url" content="https://lzbiala.github.io/game.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -2980,6 +2980,8 @@ function playerHit(a,dmg,txt){ const b=M.b;
   b.doubled=false;
   const wandBite = a.id==="hero" && S.equip.weapon==="wd1";
   const bowPierce = a.id==="hero" && S.equip.weapon==="bw1";
+  const blocked=(!b.revealed && !wandBite) || (!b.focused && !bowPierce) || (b.def.regen && b.verified===0);
+  if(blocked) delete M.forceCrit;   // a strike that never lands cannot leave a crit loaded for the next one
   if(!b.revealed && !wandBite){ fxBlocked(); blog(txt+"<br><span class='red'>No effect - treating symptoms! (FIVE-WHY exposes the core.)</span>"); b.menu="next"; drawMenu(); return; }
   if(!b.revealed && wandBite){ txt+=" <span class='num'>The wand asks WHY on impact - armor means nothing!</span>"; }
   if(!b.focused && !bowPierce){ fxBlocked(); blog(txt+"<br><span class='red'>The strike vanishes into fog! (CONTEXA lifts it; TRUE STRIKE pierces it.)</span>"); b.menu="next"; drawMenu(); return; }
@@ -3087,7 +3089,8 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     return playerHit(a, 2*(2+Math.floor(a.lv/2)), nm+" runs TWIN HYPOTHESIS - <span class='gold'>two explanations, one survives the data.</span>"); }
   if(id==="firstprinciples"){ markRevealed(b); b.focused=true; sfx("blip");
     blog(nm+" rebuilds from FIRST PRINCIPLES - <span class='gold'>the foundation was wrong; start from what is true:</span> armor mapped, fog lifted."+(b.def.tip?"<br><i>"+b.def.tip+"</i>":"")); b.menu="next"; drawB(); return; }
-  if(id==="windmill"){ const c=rng()<critOf(a); M.forceCrit=c; windmillFreeze(b,c);
+  if(id==="windmill"){ const c=rng()<critOf(a); M.forceCrit=c;
+    if(!((!b.revealed && !(a.id==="hero" && S.equip.weapon==="wd1")) || (!b.focused && !(a.id==="hero" && S.equip.weapon==="bw1")) || (b.def.regen && b.verified===0))) windmillFreeze(b,c);
     return playerHit(a, 3+Math.floor(a.lv/2), nm+" spins into WINDMILL HALO FREEZE - <span class='gold'>spin, spin, hold.</span>"+(c?" <span class='gold'>FROZEN - the foe loses its next turn!</span>":"")); }
   if(id==="kanban"){
     return playerHit(a, 2*(2+Math.floor(a.lv/2)), nm+" flows through KANBAN CUT - <span class='gold'>two blades, one motion.</span>"); }
@@ -5613,14 +5616,40 @@ const TESTS = [
     const dead=Object.keys(TREE).filter(id=>prod.split(String.fromCharCode(116,114,101,101,72,97,115,40,34)+id+String.fromCharCode(34,41)).length-1 < 1);
     if(dead.length) console.log("nodes hooked only inside tests:", dead.join(", "));
     return dead.length===0; }],
+
+ ["a blocked strike leaves no loaded crit behind", ()=>{ const sb=S; S=NEWS();
+    S.party=["lito"]; S.actors.lito=mkActor("lito",8);
+    M.state="battle";
+    M.b={ id:"halluc", def:EN.halluc, hp:200, maxhp:200, revealed:true, focused:false, verified:0, dot:0,
+      taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    delete M.forceCrit;
+    castSkill(S.actors.lito, "windmill");        // fog eats it: playerHit bails before dealt()
+    const leaked = ("forceCrit" in M);
+    const frozeAnyway = M.b.snoozed===true;      // and it must not steal a turn it never landed
+    delete M.forceCrit;
+    M.b=null; M.state="test"; S=sb;
+    return leaked===false && frozeAnyway===false; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
   let pass=0, rows="";
+  // The test-suite link is on the page for anyone to click. Several tests drive real functions
+  // that autosave on their own (gatherNode, tryMigrate), so the suite used to leave a fresh
+  // level-1 game where the player's save had been. Snapshot every save key, restore all of them
+  // afterwards, and no test written later can take a player's progress with it.
+  const SAVEKEYS=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i);
+    if(k && /^aiquest/.test(k)) SAVEKEYS.push(k); }
+  const SNAP=SAVEKEYS.map(k=>[k, localStorage.getItem(k)]);
+  try{
   TESTS.forEach(([name,fn])=>{ let ok=false, err="";
     try{ ok=!!fn(); }catch(e){ err=" - "+e.message; }
     if(ok) pass++;
     rows+="<div style='font-size:.76rem'>"+(ok?"<span class='num'>✔</span> ":"<span class='red'>✘</span> ")+name+err+"</div>"; });
+  } finally {
+    for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i);
+      if(k && /^aiquest/.test(k)) localStorage.removeItem(k); }
+    SNAP.forEach(([k,v])=>{ if(v!==null) localStorage.setItem(k,v); });
+  }
   window.TESTRESULTS={pass, total:TESTS.length};
   box.innerHTML="<b class='gold'>AUTOMATED TESTS</b> - "+pass+"/"+TESTS.length+" passed<br><br>"+rows+
    "<div class='choices'><button onclick='location.href=\"game.html\"'>▶ PLAY</button></div>"; }

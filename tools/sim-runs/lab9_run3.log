@@ -1,0 +1,37 @@
+LAB9 - the shipped tree, node by node | arms: none, R-sustain, R-hold, V-hands, V-auto, S-armor, S-fog, split
+row          | none           | R-sustain      | R-hold         | V-hands        | V-auto         | S-armor        | S-fog          | split         
+monolith6    |  3.35t ko 6.8% |  3.35t ko 3.0% |  3.36t ko 0.3% |  3.23t ko 4.8% |  3.37t ko 5.2% |  3.19t ko 5.6% |  3.18t ko 6.6% |  3.52t ko 7.6%
+h5_6         |  2.37t ko 0.0% |  2.37t ko 0.0% |  2.37t ko 0.0% |  2.02t ko 0.0% |  2.00t ko 0.0% |  2.26t ko 0.0% |  2.20t ko 0.0% |  2.35t ko 0.0%
+unknown6     |  4.66t ko 0.0% |  4.65t ko 0.0% |  4.65t ko 0.0% |  4.70t ko 0.0% |  4.76t ko 0.0% |  4.41t ko 0.0% |  4.38t ko 0.0% |  4.72t ko 0.0%
+retry6       |  3.33t ko 0.0% |  3.33t ko 0.0% |  3.33t ko 0.0% |  3.26t ko 0.0% |  3.10t ko 0.0% |  3.11t ko 0.0% |  3.04t ko 0.0% |  3.16t ko 0.0%
+hacker8      |  8.33t ko 0.0% |  8.28t ko 0.0% |  8.32t ko 0.0% |  8.30t ko 0.1% |  8.43t ko 0.1% |  7.88t ko 0.0% |  7.81t ko 0.0% |  8.37t ko 0.1%
+misalign10   |  6.14t ko 0.0% |  6.15t ko 0.0% |  6.15t ko 0.0% |  6.25t ko 0.0% |  6.41t ko 0.0% |  5.93t ko 0.0% |  5.90t ko 0.0% |  6.19t ko 0.0%
+stress_mis   |  9.07t ko36.9% |  8.97t ko32.4% |  9.07t ko13.5% |  9.35t ko41.7% |  9.68t ko45.1% |  8.55t ko34.3% |  8.51t ko34.2% |  9.10t ko33.6%
+stress_hax   |  6.34t ko17.9% |  6.28t ko 7.3% |  6.36t ko 2.0% |  6.38t ko18.1% |  6.58t ko18.8% |  5.94t ko18.1% |  6.00t ko16.4% |  6.32t ko16.9%
+hidden9      |  3.91t ko 0.0% |  3.91t ko 0.0% |  3.91t ko 0.0% |  3.80t ko 0.0% |  3.86t ko 0.0% |  3.81t ko 0.0% |  3.67t ko 0.0% |  3.89t ko 0.0%
+foggy9       |  3.64t ko 0.0% |  3.64t ko 0.0% |  3.64t ko 0.0% |  3.44t ko 0.0% |  3.55t ko 0.0% |  3.24t ko 0.0% |  3.26t ko 0.0% |  3.60t ko 0.0%
+  G1 no power creep      FAIL
+  G2 floors hold         PASS
+  G3 worth taking        PASS
+  G4 no dominant lane    PASS
+  G5 no dead lane        PASS
+  G6 drama survives      FAIL
+  G7 forks are real      PASS
+  best lane per row: {'monolith6': 'S-fog', 'h5_6': 'V-auto', 'unknown6': 'S-fog', 'retry6': 'S-fog', 'hacker8': 'S-fog', 'misalign10': 'S-fog', 'stress_mis': 'S-fog', 'stress_hax': 'S-armor', 'hidden9': 'S-fog', 'foggy9': 'S-armor'}
+  -- NOISY column (the player who cannot hit the timing bar) --
+row          | none           | R-sustain      | R-hold         | V-hands        | V-auto         | S-armor        | S-fog          | split         
+monolith6    |  3.34t ko 7.9% |  3.33t ko 4.6% |  3.34t ko 0.4% |  3.15t ko 6.7% |  3.10t ko 6.1% |  3.19t ko 7.9% |  3.21t ko 8.7% |  3.41t ko 8.8%
+h5_6         |  2.35t ko 0.0% |  2.36t ko 0.0% |  2.36t ko 0.0% |  2.20t ko 0.0% |  2.15t ko 0.0% |  2.27t ko 0.0% |  2.25t ko 0.0% |  2.38t ko 0.0%
+unknown6     |  4.45t ko 6.5% |  4.45t ko 2.5% |  4.46t ko 0.7% |  4.45t ko 8.0% |  4.35t ko 7.3% |  4.23t ko 5.1% |  4.23t ko 6.0% |  4.54t ko 3.8%
+retry6       |  3.15t ko 0.0% |  3.15t ko 0.0% |  3.15t ko 0.0% |  3.03t ko 0.0% |  2.94t ko 0.0% |  2.98t ko 0.0% |  2.97t ko 0.0% |  3.21t ko 0.0%
+hacker8      |  8.21t ko 1.1% |  8.18t ko 0.1% |  8.21t ko 0.1% |  7.93t ko 1.4% |  7.75t ko 0.6% |  7.81t ko 1.3% |  7.77t ko 0.6% |  8.25t ko 0.9%
+misalign10   |  6.13t ko 0.1% |  6.14t ko 0.1% |  6.14t ko 0.0% |  6.16t ko 0.2% |  6.03t ko 0.1% |  5.87t ko 0.0% |  5.82t ko 0.0% |  6.17t ko 0.0%
+stress_mis   |  9.53t ko43.9% |  9.42t ko34.6% |  9.43t ko14.8% |  9.69t ko46.3% |  9.48t ko42.0% |  9.00t ko37.9% |  8.98t ko37.4% |  9.52t ko38.6%
+stress_hax   |  6.58t ko26.2% |  6.52t ko12.2% |  6.58t ko 3.7% |  6.41t ko25.3% |  6.27t ko22.6% |  6.17t ko24.9% |  6.23t ko25.2% |  6.51t ko24.0%
+hidden9      |  4.34t ko 0.0% |  4.31t ko 0.0% |  4.32t ko 0.0% |  4.06t ko 0.0% |  3.96t ko 0.0% |  3.78t ko 0.0% |  4.11t ko 0.0% |  4.19t ko 0.0%
+foggy9       |  4.44t ko 0.0% |  4.46t ko 0.0% |  4.44t ko 0.0% |  4.24t ko 0.0% |  4.18t ko 0.0% |  4.18t ko 0.0% |  3.94t ko 0.0% |  4.47t ko 0.0%
+  noisy gains vs control (max over rows): {'R-sustain': 0.0123, 'R-hold': 0.0111, 'V-hands': 0.0653, 'V-auto': 0.0879, 'S-armor': 0.1291, 'S-fog': 0.1137, 'split': 0.0333}
+  arm gains vs control (max over rows): {'R-sustain': 0.0112, 'R-hold': 0.0032, 'V-hands': 0.1459, 'V-auto': 0.1557, 'S-armor': 0.109, 'S-fog': 0.1051, 'split': 0.052}
+  fork splits (left side faster on): {'R-sustain vs R-hold': '7/10 rows differ, left faster on 6', 'V-hands vs V-auto': '10/10 rows differ, left faster on 8', 'S-armor vs S-fog': '10/10 rows differ, left faster on 2'}
+LAB9 VERDICT: GATE FAILURE - apply the pre-registered remedy ladder
+lab9 simulated battles: 256,000

@@ -1,0 +1,17 @@
+LAB10 - the incident-response kit, played perfectly
+row          | no kit                 | KIT                   
+monolith6    | win 100.0%  3.33t ko  6.2% | win 100.0%  3.32t ko  1.6%
+h5_6         | win 100.0%  2.39t ko  0.0% | win 100.0%  2.37t ko  0.0%
+unknown6     | win 100.0%  4.65t ko  0.1% | win 100.0%  4.68t ko  0.0%
+retry6       | win 100.0%  3.31t ko  0.0% | win 100.0%  3.34t ko  0.0%
+hacker8      | win 100.0%  8.34t ko  0.0% | win 100.0%  8.33t ko  0.0%
+misalign10   | win 100.0%  6.14t ko  0.0% | win 100.0%  6.19t ko  0.0%
+stress_mis   | win 100.0%  9.06t ko 37.9% | win 100.0%  9.05t ko 38.8%
+stress_hax   | win 100.0%  6.35t ko 16.9% | win 100.0%  6.35t ko 14.2%
+  K1 worth carrying      FAIL
+  K2 no trivialising     PASS
+  K3 floors hold         PASS
+  K4 no walkover         PASS
+  kit gain per row: [0.0008, 0.0065, -0.0062, -0.0076, 0.0015, -0.0081, 0.0005, 0.0]
+LAB10 VERDICT: GATE FAILURE - apply the pre-registered remedy ladder
+lab10 simulated battles: 102,400
