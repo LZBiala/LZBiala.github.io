@@ -1033,6 +1033,10 @@ const IT = {
  cache:{ name:"Cache Warmer", type:"use", price:10, d:"acting ally: +4 MP." },
  snooze:{ name:"Pager Snooze", type:"use", price:14, d:"the enemy loses its next turn." },
  handoff:{ name:"On-Call Handoff", type:"use", price:25, d:"revive a fallen ally at half HP." },
+ channel:{ name:"Incident Channel", type:"use", price:18, d:"every living ally: +5 HP. One message, everybody moves." },
+ loadshed:{ name:"Load Shed", type:"use", price:20, d:"the whole party takes 2 less for two rounds. Drop the nonessential." },
+ canary:{ name:"Canary Token", type:"use", price:22, d:"the party takes the top of the order next round. Ship the small thing first." },
+ debrief:{ name:"Blameless Debrief", type:"use", price:45, d:"every fallen ally rises at 40% health, on their feet enough to act. Nobody gets left on the floor." },
  postmortem:{ name:"Post-Incident Review", type:"use", price:30, d:"acting ally: full restore." },
  kb1:{ name:"Mech Keyboard", type:"weapon", price:15, atk:1, fits:["hero"], d:"HERO +1 ATK." },
  kb2:{ name:"Split Ergo", type:"weapon", price:35, atk:2, fits:["hero"], d:"HERO +2 ATK." },
@@ -1073,7 +1077,7 @@ const IT = {
  ar1:{ name:"Mail Vest", type:"armor", price:30, def:1, d:"riveted links over the plaid - -1 damage taken. It shows." },
  ar2:{ name:"Incident Plate", type:"armor", price:60, def:2, d:"gold-trimmed plate with a visored helm - -2 damage taken. It REALLY shows." },
  ar3:{ name:"Aegis of Uptime", type:"armor", price:0, def:2, d:"forged: humming teal armor - -2 damage taken, +1 SPEED. Five nines, worn." } };
-const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","kb1","kb2","kb3","sw1","mic1","gl1","bd1","bd2","bd3","ch1","ch2","ch3","ch9"];
+const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","channel","loadshed","canary","debrief","kb1","kb2","kb3","sw1","mic1","gl1","bd1","bd2","bd3","ch1","ch2","ch3","ch9"];
 
 // ================= DATA: enemies (100k-sim tuned) =================
 const EN = {
@@ -1602,7 +1606,7 @@ function critOf(a){ return 0.15 + (a.id==="hero" && treeHas("s1") ? 0.03 : 0) + 
   + (a.id==="hero" && matOn("mfocus") ? 0.10 : 0)
   + (S.equip.charm==="ch7" ? 0.05 : 0)   // Eval Harness: the whole party measures before it trusts
   + ((a.id==="hero" && S.core && S.core.perk==="LCK") ? 0.05 : 0); }
-function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0) - (rowOf(a)==="back"?(treeHas("r2")?2:1):0)
+function incoming(raw, a, extraRed){ let d=Math.max(0, raw - defOf(a) - (extraRed||0) - ((M.b && M.b.shed>0) ? 2 : 0) - (rowOf(a)==="back"?(treeHas("r2")?2:1):0)
     - ((treeHas("r5") && a.hp<=Math.ceil(a.maxhp*0.25)) ? 1 : 0));
   if(a.defending) d=Math.ceil(d/2); return d; }
 
@@ -2173,6 +2177,7 @@ function strikeMult(p){ if(treeHas("v3b")) return 1.35;   // no bar to read, so 
 const STRIKELINES={ perfect:["SURGICAL!","FIVE NINES!","ROOT CAUSE: YOU!"], good:["CLEAN MERGE!","SHIPPED!"], normal:["Logged."] };
 // ---- inventory icons ----
 const ITICON={ coffee:"☕", runbook:"📖", patch:"🩹", cache:"♨️", snooze:"🔕", handoff:"📟", postmortem:"📋",
+ channel:"💬", loadshed:"🔋", canary:"🐦", debrief:"📝",
  kb1:"⌨️", kb2:"💻", kb3:"🖥️", kb4:"🦴", kb5:"🗡️", sw1:"⚔️", bw1:"🏹", wd1:"🪄",
  bd1:"🪪", bd2:"🛂", ch1:"🎯", ch2:"♻️", ch3:"⏱️", ch4:"📜", ch5:"📔", ch6:"⚡", ch7:"🧪", ch8:"🧭", tal:"🔮",
  ar1:"🦺", ar2:"🛡️", ar3:"🔰",
@@ -2807,7 +2812,7 @@ function buildQueue(b){ const ids=["hero",...S.party];
   const units=[];
   ids.forEach(id=>{ const a=S.actors[id]; if(a && !a.ko) units.push({t:"a", id, spd:spdOf(a)}); });
   units.push({t:"f", spd:unitSpd(b.def)});
-  if(treeHas("v4") && (b.rounds||0)===0) units.sort((x,y)=>(x.t!==y.t ? (x.t==="a"?-1:1) : y.spd-x.spd));
+  if((treeHas("v4") && (b.rounds||0)===0) || b.canary) units.sort((x,y)=>(x.t!==y.t ? (x.t==="a"?-1:1) : y.spd-x.spd));
   else units.sort((x,y)=>y.spd-x.spd);        // stable: equal-speed allies keep formation order, foe after them
   b.queue=units; b.qi=-1; }
 function armAutoNext(){ if(S.autoNext===false) return; const tok=(M.autoTok=(M.autoTok||0)+1);
@@ -3115,6 +3120,17 @@ function useItem(a,k){ const b=M.b;
   if(k==="coffee"){ a.hp=Math.min(a.maxhp,a.hp+5); a.mp=Math.min(a.maxmp,a.mp+2); sfx("heal"); blog("☕ Coffee! "+MEMBERS[a.id].name+" <span class='num'>+5 HP, +2 MP</span>."); }
   if(k==="patch"){ a.hp=Math.min(a.maxhp,a.hp+4); sfx("heal"); blog("🩹 Patch Kit: "+MEMBERS[a.id].name+" <span class='num'>+4 HP</span>."); }
   if(k==="cache"){ a.mp=Math.min(a.maxmp,a.mp+4); sfx("heal"); blog("♨ Cache Warmer: "+MEMBERS[a.id].name+" <span class='num'>+4 MP</span>."); }
+  if(k==="channel"){ let n=0; partyActors().forEach(x=>{ if(!x.ko && x.hp<x.maxhp){ x.hp=Math.min(x.maxhp,x.hp+5); n++; }
+      else if(!x.ko){ n++; } });
+    partyActors().forEach(x=>{ if(!x.ko) BFX.push("heal",{slot:slotOf(x.id)}); }); sfx("heal");
+    blog("💬 INCIDENT CHANNEL - <span class='num'>the whole party +5 HP</span>. ("+n+" on the call.)"); }
+  if(k==="loadshed"){ b.shed=2; sfx("heal");
+    blog("🔋 LOAD SHED - the nonessential goes dark. <span class='gold'>Everyone takes 2 less for two rounds.</span>"); }
+  if(k==="canary"){ b.canary=true; sfx("blip");
+    blog("🐦 CANARY TOKEN - the small change goes first. <span class='gold'>The party takes the top of the order.</span>"); }
+  if(k==="debrief"){ const kos=partyActors().filter(x=>x.ko);
+    kos.forEach(x=>{ x.ko=false; x.hp=Math.ceil(x.maxhp*0.4); BFX.push("heal",{slot:slotOf(x.id)}); }); sfx("heal");
+    blog("📝 BLAMELESS DEBRIEF - <span class='gold'>"+(kos.length||"no one")+" back on their feet.</span> Nobody gets left on the floor."); }
   if(k==="snooze"){ b.snoozed=true; blog("🔕 Pager Snooze - the enemy loses its next turn."); }
   if(k==="postmortem"){ a.hp=a.maxhp; a.mp=a.maxmp; sfx("heal"); blog("📋 Post-Incident Review: "+MEMBERS[a.id].name+" <span class='num'>fully restored</span>."); }
   if(k==="runbook"){ markRevealed(b);
@@ -3193,6 +3209,8 @@ function endOfRound(b,t){
   if(b.roasted>0) b.roasted--;
   if(b.heckled>0) b.heckled--;
   if(b.sprint>0) b.sprint--;
+  if(b.shed>0) b.shed--;
+  if(b.canary) b.canary=false;
   if(b.softened>0) b.softened--;
   if(b.aura>0){ b.aura--; const L2=living();
     if(L2.length){ L2.forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+2); }); t+=" <span class='num'>(UPTIME AURA: party +2)</span>"; } }
@@ -3880,7 +3898,7 @@ const TESTS = [
       && FINALE_CHAIN.filter(s=>s.bridge!==undefined).length===4 && BRIDGE.length===4
       && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
- ["shop catalog integrity (20 items)", ()=>SHOP_STOCK.length===20 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
+ ["shop catalog integrity (24 items)", ()=>SHOP_STOCK.length===24 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
  ["9 classes, 28 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===9 && Object.keys(SP).length===28
     && EN.monolith.hp===165 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
@@ -5436,6 +5454,95 @@ const TESTS = [
       if(el) el.remove();
     }catch(e){ survived=false; }
     ov.hidden=true; M.state="test"; return survived; }],
+
+ ["the kit heals the whole room, not one person", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","mender"]; S.actors.sentinel=mkActor("sentinel",6); S.actors.mender=mkActor("mender",6);
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    S.items.channel=1;
+    partyActors().forEach(x=>{ x.maxhp=30; x.hp=10; });
+    useItem(S.actors.hero, "channel");
+    const fed=partyActors().every(x=>x.hp>10) && new Set(partyActors().map(x=>x.hp)).size===1 && S.items.channel===0;   // shape, not magnitude: one test owns the numbers
+    M.b=null; M.state="test"; S=sb; return fed; }],
+ ["LOAD SHED covers everyone for exactly one round", ()=>{ const sb=S; S=NEWS();
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    S.items.loadshed=1;
+    const w=S.actors.hero; w.row="front"; w.maxhp=40; w.hp=40;
+    const plain=incoming(9, w, 0);
+    useItem(w, "loadshed");
+    const shed=incoming(9, w, 0);
+    M.b.shed=0;
+    const after=incoming(9, w, 0);
+    M.b=null; M.state="test"; S=sb; return shed===plain-2 && after===plain; }],
+ ["the CANARY hands the party the top of the order", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",5);
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    S.items.canary=1;
+    const b=M.b; b.def=Object.assign({}, EN.golem, {spd:99}); b.rounds=2;
+    buildQueue(b); const before=(b.queue||[])[0];
+    useItem(S.actors.hero, "canary");
+    buildQueue(b); const after=(b.queue||[])[0];
+    M.b=null; M.state="test"; S=sb;
+    return !!before && !!after && before.t==="f" && after.t==="a"; }],
+ ["the DEBRIEF brings back everyone who fell", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","mender"]; S.actors.sentinel=mkActor("sentinel",6); S.actors.mender=mkActor("mender",6);
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    S.items.debrief=1;
+    S.actors.sentinel.ko=true; S.actors.sentinel.hp=0;
+    S.actors.mender.ko=true; S.actors.mender.hp=0;
+    useItem(S.actors.hero, "debrief");
+    const up=!S.actors.sentinel.ko && !S.actors.mender.ko
+      && S.actors.sentinel.hp>0 && S.actors.mender.hp>0;
+    M.b=null; M.state="test"; S=sb; return up; }],
+ ["every item the shop sells is an item the game understands", ()=>{
+    const src=document.documentElement.innerHTML;
+    const dead=Object.keys(IT).filter(k=>IT[k].type==="use" && src.split('k==="'+k+'"').length-1 < 1);
+    if(dead.length) console.log("consumables with no effect:", dead.join(", "));
+    return dead.length===0; }],
+
+ ["every consumable is one a player can actually get", ()=>{
+    const uses=Object.keys(IT).filter(k=>IT[k].type==="use");
+    const unreachable=uses.filter(k=>SHOP_STOCK.indexOf(k)<0);
+    if(unreachable.length) console.log("consumables no shop sells:", unreachable.join(", "));
+    return unreachable.length===0; }],
+
+ ["no half-translated escape reaches the screen", ()=>{
+    const src=document.documentElement.innerHTML;
+    const hits=src.match(/\\?U000[0-9A-Fa-f]{5}/g);
+    if(hits) console.log("literal escapes still in the page:", Array.from(new Set(hits)).join(", "));
+    return !hits; }],
+
+ ["LOAD SHED wears off on its own", ()=>{ const sb=S; S=NEWS();
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    const b=M.b; S.items.loadshed=1;
+    const w=S.actors.hero; w.row="front"; w.maxhp=40; w.hp=40;
+    const plain=incoming(9, w, 0);
+    useItem(w, "loadshed");
+    const r1=incoming(9, w, 0);
+    endOfRound(b,""); const r2=incoming(9, w, 0);
+    endOfRound(b,""); const r3=incoming(9, w, 0);
+    M.b=null; M.state="test"; S=sb;
+    return r1===plain-2 && r2===plain-2 && r3===plain; }],   // covers two rounds, then it is gone
+ ["the CANARY leads one round, not the whole fight", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",5);
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    const b=M.b; b.def=Object.assign({}, EN.golem, {spd:99}); b.rounds=2; S.items.canary=1;
+    useItem(S.actors.hero, "canary");
+    buildQueue(b); const led=(b.queue||[])[0];
+    endOfRound(b,"");
+    buildQueue(b); const back=(b.queue||[])[0];
+    M.b=null; M.state="test"; S=sb;
+    return !!led && !!back && led.t==="a" && back.t==="f"; }],
+ ["the kit is worth what the quartermaster charges", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","mender"]; S.actors.sentinel=mkActor("sentinel",6); S.actors.mender=mkActor("mender",6);
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    S.items.channel=1; S.items.debrief=1;
+    partyActors().forEach(x=>{ x.maxhp=30; x.hp=10; });
+    useItem(S.actors.hero, "channel");
+    const fed=partyActors().every(x=>x.hp===15);
+    const m=S.actors.mender; m.ko=true; m.hp=0;
+    useItem(S.actors.hero, "debrief");
+    const up=!m.ko && m.hp===Math.ceil(m.maxhp*0.4);
+    M.b=null; M.state="test"; S=sb; return fed && up; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
