@@ -1,4 +1,4 @@
-"""Site conformance checks — the page's promises, executable.
+"""Site conformance checks - the page's promises, executable.
 
 Run: python tools/site_check.py   (exit 0 = all pass; prints one line per check)
 Written RED-first on 2026-08-21 before the recruiter-clarity redesign: these
@@ -8,6 +8,7 @@ glossary, walkthrough page), so they fail on the pre-redesign page by design.
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -77,6 +78,36 @@ for pname, body in pages.items():
         "prefers-reduced-motion" in body,
         "prefers-color-scheme" in body,
     )))
+
+# 8b. The hyphens-only rule applies to EVERY tracked text file, not just the two pages.
+# README.md is the first thing a visitor to the GitHub repo reads, and it was never covered:
+# it carried six em dashes while the log claimed zero remained. A rule enforced on a subset
+# is a rule that drifts everywhere else.
+DASHES = ("\u2014", "\u2013")
+try:
+    tracked = subprocess.run(["git", "-C", str(ROOT), "ls-files"],
+                             capture_output=True, text=True, timeout=30).stdout.split("\n")
+except Exception:
+    tracked = []
+TEXT_SUFFIXES = {".md", ".html", ".py", ".txt", ".yml", ".yaml", ".json", ".css", ".js", ".cfg", ".toml"}
+dashed = []
+for rel in tracked:
+    rel = rel.strip()
+    if not rel:
+        continue
+    f = ROOT / rel
+    if not (f.exists() and f.is_file()):
+        continue
+    if f.suffix.lower() not in TEXT_SUFFIXES and f.name not in (".gitignore", ".gitattributes"):
+        continue
+    try:
+        body = f.read_text(encoding="utf-8")
+    except (UnicodeDecodeError, OSError):
+        continue
+    n = sum(body.count(d) for d in DASHES)
+    if n:
+        dashed.append(f"{rel} ({n})")
+check("hyphens only across every tracked text file", not dashed, ", ".join(dashed))
 
 # 9. Career surface: resume + certificates visible
 check("resume link present", "Lito-Biala-Resume.pdf" in index)
