@@ -43,6 +43,8 @@
     font-size:.68rem; line-height:1.35; min-width:0; }
   .pm.active { border-color:var(--gold); box-shadow:0 0 10px #fbbf2455; }
   .pm.ko { opacity:.45; }
+  .pm.sync { border-color:var(--teal); }
+  .syncstar { color:var(--teal); }
   .pm b { color:var(--gold); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .pm .xpbar { height:3px; background:#00000090; border-radius:2px; margin-top:2px; }
   .pm .xpbar i { display:block; height:100%; background:var(--gold); border-radius:2px; }
@@ -1316,7 +1318,7 @@ const Z = [
    "★ PAPAFOXX carries ROAST, CROWD WORK, and ULTIMA - learns DAD JOKE at LV 5 - and COMIC RELIEF heals the room whenever he performs. Every set is a heal, every heckle is a buff, and the snapback stays backwards because his kid said so.",
    "PAPAFOXX: 'House rules: nobody fights alone, nobody skips the save point, and BAAAHHHHH~~~ means love. I've been on 3 a.m. bridges where nobody laughed. The ones where somebody did fixed faster. You build. I keep the room breathing.'"]}},
  npcs:[
- {x:2,y:3,spr:"mara",name:"MARA",lines:[
+ {x:2,y:3,spr:"mara",name:"MARA",talkFn:"titleGreeting",lines:[
   "MARA: Welcome in, hon. Beds counted hourly, breakfast is blameless, and whatever happens to you out there won't happen to what's in my cellar.",
   "MARA: House rules are on the board. The cellar stairs are the bank - deposits survive you. That is the entire product.",
   "MARA: Rest in any free bed. Not the third one. He's... processing."]},
@@ -1461,7 +1463,7 @@ const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   stance:"balanced", skills:{obs:{lv:1,xp:0}, forge:{lv:1,xp:0}},
   bank:{}, materia:[null,null], grave:null, foxxJoke:0, foxxWin:0, autoNext:true,
   awak:{}, timer:false, haxKnown:false, haxWon:false, netSeen:false,
-  bond:{}, hang:{}, bastionSeen:false, nocSeen:false, nightSeen:false,
+  bond:{}, hang:{}, syncSeen:0, bastionSeen:false, nocSeen:false, nightSeen:false,
   gear:{}, clue:{}, lesson:{}, core:null, noteBack:false, foxxHeart:0, metSharon:0 });
 let S = NEWS();
 let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0, roam:{}, roamBattle:false, gathered:{} };
@@ -1742,7 +1744,23 @@ const GUIDE_RESCUED=[
  "THE GUIDE: She's home. Breathe. What Sharonduh was unwinding down there was an agent: a model with memory, tools, and a sandbox to act in. He built one with no gates. You saw the bill.",
  "THE GUIDE: I read her notes from the NOC last night. She mapped every part of his machine before she touched one. Diagnose first, then pull. Same as any incident, kid, just with a mind on the other end.",
  "THE GUIDE: Now the frontier stirs. Same rule as the bridge: you hold the state, the squad touches the system, and nobody ships a fix they can't explain." ];
-function guideLines(stage){ const n=Z[0].npcs.find(x=>x.name==="THE GUIDE"); if(stage<1) return n.lines; if(stage>=4 && S.haxWon) return GUIDE_RESCUED; return GUIDE_STAGE[Math.min(4,Math.max(1,stage))]; }
+const PERK_SENDOFF={
+ STR:"THE GUIDE: One more thing, kid. You go straight at the loudest thing in the room. That's rare. Point it at the right room and it's a gift.",
+ INT:"THE GUIDE: And kid - you read before you reach. You'll want the why underneath the page, not just the fix. Keep that. The why is the whole job.",
+ DEF:"THE GUIDE: Before you go, kid. You take the hit so the person beside you can keep thinking. That isn't armor, that's a decision. Keep making it.",
+ VIT:"THE GUIDE: One more thing. You settle in for the long night without being asked. Systems don't get saved by the fast hour. They get saved by whoever stays.",
+ SPD:"THE GUIDE: And kid - you move while the room is still deciding. That saves systems, as long as you can still say afterward exactly what you changed.",
+ SPR:"THE GUIDE: Before you go. You asked after the people before the dashboards. Most never learn to. The room you keep steady is the system that matters.",
+ LCK:"THE GUIDE: One more thing, kid. You'll try the fix that shouldn't work. Plenty of pages in my runbook began as somebody's bad idea that landed. Write yours down." };
+const PERK_NEUTRAL="THE GUIDE: One more thing, kid. I don't know yet what kind of engineer you are, and neither do you. That's fine. The road tells you, and it tells you honestly.";
+function perkSendoff(){ return (S.core && PERK_SENDOFF[S.core.perk]) || PERK_NEUTRAL; }
+function titleGreeting(){ if(!S.core || !S.core.title) return null;
+  return "MARA: Well look who walked in - "+S.core.title+", mud and all. Bed's clean, stew's hot, cellar's open. Sit down before you fall down, hon."; }
+function sentinelRead(){ if(!S.core || !S.core.cls) return null;
+  return "SENTINEL: 'I read stance before I read stats. Yours reads "+S.core.cls+". Noted - I'll aim around it. Point me at the risk and I'll plant the first defect myself.'"; }
+function guideLines(stage){ const n=Z[0].npcs.find(x=>x.name==="THE GUIDE"); if(stage<1) return n.lines; if(stage>=4 && S.haxWon) return GUIDE_RESCUED;
+  const base=GUIDE_STAGE[Math.min(4,Math.max(1,stage))];
+  return (stage===1) ? base.concat([perkSendoff()]) : base; }
 const LITO_TALKS=[
  "LITO MODULE 1 - THE WIKI THAT REMEMBERS: Picture an AI whose memory is a wiki you can open and read, not a black box. On the bench it used 0.61x the tokens of loading everything. The honest part: on tiny corpora it loses, at 1.27x against the same baseline. Good memory knows where it's weak.",
  "LITO MODULE 2 - TEST THE TESTER: How do you know your AI reviewer is any good? Plant one bug on purpose and see if it notices. Nine copies of the reviewer vote on each case. Result: 9/10 planted bugs caught. Never trust a guard you've never tried to sneak past.",
@@ -1804,6 +1822,9 @@ const CLUES={
  botnet:"🔍 CLUE - every drone phones home through seven proxies. Six, now. He gets sloppy when he's showing off." };
 // ---- the curriculum: every boss teaches the discipline it embodies ----
 const LESSONS={
+ vague:{t:"📚 FIELD LESSON - PROBLEM DEFINITION", d:"An unclear request is not a task yet - it is a guess with a deadline attached. The Vague Ticket never said what broke, or where, or how to make it happen again, which is exactly why it kept slithering out of reach. Write the repro (the exact steps that make the problem happen again), then the result you expected and the result you got; if you cannot write all three, you do not have a bug yet, you have a feeling. ASK first - questions are cheap and rework is not."},
+ gremlin:{t:"📚 FIELD LESSON - ALERT DESIGN", d:"An alarm that cries wolf is worse than no alarm at all: silence leaves you alert, while a liar teaches you to sleep through the truth. The Alert Gremlin shrieked all night and was almost never right, and by morning it had trained you to ignore it. Every page must earn its noise: something is really broken, a human has to act NOW, and the message says what to do first. If an alarm cannot tell you what to do about it, it is not a warning - it is weather."},
+ creep:{t:"📚 FIELD LESSON - SCOPE CONTROL", d:"Scope Creep never attacked you, it accumulated - each 'just one more thing' sounded reasonable alone, and together they became the monster. Unbounded work is how good projects die: not from one bad decision, but from a long line of small yeses nobody wrote down. Name the smallest version that actually works, SHIP it, and only then decide what comes next. Everything else goes on a list called later, where it stays visible and harmless."},
  monolith:{t:"📚 FIELD LESSON - ML BASICS", d:"A model is a frozen training run: weights are memory, inference is recall. The Monolith judged its own work - a student grading its own exam. Evals (the tests that grade the model) must be held out, or they measure nothing."},
  h5:{t:"📚 FIELD LESSON - INCIDENT COMMAND", d:"Detect, mitigate, verify, learn. Roles beat heroes: one commander holding state, one voice out, one pair of hands on the system. Four heads and the body beneath them - five fights, ONE incident, held by one calm room."},
  promptinj:{t:"📚 FIELD LESSON - DEFENSE-IN-DEPTH", d:"Instructions and data must never share a voice - and untrusted text never stops auditioning as orders; patch one voice and it learns another. So never bet the Bastion on one wall. Layer one, the aligned mind: a model trained to want the right thing, so most poisoned orders die on arrival. Layer two, a watcher on the gate: a classifier reading every incoming scroll, flagging anything shaped like an order before the mind acts on it. Layer three, a plain gate at the exit: a policy check on what is about to ship, caring nothing about intent. Every layer fails sometimes - stacking them so no single failure is fatal IS the design."},
@@ -2615,6 +2636,8 @@ function startBattle(id,key,chain,opts){ const def=EN[id];
 function actor(){ const ids=["hero",...S.party]; return S.actors[ids[M.b.turn]]; }
 function blog(html){ document.getElementById("blog").innerHTML=html; }
 function statusLine(){ const b=M.b; const st=[];
+  const sname=(typeof syncTechName==="function") ? syncTechName() : null;
+  if(sname) st.push("✦ "+sname+" ready");
   if(b.intercept) st.push("⚡ ARMED");
   else if(b.itMeter>0) st.push("⚡ "+b.itMeter+"/3");
   if(b.verified>0) st.push("✔ verified round ×"+b.verified);
@@ -2639,12 +2662,14 @@ function drawB(){ const b=M.b;
       const cls = i===b.qi ? "tqcur" : (i<b.qi ? "tqdone" : "");
       return "<span class='"+cls+"'>"+nm+"</span>"; }).join(" · ") : ""; }
   const pr=document.getElementById("pmrow"); pr.innerHTML="";
+  const sync=syncPartners();
+  if(syncAnnounce()) toast("✦ DUAL TECH READY - two allies, one move (skill menu)");
   const ids=["hero",...S.party];
   ids.forEach((pid,i)=>{ const a=S.actors[pid]; if(!a) return; const m=MEMBERS[pid];
     const seg=Math.min(4,Math.floor((a.lb||0)/5));
     const d=document.createElement("div");
-    d.className="pm"+(i===b.turn && !a.ko?" active":"")+(a.ko?" ko":"");
-    d.innerHTML="<b>"+m.name+" "+(rowOf(a)==="back"?"▼":"▲")+"</b><span class='cls'>"+clsOf(a)+" L"+a.lv+"</span><br>HP "+a.hp+"/"+a.maxhp+"<br>MP "+a.mp+"/"+a.maxmp+
+    d.className="pm"+(i===b.turn && !a.ko?" active":"")+(a.ko?" ko":"")+(sync.indexOf(pid)>=0?" sync":"");
+    d.innerHTML="<b>"+m.name+" "+(rowOf(a)==="back"?"▼":"▲")+(sync.indexOf(pid)>=0?" <span class='syncstar'>✦</span>":"")+"</b><span class='cls'>"+clsOf(a)+" L"+a.lv+"</span><br>HP "+a.hp+"/"+a.maxhp+"<br>MP "+a.mp+"/"+a.maxmp+
       "<br><span class='"+(seg>=4?"gold":"mut")+"'>LB "+"▰".repeat(seg)+"▱".repeat(4-seg)+"</span>"+
       "<div class='xpbar'><i style='width:"+Math.round(xpPct(a)*100)+"%'></i></div>"+
       (a.ko?"<br><span class='red'>KO</span>":(a.defending?"<br>🛡 def":(a.shield?"<br>🛡 ward":"")));
@@ -2785,6 +2810,22 @@ function castLimit(a){ const b=M.b;
       BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
     blog("<span class='gold'>★ "+omTag+"FIVE NINES</span> - "+nm+" makes availability a PROMISE. <span class='num'>The fallen rise"+(om?" at FULL HP":" at half HP")+"; the living heal +"+(om?9:6)+".</span>"); b.menu="next"; drawB(); return; } }
 // -------- DUAL TECHS: Chrono's rule - both characters' MP, both characters' turns --------
+function syncPartners(){ const b=M.b; if(!b) return [];
+  const ids=["hero",...S.party]; const out=[];
+  ids.forEach(pid=>{ const a=S.actors[pid]; if(!a || a.ko) return;
+    const list=dualsFor(a);
+    if(list && list.length){ const pick=list[0];
+      if(out.indexOf(a.id)<0) out.push(a.id);
+      if(out.indexOf(pick.partner)<0) out.push(pick.partner); } });
+  return out; }
+function syncTechName(){ const b=M.b; if(!b) return null;
+  const ids=["hero",...S.party];
+  for(const pid of ids){ const a=S.actors[pid]; if(!a || a.ko) continue;
+    const list=dualsFor(a); if(list && list.length) return DUAL[list[0].key].name; }
+  return null; }
+function syncAnnounce(){ if(S.syncSeen) return false;
+  if(!syncPartners().length) return false;
+  S.syncSeen=1; return true; }
 function dualsFor(a){ const b=M.b; if(!b) return [];
   const ids=["hero",...S.party]; const out=[];
   Object.keys(DUAL).forEach(key=>{ const du=DUAL[key];
@@ -4972,6 +5013,39 @@ const TESTS = [
     return ids.every(k=>IT[k] && IT[k].type==="weapon" && IT[k].atk===1 && RECIPES[k]) ; }],
  ["the badge slot finally holds a decision", ()=>{
     return !!IT.bd3 && IT.bd3.type==="badge" && IT.bd3.price===45 && !!IT.ch9 && IT.ch9.type==="charm"; }],
+
+ // ---- BACKLOG TOP 3: the trial remembers, sync ready, the curriculum starts at foe one (RED-first) ----
+ ["the trial remembers: every perk earns its own send-off, and a skipped trial still reads", ()=>{ const sb=S; S=NEWS();
+    const seen=new Set();
+    ["STR","INT","DEF","VIT","SPD","SPR","LCK"].forEach(k=>{ S.core={stats:{},cls:"Knight",perk:k,title:"the Test"};
+      const L=guideLines(1); if(Array.isArray(L) && L.length>=3) seen.add(L[L.length-1]); });
+    S.core=null; const nl=guideLines(1);
+    const neutralOk=Array.isArray(nl) && nl.length>=3 && !seen.has(nl[nl.length-1]);
+    S=sb; return seen.size===7 && neutralOk; }],
+ ["the world uses your title", ()=>{ const sb=S; S=NEWS();
+    S.core={stats:{},cls:"Knight",perk:"STR",title:"the Unstoppable"};
+    const g=titleGreeting(); S.core=null; const none=titleGreeting();
+    S=sb; return typeof g==="string" && g.includes("the Unstoppable") && none===null; }],
+ ["sync ready: the star marks both partners, and lies to nobody", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","wiki"]; S.actors.sentinel=mkActor("sentinel",5); S.actors.wiki=mkActor("wiki",5);
+    S.actors.hero.mp=9; S.actors.sentinel.mp=9; S.actors.wiki.mp=9;
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:99, maxhp:99, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:1, snoozed:false };
+    const ready=syncPartners();
+    S.actors.sentinel.ko=true; S.actors.wiki.ko=true; const koed=syncPartners();
+    S.actors.sentinel.ko=false; S.actors.wiki.ko=false; S.actors.hero.mp=0; S.actors.sentinel.mp=0; S.actors.wiki.mp=0;
+    const broke=syncPartners();
+    M.b=null; M.state="test"; S=sb;
+    return ready.includes("sentinel") && ready.includes("wiki") && koed.length===0 && broke.length===0; }],
+ ["sync ready: the first time it happens, the game says so once", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","wiki"]; S.actors.sentinel=mkActor("sentinel",5); S.actors.wiki=mkActor("wiki",5);
+    S.actors.hero.mp=9; S.actors.sentinel.mp=9; S.actors.wiki.mp=9;
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:99, maxhp:99, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:1, snoozed:false };
+    const first=syncAnnounce(), second=syncAnnounce();
+    M.b=null; M.state="test"; S=sb;
+    return first===true && second===false; }],
+ ["the curriculum starts at the first foe, not the fifth", ()=>{
+    return ["vague","gremlin","creep"].every(k=>LESSONS[k] && /FIELD LESSON/.test(LESSONS[k].t) && LESSONS[k].d.length>140)
+      && Object.keys(LESSONS).length>=16; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
