@@ -1464,7 +1464,7 @@ const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   bank:{}, materia:[null,null], grave:null, foxxJoke:0, foxxWin:0, autoNext:true,
   awak:{}, timer:false, haxKnown:false, haxWon:false, netSeen:false,
   bond:{}, hang:{}, syncSeen:0, bastionSeen:false, nocSeen:false, nightSeen:false,
-  gear:{}, clue:{}, lesson:{}, core:null, tree:null, noteBack:false, foxxHeart:0, metSharon:0 });
+  gear:{}, clue:{}, lesson:{}, core:null, tree:null, treeSeen:false, noteBack:false, foxxHeart:0, metSharon:0 });
 let S = NEWS();
 let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0, roam:{}, roamBattle:false, gathered:{} };
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
@@ -1710,6 +1710,20 @@ function treeEarned(){ const lv=(S.actors && S.actors.hero) ? S.actors.hero.lv :
 function treeSpent(){ if(!S.tree || !S.tree.taken) return 0;
   return Object.keys(S.tree.taken).reduce((n,k)=>n+((TREE[k]&&TREE[k].cost)||0), 0); }
 function treePts(){ return treeEarned()-treeSpent(); }
+function TREE_SCENE(){ return [
+ { t:"The pager has been quiet for eleven minutes. You sit on the loading dock with your boots over the edge and wait for your hands to stop.", spr:null, dark:.15, from:"40% 60%", z:1 },
+ { t:"SENTINEL: \"You did something back there you could not have done last week. That was not luck. That was a rep.\"", spr:"sentinel", dark:.3, from:"25% 40%", z:1.3 },
+ { t:"SENTINEL: \"Reps go three ways. Hold the line. End it early. See it coming. Walk far enough down one road and the others close behind you.\"", spr:"sentinel", left:true, dark:.4, from:"70% 40%", z:1.5 },
+ { t:"PAPAFOXX: \"Translation, kid: nobody is great at everything. The ones who try come out medium at all of it.\"", spr:"foxx", dark:.4, from:"30% 55%", z:1.35 },
+ { t:"PAPAFOXX: \"So pick the thing you want them calling you when you are not in the room.\"", spr:"foxx", left:true, dark:.45, from:"55% 50%", z:1.5 },
+ { t:"SENTINEL: \"And the last stone on any road costs more than you will ever hold twice over. One of those, ever. Choose it late, and choose it awake.\"", spr:"sentinel", dark:.5, from:"50% 35%", z:1.6 },
+ { t:"", spr:null, dark:0, hold:700, from:"50% 50%", z:1 },
+ { t:"Under the floor, the servers hum like a held breath.", spr:null, dark:.1, from:"50% 70%", z:1.15 } ]; }
+function keystoneBeats(id){ const nd=TREE[id]; if(!nd || nd.tier!==5) return null;   // only the last stone stops the game
+  return [
+   { t:"You put your hand on the last stone in the road. It is warm, the way a machine is warm.", spr:null, dark:.25, from:"50% 55%", z:1.3 },
+   { t:"<b class='gold'>"+nd.name+"</b>. "+nd.lane+" closes behind you.", spr:"hero", dark:.45, from:"45% 45%", z:1.6 },
+   { t:"There is no second one of these. Not in this life. You will have to be the kind of engineer who chose it.", spr:null, dark:.15, from:"50% 40%", z:1.1 } ]; }
 function treeHolds(tgt, wasHp, b){   // r3b: catches the blow that fells a HEALTHY ally, once
   return !!(treeHas("r3b") && b && !b.treeHold && wasHp > tgt.maxhp/2); }
 function treeCan(id){ const nd=TREE[id]; if(!nd) return false;
@@ -2111,10 +2125,11 @@ function panelSay(beats, done){
     const silent=!b.t;
     txt.hidden=silent; hint.hidden=silent;
     if(b.hold){ const bi=i; NATIVE_ST(()=>{ if(!closed && i===bi && M.panelAdv) show(); }, b.hold); }
-    fig.hidden=!b.spr;
-    if(b.spr){ const n=SPR[b.spr].length, g=fig.getContext("2d");
+    const useSpr=(b.spr && SPR[b.spr]) ? b.spr : null;   // an unknown name costs the portrait, never the scene
+    fig.hidden=!useSpr;
+    if(useSpr){ const n=SPR[useSpr].length, g=fig.getContext("2d");
       fig.width=fig.height=n*8; g.clearRect(0,0,fig.width,fig.height);
-      drawSprTo(g,b.spr,0,0,8); fig.classList.toggle("left",!!b.left);
+      drawSprTo(g,useSpr,0,0,8); fig.classList.toggle("left",!!b.left);
       fig.style.animation="none"; void fig.offsetWidth; fig.style.animation="";
       if(Array.isArray(b.anim) && b.anim.length>1){ let f=0; const bi=i;
         const tick=()=>{ if(closed || i!==bi) return; f=(f+1)%b.anim.length;
@@ -3348,6 +3363,9 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
 function menuSub(mn){
   if(mn==="close"){ ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); return; }
   if(mn==="tree"){ treeInit();
+    if(!S.treeSeen && treePts()>0){ S.treeSeen=true; saveGame(0);   // the first rep is earned, so it gets a scene
+      ov.hidden=true; ov.classList.remove("center");
+      panelSay(TREE_SCENE(), ()=>{ pauseMenu(); menuSub("tree"); }); return; }
     const lanes=["RELIABILITY","VELOCITY","SIGNAL"];
     let h="<b class='gold'>\🌱 GROWTH</b> <span class='mut'>- "+treePts()+" rep"+(treePts()===1?"":"s")+" unspent, "+treeSpent()+" of "+treeEarned()+" earned. One rep a level through LV 26. Tiers open in order. A fork closes the other door until you reawaken.</span><div style='max-height:250px;overflow:auto;font-size:.72rem;line-height:1.45;margin-top:6px'>";
     lanes.forEach(L=>{
@@ -3359,7 +3377,10 @@ function menuSub(mn){
            (has? "" : "<button data-node='"+k+"' style='margin-left:6px;font-size:.68rem;padding:1px 7px'"+(can?"":" disabled")+">take</button>")+
            "<br><span class='mut'>"+nd.d+"</span></div>"; }); });
     h+="</div><div class='choices'><button data-b='1'>\u25c0 BACK</button></div>"; box.innerHTML=h;
-    box.querySelectorAll("[data-node]").forEach(bt=>bt.onclick=()=>{ if(treeTake(bt.dataset.node)){ sfx("level"); saveGame(0); menuSub("tree"); } });
+    box.querySelectorAll("[data-node]").forEach(bt=>bt.onclick=()=>{ if(treeTake(bt.dataset.node)){ sfx("level"); saveGame(0);
+      const ks=keystoneBeats(bt.dataset.node);
+      if(ks){ ov.hidden=true; ov.classList.remove("center"); panelSay(ks, ()=>{ pauseMenu(); menuSub("tree"); }); return; }
+      menuSub("tree"); } });
     box.querySelector("[data-b]").onclick=()=>menuHome(); return; }
   if(mn==="codex"){
     let h="<b class='gold'>📖 CODEX</b> <span class='mut'>- the field's words, in plain words. The same ideas the bosses teach the hard way.</span><div style='max-height:260px;overflow:auto;font-size:.74rem;line-height:1.5;margin-top:6px'>";
@@ -5202,7 +5223,7 @@ const TESTS = [
     return m.v===SAVE_VERSION && SAVE_VERSION===10 && m.tokens===5 && m.tree && m.tree.taken && treeSpent.call(null)>=0; }],
 
  ["the growth screen opens and shows every lane", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
-    S.actors.hero.lv=8;
+    S.actors.hero.lv=8; S.treeSeen=true;
     pauseMenu();
     const btn=box.querySelector("[data-m='tree']"); if(!btn){ ov.hidden=true; M.state="test"; S=sb; return false; }
     btn.click();
@@ -5210,14 +5231,14 @@ const TESTS = [
     const ok=/GROWTH/i.test(t) && /RELIABILITY/.test(t) && /VELOCITY/.test(t) && /SIGNAL/.test(t) && /PADDED ROLLOUT/.test(t) && /7 rep/.test(t);
     ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return ok; }],
  ["the screen never offers what you cannot afford", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
-    S.actors.hero.lv=2;                       // exactly 1 rep: tier-1 nodes only
+    S.actors.hero.lv=2; S.treeSeen=true;      // exactly 1 rep: tier-1 nodes only
     pauseMenu(); box.querySelector("[data-m='tree']").click();
     const buttons=Array.from(box.querySelectorAll("[data-node]"));
     const enabled=buttons.filter(b=>!b.disabled).map(b=>b.dataset.node);
     const ok=enabled.length>0 && enabled.every(id=>TREE[id].cost<=1) && buttons.some(b=>b.disabled);
     ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return ok; }],
  ["taking a node spends the rep and redraws", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
-    S.actors.hero.lv=4;
+    S.actors.hero.lv=4; S.treeSeen=true;
     const bak=localStorage.getItem(saveKey(0));
     pauseMenu(); box.querySelector("[data-m='tree']").click();
     box.querySelector("[data-node='v1']").click();
@@ -5308,7 +5329,7 @@ const TESTS = [
     const cleaned=!treeHas("r5") && !treeHas("v5") && !Object.prototype.hasOwnProperty.call(S.tree.taken,"constructor");
     S=sb; return cleaned; }],
  ["the header tells the truth about when reps stop", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
-    S.actors.hero.lv=40;
+    S.actors.hero.lv=40; S.treeSeen=true;
     pauseMenu(); box.querySelector("[data-m='tree']").click();
     const t=box.textContent; const honest=/LV 26|through LV/.test(t);
     ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return honest; }],
@@ -5376,6 +5397,45 @@ const TESTS = [
     b.treeHold=true;
     const twice=treeHolds(w, 40, b);            // insurance pays once
     S=sb; return healthy===true && chipped===false && twice===false; }],
+
+ ["the first rep is a scene, not a menu", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
+    const bak=localStorage.getItem(saveKey(0));
+    try{
+      S.actors.hero.lv=6;
+      pauseMenu(); box.querySelector("[data-m='tree']").click();
+      const staged=S.treeSeen===true && box.querySelector("[data-node]")===null;
+      const panel=document.getElementById("spanel"); if(panel) panel.remove();
+      return staged;
+    } finally {
+      if(bak===null) localStorage.removeItem(saveKey(0)); else localStorage.setItem(saveKey(0), bak);
+      ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; } }],
+ ["the scene says the three roads and the one keystone out loud", ()=>{
+    const txt=TREE_SCENE().map(b=>b.t||"").join(" ");
+    const roads=/hold the line/i.test(txt) && /end it early/i.test(txt) && /see it coming/i.test(txt);
+    const once=/one of those, ever|no second one|once in a/i.test(txt);
+    const voices=TREE_SCENE().some(b=>b.spr==="sentinel") && TREE_SCENE().some(b=>b.spr==="foxx");
+    return roads && once && voices && TREE_SCENE().length>=6; }],
+ ["a keystone is a moment the game stops for", ()=>{
+    const b=keystoneBeats("r5");
+    const named=b.some(x=>(x.t||"").indexOf("FIVE NINES")>=0);
+    const final=b.some(x=>/no second|not in this life|never again/i.test(x.t||""));
+    return b.length>=2 && named && final && keystoneBeats("r1")===null; }],
+
+ ["every beat names a sprite that exists", ()=>{
+    const beats=TREE_SCENE().concat(keystoneBeats("r5"), keystoneBeats("v5"), keystoneBeats("s5"));
+    const bad=beats.filter(b=>b.spr && !SPR[b.spr]).map(b=>b.spr);
+    if(bad.length) console.log("beats naming a sprite that does not exist:", bad.join(", "));
+    return bad.length===0; }],
+ ["a bad sprite name cannot kill a scene", ()=>{
+    const beats=[{t:"one", spr:"nosuchsprite", dark:.2}, {t:"two", spr:null}];
+    const before=document.getElementById("spanel"); if(before) before.remove();
+    const rb=window.matchMedia; let survived=false;
+    try{ panelSay(beats, null);
+      const el=document.getElementById("spanel");
+      survived = !!el && (el.querySelector(".sp-text").textContent||"").indexOf("one")>=0;
+      if(el) el.remove();
+    }catch(e){ survived=false; }
+    ov.hidden=true; M.state="test"; return survived; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -5403,7 +5463,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
   bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
-  TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, treeHolds, migrateV9, skillCost, itThreshold, incoming, buildQueue, tryMigrate, dealt, reawaken, gainXP, XPCURVE, REP_LEVEL_CAP,
+  TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, treeHolds, TREE_SCENE, keystoneBeats, migrateV9, skillCost, itThreshold, incoming, buildQueue, tryMigrate, dealt, reawaken, gainXP, XPCURVE, REP_LEVEL_CAP,
   buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse, tileHash, lungeScale, overworldThemeFor, battleThemeFor,
   joinSharon, finishRescue, CLUES, LESSONS, CORE, coreOf, starBar, heroTrial, equipGear, CONDS };
 tryMigrate();
