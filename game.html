@@ -26,7 +26,16 @@
     font-size:.86rem; line-height:1.5; box-shadow:0 4px 0 #00000066; }
   .overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; gap:6px; padding:8px; overflow:auto; }
   .overlay.center { justify-content:center; }
-  .battle { position:absolute; inset:0; display:flex; flex-direction:column; padding:8px; gap:6px; background:#0e1430; }   /* opaque: the overworld never peeks through a battle */
+  .battle { position:absolute; inset:0; display:flex; flex-direction:column; padding:8px; gap:6px; background:#0e1430; overflow:auto; }
+  /* Without this the party plates spill past the stage on a phone and paint over the d-pad,
+     which then swallows every tap meant for the arrows. Contain the fight inside its own frame. */
+  @media (max-width:560px){
+    .pm { padding:2px 4px; font-size:.66rem; line-height:1.25; }
+    .log { min-height:2.2em; font-size:.74rem; }
+    .dpad { margin-top:3px; } .dpad button { height:38px; }
+    /* the map canvas sets the stage height; a fight needs more room than a map does */
+    #stage:has(#battle:not([hidden])) { min-height:min(72vh,600px); }
+  }   /* opaque: the overworld never peeks through a battle */
   .bscene { flex:1; border:4px double #fff; border-radius:6px; position:relative; overflow:hidden;
     display:flex; align-items:stretch; justify-content:center; min-height:150px; background:#0b0e18; }
   .bscene canvas { image-rendering:pixelated; width:100%; height:100%; object-fit:contain; }
@@ -56,7 +65,7 @@
   .menu button:hover, .menu button:focus-visible, .choices button:hover { color:var(--gold); outline:none; }
   .menu button::before, .choices button::before { content:"  "; }
   .menu button:hover::before, .choices button:hover::before { content:"▶ "; }
-  .log { min-height:3.1em; font-size:.82rem; }
+  .log { min-height:3.1em; font-size:.82rem; overflow:auto; }
   .log .num, .num { color:var(--teal); font-weight:700; }
   .log .gold, .gold { color:var(--gold); }
   .log .red, .red { color:var(--red); }
@@ -2140,7 +2149,7 @@ function panelSay(beats, done){
         const tick=()=>{ if(closed || i!==bi) return; f=(f+1)%b.anim.length;
           g.clearRect(0,0,fig.width,fig.height); drawSprTo(g,b.anim[f],0,0,8); NATIVE_ST(tick, 230); };
         NATIVE_ST(tick, 230); } }
-    txt.innerHTML=b.t.replace(/^([A-Z0-9 !()'-·@.-]+):/,"<span class='gold'>$1:</span>");
+    txt.innerHTML=b.t.replace(/^([A-Z0-9 !()'·@.-]+):/,"<span class='gold'>$1:</span>");   // the hyphen lives at the end: as a range it once swallowed every lowercase letter
     txt.style.animation="none"; void txt.offsetWidth; txt.style.animation=""; }
   let closed=false;
   function close(){ if(closed) return; closed=true; el.onclick=null;
@@ -5672,7 +5681,14 @@ const TESTS = [
     const GENERIC=["kb1","kb2","kb3","kb5","rw1","mic1","gl1","sw1","bd1","bd2","ar1","ar2"];
     const dead=Object.keys(IT).filter(k=>GENERIC.indexOf(k)<0 && prod.split('"'+k+'"').length-1 < 1);
     if(dead.length) console.log("items whose effect nothing reads:", dead.join(", "));
-    return dead.length===0; }],];
+    return dead.length===0; }], ["only a speaker tag gets the speaker colour", ()=>{
+    const src=String(panelSay);
+    const m=src.match(/replace\(\/\^\(\[([^\]]*)\]\+\)\:\//);
+    if(!m) return false;
+    const cls=new RegExp("^([" + m[1] + "]+):");
+    const speaker="SENTINEL: you did something back there.";
+    const prose="he stopped, thought about it, and said the quiet part: nobody is great at everything.";
+    return cls.test(speaker) && !cls.test(prose); }],];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
   let pass=0, rows="";
