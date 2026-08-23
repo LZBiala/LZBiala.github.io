@@ -2637,7 +2637,7 @@ function actor(){ const ids=["hero",...S.party]; return S.actors[ids[M.b.turn]];
 function blog(html){ document.getElementById("blog").innerHTML=html; }
 function statusLine(){ const b=M.b; const st=[];
   const sname=(typeof syncTechName==="function") ? syncTechName() : null;
-  if(sname) st.push("✦ "+sname+" ready");
+  if(sname) st.push(sname+" ready");
   if(b.intercept) st.push("⚡ ARMED");
   else if(b.itMeter>0) st.push("⚡ "+b.itMeter+"/3");
   if(b.verified>0) st.push("✔ verified round ×"+b.verified);
@@ -2669,7 +2669,7 @@ function drawB(){ const b=M.b;
     const seg=Math.min(4,Math.floor((a.lb||0)/5));
     const d=document.createElement("div");
     d.className="pm"+(i===b.turn && !a.ko?" active":"")+(a.ko?" ko":"")+(sync.indexOf(pid)>=0?" sync":"");
-    d.innerHTML="<b>"+m.name+" "+(rowOf(a)==="back"?"▼":"▲")+(sync.indexOf(pid)>=0?" <span class='syncstar'>✦</span>":"")+"</b><span class='cls'>"+clsOf(a)+" L"+a.lv+"</span><br>HP "+a.hp+"/"+a.maxhp+"<br>MP "+a.mp+"/"+a.maxmp+
+    d.innerHTML="<b>"+(sync.indexOf(pid)>=0?"<span class='syncstar'>✦</span> ":"")+m.name+" "+(rowOf(a)==="back"?"▼":"▲")+"</b><span class='cls'>"+clsOf(a)+" L"+a.lv+"</span><br>HP "+a.hp+"/"+a.maxhp+"<br>MP "+a.mp+"/"+a.maxmp+
       "<br><span class='"+(seg>=4?"gold":"mut")+"'>LB "+"▰".repeat(seg)+"▱".repeat(4-seg)+"</span>"+
       "<div class='xpbar'><i style='width:"+Math.round(xpPct(a)*100)+"%'></i></div>"+
       (a.ko?"<br><span class='red'>KO</span>":(a.defending?"<br>🛡 def":(a.shield?"<br>🛡 ward":"")));
