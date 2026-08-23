@@ -3832,7 +3832,12 @@ document.addEventListener("keydown",e=>{ const k=e.key;
   else if(k==="ArrowRight"||k==="d"||k==="D"){ e.preventDefault(); tryMove(1,0); }
   else if(k==="ArrowUp"||k==="w"||k==="W"){ e.preventDefault(); tryMove(0,-1); }
   else if(k==="ArrowDown"||k==="s"||k==="S"){ e.preventDefault(); tryMove(0,1); }
-  else if(k==="Enter"||k===" "){ e.preventDefault(); interact(); }
+  else if(k==="Enter"||k===" "){
+    // if the player has tabbed onto a button, that is their choice - let the browser make it.
+    // Swallowing this was why Enter and Space did nothing on every choice prompt in the game.
+    const ae=document.activeElement;
+    if(ae && ae.tagName==="BUTTON" && (box.contains(ae) || ae.closest(".dpad"))) return;
+    e.preventDefault(); interact(); }
   else if(/^[1-9]$/.test(k) && M.state==="dialog"){ const btns=[...box.querySelectorAll("button[data-i], button[data-buy]:not([disabled]), button[data-forge]:not([disabled]), button[data-tm]:not([disabled])")];
     const b=btns[parseInt(k,10)-1]; if(b) b.click(); } });
 document.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",()=>{
@@ -3842,7 +3847,13 @@ document.querySelectorAll(".dpad button").forEach(b=>b.addEventListener("click",
       else { const bk=box.querySelector("[data-e='__back'],[data-b]"); if(bk) bk.click(); } } return; }
   if(M.state==="intro"){ if(k==="Enter") introAdvance(); return; }
   if(M.state==="panel"){ if(k==="Enter" && M.panelAdv) M.panelAdv(); if(k==="Escape" && M.panelEnd) M.panelEnd(); return; }
-  if(k==="Enter"){ if(M.state==="dialog") { const first=box.querySelector("button:not([data-buy]):not([data-forge]):not([data-tm]):not([disabled])")||box.querySelector("button"); if(first) first.click(); }
+  if(k==="Enter"){ if(M.state==="dialog") {
+      // A used to click whichever button came first, so on any multiple-choice prompt - the
+      // opening trial, the incident bridge - a touch player silently answered option 1 without
+      // having chosen it. If there is a real choice on screen, A does nothing and the player taps.
+      const pick=[...box.querySelectorAll("button:not([data-buy]):not([data-forge]):not([data-tm]):not([disabled])")];
+      if(pick.length===1) pick[0].click();
+      else if(!pick.length){ const any=box.querySelector("button"); if(any) any.click(); } }
     else if(M.state==="battle"){ const bs=[...document.querySelectorAll("#bmenu button")];
       const pick=bs[(M.b&&M.b.sel)||0]||bs[0]; if(pick) pick.click(); }
     else interact(); }
@@ -5731,7 +5742,37 @@ const TESTS = [
       tryMigrate();
       const a=localStorage.getItem(saveKey(0)), s2=localStorage.getItem(saveKey(2));
       return !!a && !!s2 && JSON.parse(s2).tokens===333 && JSON.parse(s2).v===SAVE_VERSION;
-    } finally { bak.forEach(([k,v])=>{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }); } }],];
+    } finally { bak.forEach(([k,v])=>{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }); } }], ["the A button never answers a question for you", ()=>{
+    const sb=S; const bakState=M.state; S=NEWS();
+    try{
+      M.state="dialog"; ov.hidden=false;
+      let clicked=null;
+      box.innerHTML="<div class='choices'>"+
+        "<button data-i='0'>first</button><button data-i='1'>second</button><button data-i='2'>third</button></div>";
+      box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ clicked=b.dataset.i; });
+      document.querySelector(".dpad button[data-k='Enter']").click();
+      const guessedForYou = clicked!==null;
+
+      // but on a plain "press on" prompt with a single button it must still advance
+      clicked=null;
+      box.innerHTML="<div class='choices'><button data-i='0'>continue</button></div>";
+      box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ clicked=b.dataset.i; });
+      document.querySelector(".dpad button[data-k='Enter']").click();
+      const advanced = clicked==="0";
+
+      return !guessedForYou && advanced;
+    } finally { ov.hidden=true; box.innerHTML=""; M.state=bakState; S=sb; } }], ["Enter still works on a button you tabbed to", ()=>{
+    const sb=S; const bakState=M.state; S=NEWS();
+    try{
+      M.state="dialog"; ov.hidden=false;
+      box.innerHTML="<div class='choices'><button data-i='0'>one</button><button data-i='1'>two</button></div>";
+      const second=box.querySelectorAll("button")[1];
+      second.focus();
+      const ev=new KeyboardEvent("keydown",{key:"Enter",bubbles:true,cancelable:true});
+      document.dispatchEvent(ev);
+      // the browser activates a focused button on Enter by itself; the game must not eat the event
+      return ev.defaultPrevented===false && document.activeElement===second;
+    } finally { ov.hidden=true; box.innerHTML=""; M.state=bakState; S=sb; } }],];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
   let pass=0, rows="";
