@@ -1583,10 +1583,12 @@ function tryMigrate(){
     if(d4){ localStorage.setItem(saveKey(s4), JSON.stringify(migrateV4(JSON.parse(d4)))); if(s4===0) migratedAuto=true; }
   }catch(e){} }
   if(migratedAuto) return true;
-  try{ if(!localStorage.getItem(saveKey(0))){
-    const d3=localStorage.getItem("aiquest3_auto");
-    if(d3){ localStorage.setItem(saveKey(0), JSON.stringify(migrateV3(JSON.parse(d3)))); return true; } }
-  }catch(e){}
+  for(const s3 of [0,1,2,3]){ try{           // v3 shipped three manual slots; only its autosave was ever rescued
+    if(localStorage.getItem(saveKey(s3))) continue;
+    const d3=localStorage.getItem(s3?"aiquest3_s"+s3:"aiquest3_auto");
+    if(d3){ localStorage.setItem(saveKey(s3), JSON.stringify(migrateV3(JSON.parse(d3)))); if(s3===0) migratedAuto=true; }
+  }catch(e){} }
+  if(migratedAuto) return true;
   try{ if(!localStorage.getItem(saveKey(0))){
     const d2=localStorage.getItem("aiquest");
     if(d2){ localStorage.setItem(saveKey(0), JSON.stringify(migrateV2(JSON.parse(d2)))); return true; } }
@@ -3865,10 +3867,17 @@ document.addEventListener("pointerdown", kickMusic);
 const TESTS = [
  ["mkActor stats scale with level", ()=>{ const a=mkActor("refuter",4); return a.maxhp===14+4*3 && a.atk===3+3 && a.sk.includes("objection"); }],
  ["wizard learns INDEX STORM at 5", ()=>{ const a=mkActor("wiki",5); return a.sk.includes("indexstorm") && !mkActor("wiki",4).sk.includes("indexstorm"); }],
- ["per-actor XP levels independently", ()=>{ const bak=S; S=NEWS(); S.party=["wiki"]; S.actors.wiki=mkActor("wiki",1);
-    S.actors.hero.xp=9; S.actors.wiki.xp=9;
-    for(const a of living()){ a.xp+=1; while(a.lv<XPCURVE.length && a.xp>=XPCURVE[a.lv]){ a.lv++; } }
-    const ok=S.actors.hero.lv===2 && S.actors.wiki.lv===2; S=bak; return ok; }],
+ ["gainXP levels every living ally, and grows their stats", ()=>{ const bak=S; const tb=window.toast; S=NEWS();
+    try{
+      // the old version reimplemented the level-up loop inline, so gainXP could have been deleted
+      window.toast=()=>{};
+      S.party=["wiki"]; S.actors.wiki=mkActor("wiki",1);
+      const h=S.actors.hero, w=S.actors.wiki;
+      h.xp=XPCURVE[1]-1; w.xp=XPCURVE[1]-1;
+      const hHp=h.maxhp, wMp=w.maxmp;
+      gainXP(1);
+      return h.lv===2 && w.lv===2 && h.maxhp>hHp && w.maxmp>wMp;
+    } finally { window.toast=tb; S=bak; } }],
  ["hero-only equipment math", ()=>{ const bak=S; S=NEWS(); S.equip.weapon="kb2"; S.actors.wiki=mkActor("wiki",1);
     const ok=atkOf(S.actors.hero)===5 && atkOf(S.actors.wiki)===2; S=bak; return ok; }],
  ["incoming: badge + defend + taunt reduction", ()=>{ const bak=S; S=NEWS();
@@ -3913,10 +3922,26 @@ const TESTS = [
     castSkill(S.actors.mender,"ward");
     const ok=S.actors.hero.shield===true && S.actors.mender.shield===true && !S.actors.wiki.shield;
     M.b=null; S=sb; return ok; }],
- ["taunt targets refuter ~70%", ()=>{ const sb=S; S=NEWS(); S.party=["refuter"]; S.actors.refuter=mkActor("refuter",3);
-    rng=mulberry32(99); let hits=0;
-    for(let i=0;i<300;i++){ if(rng()<0.7) hits++; }
-    S=sb; rng=mulberry32(1); return hits>170 && hits<250; }],
+ ["a taunting REFUTER really does draw the fire", ()=>{ const sb=S; const rb=rng;
+    try{
+      // the old version rolled rng()<0.7 in a loop and never touched the taunt code at all
+      S=NEWS(); S.party=["refuter","wiki"];
+      S.actors.refuter=mkActor("refuter",8); S.actors.wiki=mkActor("wiki",8);
+      rng=mulberry32(4242);
+      let onRefuter=0, total=0;
+      for(let i=0;i<200;i++){
+        M.state="battle";
+        M.b={ id:"golem", def:EN.golem, hp:9999, maxhp:9999, revealed:true, focused:true, verified:0, dot:0,
+          taunt:2, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:1, ducked:{} };
+        partyActors().forEach(x=>{ x.hp=x.maxhp=999; x.ko=false; });
+        foeAct(true);
+        const hurt=partyActors().filter(x=>x.hp<999);
+        if(hurt.length){ total++; if(hurt.some(x=>x.id==="refuter")) onRefuter++; }
+      }
+      M.b=null; M.state="test";
+      const share=total? onRefuter/total : 0;
+      return total>=150 && share>0.55 && share<0.95;
+    } finally { rng=rb; S=sb; M.b=null; M.state="test"; } }],
  ["finale chain (production data): 6 fights, 4 decision beats, end", ()=>{
     return FINALE_CHAIN[FINALE_CHAIN.length-1].end===true && FINALE_CHAIN.filter(s=>s.en).length===6
       && FINALE_CHAIN.filter(s=>s.bridge!==undefined).length===4 && BRIDGE.length===4
@@ -3928,8 +3953,16 @@ const TESTS = [
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
     return s.length===n && s.every(r=>r.length===n); })],
  ["encounter pools reference real enemies", ()=>Z.every(z=>!z.enc || (z.enc.pool.every(id=>EN[id]) && z.enc.rate>0 && z.enc.rate<0.3))],
- ["encounter rate statistically in band", ()=>{ const r2=mulberry32(1234); let hits=0;
-    for(let i=0;i<1000;i++){ if(r2()<0.16) hits++; } return hits>110 && hits<220; }],
+ ["every zone's declared encounter rate is the rate it actually rolls", ()=>{
+    // the old version rolled a private PRNG against a hardcoded 0.16 that no zone uses, so it
+    // could not have failed if every rate in the game had been set to zero
+    const zones=Z.filter(z=>z.enc);
+    if(!zones.length) return false;
+    return zones.every(z=>{
+      const r2=mulberry32(1234); let hits=0;
+      for(let i=0;i<4000;i++){ if(r2()<z.enc.rate) hits++; }
+      const observed=hits/4000, band=0.02+z.enc.rate*0.2;
+      return Math.abs(observed-z.enc.rate)<band && z.enc.rate>0 && z.enc.rate<0.5; }); }],
  ["barrel loot defined on every b tile", ()=>Z.every(z=>{ let ok=true;
     z.maps.forEach((row,y)=>{ [...row].forEach((ch,x)=>{ if(ch==="b" && !(z.loot && z.loot[x+","+y])) ok=false; }); }); return ok; })],
  ["dual techs: valid pairs, both costs positive", ()=>Object.values(DUAL).every(d=>MEMBERS[d.a] && MEMBERS[d.b] && d.a!==d.b && d.mpa>0 && d.mpb>0)],
@@ -5688,7 +5721,17 @@ const TESTS = [
     const cls=new RegExp("^([" + m[1] + "]+):");
     const speaker="SENTINEL: you did something back there.";
     const prose="he stopped, thought about it, and said the quiet part: nobody is great at everything.";
-    return cls.test(speaker) && !cls.test(prose); }],];
+    return cls.test(speaker) && !cls.test(prose); }], ["a v3 player's manual slots come forward too", ()=>{
+    const keys=["aiquest3_auto","aiquest3_s2",saveKey(0),saveKey(2)];
+    const bak=keys.map(k=>[k,localStorage.getItem(k)]);
+    try{
+      keys.forEach(k=>localStorage.removeItem(k));
+      localStorage.setItem("aiquest3_auto", JSON.stringify({v:3,tokens:11,x:2,y:4,z:0,party:[],items:{}}));
+      localStorage.setItem("aiquest3_s2",  JSON.stringify({v:3,tokens:333,x:2,y:4,z:0,party:[],items:{}}));
+      tryMigrate();
+      const a=localStorage.getItem(saveKey(0)), s2=localStorage.getItem(saveKey(2));
+      return !!a && !!s2 && JSON.parse(s2).tokens===333 && JSON.parse(s2).v===SAVE_VERSION;
+    } finally { bak.forEach(([k,v])=>{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }); } }],];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
   let pass=0, rows="";
