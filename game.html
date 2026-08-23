@@ -4811,8 +4811,9 @@ const TESTS = [
     const armed=atkOf(S.actors.sentinel)===bare+IT.bw1.atk;
     const no=equipGear("sentinel","mic1")===false;
     S=sb; return ok1 && armed && no; }],
- ["core stats: all seven souls carry a 1-10 D&D sheet, stars render true", ()=>{
-    const ids=["hero","sentinel","wiki","mender","refuter","papafoxx","sharon"];
+ ["core stats: every soul on the roster carries a 1-10 D&D sheet, stars render true", ()=>{
+    const ids=Object.keys(MEMBERS);   // derived, so a tenth soul is covered the day it joins
+    if(ids.length<9) return false;
     const keys=["STR","INT","DEF","VIT","SPD","SPR","LCK"];
     const ok=ids.every(id=>{ const c=coreOf(id); return c && keys.every(k=>c[k]>=1 && c[k]<=10); });
     return ok && starBar(7)==="★★★★★★★☆☆☆" && starBar(10)==="★★★★★★★★★★"; }],
