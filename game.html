@@ -4595,13 +4595,22 @@ const TESTS = [
     S.actors.wiki=mkActor("wiki",9); S.party=["wiki"];
     const refused=reawaken("wiki")===false;
     S=sb; return gained && refused; }],
- ["Ω LIMIT: an awakened hero's overdrive hits harder", ()=>{ const sb=S; S=NEWS();
-    S.awak={hero:1}; const h=S.actors.hero; h.lb=LB_MAX;
-    const st=window.setTimeout; window.setTimeout=()=>0;
-    M.b={ def:EN.creep, hp:99, maxhp:99, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:0, rounds:0, queue:[], qi:0 };
-    castLimit(h);
-    const ok=(99-M.b.hp)>=18;   // 10 base +1 lv +6 omega +1 awakened edge, before crit/combo bonuses
-    window.setTimeout=st; M.b=null; M.state="test"; S=sb; return ok; }],
+ ["Ω LIMIT: awakening is what makes the overdrive bigger", ()=>{ const sb=S; const st=window.setTimeout;
+    // the old version asserted a bare >=18 with no control, so an unseeded crit alone could meet it
+    const hit=(awakened)=>{ S=NEWS(); S.awak = awakened ? {hero:1} : {};
+      const h=S.actors.hero; h.lb=LB_MAX;
+      M.forceCrit=false;
+      M.b={ def:EN.creep, hp:999, maxhp:999, revealed:true, focused:true, verified:0, taunt:0, dot:0,
+        menu:"main", turn:0, rounds:0, queue:[], qi:0, combo:0, sprint:0, softened:0, heckled:0, roasted:0, ducked:{} };
+      castLimit(h);
+      const d=999-M.b.hp; M.b=null; return d; };
+    try{
+      window.setTimeout=()=>0;
+      const awake=hit(true), plain=hit(false);
+      // measured: 11 plain, 18 awakened. The 7 is the awakening's whole contribution
+      // (+6 omega, +1 edge) and is the thing this test exists to pin.
+      return plain===11 && awake-plain===7;
+    } finally { window.setTimeout=st; M.b=null; M.state="test"; S=sb; } }],
  ["SHARONDUH: a White Mage who fights - fast, front line, fists AND healing hands", ()=>{
     const m=MEMBERS.sharon;
     if(!m || m.cls!=="White Mage" || m.spr!=="sharon") return false;
