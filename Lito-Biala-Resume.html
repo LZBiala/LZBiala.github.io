@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lito Zarate Biala - Resume</title>
+<style>
+  @page { size: letter; margin: 0.5in 0.55in; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: Calibri, "Segoe UI", Arial, sans-serif; color: #1a221e;
+    font-size: 10pt; line-height: 1.28; max-width: 7.7in; margin: 24px auto; padding: 0 12px; }
+  @media print { body { margin: 0; padding: 0; } .printnote { display: none; } }
+  .printnote { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46;
+    padding: 8px 14px; border-radius: 8px; font-size: 9pt; margin-bottom: 18px; }
+  h1 { font-size: 19pt; letter-spacing: 0.01em; }
+  .head2 { font-size: 10.5pt; font-weight: 700; color: #0f766e; margin-top: 1px; }
+  .contact { font-size: 9pt; color: #55665e; margin: 3px 0 8px; }
+  h2 { font-size: 10.5pt; color: #0f766e; text-transform: uppercase;
+    letter-spacing: 0.05em; border-bottom: 1.2px solid #0f766e; padding-bottom: 1px;
+    margin: 8px 0 3px; }
+  .job { font-size: 10.5pt; font-weight: 700; margin-top: 4px; }
+  .meta { font-size: 9pt; color: #55665e; margin: 1px 0 3px; }
+  ul { padding-left: 18px; }
+  li { margin-bottom: 1px; }
+  li b { color: #0f766e; }
+  .stack, .skills, .edu { font-size: 9.5pt; }
+  .stack { color: #55665e; margin: 4px 0 5px; }
+  .earlier { font-size: 9pt; color: #55665e; margin: 4px 0; }
+</style>
+</head>
+<body>
+<p class="printnote">This file is the source of record for Lito-Biala-Resume.pdf. Rebuild with: python tools/build_resume.py. This note does not print.</p>
+
+<h1>LITO ZARATE BIALA</h1>
+<div class="head2">HANDS-ON AI BUILDER &amp; ENTERPRISE AI PRODUCT LEAD &nbsp;|&nbsp; AGENTIC ENGINEERING · MCP · INCIDENT MANAGEMENT · SITE RELIABILITY · AI STRATEGY</div>
+<div class="contact">Minneapolis-St. Paul, MN &nbsp;·&nbsp; lzbiala@gmail.com &nbsp;·&nbsp;
+linkedin.com/in/lzbiala &nbsp;·&nbsp; github.com/LZBiala &nbsp;·&nbsp; lzbiala.github.io</div>
+
+<h2>Summary</h2>
+<p>Hands-on AI builder and enterprise AI product lead at Wells Fargo: I build governed
+GenAI products end to end (problem framing, workflow design, implementation,
+evaluation suites, stakeholder adoption), backed by 12+ years of leadership across
+people management and technical delivery. I find the bottleneck that needs a foundational fix, build the AI that clears it, and make the system prove it worked. I'm
+at my best making hard technical topics land with any audience while shaping the AI
+strategy to fit the business case. Reliability-first AI grounded in human review,
+evidence provenance, observability, and enterprise risk. Public, CI-verified evaluation
+portfolio at github.com/LZBiala - the build fails if a published claim drifts.</p>
+
+<h2>AI Leadership &amp; Technical Strengths</h2>
+<ul>
+  <li><b>AI Product &amp; Strategy:</b> use-case discovery, roadmap sequencing, requirements, acceptance criteria, adoption, stakeholder alignment.</li>
+  <li><b>GenAI &amp; Agentic Systems:</b> RAG, LLM evaluation frameworks and evals, prompt/context engineering, MCP integration, agents, human-in-the-loop controls.</li>
+  <li><b>AI Engineering Delivery:</b> Python, Streamlit, TypeScript, GitHub, CI/CD, automated tests, code review, iterative PR-based delivery.</li>
+  <li><b>Reliability &amp; Governance:</b> SRE, incident management, 5-Why/RCA, MTTx, observability, fail-closed behavior, AI risk and compliance readiness.</li>
+  <li><b>Agentic Build Tooling:</b> Claude Code, Codex, Devin - daily hands-on agentic system delivery with human-in-the-loop controls.</li>
+</ul>
+
+<h2>Public AI Evaluation &amp; Reliability Portfolio - github.com/LZBiala · lzbiala.github.io</h2>
+<ul>
+  <li><b>wiki-memory-lab:</b> agent-memory evaluation framework; selective recall at 0.61× the tokens of the full-context baseline, with the loss trade-off (1.27×) measured and published rather than hidden.</li>
+  <li><b>agent-mutation-lab:</b> behavioral defect-detection harness; caught 9/10 planted defects with 0 false alarms on byte-identical clean controls; best-of-k voting study where panel accuracy tracks the exact binomial (Condorcet) prediction, with published controls showing when voting cannot help.</li>
+  <li><b>adversarial-chambers:</b> proposer, skeptic, and judge evals with no role played twice; instruction-flip test - a scripted evidence-driven judge flips 0/8 verdicts, a scripted deferential judge flips 3/8, exactly the ambiguous items.</li>
+  <li><b>memory-repair-lab:</b> placebo-controlled self-repair evaluation; 8/10 → 10/10 on a held-out split sealed before generation zero.</li>
+</ul>
+<p class="stack">All four are CI-verified on Windows and Linux: the build fails if any published claim drifts from regenerated data. Each ships an interactive walkthrough a stakeholder can click through.</p>
+
+<h2>Professional Experience</h2>
+<div class="job">Vice President, Lead Digital Product Service Manager &nbsp;|&nbsp; Wells Fargo, Digital Technology &amp; Innovation</div>
+<div class="meta">Individual-contributor leadership role &nbsp;·&nbsp; Minneapolis, MN &nbsp;|&nbsp; Feb 2025 - Present</div>
+<ul>
+  <li><b>AI product delivery:</b> lead delivery of two governed AI products (an incident-notification quality assistant and a Daily 5-Why QA platform), turning operational bottlenecks into buildable specs: requirements, evidence-source rules, versioned scoring rubrics, and acceptance tests, all gated by human review and grounded in SRE and DevOps best practices.</li>
+  <li><b>Hands-on build:</b> daily engineering with GitHub, Jira, Devin, VS Code Copilot, Python, Codex, and Claude Code - focused branches, pull requests, automated tests, coverage, linting, type checks, and protected-file audits for reviewable change.</li>
+  <li><b>Evidence architecture:</b> designed the evidence architecture pulling live incident and RCA data from ServiceNow and SharePoint: every record carries its provenance and passes schema validation; the system redacts diagnostics, fails closed on bad data, and requires explicit approval gates before touching production.</li>
+  <li><b>Responsible-AI boundaries:</b> established product boundaries that removed person-level scoring and identity from published score-bearing outputs - keeping names only for routing work to the right team and supporting 24-hour handoffs across global time zones.</li>
+  <li><b>Incident leadership:</b> lead major-incident, vulnerability-remediation, and operating-review readiness across distributed stakeholders; translate technical evidence into decision-ready impact, root-cause, detection-gap, mitigation, and preventive-action narratives. Years managing an API gateway platform made me the connective layer between Product, AppDev, DevOps, and governance.</li>
+  <li><b>AI enablement:</b> advance AI adoption through executive communication, pair programming, prompt-engineering enablement, technical documentation, and coaching on responsible human-in-the-loop delivery.</li>
+</ul>
+<div class="job">Senior Assistant Vice President, Digital Product Service Manager &nbsp;|&nbsp; Wells Fargo</div>
+<div class="meta">Minneapolis, MN &nbsp;|&nbsp; Oct 2022 - Feb 2025</div>
+<ul>
+  <li><b>Reliability:</b> improved resiliency and uptime for customer-critical applications; reduced incident response times (MTTx) through proactive engineering, 5-why root-cause discipline, and DevOps practice.</li>
+  <li><b>Observability:</b> enhanced log-based alerting and monitoring through platform migrations (Splunk, Grafana), preserving operational continuity with executive-level service-health insight.</li>
+  <li><b>Platform delivery:</b> engineered foundational platforms for scale through cloud migration and data-center exit; led engineering release meetings across AppDev, Platform, and Product teams via CI/CD; guided distributed US/India engineering teams.</li>
+</ul>
+<div class="job">Senior Technology Business Systems Consultant &nbsp;|&nbsp; Wells Fargo, Digital Technology &amp; Innovation</div>
+<div class="meta">Jan 2022 - Oct 2022</div>
+<ul>
+  <li>Kept digital information systems running smoothly under SRE, ITIL, and ITSM best practices; supported incident and problem management for production applications.</li>
+</ul>
+<div class="job">Software Product Analyst &nbsp;|&nbsp; Wells Fargo, Strategy, Digital &amp; Innovation</div>
+<div class="meta">Mar 2021 - Jan 2022</div>
+<ul>
+  <li>Monitored health and status of internal APIs through dashboards and data solutions; analyzed historical trends to surface persistent performance issues.</li>
+</ul>
+<p class="earlier">Earlier people-leadership and operations roles - full history on LinkedIn.</p>
+
+<h2>Technology</h2>
+<p class="skills"><b>AI/ML:</b> Generative AI, RAG, agentic automation, LLM evaluation frameworks, prompt optimization, responsible AI, MCP, knowledge graphs, wiki-based agent long-term memory &nbsp;·&nbsp; <b>Engineering:</b> Python, Streamlit, TypeScript, Git, GitHub, APIs, CI/CD, automated testing &nbsp;·&nbsp; <b>Operations:</b> Splunk, Grafana, observability, incident/problem management, 5-Why RCA, MTTx, ITIL &nbsp;·&nbsp; <b>Leadership:</b> AI product strategy, distributed-team leadership, technical writing, executive communication, risk and compliance &nbsp;·&nbsp; <b>Agentic tooling:</b> Claude Code, Codex, Devin (Cognition)</p>
+
+<h2>Education &amp; Credentials</h2>
+<p class="edu">Data Analytics &amp; Data Visualization Boot Camp Certificate, University of Minnesota Twin Cities &nbsp;·&nbsp; B.A. Psychology, Metropolitan State University<br>
+Splunk courses: Fundamentals 1-3 &amp; Cloud Observability &nbsp;·&nbsp; Anthropic Academy course completions, 2026: Claude Code in Action &nbsp;·&nbsp; Introduction to Model Context Protocol &nbsp;·&nbsp; Wells Fargo internal SRE-leadership and AI-engineering program pathways</p>
+
+</body>
+</html>
