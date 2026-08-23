@@ -1454,7 +1454,7 @@ const CREDITS = [
  "Thanks for playing. May your pages be few and your postmortems blameless. 🥊" ];
 
 // ================= STATE & SAVES =================
-const SAVE_VERSION = 9;
+const SAVE_VERSION = 10;
 const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   actors:{ hero: mkActor("hero",1) },
   items:{coffee:2, runbook:1, patch:1}, equip:{weapon:null,badge:null,charm:null,armor:null}, stage:0,
@@ -1464,7 +1464,7 @@ const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   bank:{}, materia:[null,null], grave:null, foxxJoke:0, foxxWin:0, autoNext:true,
   awak:{}, timer:false, haxKnown:false, haxWon:false, netSeen:false,
   bond:{}, hang:{}, syncSeen:0, bastionSeen:false, nocSeen:false, nightSeen:false,
-  gear:{}, clue:{}, lesson:{}, core:null, noteBack:false, foxxHeart:0, metSharon:0 });
+  gear:{}, clue:{}, lesson:{}, core:null, tree:null, noteBack:false, foxxHeart:0, metSharon:0 });
 let S = NEWS();
 let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0, roam:{}, roamBattle:false, gathered:{} };
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
@@ -1486,6 +1486,13 @@ function migrateV3(old){ // old v3 schema (single shared stats)
 function migrateV2(old){ // oldest schema key "aiquest"
   return migrateV3(Object.assign({}, old, { items:{coffee:(old.items&&old.items.coffee)||0, runbook:(old.items&&old.items.runbook)||0, patch:1},
     tokens:25, stage: old.won?4 : ((old.party&&old.party.length>=4)?2:1), seed:1 })); }
+function migrateV9(old){ // v9 -> v10 (the Growth Tree: reps are derived, so only the taken map travels)
+  const s=Object.assign(NEWS(), old);
+  s.v=SAVE_VERSION;
+  s.tree=(old && old.tree && typeof old.tree==="object" && !Array.isArray(old.tree)) ? old.tree : {taken:{}};
+  if(!s.tree.taken || typeof s.tree.taken!=="object") s.tree.taken={};
+  Object.keys(s.tree.taken).forEach(k=>{ if(!TREE[k]) delete s.tree.taken[k]; });
+  return s; }
 function migrateV8(old){ // v8 maplestory schema → v9 (the Heroine Protocol: awakening, arc flags, timer)
   const s=Object.assign(NEWS(), old);
   s.v=SAVE_VERSION;
@@ -1518,7 +1525,7 @@ function migrateV4(old){ // v4 party schema → v5 fields → v6
   if(s.sparLv===undefined) s.sparLv=1; if(s.sparN===undefined) s.sparN=0;
   if(s.eraSeen===undefined) s.eraSeen=false; if(s.wizard===undefined) s.wizard=false;
   return migrateV5(s); }
-function saveKey(slot){ return slot? "aiquest9_s"+slot : "aiquest9_auto"; }
+function saveKey(slot){ return slot? "aiquest10_s"+slot : "aiquest10_auto"; }
 function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }
 function saveGame(slot){ try{ tickClock(); localStorage.setItem(saveKey(slot), JSON.stringify(S)); }catch(e){} }
 function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d) return null;
@@ -1580,11 +1587,13 @@ function equipGear(id, item){ const it=IT[item];
   Object.keys(S.gear).forEach(o=>{ if(S.gear[o]===item) delete S.gear[o]; });   // one copy, one pair of hands
   if(S.equip.weapon===item) S.equip.weapon=null;
   S.gear[id]=item; return true; }
-function defOf(a){ return ((a.id==="hero" && S.equip.badge && IT[S.equip.badge]) ? IT[S.equip.badge].def : 0)
+function defOf(a){ return ((a.id==="hero" && treeHas("r1")) ? 1 : 0)
+  + ((a.id==="hero" && S.equip.badge && IT[S.equip.badge]) ? IT[S.equip.badge].def : 0)
   + ((a.id==="hero" && S.equip.armor && IT[S.equip.armor]) ? IT[S.equip.armor].def : 0)
   + (a.id==="hero" && (S.equip.charm==="ch5"||S.equip.charm==="tal") ? 1 : 0)
   + ((a.id==="hero" && S.core && S.core.perk==="DEF") ? 1 : 0); }
-function critOf(a){ return 0.15 + (a.id==="hero" && (S.equip.charm==="ch1"||S.equip.charm==="ch4") ? 0.10 : 0)
+function critOf(a){ return 0.15 + (a.id==="hero" && treeHas("s1") ? 0.03 : 0) + (treeHas("s5") ? 0.05 : 0)
+  + (a.id==="hero" && (S.equip.charm==="ch1"||S.equip.charm==="ch4") ? 0.10 : 0)
   + (a.id==="hero" && matOn("mfocus") ? 0.10 : 0)
   + (S.equip.charm==="ch7" ? 0.05 : 0)   // Eval Harness: the whole party measures before it trusts
   + ((a.id==="hero" && S.core && S.core.perk==="LCK") ? 0.05 : 0); }
@@ -1655,11 +1664,52 @@ function chapterCard(n){ const el=document.getElementById("chap"); if(!el||!CHAP
   el.classList.remove("show"); void el.offsetWidth; el.classList.add("show"); }
 // ---- MATERIA - THE CHECKPOINT ORBS (FF7 homage): frozen training runs of the engineers before you ----
 const DISCOVER={ monolith:"mfocus", h5:"mdrain", patient0:"mvigor", unknown:"maegis", retrystorm:"ch6", promptinj:"ch8", halluc:"ch7" };
-function comboBonus(n){ return n>=10? 2 : (n>=5? 1 : 0); }
+const TREE={
+ r1:{lane:"RELIABILITY", tier:1, cost:1, name:"PADDED ROLLOUT", d:"HERO takes 1 less damage. The entry tax on the line that holds."},
+ r2:{lane:"RELIABILITY", tier:2, cost:2, name:"BACK LINE", d:"the back row takes 2 less instead of 1. Positioning becomes a decision."},
+ r3a:{lane:"RELIABILITY", tier:3, cost:3, name:"ERROR BUDGET", d:"every living ally regains 1 HP at end of round. The steady drip.", fork:"r3b"},
+ r3b:{lane:"RELIABILITY", tier:3, cost:3, name:"CIRCUIT DISCIPLINE", d:"once per battle the first ally who would fall holds at 1 HP instead. Insurance, not sustain.", fork:"r3a"},
+ r4:{lane:"RELIABILITY", tier:4, cost:4, name:"BLAMELESS BRACE", d:"DEFEND also pays 3 into your limit gauge. The turtle turn stops being a wasted turn."},
+ r5:{lane:"RELIABILITY", tier:5, cost:5, name:"FIVE NINES", d:"KEYSTONE: allies at or below a quarter health take 2 less. The cost: a wipe now docks a fifth of your budget, not a tenth."},
+ v1:{lane:"VELOCITY", tier:1, cost:1, name:"WARM CACHE", d:"HERO +1 SPD. You reach the fast bosses sooner."},
+ v2:{lane:"VELOCITY", tier:2, cost:2, name:"TIGHT LOOP", d:"combo bonuses arrive at 4 and 8 hits instead of 5 and 10."},
+ v3a:{lane:"VELOCITY", tier:3, cost:3, name:"MUSCLE MEMORY", d:"the timed-strike windows widen. Trains your hands.", fork:"v3b"},
+ v3b:{lane:"VELOCITY", tier:3, cost:3, name:"AUTOMATION", d:"FIGHT skips the timing bar and lands a flat strong hit. Takes your hands out of the loop.", fork:"v3a"},
+ v4:{lane:"VELOCITY", tier:4, cost:4, name:"CANARY DEPLOY", d:"round one only: every ally acts before the foe, whatever the speeds say."},
+ v5:{lane:"VELOCITY", tier:5, cost:5, name:"FIRST RESPONDER", d:"KEYSTONE: every ally hit deals 2 more for the first three rounds, and 1 less after. End it early or pay."},
+ s1:{lane:"SIGNAL", tier:1, cost:1, name:"SAMPLE RATE", d:"HERO +3% critical chance. You notice a little more."},
+ s2:{lane:"SIGNAL", tier:2, cost:2, name:"RUNBOOK INDEX", d:"the reading skills cost 1 less MP. The lane pays for looking, never for hitting."},
+ s3a:{lane:"SIGNAL", tier:3, cost:3, name:"PRE-MORTEM", d:"battles begin already revealed. You never pay the armor tax.", fork:"s3b"},
+ s3b:{lane:"SIGNAL", tier:3, cost:3, name:"TRACE SAMPLING", d:"battles begin already focused. The fog never blinds you.", fork:"s3a"},
+ s4:{lane:"SIGNAL", tier:4, cost:4, name:"PREEMPTION", d:"the interrupt meter charges on hits of 6 instead of 8."},
+ s5:{lane:"SIGNAL", tier:5, cost:5, name:"CALIBRATION", d:"KEYSTONE: the party crits more often and criticals hit harder, but every ordinary hit lands 1 lighter. A trap unless you commit."} };
+const REP_CAP=28, REP_LEVEL_CAP=25;
+function treeInit(){ if(!S.tree || typeof S.tree!=="object" || Array.isArray(S.tree)) S.tree={taken:{}};
+  if(!S.tree.taken || typeof S.tree.taken!=="object") S.tree.taken={};
+  Object.keys(S.tree.taken).forEach(k=>{ if(!TREE[k]) delete S.tree.taken[k]; });
+  return S.tree; }
+function treeHas(id){ return !!(S.tree && S.tree.taken && S.tree.taken[id]); }
+function treeEarned(){ const lv=(S.actors && S.actors.hero) ? S.actors.hero.lv : 1;
+  const byLevel=Math.min(REP_LEVEL_CAP, Math.max(0, lv-1));
+  const byAwak=(S.awak && S.awak.hero) ? S.awak.hero : 0;
+  return Math.min(REP_CAP, byLevel+byAwak); }
+function treeSpent(){ if(!S.tree || !S.tree.taken) return 0;
+  return Object.keys(S.tree.taken).reduce((n,k)=>n+((TREE[k]&&TREE[k].cost)||0), 0); }
+function treePts(){ return treeEarned()-treeSpent(); }
+function treeCan(id){ const nd=TREE[id]; if(!nd) return false;
+  treeInit(); if(treeHas(id)) return false;
+  if(nd.fork && treeHas(nd.fork)) return false;                       // the door you did not take stays shut
+  if(nd.tier>1){ const need=Object.keys(TREE).filter(k=>TREE[k].lane===nd.lane && TREE[k].tier===nd.tier-1);
+    if(!need.some(k=>treeHas(k))) return false; }                     // tiers unlock in order
+  return treePts()>=nd.cost; }
+function treeTake(id){ if(!treeCan(id)) return false;
+  treeInit(); S.tree.taken[id]=1; return true; }
+function comboBonus(n){ const tight=treeHas("v2"); return n>=(tight?8:10)? 2 : (n>=(tight?4:5)? 1 : 0); }
 function xpPct(a){ if(a.lv>=XPCURVE.length) return 1;
   const lo=XPCURVE[a.lv-1], hi=XPCURVE[a.lv];
   return Math.max(0, Math.min(1, (a.xp-lo)/(hi-lo))); }
-function spdOf(a){ return a.spd + (a.id==="hero" && (S.equip.armor==="ar3"||S.equip.armor==="rar1") ? 1 : 0)
+function spdOf(a){ return a.spd + (a.id==="hero" && treeHas("v1") ? 1 : 0)
+  + (a.id==="hero" && (S.equip.armor==="ar3"||S.equip.armor==="rar1") ? 1 : 0)
   + ((a.id==="hero" && S.core && S.core.perk==="SPD") ? 1 : 0); }
 function statsOf(a){ return { atk:atkOf(a), def:defOf(a), spd:spdOf(a), crit:critOf(a),
   row:rowOf(a), stance:STANCES[S.stance||"balanced"].name, lb:a.lb||0 }; }
@@ -1961,7 +2011,9 @@ function reawaken(id){ const a=S.actors[id]; if(!a || a.lv<10) return false;
   if(id==="hero" && S.core){ const pk=S.core.perk;   // the trial's gifts are forever, even through rebirth
     if(pk==="VIT"){ n.maxhp+=3; } if(pk==="INT"){ n.maxmp+=2; } if(pk==="SPR"){ n.maxhp+=1; n.maxmp+=1; }
     n.hp=n.maxhp; n.mp=n.maxmp; }
-  S.actors[id]=n; sfx("level"); return true; }
+  S.actors[id]=n;
+  if(id==="hero"){ treeInit(); S.tree.taken={}; }   // the reps remain, the spending does not
+  sfx("level"); return true; }
 function seedFromQuery(q){ const m2=/[?&]seed=(\d{1,9})(?:&|$)/.exec(q||""); return m2? parseInt(m2[1],10) : null; }
 function fmtTime(ms){ const m=Math.floor(ms/60000), s2=Math.floor(ms/1000)%60; return m+":"+String(s2).padStart(2,"0"); }
 // ================= STORY PANEL (cinematic beats; degrades to say()) =================
@@ -2579,6 +2631,7 @@ function gainXP(n,after,pre){
     a.xp+=n;
     while(a.lv<XPCURVE.length && a.xp>=XPCURVE[a.lv]){
       a.lv++; sfx("level");
+      if(a.id==="hero" && treePts()>0) toast("🌱 "+treePts()+" rep"+(treePts()===1?"":"s")+" to spend - open GROWTH in the menu");
       const m=MEMBERS[a.id];
       a.maxhp+=m.grow.hp; a.maxmp+=m.grow.mp; a.atk+=m.grow.atk; a.hp=a.maxhp; a.mp=a.maxmp;
       const learned=(m.skills[a.lv]||[]).filter(s=>!a.sk.includes(s));
@@ -3254,6 +3307,7 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
    "<button data-m='awaken'>☯ REAWAKEN</button>"+
    "<button data-m='lessons'>📚 LESSONS</button>"+
    "<button data-m='codex'>📖 CODEX</button>"+
+   "<button data-m='tree'>🌱 GROWTH"+(treePts()>0?" <span class='gold'>("+treePts()+")</span>":"")+"</button>"+
    "<button data-m='save'>SAVE GAME</button>"+
    "<button data-m='settings'>SETTINGS</button>"+
    "<button data-m='close'>CLOSE (Esc)</button></div>";
@@ -3261,6 +3315,20 @@ function menuHome(){ ov.hidden=false; ov.classList.add("center");
   box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{ sfx("blip"); menuSub(btn.dataset.m); }); }
 function menuSub(mn){
   if(mn==="close"){ ov.hidden=true; ov.classList.remove("center"); M.state="explore"; render(); return; }
+  if(mn==="tree"){ treeInit();
+    const lanes=["RELIABILITY","VELOCITY","SIGNAL"];
+    let h="<b class='gold'>\🌱 GROWTH</b> <span class='mut'>- "+treePts()+" rep"+(treePts()===1?"":"s")+" unspent, "+treeSpent()+" of "+treeEarned()+" earned. One rep a level. Tiers open in order. A fork closes the other door until you reawaken.</span><div style='max-height:250px;overflow:auto;font-size:.72rem;line-height:1.45;margin-top:6px'>";
+    lanes.forEach(L=>{
+      h+="<div style='margin-top:6px'><b class='gold'>"+L+"</b></div>";
+      Object.keys(TREE).filter(k=>TREE[k].lane===L).sort((a,b)=>TREE[a].tier-TREE[b].tier).forEach(k=>{
+        const nd=TREE[k], has=treeHas(k), can=treeCan(k);
+        const mark=has? "<span class='num'>\u2714</span> " : (can? "<span class='gold'>\u25CB</span> " : "<span class='mut'>\u00b7</span> ");
+        h+="<div style='margin:2px 0'>"+mark+"<b>"+nd.name+"</b> <span class='mut'>T"+nd.tier+" \u00b7 "+nd.cost+" rep"+(nd.cost===1?"":"s")+"</span>"+
+           (has? "" : "<button data-node='"+k+"' style='margin-left:6px;font-size:.68rem;padding:1px 7px'"+(can?"":" disabled")+">take</button>")+
+           "<br><span class='mut'>"+nd.d+"</span></div>"; }); });
+    h+="</div><div class='choices'><button data-b='1'>\u25c0 BACK</button></div>"; box.innerHTML=h;
+    box.querySelectorAll("[data-node]").forEach(bt=>bt.onclick=()=>{ if(treeTake(bt.dataset.node)){ sfx("level"); saveGame(0); menuSub("tree"); } });
+    box.querySelector("[data-b]").onclick=()=>menuHome(); return; }
   if(mn==="codex"){
     let h="<b class='gold'>📖 CODEX</b> <span class='mut'>- the field's words, in plain words. The same ideas the bosses teach the hard way.</span><div style='max-height:260px;overflow:auto;font-size:.74rem;line-height:1.5;margin-top:6px'>";
     CODEX.forEach(c=>{ h+="<div style='margin-bottom:7px'><b class='gold'>"+c.term+"</b><br><span class='mut'>"+c.plain+"</span></div>"; });
@@ -4473,10 +4541,10 @@ const TESTS = [
  ["the speedrun clock: formatted, off by default, on the HUD", ()=>{
     const fmt=fmtTime(65000)==="1:05" && fmtTime(0)==="0:00" && fmtTime(600000)==="10:00";
     return fmt && NEWS().timer===false && !!document.getElementById("sptimer"); }],
- ["save v9: new key, migration hop from v8, defaults land", ()=>{
-    if(SAVE_VERSION!==9 || saveKey(0)!=="aiquest9_auto") return false;
+ ["save v10: new key, the v8 hop still lands, defaults intact", ()=>{
+    if(SAVE_VERSION!==10 || saveKey(0)!=="aiquest10_auto") return false;
     const s=migrateV8({v:8, tokens:31, party:["sentinel"], actors:{hero:mkActor("hero",4), sentinel:mkActor("sentinel",4)}, won:true});
-    return s.v===9 && s.tokens===31 && s.awak && typeof s.awak==="object" && s.foxxJoke===0 && s.timer===false && s.haxKnown===false; }],
+    return s.v===SAVE_VERSION && s.tokens===31 && s.awak && typeof s.awak==="object" && s.foxxJoke===0 && s.timer===false && s.haxKnown===false; }],
  ["the new faces render: Sharonduh Tifa-style (long hair, white top, red boots), the Hacker hooded", ()=>{
     if(!(SPR.sharon && SPR.sharon.length===16)) return false;
     const top=SPR.sharon.some(r=>r.includes("w"));
@@ -5046,6 +5114,87 @@ const TESTS = [
  ["the curriculum starts at the first foe, not the fifth", ()=>{
     return ["vague","gremlin","creep"].every(k=>LESSONS[k] && /FIELD LESSON/.test(LESSONS[k].t) && LESSONS[k].d.length>140)
       && Object.keys(LESSONS).length>=16; }],
+
+ // ---- THE GROWTH TREE: reps, forks, and one keystone a lifetime (written RED-first) ----
+ ["the tree exists: three lanes, five tiers, cost equals tier", ()=>{
+    const ids=Object.keys(TREE); const lanes={};
+    ids.forEach(k=>{ lanes[TREE[k].lane]=(lanes[TREE[k].lane]||0)+1; });
+    return ids.length>=15 && Object.keys(lanes).length===3
+      && ids.every(k=>TREE[k].cost===TREE[k].tier && TREE[k].name && TREE[k].d); }],
+ ["reps are earned by living, capped by arithmetic", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=1; const a=treeEarned();
+    S.actors.hero.lv=6; const b=treeEarned();
+    S.actors.hero.lv=50; const c=treeEarned();
+    S.awak={hero:2}; const d=treeEarned();
+    S=sb; return a===0 && b===5 && c===25 && d===27; }],
+ ["points are derived, so the menu can never lie", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=6;                       // 5 reps
+    const before=treePts();
+    const ok1=treeTake("r1") && treeTake("r2");   // 1 + 2 = 3 spent
+    const after=treePts();
+    const ok2=!treeTake("r5");                    // tier 5 costs 5, only 2 left
+    S=sb; return before===5 && ok1 && after===2 && ok2; }],
+ ["a fork closes the other door", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=20;
+    treeTake("r1"); treeTake("r2"); const took=treeTake("r3a");
+    const blocked=!treeTake("r3b") && !treeCan("r3b");
+    S=sb; return took && blocked; }],
+ ["one keystone a lifetime, by arithmetic not by rule", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=50; S.awak={hero:5};        // 28 reps, the hard ceiling
+    const lane=["r1","r2","r3a","r4","r5"].every(k=>treeTake(k));   // 15 reps, keystone one
+    const second=["v1","v2","v3a","v4"].every(k=>treeTake(k));      // 10 more, 25 total
+    const noSecondKeystone=!treeTake("v5");                          // 5 more would be 30 > 28
+    S=sb; return lane && second && noSecondKeystone; }],
+ ["tiers unlock in order", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=30;
+    const skipped=!treeCan("r4");
+    treeTake("r1"); treeTake("r2"); treeTake("r3b");
+    const nowOk=treeCan("r4");
+    S=sb; return skipped && nowOk; }],
+ ["the tree changes the fight it promised to change", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=30;
+    const base=comboBonus(4);
+    treeTake("v1"); treeTake("v2");
+    const tight=comboBonus(4);
+    S=sb; return base===0 && tight===1; }],
+ ["reawakening returns every rep", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=20; treeTake("r1"); treeTake("r2");
+    const spent=treeSpent();
+    S.actors.hero.lv=10; reawaken("hero");
+    const cleared=treeSpent()===0 && Object.keys(S.tree.taken).length===0;
+    S=sb; return spent===3 && cleared; }],
+ ["old saves grow a tree without breaking", ()=>{
+    const old={v:9, tokens:5, party:[], actors:{hero:mkActor("hero",3)}, res:{logs:0,metrics:0,traces:0,sigils:0}};
+    const m=migrateV9(old);
+    return m.v===SAVE_VERSION && SAVE_VERSION===10 && m.tokens===5 && m.tree && m.tree.taken && treeSpent.call(null)>=0; }],
+
+ ["the growth screen opens and shows every lane", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
+    S.actors.hero.lv=8;
+    pauseMenu();
+    const btn=box.querySelector("[data-m='tree']"); if(!btn){ ov.hidden=true; M.state="test"; S=sb; return false; }
+    btn.click();
+    const t=box.textContent;
+    const ok=/GROWTH/i.test(t) && /RELIABILITY/.test(t) && /VELOCITY/.test(t) && /SIGNAL/.test(t) && /PADDED ROLLOUT/.test(t) && /7 rep/.test(t);
+    ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return ok; }],
+ ["the screen never offers what you cannot afford", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
+    S.actors.hero.lv=2;                       // exactly 1 rep: tier-1 nodes only
+    pauseMenu(); box.querySelector("[data-m='tree']").click();
+    const buttons=Array.from(box.querySelectorAll("[data-node]"));
+    const enabled=buttons.filter(b=>!b.disabled).map(b=>b.dataset.node);
+    const ok=enabled.length>0 && enabled.every(id=>TREE[id].cost<=1) && buttons.some(b=>b.disabled);
+    ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return ok; }],
+ ["taking a node spends the rep and redraws", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
+    S.actors.hero.lv=4;
+    pauseMenu(); box.querySelector("[data-m='tree']").click();
+    box.querySelector("[data-node='v1']").click();
+    const ok=treeHas("v1") && treePts()===2 && /2 rep/.test(box.textContent);
+    ov.hidden=true; ov.classList.remove("center"); M.state="test"; S=sb; return ok; }],
+ ["the level-up says a rep is waiting", ()=>{ const sb=S; S=NEWS(); treeInit();
+    S.actors.hero.lv=1; S.actors.hero.xp=0;
+    const before=treePts();
+    gainXP(XPCURVE[1]+1);
+    const after=treePts();
+    S=sb; return before===0 && after>=1; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -5073,6 +5222,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
   bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
+  TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, migrateV9,
   buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse, tileHash, lungeScale, overworldThemeFor, battleThemeFor,
   joinSharon, finishRescue, CLUES, LESSONS, CORE, coreOf, starBar, heroTrial, equipGear, CONDS };
 tryMigrate();
