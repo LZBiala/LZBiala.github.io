@@ -190,7 +190,7 @@ one static file, no frameworks, no API keys · every real-world number quoted is
 "use strict";
 /* ============================================================
    AI QUEST: SEV-1 - SRE Edition
-   Balance constants below were tuned on 2,000,000 Monte Carlo
+   Balance constants below were tuned on 23,000,000 Monte Carlo
    battles (combat_sim_v2.py, 20 encounters × 50,000): gates 3-5
    turns, marquee bosses 4-7 turns, superboss ~7 turns. Under the
    OPTIMAL incident-command policy (duals + ward + taunt + verify)
@@ -1451,7 +1451,7 @@ const OBJ = [
 const CREDITS = [
  "⚔️ AI QUEST: SEV-1 - SRE Edition",
  "A game about the discipline of trustworthy AI.",
- "Design, writing, code, pixel art, chiptunes & 2,000,000 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
+ "Design, writing, code, pixel art, chiptunes & 23,000,000 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
  "The skills are real practices. The companions are real projects - github.com/LZBiala.",
  "The bosses are real Tuesdays.",
  "No frameworks. No trackers. No API keys. Every real-world number quoted regenerates in CI.",
@@ -1585,6 +1585,7 @@ function tryMigrate(){
   return false; }
 
 // ================= derived stats (pure - tested) =================
+function heldBy(a){ return a && (a.id==="hero" ? S.equip.weapon : (S.gear && S.gear[a.id])) || null; }
 function atkOf(a){ return a.atk + (a.id==="hero" && S.equip.weapon && IT[S.equip.weapon] ? IT[S.equip.weapon].atk : 0)
   + (a.id==="hero" && (S.equip.charm==="ch4"||S.equip.charm==="tal") ? 1 : 0)
   + ((a.id!=="hero" && S.gear && S.gear[a.id] && IT[S.gear[a.id]]) ? (IT[S.gear[a.id]].atk||0) : 0)
@@ -1683,7 +1684,7 @@ const TREE={
  r5:{lane:"RELIABILITY", tier:5, cost:5, name:"FIVE NINES", d:"KEYSTONE: allies at or below a quarter health take 1 less, and it stacks with the rest of the lane. The cost: a wipe now docks a fifth of your budget, not a tenth."},
  v1:{lane:"VELOCITY", tier:1, cost:1, name:"WARM CACHE", d:"HERO +1 SPD. You reach the fast bosses sooner."},
  v2:{lane:"VELOCITY", tier:2, cost:2, name:"TIGHT LOOP", d:"combo bonuses arrive at 4 and 8 hits instead of 5 and 10."},
- v3a:{lane:"VELOCITY", tier:3, cost:3, name:"MUSCLE MEMORY", d:"the timed-strike windows widen. Trains your hands.", fork:"v3b"},
+ v3a:{lane:"VELOCITY", tier:3, cost:3, name:"MUSCLE MEMORY", d:"the timed-strike windows widen, and with the bar turned off every automatic strike lands harder instead. Trains your hands.", fork:"v3b"},
  v3b:{lane:"VELOCITY", tier:3, cost:3, name:"AUTOMATION", d:"FIGHT skips the timing bar and lands a flat 1.35x. No fumbles, and no perfect hits either.", fork:"v3a"},
  v4:{lane:"VELOCITY", tier:4, cost:4, name:"CANARY DEPLOY", d:"round one only: every ally acts before the foe, whatever the speeds say."},
  v5:{lane:"VELOCITY", tier:5, cost:5, name:"FIRST RESPONDER", d:"KEYSTONE: every ally hit deals 1 more for the first three rounds, and 1 less after. End it early or pay."},
@@ -2170,6 +2171,7 @@ function foxxBed(){ const st=foxxBedState();
     "MARA (from the counter): 'Told you, hon. He's processing. Come back with a crew STARTED - two brave souls minimum. He don't wake for solos.'"]); }
 function matOn(id){ return Array.isArray(S.materia) && S.materia.includes(id); }
 // ---- E33 timed strikes ----
+function autoStrikeMult(){ return treeHas("v3a") ? 1.3 : 1.2; }   // no bar to read: the widened window still pays, just quietly
 function strikeMult(p){ if(treeHas("v3b")) return 1.35;   // no bar to read, so every hit is the same hit
   const w=treeHas("v3a");
   if(p>=(w?0.36:0.42)&&p<=(w?0.64:0.58)) return 1.5;
@@ -2844,7 +2846,7 @@ function menuPick(d){ const b=M.b; const a=actor();
     blog(MEMBERS[a.id].name+" braces - next hit <b>halved</b>, <span class='num'>+1 MP</span>"+(treeHas("r4")?", <span class='gold'>+3 limit</span>":"")+"."); b.menu="next"; drawB(); return; }
   if(d.a==="fight"){
     if(treeHas("v3b")) return playerHit(a, Math.round((fightBase(a)+(b.doubled?fightBase(a):0))*strikeMult(0.5)), MEMBERS[a.id].name+" runs it <span class='gold'>AUTOMATED</span> - no bar, no fumble.");
-    if(reducedMotion()) return playerHit(a, Math.round((fightBase(a)+(b.doubled?fightBase(a):0))*1.2), MEMBERS[a.id].name+(b.doubled?" strikes the ROOT CAUSE - double damage!":" strikes true - measured and clean (steady 1.2×)."));
+    if(reducedMotion()) return playerHit(a, Math.round((fightBase(a)+(b.doubled?fightBase(a):0))*autoStrikeMult()), MEMBERS[a.id].name+(b.doubled?" strikes the ROOT CAUSE - double damage!":" strikes true - measured and clean (steady 1.2×)."));
     b.menu="strike"; b.strikeT0=performance.now(); drawMenu(); return; }
   if(d.a==="strikestop"){ const t=((performance.now()-b.strikeT0)/700)%2; return resolveStrike(a, t>1? 2-t : t); }
   if(d.a==="skill"){ b.menu="skill"; drawMenu(); return; }
@@ -3010,11 +3012,13 @@ function dealt(a,dmg,txt){ const b=M.b;
   if(b.hp<=0){ blog(txt+"<br><span class='num'>"+dmg+"</span> damage... <span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; }
   blog(txt+"<br><span class='num'>"+dmg+"</span> damage!"); b.menu="next"; drawB(); }
 const READERS=["fivewhy","contexa","dashboard","firstprinciples","controlarm","audit"];
-function skillCost(sp,id){ return Math.max(1, sp.mp - ((treeHas("s2") && READERS.indexOf(id)>=0) ? 1 : 0)); }
+function skillCost(sp,id,a){ return Math.max(1, sp.mp
+  - ((treeHas("s2") && READERS.indexOf(id)>=0) ? 1 : 0)
+  - ((id==="kanban" && heldBy(a)==="rt1") ? 1 : 0)); }
 function itThreshold(){ return treeHas("s4") ? 6 : 8; }
 function castSkill(a,id){ const b=M.b, sp=SP[id];
   const staffFree = id==="fivewhy" && S.equip.weapon==="kb4"; // the Fishbone Staff makes FIVE-WHY truly free
-  const _cost=skillCost(sp,id);
+  const _cost=skillCost(sp,id,a);
   if(a.mp<_cost && !staffFree){ blog("<span class='red'>Not enough MP!</span> (Coffee, Cache Warmer, DEFEND, or GRIT.)"); b.menu="main"; drawMenu(); return; }
   // targeted skills open target submenu
   if(id==="repair"||id==="hitl"||id==="hotfix"){ b.targeting={skill:id, ko:false, any:id!=="repair"}; b.menu="target"; drawMenu(); return; }
@@ -3047,7 +3051,7 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     if(!b.revealed){ blog(nm+" casts MUTAGEN - <span class='red'>the defect lands in a symptom! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
     if(!b.focused){ blog(nm+" casts MUTAGEN - <span class='red'>lost in the fog! (CONTEXA first.)</span>"); b.menu="next"; drawB(); return; }
     if(b.def.regen && b.verified===0){ blog(nm+" casts MUTAGEN - <span class='red'>the body patches around it! (CONTROL ARM first.)</span>"); b.menu="next"; drawB(); return; }
-    b.dot=3;
+    b.dot=(heldBy(a)==="bw2") ? 4 : 3;
     return dealt(a, weakHit?6:2, nm+" plants a controlled defect!"+(weakHit?" <span class='gold'>The false alarms have nowhere to hide!</span>":" 2 dmg/turn.")); }
   if(id==="indexstorm"){
     if(!b.revealed){ blog(nm+" summons an INDEX STORM - <span class='red'>cards scatter off the armor!</span>"); b.menu="next"; drawB(); return; }
@@ -3062,7 +3066,7 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     blog(nm+" ROLLS BACK to last known good state - <span class='num'>+7 HP</span>."); b.menu="next"; drawB(); return; }
   if(id==="objection"){ b.taunt=2;
     blog(nm+": <span class='gold'>\"OBJECTION!\"</span> The enemy can't resist arguing - it targets the Tank for 2 turns (-1 dmg)."); b.menu="next"; drawB(); return; }
-  if(id==="crowdwork"){ b.softened=2; b.sprint=Math.max(b.sprint||0,1); sfx("heal"); BFX.push("burst",{color:SKILL_FX.crowdwork});
+  if(id==="crowdwork"){ b.softened=(heldBy(a)==="mic2") ? 3 : 2; b.sprint=Math.max(b.sprint||0,1); sfx("heal"); BFX.push("burst",{color:SKILL_FX.crowdwork});
     blog(nm+" works the crowd - <span class='gold'>CROWD WORK!</span> The whole room turns on the heckler: <span class='num'>enemy defense -2 (2 rounds), every ally's hits +2 this round.</span> Nobody boos alone."); b.menu="next"; drawB(); return; }
   if(id==="roast"){ b.roasted=2;
     return dealt(a, 2, nm+" ROASTS the enemy - a burn so precise it compiles! <span class='gold'>Its attack drops (2 rounds).</span> <span class='mut'>Blameless, but not painless.</span>"); }
@@ -3078,6 +3082,8 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     if(b.heckled>0) b.heckled=0;
     sfx("heal"); blog(nm+" SANITIZES the party's inputs - <span class='num'>every ally +2 HP</span>, heckles scrubbed clean."); b.menu="next"; drawB(); return; }
   if(id==="twinhypothesis"){
+    if(heldBy(a)==="lt1" && !b.litoRead){ b.litoRead=true;
+      if(!b.revealed){ markRevealed(b); blog("🧭 SYSTEMS COMPASS - the first hypothesis points at the armor. <span class='gold'>The foe is read.</span>"); } }
     return playerHit(a, 2*(2+Math.floor(a.lv/2)), nm+" runs TWIN HYPOTHESIS - <span class='gold'>two explanations, one survives the data.</span>"); }
   if(id==="firstprinciples"){ markRevealed(b); b.focused=true; sfx("blip");
     blog(nm+" rebuilds from FIRST PRINCIPLES - <span class='gold'>the foundation was wrong; start from what is true:</span> armor mapped, fog lifted."+(b.def.tip?"<br><i>"+b.def.tip+"</i>":"")); b.menu="next"; drawB(); return; }
@@ -3101,8 +3107,8 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
 function resolveTarget(a,pid){ const b=M.b; const t=S.actors[pid]; const which=b.targeting.skill; b.targeting=null;
   const sp=SP[which]; a.mp-=sp.mp; const nm=MEMBERS[a.id].name, tn=MEMBERS[pid].name;
   BFX.push("heal",{slot:slotOf(pid)});
-  if(which==="repair"){ t.hp=Math.min(t.maxhp,t.hp+6); sfx("heal");
-    blog(nm+" REPAIRS "+tn+" - <span class='num'>+6 HP</span>, citing the failure that demanded it."); }
+  if(which==="repair"){ const mend=(heldBy(a)==="wd2") ? 8 : 6; t.hp=Math.min(t.maxhp,t.hp+mend); sfx("heal");
+    blog(nm+" REPAIRS "+tn+" - <span class='num'>+"+mend+" HP</span>, citing the failure that demanded it."); }
   if(which==="hitl"){ sfx("heal");
     if(t.ko){ t.ko=false; t.hp=12; blog(nm+" invokes HUMAN-IN-THE-LOOP - <span class='gold'>"+tn+" rises!</span> (12 HP)"); }
     else { t.hp=Math.min(t.maxhp,t.hp+12); blog(nm+" invokes HUMAN-IN-THE-LOOP on "+tn+" - <span class='num'>+12 HP</span>."); } }
@@ -3168,7 +3174,7 @@ function foeAct(standalone){ const b=M.b;
   BFX.push("foelunge");
   let comboBroken=false;
   for(const tgt of targets){
-    let dmg=incoming(raw, tgt, ((tgt.id==="refuter"&&b.taunt>0)?1:0) + ((b.def.multi&&matOn("maegis"))?1:0)
+    let dmg=incoming(raw, tgt, ((tgt.id==="refuter"&&b.taunt>0)?((S.gear&&S.gear.refuter==="sw2")?2:1):0) + ((b.def.multi&&matOn("maegis"))?1:0)
       + ((S.equip.charm==="ch8"&&(b.def.elite||b.def.superboss))?1:0)
       + ((S.equip.charm==="rch1")?1:0));   // Alignment Charm; Five Nines Locket shields everyone from everything
     if(tgt.shield){ tgt.shield=false; fxPopAlly(tgt.id,"0","#93c5fd"); t+="<br>🛡 "+MEMBERS[tgt.id].name+"'s ward absorbs it - 0 damage!"; continue; }
@@ -5271,7 +5277,9 @@ const TESTS = [
     S=sb; return before===0 && after>=1; }],
 
  ["every node the player can buy actually fires somewhere in the code", ()=>{
-    const src=document.documentElement.innerHTML;
+    const src0=document.documentElement.innerHTML;
+    const ti0=src0.indexOf("const TESTS"), tj0=src0.indexOf("function runTests(){");
+    const src=(ti0>0 && tj0>ti0) ? (src0.slice(0,ti0)+src0.slice(tj0)) : src0;   // a mention inside a test is not a hook
     const dead=Object.keys(TREE).filter(id=>src.split('treeHas("'+id+'")').length-1 < 1);
     if(dead.length) console.log("nodes with no hook:", dead.join(", "));
     return dead.length===0; }],   // one declaration in TREE plus at least one live hook
@@ -5543,6 +5551,68 @@ const TESTS = [
     useItem(S.actors.hero, "debrief");
     const up=!m.ko && m.hp===Math.ceil(m.maxhp*0.4);
     M.b=null; M.state="test"; S=sb; return fed && up; }],
+
+ ["every signature weapon pays the rider its text promises", ()=>{ const sb=S; S=NEWS();
+    ["retro","lito","mender","sentinel","refuter","papafoxx"].forEach(id=>{ S.party.push(id); S.actors[id]=mkActor(id,8); });
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
+    const b=M.b; const arm=(id,item)=>{ S.items[item]=1; S.gear=S.gear||{}; S.gear[id]=item; };
+    const out={};
+
+    arm("retro","rt1");   out.rt1 = skillCost(SP.kanban,"kanban",S.actors.retro)===SP.kanban.mp-1
+                              && skillCost(SP.kanban,"kanban",S.actors.hero)===SP.kanban.mp;
+
+    arm("mender","wd2");  b.targeting={skill:"repair"}; const t1=S.actors.hero; t1.maxhp=99; t1.hp=1;
+                          resolveTarget(S.actors.mender,"hero"); out.wd2 = t1.hp===9;
+
+    arm("sentinel","bw2"); b.dot=0; castSkill(S.actors.sentinel,"mutagen"); out.bw2 = b.dot===4;
+
+    arm("refuter","sw2"); b.taunt=2; const r=S.actors.refuter; r.row="front"; r.maxhp=40; r.hp=40;
+                          out.sw2 = incoming(9, r, 2)===incoming(9, r, 0)-2;
+
+    arm("papafoxx","mic2"); b.softened=0; castSkill(S.actors.papafoxx,"crowdwork"); out.mic2 = b.softened===3;
+
+    arm("lito","lt1");    b.revealed=false; b.litoRead=false; castSkill(S.actors.lito,"twinhypothesis");
+                          out.lt1 = b.revealed===true;
+
+    M.b=null; M.state="test"; S=sb;
+    const dead=Object.keys(out).filter(k=>!out[k]);
+    if(dead.length) console.log("weapon riders that do not fire:", dead.join(", "));
+    return dead.length===0; }],
+ ["no equipment sits in the shop with an effect the code never reads", ()=>{
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.indexOf("function runTests(){");
+    const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
+    const RIDERS=["rt1","lt1","wd2","bw2","sw2","mic2"];
+    const dead=RIDERS.filter(k=>prod.split('"'+k+'"').length-1 < 2);
+    if(dead.length) console.log("gear ids with no production hook:", dead.join(", "));
+    return dead.length===0; }],
+
+ ["every battle count in the game agrees with every other", ()=>{
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.indexOf("function runTests(){");
+    const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
+    const claims=(prod.match(/[0-9][0-9,]{4,}\s*\+?\s*(?:Monte Carlo|simulated|balance simulations|simulations)/g)||[])
+      .map(t=>(t.match(/[0-9][0-9,]{4,}/)||[""])[0]);
+    const uniq=Array.from(new Set(claims));
+    if(uniq.length>1) console.log("battle counts disagree:", uniq.join(" vs "));
+    return claims.length>=4 && uniq.length===1; }],
+ ["MUSCLE MEMORY is worth taking without the timing bar", ()=>{ const sb=S; const rm=window.matchMedia; S=NEWS(); treeInit();
+    try{
+      window.matchMedia=()=>({matches:true});      // the player who turned motion off
+      S.actors.hero.lv=30; ["v1","v2","v3a"].forEach(k=>treeTake(k));
+      const withNode=autoStrikeMult();
+      S.tree.taken={};
+      const without=autoStrikeMult();
+      return withNode>without;
+    } finally { window.matchMedia=rm; S=sb; } }],
+ ["the dead-node guard reads the game, not its own tests", ()=>{
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.indexOf("function runTests(){");
+    if(!(ti>0 && tj>ti)) return false;
+    const prod=src.slice(0,ti)+src.slice(tj);
+    const dead=Object.keys(TREE).filter(id=>prod.split(String.fromCharCode(116,114,101,101,72,97,115,40,34)+id+String.fromCharCode(34,41)).length-1 < 1);
+    if(dead.length) console.log("nodes hooked only inside tests:", dead.join(", "));
+    return dead.length===0; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -5570,6 +5640,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
   bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
+  heldBy, resolveTarget, castSkill,
   TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, treeHolds, TREE_SCENE, keystoneBeats, migrateV9, skillCost, itThreshold, incoming, buildQueue, tryMigrate, dealt, reawaken, gainXP, XPCURVE, REP_LEVEL_CAP,
   buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse, tileHash, lungeScale, overworldThemeFor, battleThemeFor,
   joinSharon, finishRescue, CLUES, LESSONS, CORE, coreOf, starBar, heroTrial, equipGear, CONDS };
