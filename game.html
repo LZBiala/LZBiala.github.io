@@ -1548,6 +1548,7 @@ function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d
     out.res=Object.assign({logs:0,metrics:0,traces:0,sigils:0}, p.res||{});
     out.skills=Object.assign({obs:{lv:1,xp:0}, forge:{lv:1,xp:0}}, p.skills||{});
     Object.keys(out.items||{}).forEach(k=>{ if(!IT[k]) delete out.items[k]; });             // never carry item ids the table no longer knows
+    { const sb=S; S=out; try{ treeInit(); } finally { S=sb; } }   // a build that could never be bought must not arrive by save file
     return out; }catch(e){ return null; } }
 function tryMigrate(){
   try{ localStorage.getItem(saveKey(0)); }catch(e){ return false; }   // per-slot never-clobber guards below make migration safely resumable
@@ -5772,7 +5773,17 @@ const TESTS = [
       document.dispatchEvent(ev);
       // the browser activates a focused button on Enter by itself; the game must not eat the event
       return ev.defaultPrevented===false && document.activeElement===second;
-    } finally { ov.hidden=true; box.innerHTML=""; M.state=bakState; S=sb; } }],];
+    } finally { ov.hidden=true; box.innerHTML=""; M.state=bakState; S=sb; } }], ["a hostile save cannot smuggle an illegal build through loadSlot", ()=>{
+    const key=saveKey(3); const bak=localStorage.getItem(key); const sb=S;
+    try{
+      const hostile=Object.assign(NEWS(), { tokens:5, tree:{ taken:{ r5:1, v5:1, s3a:1, s3b:1 } } });
+      localStorage.setItem(key, JSON.stringify(hostile));
+      const loaded=loadSlot(3);
+      if(!loaded) return false;
+      const tk=(loaded.tree&&loaded.tree.taken)||{};
+      // r5 and v5 are tier-5 with no lane prefix bought; s3a and s3b are fork twins
+      return !tk.r5 && !tk.v5 && !(tk.s3a && tk.s3b);
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); S=sb; } }],];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
   let pass=0, rows="";
