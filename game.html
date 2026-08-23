@@ -1274,7 +1274,7 @@ const Z = [
  nodes:[{x:5,y:1,t:"logs"},{x:9,y:3,t:"traces"},{x:2,y:5,t:"logs"}],
  loot:{"1,6":{tok:8, text:"A traveler's barrel hidden in the grass - <b>8 ⛁</b>!"}},
  recruitAfter:{"9,4":{ id:"sentinel",
-  lines:["SENTINEL the Ranger joins the party!","SENTINEL: 'I plant one known defect and mix in byte-identical controls - crying wolf scores zero. 9/10 caught, 0 false alarms.'","★ SENTINEL fights with MUTAGEN and TRUE STRIKE - and learns AUDIT at LV 5."]}},
+  lines:["SENTINEL the Ranger joins the party!","SENTINEL: 'I plant one known defect and mix in byte-identical controls - crying wolf scores zero. 9/10 caught at the planted line, within two, and 0 false alarms.'","★ SENTINEL fights with MUTAGEN and TRUE STRIKE - and learns AUDIT at LV 5."]}},
  chest:{key:"9,7", text:"🏆 ARTIFACT: agent-mutation-lab - mutation testing for AI code reviewers. 9/10 planted defects caught, 0 false alarms. github.com/LZBiala/agent-mutation-lab  (+1 Coffee, +15 ⛁)", give:"coffee", tok:15} },
 { name:"Context Caverns", ground:"#26323a", maps:[
 "rrrrrrrrrrrr","r.,,.r..,,.r","r.rr,..rr,.r","r..,,,.,,..r","pppppBpppBpp","r.,.rr.,,..r","r.r,.....c.r","rb.,,......r","rrrrrrrrrrrr"],
@@ -1860,10 +1860,10 @@ function guideLines(stage){ const n=Z[0].npcs.find(x=>x.name==="THE GUIDE"); if(
   return (stage===1) ? base.concat([perkSendoff()]) : base; }
 const LITO_TALKS=[
  "LITO MODULE 1 - THE WIKI THAT REMEMBERS: Picture an AI whose memory is a wiki you can open and read, not a black box. On the bench it used 0.61x the tokens of loading everything. The honest part: on tiny corpora it loses, at 1.27x against the same baseline. Good memory knows where it's weak.",
- "LITO MODULE 2 - TEST THE TESTER: How do you know your AI reviewer is any good? Plant one bug on purpose and see if it notices. Nine copies of the reviewer vote on each case. Result: 9/10 planted bugs caught. Never trust a guard you've never tried to sneak past.",
+ "LITO MODULE 2 - TEST THE TESTER: How do you know your AI reviewer is any good? Plant one bug on purpose and see if it notices. One reviewer: 9/10 planted bugs caught, zero false alarms. A separate voting study shows nine independent copies beat one, and nine copycats gain nothing. Never trust a guard you've never tried to sneak past.",
  "LITO MODULE 3 - THREE CHAIRS: One AI proposes, one plays skeptic, one judges. Then the flip test: change only the judge's standing instruction and see if the verdict changes. 3 of 4 verdicts flipped. That's not the lab failing - that's the lab doing its job. Now we know which verdicts to trust.",
  "LITO MODULE 4 - THE SEALED ENVELOPE: Write the exam, seal it, THEN repair the memory - so nobody can teach to the test. Scores went from 8/10 to 10/10. And the sugar-pill arm, where we only pretended to repair, stayed flat. That's how you know the fix was the fix.",
- "LITO MODULE 5 - THIS VILLAGE: Every number you've heard me say tonight traces to a public repo with the code and the logs behind it. No invented stats, no rounded-up wins. A village that can't show its receipts is just a story. This one can.",
+ "LITO MODULE 5 - THIS VILLAGE: Every number you've heard me say tonight traces to a public repo with the code and the logs behind it - except the 3-of-4, which its own repo labels a case story from private work you cannot rerun. Saying which is which is the whole job. A village that can't show its receipts is just a story. This one can.",
  "LITO MODULE 6 - SYSTEMS THINKING: Here's the bet I'd make. As typing code gets cheap, the value moves to understanding how the parts interact and judging whether the whole works. Every SRE knew this before AI did - the pager never cared which line you wrote.",
  "LITO MODULE 7 - CONTROLLABILITY: An agent that's mostly right is useful - IF a human can make one small, precise fix and the whole thing regenerates coherently around it. An agent you can't steer is a Monolith with better manners. Steerable beats smart.",
  "LITO MODULE 8 - THE AGENT STACK: The checklist, kid. A model to think. Tools so it can touch the world. A sandbox - a safe place to act where a mistake costs nothing. And memory, when the job needs it, so it doesn't start from zero. Skip the sandbox and you don't have an agent, you have a liability.",
@@ -3549,6 +3549,12 @@ function allLootDone(){ let need=0, got=0;
     if((ch==="c" && z.chest && z.chest.key===x+","+y) || (ch==="b" && z.loot && z.loot[x+","+y])){ need++; if(S.opened[zi+":"+x+","+y]) got++; } }); }); });
   return {need, got, done: got>=need && need>0}; }
 function eraCleared(){ return !!S.cleared["5:5,2"]; }
+function ngPlusArm(){   // one tap used to overwrite a finished run's save with no way back
+  const row=box.querySelector("[data-ng]").parentElement;
+  row.innerHTML="<div class='mut' style='font-size:.78rem;margin-bottom:6px'>NEW GAME+ starts over and writes across your finished run. Keep the credits, lose the save.</div>"+
+    "<button data-ngyes='1'>Start NEW GAME+</button><button data-ngno='1'>Back</button>";
+  row.querySelector("[data-ngyes]").onclick=()=>{ newGame(true); };
+  row.querySelector("[data-ngno]").onclick=()=>{ M.state="end"; ending(); }; }
 function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
   const pad=n=>String(n).padStart(2,"0");
   const min=Math.floor(S.playMs/60000), sec=Math.floor(S.playMs/1000)%60;
@@ -3595,7 +3601,7 @@ function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
       navigator.clipboard.writeText(t).then(()=>{ sb.textContent="✅ COPIED - go brag!"; },()=>{ window.prompt("Copy your result:", t); }); }
     else window.prompt("Copy your result:", t); };
   box.querySelector("[data-cr]").onclick=()=>{ say(CREDITS, ()=>{ M.state="end"; ending(); }); };
-  box.querySelector("[data-ng]").onclick=()=>{ newGame(true); };
+  box.querySelector("[data-ng]").onclick=()=>{ ngPlusArm(); };
   box.querySelector("[data-ct]").onclick=()=>{ ov.hidden=true; M.state="explore"; render(); }; }
 
 // ================= MOVEMENT & INTERACTION =================
@@ -3807,6 +3813,8 @@ document.addEventListener("keydown",e=>{ const k=e.key;
     if(k==="Escape"){ if(M.panelEnd) M.panelEnd(); }
     else if(k==="Enter"||k===" "){ if(M.panelAdv) M.panelAdv(); } return; }
   if(M.state==="battle"){
+    const _ae=document.activeElement;
+    if((k==="Enter"||k===" ") && _ae && _ae.tagName==="BUTTON" && _ae.closest("#bmenu")) return;   // the cursor is not the keyboard; press what they focused
     if(k==="Enter"||k===" "||k==="ArrowUp"||k==="ArrowDown"||k==="ArrowLeft"||k==="ArrowRight") e.preventDefault(); // repeats must never scroll the page
     if(e.repeat) return;
     const btns=[...document.querySelectorAll("#bmenu button")];
@@ -5783,7 +5791,38 @@ const TESTS = [
       const tk=(loaded.tree&&loaded.tree.taken)||{};
       // r5 and v5 are tier-5 with no lane prefix bought; s3a and s3b are fork twins
       return !tk.r5 && !tk.v5 && !(tk.s3a && tk.s3b);
-    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); S=sb; } }],];
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); S=sb; } }], ["NEW GAME+ asks before it writes over a finished run", ()=>{
+    const sb=S; const key=saveKey(0); const bak=localStorage.getItem(key); const bakState=M.state;
+    try{
+      S=NEWS(); S.won=true; S.tokens=4242; S.actors.hero.lv=33;
+      localStorage.setItem(key, JSON.stringify(S));
+      M.state="end"; ov.hidden=false;
+      box.innerHTML="<div class='choices'><button data-ng='1'>NEW GAME+</button></div>";
+      box.querySelector("[data-ng]").onclick=()=>{ ngPlusArm(); };
+      box.querySelector("[data-ng]").click();
+      const stillThere=JSON.parse(localStorage.getItem(key)).tokens===4242;
+      const asks=!!box.querySelector("[data-ngyes]") && !!box.querySelector("[data-ngno]");
+      // backing out must leave everything exactly as it was
+      if(box.querySelector("[data-ngno]")) box.querySelector("[data-ngno]").click();
+      const intact=JSON.parse(localStorage.getItem(key)).tokens===4242;
+      return stillThere && asks && intact;
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak);
+      ov.hidden=true; box.innerHTML=""; M.state=bakState; S=sb; } }],
+ ["in battle, Enter presses the button you tabbed to", ()=>{
+    const sb=S; const bakState=M.state; S=NEWS();
+    try{
+      M.state="battle";
+      M.b={ id:"golem", def:EN.golem, hp:99, maxhp:99, revealed:true, focused:true, verified:0, dot:0, taunt:0,
+        sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0, ducked:{}, sel:0 };
+      const bm=document.getElementById("bmenu");
+      bm.innerHTML="<button data-a='fight'>FIGHT</button><button data-a='defend'>DEFEND</button>";
+      const second=bm.querySelectorAll("button")[1];
+      second.focus();
+      const ev=new KeyboardEvent("keydown",{key:"Enter",bubbles:true,cancelable:true});
+      document.dispatchEvent(ev);
+      // cursor still points at 0; the player is looking at button 1. Do not press 0 for them.
+      return ev.defaultPrevented===false && document.activeElement===second;
+    } finally { document.getElementById("bmenu").innerHTML=""; M.b=null; M.state=bakState; S=sb; } }],];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
   let pass=0, rows="";
