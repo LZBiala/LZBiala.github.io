@@ -1,4 +1,4 @@
-"""Combat sim v9 — THE HEROINE PROTOCOL (self-learning, review-hardened).
+"""Combat sim v9 - THE HEROINE PROTOCOL (self-learning, review-hardened).
 New over v8: PAPAFOXX (roast / ULTIMA setup-gated / dad joke / COMIC RELIEF on
 MP-spend only / DEEZ NUTS limit) as 6th member AND as the recruit boss (with
 HECKLE AoE debuff); SHARONDUH the White Mage (hotfix / sanitize / uptime aura /
@@ -15,7 +15,7 @@ import random, sys, json
 from multiprocessing import Pool
 
 MSPD = { "hero":5, "sentinel":7, "wiki":4, "mender":4, "refuter":3, "papafoxx":6, "sharon":7, "retro":8, "lito":7 }   # sharon reworked: fighter-medic
-BOND = 3   # worst-case bond bonus on dual techs (maxed hearts) — bosses must survive best friends
+BOND = 3   # worst-case bond bonus on dual techs (maxed hearts) - bosses must survive best friends
 MECHS = dict(BREAK=0, BREAK_TH=3, ASSIST=0, ASSIST_P=0.15, ENRAGE=0, INTERRUPT=0, JOIN_LB_FRAC=-1.0)   # >=0: sharon joins the chain before form 2 with lb=frac*LB_MAX (game-fidelity model)   # experimental mechanics lab: toggled per run via CLI JSON (e.g. '{"MECHS":{"BREAK":1}}')
 ESPD = { "vague":2, "gremlin":8, "creep":3, "golem":3, "wyrm":6, "leak":4, "chorus":4,
  "flaky":8, "drift":5, "monolith":3, "h1":6, "h2":5, "h3":5, "h4":4, "h5":5,
@@ -518,7 +518,7 @@ FULL  = ["hero","sentinel","wiki","mender","refuter"]
 FULL6 = FULL + ["papafoxx"]
 FULL7 = FULL6 + ["sharon"]
 
-# (row key, enemy, party, lv, relic, crafted, armor) — "hacker" is the two-form chain
+# (row key, enemy, party, lv, relic, crafted, armor) - "hacker" is the two-form chain
 TABLE = [
  ("monolith5", "monolith", FULL,  5, False, False, False),   # frozen baselines (5-member)
  ("h5_5",      "h5",       FULL,  7, False, False, False),
@@ -617,7 +617,7 @@ def show(res):
         print(f"{rk:<12} | {o[0]:>8.1%}{o[1]:>7.1f}{o[3]:>6.2f}{o[2]:>7.1%}{o[4]:>8.1%} | {n[0]:>10.1%}{n[1]:>7.1f}{n[2]:>7.1%}{n[4]:>8.1%}")
 
 def _dpr_jump(knob, observed, target, cap=800):
-    """Expert rule: turns scale ~linearly with HP at fixed party DPR — jump, don't creep."""
+    """Expert rule: turns scale ~linearly with HP at fixed party DPR - jump, don't creep."""
     if observed <= 0.4: return None
     new = min(cap, int(round(KNOBS[knob] * target / observed / 5)) * 5)
     if new != KNOBS[knob]:
@@ -667,7 +667,7 @@ def tune(res):
             ch.append(f"{six} turns {o6[1]:.1f} < 62% of {five} {o5[1]:.1f} -> ULTIMA_DMG={KNOBS['ULTIMA_DMG']}")
             break
     for rk,(o,n) in res.items():
-        if o[0] < 0.99: ch.append(f"WARNING {rk} optimal win {o[0]:.1%} < 99% — manual review")
+        if o[0] < 0.99: ch.append(f"WARNING {rk} optimal win {o[0]:.1%} < 99% - manual review")
     for k,v in FROZEN.items():
         assert KNOBS[k] == v, f"FROZEN KNOB TOUCHED: {k}"
     return ch
@@ -1151,7 +1151,7 @@ def lab5():
       G-D foxxE3 OPT win >= 97%        (floor: fight reachable at lv3)
       G-E control foxxfight5 (FULL,5): OPT 100% and turns in [3.6, 4.8] (frozen history)
     Pre-registered remedy if G-A/B fail (NOT auto-applied): FOXX_HP_EARLY=120 when
-    party < 4 ("the Heckler goes easy on a small crowd") — ships only via its own lab.
+    party < 4 ("the Heckler goes easy on a small crowd") - ships only via its own lab.
     """
     global RUNS_PER
     RUNS_PER = int(sys.argv[3]) if len(sys.argv) > 3 else 3125
@@ -1174,7 +1174,7 @@ def lab5():
         w0, t0, tt0, k0, c0, r0 = agg.get(key, (0, 0, 0, 0, 0, 0))
         agg[key] = (w0 + wins, t0 + turns, tt0 + t2sum, k0 + ko_b, c0 + clutch, r0 + runs)
     res = {}
-    print("LAB5 — foxx-as-third validation")
+    print("LAB5 - foxx-as-third validation")
     for (rk, noise), (w0, t0, tt0, k0, c0, r0) in sorted(agg.items()):
         mt = t0 / r0; sd = max(0.0, tt0 / r0 - mt * mt) ** 0.5
         res[(rk, noise)] = (w0 / r0, mt, sd, k0 / r0)
@@ -1188,7 +1188,7 @@ def lab5():
     gE = e5[0] >= 0.999999 and 3.6 <= e5[1] <= 4.8
     for g, ok in (("G-A", gA), ("G-B", gB), ("G-C", gC), ("G-D", gD), ("G-E", gE)):
         print(f"  {g}: {'PASS' if ok else 'FAIL'}")
-    print("LAB5 VERDICT:", "ALL GATES PASS" if all((gA, gB, gC, gD, gE)) else "GATE FAILURE — invoke the pre-registered remedy lab")
+    print("LAB5 VERDICT:", "ALL GATES PASS" if all((gA, gB, gC, gD, gE)) else "GATE FAILURE - invoke the pre-registered remedy lab")
     print("lab5 simulated battles: {:,}".format(len(cells) * RUNS_PER))
 
 

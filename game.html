@@ -2705,7 +2705,7 @@ function startBattle(id,key,chain,opts){ const def=EN[id];
   while(t0<ids0.length && S.actors[ids0[t0]] && S.actors[ids0[t0]].ko) t0++;
   if(t0>=ids0.length) t0=0;
   M.state="battle"; M.b={ id, key, chain:chain||null, def, hp:def.hp, maxhp:def.hp,
-    dot:0, verified:0, taunt:0, revealed:(!def.hidden || treeHas("s3a")), focused:(!def.foggy || treeHas("s3b")),
+    dot:0, verified:0, taunt:0, ducked:{}, revealed:(!def.hidden || treeHas("s3a")), focused:(!def.foggy || treeHas("s3b")),
     doubled:false, menu:"main", turn:t0, snoozed:false, stolen:false, uptimeUsed:false, growN:0,
     rounds:0, mttd:def.hidden? null : 0, mttm:null };
   if(id==="papafoxx"){ const fs=foxxStats(); M.b.hp=fs.hp; M.b.maxhp=fs.hp; M.b.def=Object.assign({}, def, {hp:fs.hp, atk:fs.atk}); }
@@ -3016,7 +3016,8 @@ function dealt(a,dmg,txt){ const b=M.b;
 const READERS=["fivewhy","contexa","dashboard","firstprinciples","controlarm","audit"];
 function skillCost(sp,id,a){ return Math.max(1, sp.mp
   - ((treeHas("s2") && READERS.indexOf(id)>=0) ? 1 : 0)
-  - ((id==="kanban" && heldBy(a)==="rt1") ? 1 : 0)); }
+  - ((id==="kanban" && heldBy(a)==="rt1") ? 1 : 0)
+  - ((S.equip.charm==="ch9" && a && M.b && M.b.ducked && !M.b.ducked[a.id]) ? 1 : 0)); }
 function itThreshold(){ return treeHas("s4") ? 6 : 8; }
 function castSkill(a,id){ const b=M.b, sp=SP[id];
   const staffFree = id==="fivewhy" && S.equip.weapon==="kb4"; // the Fishbone Staff makes FIVE-WHY truly free
@@ -3025,6 +3026,7 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
   // targeted skills open target submenu
   if(id==="repair"||id==="hitl"||id==="hotfix"){ b.targeting={skill:id, ko:false, any:id!=="repair"}; b.menu="target"; drawMenu(); return; }
   if(!staffFree) a.mp-=_cost;
+  if(S.equip.charm==="ch9"){ b.ducked=b.ducked||{}; b.ducked[a.id]=1; }   // you only have to say it out loud once
   if(a.id==="papafoxx") b.foxxRelief=true;   // COMIC RELIEF triggers only on a real performance (MP spent)
   fxAbility(sp.name);
   if(SKILL_FX[id]) BFX.push("burst",{color:SKILL_FX[id]});
@@ -3108,7 +3110,8 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     return playerHit(a, weakHit?base*2:base, nm+" casts "+sp.name+"!"+(weakHit?" <span class='gold'>Super effective!</span>":"")); }
 }
 function resolveTarget(a,pid){ const b=M.b; const t=S.actors[pid]; const which=b.targeting.skill; b.targeting=null;
-  const sp=SP[which]; a.mp-=sp.mp; const nm=MEMBERS[a.id].name, tn=MEMBERS[pid].name;
+  const sp=SP[which]; a.mp-=skillCost(sp,which,a); if(S.equip.charm==="ch9"){ b.ducked=b.ducked||{}; b.ducked[a.id]=1; }
+  const nm=MEMBERS[a.id].name, tn=MEMBERS[pid].name;
   BFX.push("heal",{slot:slotOf(pid)});
   if(which==="repair"){ const mend=(heldBy(a)==="wd2") ? 8 : 6; t.hp=Math.min(t.maxhp,t.hp+mend); sfx("heal");
     blog(nm+" REPAIRS "+tn+" - <span class='num'>+"+mend+" HP</span>, citing the failure that demanded it."); }
@@ -3217,6 +3220,9 @@ function endOfRound(b,t){
   if(b.taunt>0) b.taunt--;
   if(b.roasted>0) b.roasted--;
   if(b.heckled>0) b.heckled--;
+  if(S.equip.badge==="bd3"){                       // nobody carries the pager alone
+    const dry=living().filter(x=>x.mp<x.maxmp).sort((x,y)=>(x.mp/x.maxmp)-(y.mp/y.maxmp))[0];
+    if(dry){ dry.mp=Math.min(dry.maxmp,dry.mp+1); t+=" <span class='mut'>(ROTATION: "+MEMBERS[dry.id].name+" +1 MP)</span>"; } }
   if(b.sprint>0) b.sprint--;
   if(b.shed>0) b.shed--;
   if(b.canary) b.canary=false;
@@ -3987,7 +3993,7 @@ const TESTS = [
     const ok=M.b.menu==="dead"; M.b=null; M.state="test"; S=sb; return ok; }],
  ["enemyTurn with no living party routes to wipe, not crash", ()=>{ const sb=S; S=NEWS();
     partyActors().forEach(a=>{ a.ko=true; a.hp=0; });
-    M.b={ def:EN.vague, hp:14, maxhp:14, dot:0, verified:0, taunt:0, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false };
+    M.b={ def:EN.vague, hp:14, maxhp:14, dot:0, verified:0, taunt:0, ducked:{}, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false };
     const st=window.setTimeout; window.setTimeout=()=>0;
     enemyTurn(); window.setTimeout=st;
     const ok=M.b.menu==="dead"; M.b=null; M.state="test"; S=sb; return ok; }],
@@ -4169,7 +4175,7 @@ const TESTS = [
     M.b=null; S=sb; rng=rb; return healed; }],
  ["Vigor Materia regenerates the hero at end of round", ()=>{ const sb=S; S=NEWS();
     S.materia=["mvigor",null]; S.actors.hero.hp=4;
-    M.b={ def:EN.vague, hp:14, maxhp:14, dot:0, verified:0, taunt:0, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false, rounds:0 };
+    M.b={ def:EN.vague, hp:14, maxhp:14, dot:0, verified:0, taunt:0, ducked:{}, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false, rounds:0 };
     const st=window.setTimeout; window.setTimeout=()=>0;
     endOfRound(M.b,"t"); window.setTimeout=st;
     const ok=S.actors.hero.hp===6;
@@ -4356,7 +4362,7 @@ const TESTS = [
     dealt(S.actors.hero,5,"t"); const d1=46-M.b.hp;
     M.b=null; S=sb; rng=rb; return ok1 && counted && d5===d1+1; }],
  ["enemy damage breaks the combo", ()=>{ const sb=S; S=NEWS();
-    M.b={ def:EN.vague, hp:14, maxhp:14, dot:0, verified:0, taunt:0, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false, rounds:0, combo:7, queue:[{t:"f",spd:2}], qi:0 };
+    M.b={ def:EN.vague, hp:14, maxhp:14, dot:0, verified:0, taunt:0, ducked:{}, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false, rounds:0, combo:7, queue:[{t:"f",spd:2}], qi:0 };
     const st=window.setTimeout; window.setTimeout=()=>0;
     foeAct(true); window.setTimeout=st;
     const ok=M.b.combo===0;
@@ -4372,7 +4378,7 @@ const TESTS = [
  ["Circuit Breaker charm: the first KO each battle becomes 1 HP", ()=>{ const sb=S; S=NEWS();
     S.items.ch6=1; S.equip.charm="ch6"; S.party=["wiki"]; S.actors.wiki=mkActor("wiki",1);
     S.actors.wiki.hp=2; S.actors.wiki.row="front";
-    M.b={ def:EN.h5, hp:145, maxhp:145, dot:0, verified:0, taunt:0, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false, rounds:0, queue:[{t:"f",spd:5}], qi:0, breakerUsed:false };
+    M.b={ def:EN.h5, hp:145, maxhp:145, dot:0, verified:0, taunt:0, ducked:{}, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false, rounds:0, queue:[{t:"f",spd:5}], qi:0, breakerUsed:false };
     const st=window.setTimeout; window.setTimeout=()=>0;
     foeAct(true); window.setTimeout=st;
     const saved=(S.actors.hero.hp===1||S.actors.wiki.hp===1) && M.b.breakerUsed===true
@@ -5629,7 +5635,44 @@ const TESTS = [
     delete M.forceCrit;
     M.b=null; M.state="test"; S=sb;
     return leaked===false && frozeAnyway===false; }],
-];
+ ["the Rotation Badge shares the pager, and the Rubber Duck listens", ()=>{ const sb=S; S=NEWS();
+    S.party=["sentinel","wiki"]; S.actors.sentinel=mkActor("sentinel",8); S.actors.wiki=mkActor("wiki",8);
+    M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0,
+      taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0, ducked:{} };
+    const b=M.b; const out={};
+
+    S.items.bd3=1; S.equip.badge="bd3";
+    const w=S.actors.wiki; w.maxmp=20; w.mp=3; const h=S.actors.hero; h.maxmp=20; h.mp=19;
+    endOfRound(b,"");
+    out.bd3 = w.mp===4 && h.mp===19;            // the driest ally gets the drink, not the wettest
+
+    S.equip.charm="ch9"; b.ducked={};
+    const first=skillCost(SP.contexa,"contexa",S.actors.wiki);
+    b.ducked.wiki=1;
+    const second=skillCost(SP.contexa,"contexa",S.actors.wiki);
+    out.ch9 = first===second-1;
+
+    M.b=null; M.state="test"; S=sb;
+    const dead=Object.keys(out).filter(k=>!out[k]);
+    if(dead.length) console.log("equipment with no effect:", dead.join(", "));
+    return dead.length===0; }], ["no item promises a mechanic the code never reads", ()=>{
+    // Three times now a purchasable thing has shipped with its effect unwritten: 13 tree nodes,
+    // six signature weapons, and the Rotation Badge and Rubber Duck. The listing tables do not
+    // count as an implementation, and neither does a mention inside these tests.
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.indexOf("function runTests(){");
+    let prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
+    ["SHOP_STOCK","ITICON","WVIS","AVIS","ARMOR_STOCK"].forEach(nm=>{
+      const a=prod.indexOf("const "+nm); if(a<0) return;
+      const o=prod.indexOf(prod[prod.indexOf("=",a)+1]==="["?"[":"{", a);
+      const open=prod[o], close=(open==="[")?"]":"}";
+      let d=0,e=o; while(e<prod.length){ if(prod[e]===open)d++; else if(prod[e]===close){d--; if(!d)break;} e++; }
+      prod=prod.slice(0,a)+prod.slice(e+1); });
+    // these earn their price through the generic atk/def fields, so they need no bespoke code
+    const GENERIC=["kb1","kb2","kb3","kb5","rw1","mic1","gl1","sw1","bd1","bd2","ar1","ar2"];
+    const dead=Object.keys(IT).filter(k=>GENERIC.indexOf(k)<0 && prod.split('"'+k+'"').length-1 < 1);
+    if(dead.length) console.log("items whose effect nothing reads:", dead.join(", "));
+    return dead.length===0; }],];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
   let pass=0, rows="";
