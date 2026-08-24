@@ -2870,7 +2870,7 @@ function seatFoes(b, count){
 // in you are: this is how the floor rises without inflating any single enemy's numbers,
 // which is the cheap move that always feels unfair.
 const SOLO_FOES=["monolith","h5","unknown","retrystorm","papafoxx","hacker","nullbyte","promptinj",
-  "halluc","misaligned","zeroday","retroboss","packetshark","botnet","ransomworm","phish","dummy"];
+  "halluc","misaligned","zeroday","retroboss","dummy"];
 function packSize(stage, foeId){
   if(SOLO_FOES.indexOf(foeId)>=0) return 1;
   const st=Math.max(0, Math.min(4, stage|0));
@@ -2911,7 +2911,9 @@ function nextUnit(){ const b=M.b; if(!b) return;
   while(true){ b.qi++;
     if(!b.queue || b.qi>=b.queue.length){ endOfRound(b,""); return; }
     const u=b.queue[b.qi];
-    if(u.t==="f"){ if(b.hp>0){ foeAct(false); return; } continue; }
+    if(u.t==="f"){ const body=(b.foes && u.fi!==undefined) ? b.foes[u.fi] : b;
+      if(body && body.hp>0){ foeAct(false, (b.foes && u.fi!==undefined) ? u.fi : undefined); return; }
+      continue; }
     const a=S.actors[u.id];
     if(!a || a.ko || a.dualUsed || a.acted) continue;
     b.turn=ids.indexOf(u.id); b.introPending=null; b.menu="main"; drawB(); return; } }
@@ -3239,7 +3241,17 @@ function pickMove(b){ const mv=b.def.moves;
     return mv[Math.floor(rng()*mv.length)]; }
   return mv[Math.floor(rng()*mv.length)]; }
 function enemyTurn(){ foeAct(true); }
-function foeAct(standalone){ const b=M.b;
+// Every legacy line in here reads b.snoozed / b.roasted / b.growN / b.def, and each of
+// those addresses "the foe the cursor is on". So the honest way to let a second body act
+// is to move the cursor onto it for the length of its turn and put it back afterwards -
+// the player's aim is theirs, not the scheduler's.
+function foeAct(standalone, fi){ const b=M.b;
+  if(b && b.foes && fi!==undefined && fi!==null){
+    const body=b.foes[fi];
+    if(!body || body.hp<=0){        // a corpse gets no turn, and never ends the round early
+      if(standalone){ endOfRound(b,""); } else { b.menu="next"; drawB(); } return; }
+    const keep=b.ti; b.ti=fi;
+    try{ return foeAct(standalone); } finally { b.ti=keep; } }
   if(b.snoozed){ b.snoozed=false; const msg="🔕 The pager is snoozed - <b>"+b.def.name+"</b> misses its turn!";
     if(standalone){ blog(msg); endOfRound(b,""); } else { blog(msg); b.menu="next"; drawB(); } return; }
   if(b.intercept && (b.def.multi || b.def.grow)){ b.intercept=0;
@@ -3302,9 +3314,10 @@ function endOfRound(b,t){
   if(matOn("mvigor") && !h.ko && h.hp<h.maxhp){ h.hp=Math.min(h.maxhp,h.hp+2); t+=" <span class='mut'>(ERROR BUDGET: HERO +2 HP)</span>"; }
   if(treeHas("r3a") && (b.rounds||0)<3){ let fed=0; living().forEach(p2=>{ if(p2.hp<p2.maxhp){ p2.hp=Math.min(p2.maxhp,p2.hp+1); fed++; } });
     if(fed) t+=" <span class='mut'>(🌱 ERROR BUDGET: party +1 HP)</span>"; }
-  if(b.verified>0) b.verified--;
+  // taunt and heckle describe the room; verified, roasted and softened describe a body
+  (b.foes||[b]).forEach(f=>{ if(f.verified>0) f.verified--;
+    if(f.roasted>0) f.roasted--; if(f.softened>0) f.softened--; });
   if(b.taunt>0) b.taunt--;
-  if(b.roasted>0) b.roasted--;
   if(b.heckled>0) b.heckled--;
   if(S.equip.badge==="bd3"){                       // nobody carries the pager alone
     const dry=living().filter(x=>x.mp<x.maxmp).sort((x,y)=>(x.mp/x.maxmp)-(y.mp/y.maxmp))[0];
@@ -3312,14 +3325,20 @@ function endOfRound(b,t){
   if(b.sprint>0) b.sprint--;
   if(b.shed>0) b.shed--;
   if(b.canary) b.canary=false;
-  if(b.softened>0) b.softened--;
   if(b.aura>0){ b.aura--; const L2=living();
     if(L2.length){ L2.forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+2); }); t+=" <span class='num'>(UPTIME AURA: party +2)</span>"; } }
   // wipe takes precedence over a DOT kill in the same round - no false victories
-  if(living().length && b.dot>0){ b.dot--;
-    if(b.def.regen && b.verified===0){ t+="<br>The defect fires… <span class='red'>patched by regeneration!</span>"; }
-    else { b.hp-=2; t+="<br>The planted defect fires: <span class='num'>2</span>!";
-      if(b.hp<=0){ blog(t+"<br><span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; } } }
+  if(living().length){
+    let anyFell=false;
+    (b.foes||[b]).forEach((f,fi)=>{
+      if(!(f.dot>0) || f.hp<=0) return;
+      f.dot--;
+      if(f.def.regen && f.verified===0){ t+="<br>The defect fires… <span class='red'>patched by regeneration!</span>"; return; }
+      f.hp-=2; t+="<br>The planted defect fires"+((b.foes&&b.foes.length>1)?(" in "+foeLabel(f,fi)):"")+": <span class='num'>2</span>!";
+      if(f.hp<=0){ anyFell=true; t+="<br><span class='gold'>"+f.def.name+" is defeated!</span>"; } });
+    // a rotted body is not a cleared room: only the last one standing ends the fight
+    if(anyFell && roomCleared()){ blog(t); sfx("win"); b.menu="won"; drawB(); return; }
+    if(anyFell) retarget(); }
   partyActors().forEach(a=>{ a.defending=false; a.dualUsed=false; a.acted=false; });
   if(!living().length){ S.deaths=(S.deaths||0)+1; b.menu="dead"; sfx("lose"); M.roamBattle=false;
     const toll=Math.ceil(S.tokens*(treeHas("r5")?0.2:0.1)); S.tokens-=toll;
@@ -3687,7 +3706,9 @@ function roamWalkable(zone,x,y){ if(x<0||x>11||y<0||y>8) return false;
   if(npcsFor(zone).some(n=>n.x===x&&n.y===y)) return false;
   return true; }
 function roamBattleNow(rm,mode){ M.roamBattle=true;
-  battleTransition(()=>{ startBattle(rm.id, null, null, mode==="first"? {firstStrike:true} : {ambush:true}); }); }
+  const pack=packSize(S.stage, rm.id);   // what you can see coming has friends you cannot
+  battleTransition(()=>{ startBattle(rm.id, null, null,
+    mode==="first"? {firstStrike:true, count:pack} : {ambush:true, count:pack}); }); }
 function moveRoam(zone){ const rm=M.roam[S.z]; if(!rm || !rm.alive) return false;
   const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
   let step=null;
@@ -6200,6 +6221,123 @@ const TESTS = [
       if(bad.length) console.log("reconcile changed a legitimate sheet:", bad.join(" | "));
       return bad.length===0;
     } finally { S=sb; } }],
+
+ ["the thing you can SEE coming brings friends too", ()=>{
+    const sb=S, mb=M.b, rb=rng, tb=battleTransition; S=NEWS();
+    try{
+      S.z=8; S.stage=4; rng=mulberry32(90210);
+      let seated=null;
+      battleTransition=(fn)=>fn();
+      const realStart=startBattle;
+      const sizes={};
+      for(let i=0;i<300;i++){
+        seated=null;
+        window.startBattle=startBattle;
+        roamBattleNow({id:"vague", x:1, y:1, alive:true}, "ambush");
+        const n=(M.b && M.b.foes) ? M.b.foes.length : 0;
+        sizes[n]=(sizes[n]||0)+1;
+      }
+      const keys=Object.keys(sizes).map(Number);
+      if(keys.every(k=>k===1)) console.log("roamers always fight alone:", JSON.stringify(sizes));
+      return keys.some(k=>k>1) && keys.every(k=>k>=1&&k<=4);
+    } finally { battleTransition=tb; rng=rb; M.b=mb; S=sb; M.roamBattle=false; BW.hidden=true; M.state="explore"; } }],
+
+ ["every wandering pool in the game can produce a pack", ()=>{
+    const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(4242);
+      const lonely=[];
+      Z.forEach(z=>{ const pools=[].concat((z.enc&&z.enc.pool)||[], (z.roam&&z.roam.pool)||[]);
+        Array.from(new Set(pools)).forEach(id=>{
+          let most=1; for(let i=0;i<200;i++) most=Math.max(most, packSize(4, id));
+          if(most<2) lonely.push((z.name||"?")+"/"+id); }); });
+      if(lonely.length) console.log("wandering foes that never bring friends:", Array.from(new Set(lonely)).join(", "));
+      return lonely.length===0;
+    } finally { rng=rb; S=sb; } }],
+
+ ["a story fight is still one body, however far in you are", ()=>{
+    // the whole point of SOLO_FOES: a boss must never be a crowd
+    return ["monolith","h5","unknown","retrystorm","papafoxx","hacker","nullbyte",
+            "promptinj","halluc","misaligned","zeroday","retroboss","dummy"]
+      .every(id=>{ for(let i=0;i<80;i++) if(packSize(4,id)!==1) return false; return true; }); }],
+
+ ["every body in the pack swings for itself", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(777);
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",9); S.actors.hero=mkActor("hero",9);
+      startBattle("creep","test",null,{count:3});   // CREEP grows: growN is a per-body counter
+      const b=M.b; b.foes.forEach(f=>{ f.hp=400; });
+      partyActors().forEach(a=>{ a.maxhp=999; a.hp=999; });
+      for(let i=0;i<3;i++) foeAct(false, i);
+      const grew=b.foes.map(f=>f.growN||0);
+      if(grew.some(g=>g!==1)) console.log("three bodies, one swinger. growN per foe:", JSON.stringify(grew));
+      return grew.length===3 && grew.every(g=>g===1);
+    } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
+
+ ["a slot whose body is dead does not get a turn", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(31);
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",9); S.actors.hero=mkActor("hero",9);
+      startBattle("golem","test",null,{count:3});
+      const b=M.b;
+      partyActors().forEach(a=>{ a.maxhp=999; a.hp=999; });
+      b.foes[1].hp=0;                     // the middle one is already down
+      b.ti=0;
+      const before=living().reduce((n,a)=>n+a.hp,0);
+      buildQueue(b);
+      const foeSlots=b.queue.filter(u=>u.t==="f").length;
+      // the corpse must not be in the queue at all, and must not swing if it somehow is
+      foeAct(false, 1);
+      const after=living().reduce((n,a)=>n+a.hp,0);
+      if(foeSlots!==2) console.log("queue seated a corpse: foe slots =", foeSlots);
+      if(after!==before) console.log("a dead body still hit for", before-after);
+      return foeSlots===2 && after===before;
+    } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
+
+ ["a status wears off the body that carries it", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(99);
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",9); S.actors.hero=mkActor("hero",9);
+      startBattle("golem","test",null,{count:3});
+      const b=M.b;
+      partyActors().forEach(a=>{ a.maxhp=999; a.hp=999; });
+      b.ti=0;
+      b.foes[1].roasted=2; b.foes[2].verified=2; b.foes[1].softened=2;
+      endOfRound(b,"");
+      const ok = b.foes[1].roasted===1 && b.foes[2].verified===1 && b.foes[1].softened===1;
+      if(!ok) console.log("statuses frozen on untargeted bodies:",
+        JSON.stringify(b.foes.map(f=>({r:f.roasted,v:f.verified,s:f.softened}))));
+      return ok;
+    } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
+
+ ["poison cannot win a fight that is still happening", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(1234);
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",9); S.actors.hero=mkActor("hero",9);
+      startBattle("golem","test",null,{count:3});
+      const b=M.b;
+      partyActors().forEach(a=>{ a.maxhp=999; a.hp=999; });
+      b.ti=0; b.foes[0].hp=1; b.foes[0].dot=3;   // the one we are aimed at is about to rot
+      b.foes[1].hp=40; b.foes[2].hp=40;
+      endOfRound(b,"");
+      if(b.menu==="won") console.log("declared victory with", livingFoes().length, "enemies still up");
+      return b.menu!=="won" && livingFoes().length===2;
+    } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
+
+ ["poison eats every body it was planted in", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(5150);
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",9); S.actors.hero=mkActor("hero",9);
+      startBattle("golem","test",null,{count:3});
+      const b=M.b;
+      partyActors().forEach(a=>{ a.maxhp=999; a.hp=999; });
+      b.ti=0; b.foes.forEach(f=>{ f.hp=40; f.dot=2; });
+      const hp0=b.foes.map(f=>f.hp);
+      endOfRound(b,"");
+      const bit=b.foes.map((f,i)=>hp0[i]-f.hp);
+      if(bit.some(d=>d!==2)) console.log("planted in three, fired in fewer:", JSON.stringify(bit));
+      return bit.every(d=>d===2) && b.foes.every(f=>f.dot===1);
+    } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
