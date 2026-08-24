@@ -7410,6 +7410,40 @@ const TESTS = [
       for(let j=1;j<r.length;j++) if(r[j]<r[j-1]) bad.push("row "+i+" is not ascending"); });
     if(bad.length) console.log("density table:", bad.join(", "));
     return bad.length===0; }],
+
+ ["the Slayer still talks like himself", ()=>{
+    // He contracts in ordinary speech and stops at the grief peaks. That contrast is the
+    // character; a writer who flattens it turns him into a generic measured mentor, and
+    // nothing else in this suite would notice.
+    const C=/\b(I'|[Yy]ou'|[Ii]t'|isn'|don'|doesn'|didn'|[Tt]hat'|[Hh]e'|[Ww]e'|[Tt]hey'|won'|can'|there'|here'|what'|nobody'|somebody')/;
+    const mine=(l)=>/^RETROLISTIC:/.test(l);
+    const ordinary=[], peak=[];
+    const inn=Z[6].npcs.find(n=>n.name==="RETROLISTIC");
+    if(!inn) return false;
+    inn.lines.forEach(l=>ordinary.push(l));
+    DUETS.forEach(d=>d.forEach(l=>{ if(mine(l)) ordinary.push(l); }));
+    RETRO_ARC.forEach((b,i)=>b.lines.forEach(l=>{ if(mine(l)) (i>=2?peak:ordinary).push(l); }));
+    if(ordinary.length<20 || peak.length<5) return false;      // not enough of him to judge
+    const rate=(a)=>a.filter(l=>C.test(l)).length/a.length;
+    const ord=rate(ordinary), pk=rate(peak);
+    // ordinary speech contracts freely; the peaks go formal. The gap is the character.
+    const ok = ord>0.33 && pk<0.34 && (ord-pk)>0.12;
+    if(!ok) console.log("register drift - ordinary "+ord.toFixed(2)+" vs peak "+pk.toFixed(2)
+      +" (want ordinary above .33, peak below .34, gap over .12)");
+    return ok; }],
+
+ ["and the guard would notice if he stopped", ()=>{
+    // A style check that cannot fail is decoration, so it is fed a flattened sample here.
+    const C=/\b(I'|[Yy]ou'|[Ii]t'|isn'|don'|doesn'|didn'|[Tt]hat'|[Hh]e'|[Ww]e'|[Tt]hey'|won'|can'|there'|here'|what'|nobody'|somebody')/;
+    const flat=["RETROLISTIC: 'That is an outcome, it is not a learning.'",
+                "RETROLISTIC: 'I will write it down.'",
+                "RETROLISTIC: 'The backlog is not a graveyard, it is a WAITING ROOM.'",
+                "RETROLISTIC: 'That is fair, actually.'",
+                "RETROLISTIC: 'I have been working on my delivery.'",
+                "RETROLISTIC: 'It is a strange thing to carry and I carry it anyway.'"];
+    const rate=flat.filter(l=>C.test(l)).length/flat.length;
+    // the same lines the game actually ships, de-contracted: the check must see zero
+    return rate===0; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
