@@ -14,7 +14,7 @@ Usage: python combat_sim_v9.py [wave]   wave=1 learn, wave=2 validate
 import random, sys, json
 from multiprocessing import Pool
 
-MSPD = { "hero":5, "sentinel":7, "wiki":4, "mender":4, "refuter":3, "papafoxx":6, "sharon":7, "retro":8, "lito":7 }   # sharon reworked: fighter-medic
+MSPD = { "hero":5, "sentinel":7, "wiki":4, "refuter":3, "papafoxx":6, "sharon":7, "retro":7, "lito":7 }   # sharon reworked: fighter-medic
 BOND = 3   # worst-case bond bonus on dual techs (maxed hearts) - bosses must survive best friends
 MECHS = dict(BREAK=0, BREAK_TH=3, ASSIST=0, ASSIST_P=0.15, ENRAGE=0, INTERRUPT=0, JOIN_LB_FRAC=-1.0)   # >=0: sharon joins the chain before form 2 with lb=frac*LB_MAX (game-fidelity model)   # experimental mechanics lab: toggled per run via CLI JSON (e.g. '{"MECHS":{"BREAK":1}}')
 ESPD = { "vague":2, "gremlin":8, "creep":3, "golem":3, "wyrm":6, "leak":4, "chorus":4,
@@ -22,17 +22,16 @@ ESPD = { "vague":2, "gremlin":8, "creep":3, "golem":3, "wyrm":6, "leak":4, "chor
  "faxdaemon":6, "cobol":2, "patient0":5, "unknown":7, "retrystorm":6,
  "foxxboss":6, "packetshark":7, "botnet":5, "phish":4, "ransomworm":5, "zeroday":8,
  "nullbyte":6, "nullroot":7, "promptinj":6, "halluc":5, "misaligned":8 }
-BACK = ("wiki","mender","papafoxx")   # sharon fights front now
+BACK = ("wiki","papafoxx")   # sharon fights front now; the Slayer never did stand in back
 
 MEMBERS = {
  "hero":     dict(base=dict(hp=12, mp=6, atk=3), grow=dict(hp=3, mp=2, atk=1)),
  "sentinel": dict(base=dict(hp=10, mp=5, atk=4), grow=dict(hp=2, mp=1, atk=1)),
  "wiki":     dict(base=dict(hp=8,  mp=10, atk=2), grow=dict(hp=2, mp=3, atk=1)),
- "mender":   dict(base=dict(hp=11, mp=8, atk=2), grow=dict(hp=3, mp=2, atk=1)),
  "refuter":  dict(base=dict(hp=14, mp=5, atk=3), grow=dict(hp=4, mp=1, atk=1)),
  "papafoxx": dict(base=dict(hp=11, mp=8, atk=2), grow=dict(hp=3, mp=2, atk=1)),
  "sharon":   dict(base=dict(hp=10, mp=10, atk=4), grow=dict(hp=2, mp=2, atk=1)),
- "retro":    dict(base=dict(hp=11, mp=7, atk=4), grow=dict(hp=2, mp=2, atk=1)),
+ "retro":    dict(base=dict(hp=12, mp=9, atk=3), grow=dict(hp=3, mp=3, atk=1)),   # the Cleric merged in: tankier, deeper MP, one less atk
  "lito":     dict(base=dict(hp=12, mp=8, atk=4), grow=dict(hp=2, mp=2, atk=1)),   # the Systems Thinker, dual-wield
 }
 CRIT = 0.15
@@ -148,7 +147,7 @@ def crit(dmg, rng, extra=0.0, T=None):
 def partner_of(actors, pid):
     return next((x for x in actors if x["id"]==pid and not x["ko"] and not x["acted"]), None)
 
-def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noise=0.0, policy="balanced", materia=False, armor=False, state=None, build=None):
+def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noise=0.0, policy="balanced", materia=False, armor=False, state=None, build=None, foe_count=1):
     """One battle. state: carried actor list (for the NULLBYTE->KERNEL MODE chain)."""
     LBM = KNOBS["LB_MAX"]
     _build = build if build is not None else CUR_BUILD
@@ -165,9 +164,15 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
     else:
         e_reveal_pending = False
     for a in actors: a["shield"] = False; a["defending"] = False
-    e = dict(EN()[enemy_key])
-    e["revealed"] = (not e.get("hidden")) or ("s3a" in T); e["focused"] = (not e.get("foggy")) or ("s3b" in T)
-    e["verified"] = 0; e["dot"] = 0; e["growN"] = 0
+    foes = []
+    for _ in range(max(1, min(4, int(foe_count or 1)))):
+        f = dict(EN()[enemy_key])
+        f["revealed"] = (not f.get("hidden")) or ("s3a" in T)
+        f["focused"] = (not f.get("foggy")) or ("s3b" in T)
+        f["verified"] = 0; f["dot"] = 0; f["growN"] = 0
+        foes.append(f)
+    ti = 0
+    e = foes[ti]          # every existing line that reads e means "the foe we are aimed at"
     taunt = 0; stole = False; skip_next = False; combo = 0; breaker_used = False; softened = 0
     roasted = 0; heckled = 0; aura = 0
     brk = 0; broken = 0; enraged = 0; intercept = 0; sprint = 0   # BREAK/INTERRUPT lab: weakness/verified hits charge the meter; at 3 the foe staggers one round (+50% taken, loses its action)
@@ -334,10 +339,11 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
                     for x in actors:
                         if not x["ko"]: x["mp"] = min(x["maxmp"], x["mp"]+4)
                     continue
-                if aid == "mender" and sum(1 for x in actors if not x["ko"] and x["hp"] < x["maxhp"]*0.5) >= 2:
-                    a["lb"] = 0
+                if aid == "retro" and sum(1 for x in actors if not x["ko"] and x["hp"] < x["maxhp"]*0.5) >= 2:
+                    a["lb"] = 0                       # BLAMELESS RETRO: what hurt, what healed, and the blocker gets cut
                     for x in actors:
                         if not x["ko"]: x["hp"] = min(x["maxhp"], x["hp"]+8); x["shield"] = True
+                    e["hp"] -= 12
                     continue
                 if aid == "refuter" and taunt == 0 and e.get("multi"):
                     a["lb"] = 0; taunt = 3; skip_next = True; continue
@@ -381,17 +387,6 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
                         and a["mp"] >= 3 and r["mp"] >= 3 and e["hp"] > 18):
                     a["mp"] -= 3; r["mp"] -= 3; r["acted"] = True
                     e["hp"] -= dout(crit(a["atk"] + r["atk"] + 4 + BOND, rng)); continue
-            if aid == "mender":
-                if e.get("regen") and e["verified"] == 0 and a["mp"] >= 3:
-                    e["verified"] = 2; a["shield"] = True; a["mp"] -= mpc(3); continue
-                r = partner_of(actors, "refuter")
-                if r and e.get("multi") and taunt == 0 and a["mp"] >= 4 and r["mp"] >= 2:
-                    for x in actors:
-                        if not x["ko"]: x["shield"] = True
-                    taunt = 2; a["mp"] -= 4; r["mp"] -= 2; r["acted"] = True; continue
-                hurt = min((x for x in actors if not x["ko"]), key=lambda x: x["hp"]/x["maxhp"])
-                if hurt["hp"] < hurt["maxhp"]*0.5 and a["mp"] >= 3:
-                    hurt["hp"] = min(hurt["maxhp"], hurt["hp"]+6); a["mp"] -= 3; continue
             if aid == "refuter":
                 if taunt <= 0 and a["mp"] >= 2 and a["hp"] > a["maxhp"]*0.4:
                     taunt = 2; a["mp"] -= 2; continue
@@ -445,13 +440,25 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
                 if a["mp"] >= 2 and not (e.get("regen") and e["verified"] == 0):
                     e["hp"] -= dout(crit(2 + a["lv"]//2, rng)) + dout(crit(2 + a["lv"]//2, rng)); a["mp"] -= 2; continue   # TWIN HYPOTHESIS
             if aid == "retro":
-                nonlocal_sprint = None
+                # the merge: the Analyst's eyes and the Cleric's hands in one body, so the
+                # order of preference is triage first, sight second, damage last
+                if e.get("regen") and e["verified"] == 0 and a["mp"] >= 3:
+                    e["verified"] = 2; a["shield"] = True; a["mp"] -= mpc(3); continue   # CONTROL ARM
+                hurt = min((x for x in actors if not x["ko"]), key=lambda x: x["hp"]/x["maxhp"])
+                if hurt["hp"] < hurt["maxhp"]*0.5 and a["lv"] >= 3 and a["mp"] >= 3:
+                    hurt["hp"] = min(hurt["maxhp"], hurt["hp"]+6); a["mp"] -= 3; continue   # REPAIR
+                if (a["lv"] >= 7 and a["mp"] >= 5
+                        and sum(1 for x in actors if not x["ko"] and not x.get("shield")) >= 3
+                        and sum(1 for x in actors if not x["ko"] and x["hp"] < x["maxhp"]*0.7) >= 2):
+                    for x in actors:
+                        if not x["ko"]: x["shield"] = True
+                    a["mp"] -= 5; continue                                                # WARD
                 if (not e["revealed"] or not e["focused"]) and a["mp"] >= 3:
-                    e["revealed"] = True; e["focused"] = True; a["mp"] -= 3; continue   # DASHBOARD
+                    e["revealed"] = True; e["focused"] = True; a["mp"] -= 3; continue     # DASHBOARD
                 if EN()[enemy_key]["hp"] >= 100 and sprint == 0 and a["lv"] >= 5 and a["mp"] >= 5:
-                    sprint = 1; a["mp"] -= 5; continue                                   # SPRINT PLAN
+                    sprint = 1; a["mp"] -= 5; continue                                    # SPRINT PLAN
                 if a["mp"] >= 2 and not (e.get("regen") and e["verified"] == 0):
-                    e["hp"] -= dout(crit(2*(2 + a["lv"]//2), rng)); a["mp"] -= 2; continue   # KANBAN CUT
+                    e["hp"] -= dout(crit(2*(2 + a["lv"]//2), rng)); a["mp"] -= 2; continue  # KANBAN CUT
             if aid == "sharon":
                 ko_ally = next((x for x in actors if x["ko"]), None)
                 if ko_ally and a["mp"] >= 3:
@@ -481,10 +488,20 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
                 continue
             d1 = dout(crit(strike(a["atk"]), rng, 0.03 if (aid == "hero" and "s1" in T) else 0.0))
             e["hp"] -= (hdmg(d1) if aid=="hero" else d1)
+            if e["hp"] <= 0 and any(f["hp"] > 0 for f in foes):
+                ti = next(i for i, f in enumerate(foes) if f["hp"] > 0)
+                e = foes[ti]                # the rest of the party swings at the next one
         if not foe_done:
-            _r = foe_strike(); foe_done = True
-            if _r == "L": return False, turn+1, actors
-        if e["hp"] <= 0: return True, turn+1, actors
+            for _f in [x for x in foes if x["hp"] > 0]:
+                e = _f                      # each living foe takes its own action
+                _r = foe_strike()
+                if _r == "L": return False, turn+1, actors
+            foe_done = True
+        if all(f["hp"] <= 0 for f in foes):
+            return True, turn+1, actors
+        if e["hp"] <= 0:                    # target fell, the room did not: move the cursor
+            ti = next(i for i, f in enumerate(foes) if f["hp"] > 0)
+            e = foes[ti]
         living = [a for a in actors if not a["ko"]]
         if not living: return False, turn+1, actors
         for a in actors: a["defending"] = False
@@ -514,7 +531,7 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
             items["coffee"] -= 1; low["hp"] = min(low["maxhp"], low["hp"]+5)
     return e["hp"] <= 0, 60, actors
 
-FULL  = ["hero","sentinel","wiki","mender","refuter"]
+FULL  = ["hero","sentinel","wiki","retro","refuter"]   # the four named specialists, post-merge
 FULL6 = FULL + ["papafoxx"]
 FULL7 = FULL6 + ["sharon"]
 
@@ -543,8 +560,8 @@ TABLE = [
  ("misalign12","misaligned",FULL7,12, True, True,  True),    # the grind path (cap-50 era)
  ("golemR",    "golem",    ["hero","sentinel","wiki","retro"], 3, False, False, False),   # the Analyst joins early
  ("flakyR",    "flaky",    ["hero","sentinel","wiki","retro"], 4, False, False, False),
- ("h5R",       "h5",       FULL6+["retro"], 7, False, False, False),
- ("misalignR", "misaligned",FULL7+["retro"],10, True, True,  True),
+ ("h5R",       "h5",       FULL6, 7, False, False, False),
+ ("misalignR", "misaligned",FULL7,10, True, True,  True),
 ]
 RUNS_PER = 298   # rows x 2 arms x 298 x 4 iterations = 100,128 battles per wave
 
@@ -556,7 +573,7 @@ CUR_BUILD = {}
 CUR_TREE = frozenset()
 CUR_KIT = False
 
-def one_row(enemy, party, lv, relic, crafted, armor, noise, policy, runs, rng):
+def one_row(enemy, party, lv, relic, crafted, armor, noise, policy, runs, rng, foe_count=1):
     wins = 0; turns = 0; t2sum = 0; ko_b = 0; clutch = 0
     for _ in range(runs):
         items = dict(coffee=2, handoff=1 if lv >= 5 else 0)
@@ -573,7 +590,9 @@ def one_row(enemy, party, lv, relic, crafted, armor, noise, policy, runs, rng):
             else: w, t = False, t1
         else:
             mat = len(party) >= 5
-            w, t, _ = battle(party, lv, enemy, items, rng, relic, crafted, noise, policy, mat, armor)
+            # the chained boss above always arrives alone; ordinary rows can seat a pack
+            w, t, _ = battle(party, lv, enemy, items, rng, relic, crafted, noise, policy, mat, armor,
+                             foe_count=foe_count)
         wins += w; turns += t; t2sum += t*t; ko_b += (1 if items.get("_kos",0) else 0)
         if w and items.get("_kos",0): clutch += 1
     return wins, turns, t2sum, ko_b, clutch
@@ -850,6 +869,298 @@ def lab8():
     print("lab8 simulated battles: {:,}".format(len(BUILDS) * 4 * len(rows) * 2 * RUNS_PER))
 
 
+def worker12(task):
+    (leg_key, pool, party, lv, relic, crafted, armor, noise, stage, arm, crawls, legs, seed) = task
+    rng = random.Random(seed)
+    wipes = 0; broke = 0; res_sum = 0.0; fights = 0; kos = 0
+    for _ in range(crawls):
+        items = dict(coffee=2, handoff=1 if lv >= 5 else 0)
+        st = None
+        alive = True
+        for _leg in range(legs):
+            enemy = pool[rng.randrange(len(pool))]
+            n = 1 if arm == "one" else pack_size(stage, enemy, rng, len(party))
+            w, _t, st = battle(party, lv, enemy, items, rng, relic, crafted, noise,
+                               "balanced", False, armor, state=st, foe_count=n)
+            fights += 1
+            if not w:
+                wipes += 1; alive = False; break
+            kos += sum(1 for x in st if x["ko"])
+        if alive and st:
+            hp = sum(max(0, x["hp"]) for x in st); mhp = sum(x["maxhp"] for x in st)
+            mp = sum(max(0, x["mp"]) for x in st); mmp = sum(x["maxmp"] for x in st)
+            frac = 0.5*(hp/max(1, mhp)) + 0.5*(mp/max(1, mmp))
+            res_sum += frac
+            if frac < 0.5: broke += 1
+    done = crawls - wipes
+    return (leg_key, arm, crawls, wipes, broke, res_sum, done, fights, kos)
+
+
+
+
+def lab12():
+    """THE WALK BETWEEN INNS. Six wandering fights in a row with no rest, HP and MP
+    carried forward, measured once with the old one-foe rooms and once with packs as
+    shipped. A trash fight is not meant to threaten a wipe - it is meant to cost
+    something - and the cost is only visible across the walk.
+
+    PRE-REGISTERED GATES (frozen before the first battle of this run):
+      E1 attrition is real - mean resources remaining at the end of the walk drop by at
+         least 10 points under the shipped packs versus one foe per room
+      E2 the walk is completable - at least 90% of shipped walks finish without a wipe
+      E3 it actually bites - at least 20% of shipped walks end under half resources,
+         which is the state where a player has to CHOOSE: push on, or turn back
+      E4 not a death march - under 10% of shipped walks wipe
+      E5 the late game bites hardest - the resource drop on the stage 3-4 walks is at
+         least as large as on the stage 0-1 walks
+
+    REMEDY LADDER (pre-registered, in order):
+      E1 fails - raise the pack odds, never any single enemy's numbers.
+         If raising the odds is measurably insufficient (as it was for lab11's D1),
+         that is a FINDING, not a licence to switch remedies: it means wandering foes
+         do not scale with the story, and fixing that needs its own pre-registered run.
+      E2 or E4 fails - lower the stage 3-4 pack odds first, foes only after
+      E3 fails high (over 60% of walks broken) - same lever, same order
+      E5 fails - shift the distribution later rather than raising it everywhere
+    """
+    global RUNS_PER
+    crawls = int(sys.argv[3]) if len(sys.argv) > 3 else 200
+    ARMS = ("one", "shipped")
+    res = {}
+    for arm in ARMS:
+        cells = []
+        for it in (1, 2, 3, 4):
+            for ri, (k, pool, party, lv, relic, crafted, armor, stage, legs) in enumerate(CRAWLS):
+                for ai, noise in enumerate((0.0, 0.25)):
+                    cells.append((k, pool, party, lv, relic, crafted, armor, noise, stage, arm,
+                                  crawls, legs, 771100 + it*997 + ri*31 + ai + (0 if arm == "one" else 5000)))
+        with Pool(processes=10, initializer=_init_knobs, initargs=(dict(KNOBS, _MECHS=dict(MECHS)),)) as pool_:
+            got = pool_.map(worker12, cells)
+        agg = {}
+        for (k, a, c, wi, br, rs, dn, fg, ko) in got:
+            c0, w0, b0, r0, d0, f0, k0 = agg.get(k, (0, 0, 0, 0.0, 0, 0, 0))
+            agg[k] = (c0+c, w0+wi, b0+br, r0+rs, d0+dn, f0+fg, k0+ko)
+        for k, (c0, w0, b0, r0, d0, f0, k0) in agg.items():
+            res[(arm, k)] = dict(crawls=c0, wipe=w0/c0, broke=b0/max(1, d0),
+                                 resleft=r0/max(1, d0), fights=f0, kos=k0/max(1, f0))
+
+    KEYS = [c[0] for c in CRAWLS]
+    print("LAB12 - the walk between inns: six fights, no rest")
+    print("%-9s %-3s | %-28s | %-28s" % ("walk", "st", "one foe per room", "packs as shipped"))
+    for k in KEYS:
+        st = next(c[7] for c in CRAWLS if c[0] == k)
+        def cell(a):
+            r = res[(a, k)]
+            return "left%5.1f%% broke%5.1f%% wipe%4.1f%%" % (100*r["resleft"], 100*r["broke"], 100*r["wipe"])
+        print("%-9s  %d  | %s | %s" % (k, st, cell("one"), cell("shipped")))
+
+    def mean(a, field, rows):
+        return sum(res[(a, k)][field] for k in rows) / len(rows)
+
+    EARLY_K = [c[0] for c in CRAWLS if c[7] <= 1]
+    LATE_K  = [c[0] for c in CRAWLS if c[7] >= 3]
+
+    drop = mean("one", "resleft", KEYS) - mean("shipped", "resleft", KEYS)
+    e1 = drop >= 0.10
+    e2 = all(res[("shipped", k)]["wipe"] <= 0.10 for k in KEYS)
+    e3 = mean("shipped", "broke", KEYS) >= 0.20
+    e4 = mean("shipped", "wipe", KEYS) < 0.10
+    d_early = mean("one", "resleft", EARLY_K) - mean("shipped", "resleft", EARLY_K)
+    d_late  = mean("one", "resleft", LATE_K)  - mean("shipped", "resleft", LATE_K)
+    e5 = d_late >= d_early
+
+    print("")
+    for name, ok in (("E1 attrition is real", e1), ("E2 walk is completable", e2),
+                     ("E3 it actually bites", e3), ("E4 not a death march", e4),
+                     ("E5 late game bites hardest", e5)):
+        print("  %-30s %s" % (name, "PASS" if ok else "FAIL"))
+    print("")
+    print("  resources left  one -> shipped : %.1f%% -> %.1f%%  (%+.1f pp)"
+          % (100*mean("one", "resleft", KEYS), 100*mean("shipped", "resleft", KEYS), -100*drop))
+    print("  walks ending under half         : %.1f%% -> %.1f%%"
+          % (100*mean("one", "broke", KEYS), 100*mean("shipped", "broke", KEYS)))
+    print("  walks that wiped                : %.1f%% -> %.1f%%"
+          % (100*mean("one", "wipe", KEYS), 100*mean("shipped", "wipe", KEYS)))
+    print("  drop stage 0-1 : %+.1f pp   |   stage 3-4 : %+.1f pp" % (100*d_early, 100*d_late))
+    worst = min(KEYS, key=lambda k: res[("shipped", k)]["resleft"])
+    print("  hardest walk as shipped : %s, %.1f%% left, %.1f%% wipe"
+          % (worst, 100*res[("shipped", worst)]["resleft"], 100*res[("shipped", worst)]["wipe"]))
+    print("")
+    print("LAB12 VERDICT: " + ("ALL GATES PASS" if all((e1, e2, e3, e4, e5))
+                               else "GATE FAILURE - apply the pre-registered remedy ladder"))
+    total = sum(res[(a, k)]["fights"] for a in ARMS for k in KEYS)
+    print("lab12 simulated battles: {:,}".format(total))
+
+
+def worker11(task):
+    (rk, enemy, party, lv, relic, crafted, armor, noise, policy, runs, seed, count) = task
+    rng = random.Random(seed)
+    if count == "shipped":                       # draw the size the game itself would roll
+        wins = turns = t2sum = ko_b = clutch = 0
+        stage = ROW_STAGE[rk]
+        for _ in range(runs):
+            n = pack_size(stage, enemy, rng, len(party))
+            w, t, t2, k, c = one_row(enemy, party, lv, relic, crafted, armor,
+                                     noise, policy, 1, rng, foe_count=n)
+            wins += w; turns += t; t2sum += t2; ko_b += k; clutch += c
+    else:
+        wins, turns, t2sum, ko_b, clutch = one_row(enemy, party, lv, relic, crafted, armor,
+                                                   noise, policy, runs, rng, foe_count=count)
+    return (rk, count, wins, turns, t2sum, ko_b, clutch, runs)
+
+
+# packSize() from game.html, transcribed. Bosses arrive alone; wandering things bring
+# more friends the further in you are.
+SOLO_FOES = ("monolith", "h5", "unknown", "retrystorm", "papafoxx", "foxxboss", "foxxbossE",
+             "hacker", "nullbyte", "nullroot", "promptinj", "halluc", "misaligned",
+             "zeroday", "retroboss", "patient0", "dummy")
+
+
+def pack_size(stage, foe_id, rng, bodies=4):
+    if foe_id in SOLO_FOES:
+        return 1
+    st = max(0, min(4, int(stage)))
+    roll = rng.random()
+    if st <= 0: n = 1 if roll < 0.88 else 2
+    elif st == 1: n = 1 if roll < 0.55 else (2 if roll < 0.90 else 3)
+    elif st == 2: n = 1 if roll < 0.50 else (2 if roll < 0.85 else 3)
+    elif st == 3: n = 1 if roll < 0.25 else (2 if roll < 0.60 else (3 if roll < 0.90 else 4))
+    else: n = 1 if roll < 0.20 else (2 if roll < 0.50 else (3 if roll < 0.85 else 4))
+    return max(1, min(n, bodies))   # never outnumbered by more than you have bodies
+
+
+# The rooms the player actually walks into, taken from each zone's enc/roam pool in
+# game.html, with the party and gear they would plausibly have when they get there.
+EARLY = ["hero", "sentinel"]
+MID   = ["hero", "sentinel", "wiki", "retro"]
+LATE  = ["hero", "sentinel", "wiki", "retro", "refuter"]
+LATE6 = LATE + ["papafoxx"]
+WANDER = [
+    # key          enemy         party  lv  relic crafted armor stage
+    ("w_vague",    "vague",      EARLY, 3,  False, False, False, 0),
+    ("w_gremlin",  "gremlin",    EARLY, 3,  False, False, False, 0),
+    ("w_creep",    "creep",      MID,   4,  False, False, False, 1),
+    ("w_wyrm",     "wyrm",       MID,   6,  False, False, False, 2),
+    ("w_leak",     "leak",       LATE,  6,  False, False, False, 2),
+    ("w_chorus",   "chorus",     LATE,  7,  False, True,  False, 2),
+    ("w_faxdaemon","faxdaemon",  LATE,  7,  False, True,  False, 2),
+    ("w_cobol",    "cobol",      LATE,  7,  False, True,  False, 2),
+    ("w_shark",    "packetshark",LATE6, 8,  True,  True,  True,  3),
+    ("w_botnet",   "botnet",     LATE6, 8,  True,  True,  True,  3),
+    ("w_phish",    "phish",      LATE6, 8,  True,  True,  True,  4),
+    ("w_worm",     "ransomworm", LATE6, 8,  True,  True,  True,  4),
+]
+ROW_STAGE = {r[0]: r[7] for r in WANDER}
+
+# The walk: each stage's real wandering pool, the party and gear a player plausibly has
+# when walking it, and how many fights they take between rest points.
+CRAWLS = [
+    # key      pool                              party  lv relic crafted armor stage legs
+    ("c_early", ("vague", "gremlin"),            EARLY, 3, False, False, False, 0, 6),
+    ("c_mid1",  ("creep", "gremlin"),            MID,   4, False, False, False, 1, 6),
+    ("c_mid2",  ("wyrm", "leak"),                MID,   6, False, False, False, 2, 6),
+    ("c_1999",  ("faxdaemon", "cobol"),          LATE,  7, False, True,  False, 2, 6),
+    ("c_net1",  ("packetshark", "botnet"),       LATE6, 8, True,  True,  True,  3, 6),
+    ("c_net2",  ("phish", "ransomworm"),         LATE6, 8, True,  True,  True,  4, 6),
+]
+
+
+def lab11():
+    """PACKS. The game now seats up to four wandering foes; story fights still arrive
+    alone. Every balance number this project has published was measured against a
+    one-foe game, so this re-asks the question with the room full - and it asks it
+    about the rooms the player actually walks into, not about bosses wearing a crowd.
+
+    PRE-REGISTERED GATES (frozen before the first battle of this run):
+      D1 the floor rose - across the wandering rows, mean KO rate under the shipped
+         pack distribution is at least 3 points above the same rows at one foe
+      D2 still winnable - every wandering row wins at least 95% under the shipped
+         distribution
+      D3 not a wall - no wandering row falls below 85% even at a forced four-pack
+      D4 bosses untouched - pack_size returns 1 for every story foe, asserted not measured
+      D5 time scales sanely - mean turns under the shipped distribution is under 2.2x
+         the one-foe baseline, or the fights are attrition rather than danger
+      D6 the late game is where it bites - the KO rise on stage 3-4 rows is at least
+         as large as the rise on stage 0-1 rows, because that is the half of the game
+         that had stopped being frightening
+
+    REMEDY LADDER (pre-registered, applied in this order):
+      D1 fails - raise the pack odds, never any single enemy's numbers; inflating one
+         body is the cheap move and it always reads as unfair
+      D2 or D3 fails - lower the stage 3-4 pack odds first, and only then look at foes
+      D5 fails high - the room is a slog: fewer, stronger bodies rather than more
+      D6 fails - shift the distribution later rather than raising it everywhere
+    """
+    global RUNS_PER
+    RUNS_PER = int(sys.argv[3]) if len(sys.argv) > 3 else 400
+    ARMS = (1, "shipped", 2, 3, 4)
+
+    res = {}
+    for count in ARMS:
+        cells = []
+        for it in (1, 2, 3, 4):
+            for ri, (rk, enemy, party, lv, relic, crafted, armor, _st) in enumerate(WANDER):
+                for ai, noise in enumerate((0.0, 0.25)):
+                    cells.append((rk, enemy, party, lv, relic, crafted, armor, noise, "balanced",
+                                  RUNS_PER, 55220100 + it*1000 + ri*10 + ai + (hash(str(count)) % 97)*7, count))
+        with Pool(processes=10, initializer=_init_knobs, initargs=(dict(KNOBS, _MECHS=dict(MECHS)),)) as pool:
+            got = pool.map(worker11, cells)
+        agg = {}
+        for (rk, cnt, wins, turns, t2sum, ko_b, clutch, runs) in got:
+            w0, t0, k0, r0 = agg.get(rk, (0, 0, 0, 0))
+            agg[rk] = (w0+wins, t0+turns, k0+ko_b, r0+runs)
+        for rk, (w0, t0, k0, r0) in agg.items():
+            res[(count, rk)] = (w0/r0, t0/r0, k0/r0)
+
+    KEYS = [r[0] for r in WANDER]
+    print("LAB11 - packs: what a crowded room does to the rooms players actually enter")
+    print("%-12s %-3s | %-22s | %-22s | %s" % ("row", "st", "one foe", "as shipped", "forced x4"))
+    for rk in KEYS:
+        st = ROW_STAGE[rk]
+        def cell(c):
+            w, t, k = res[(c, rk)]
+            return "win%3.0f%% %5.1ft ko%5.1f%%" % (100*w, t, 100*k)
+        print("%-12s  %d  | %s | %s | %s" % (rk, st, cell(1), cell("shipped"), cell(4)))
+
+    def mean(c, key, rows):
+        idx = {"win": 0, "turns": 1, "ko": 2}[key]
+        return sum(res[(c, rk)][idx] for rk in rows) / len(rows)
+
+    EARLY_ROWS = [r[0] for r in WANDER if r[7] <= 1]
+    LATE_ROWS  = [r[0] for r in WANDER if r[7] >= 3]
+
+    ko_rise = mean("shipped", "ko", KEYS) - mean(1, "ko", KEYS)
+    d1 = ko_rise >= 0.03
+    d2 = all(res[("shipped", rk)][0] >= 0.95 for rk in KEYS)
+    d3 = all(res[(4, rk)][0] >= 0.85 for rk in KEYS)
+    d4 = all(pack_size(4, f, random.Random(i)) == 1 for i, f in enumerate(SOLO_FOES))
+    d5 = mean("shipped", "turns", KEYS) < 2.2 * mean(1, "turns", KEYS)
+    rise_early = mean("shipped", "ko", EARLY_ROWS) - mean(1, "ko", EARLY_ROWS)
+    rise_late  = mean("shipped", "ko", LATE_ROWS)  - mean(1, "ko", LATE_ROWS)
+    d6 = rise_late >= rise_early
+
+    print("")
+    for name, ok in (("D1 the floor rose", d1), ("D2 still winnable", d2), ("D3 not a wall", d3),
+                     ("D4 bosses untouched", d4), ("D5 time scales sanely", d5),
+                     ("D6 late game bites hardest", d6)):
+        print("  %-28s %s" % (name, "PASS" if ok else "FAIL"))
+    print("")
+    print("  mean KO rate  one foe -> shipped : %.1f%% -> %.1f%%  (%+.1f pp)"
+          % (100*mean(1, "ko", KEYS), 100*mean("shipped", "ko", KEYS), 100*ko_rise))
+    print("  mean win rate one foe -> shipped : %.1f%% -> %.1f%%"
+          % (100*mean(1, "win", KEYS), 100*mean("shipped", "win", KEYS)))
+    print("  mean turns    one foe -> shipped : %.2f -> %.2f  (x%.2f)"
+          % (mean(1, "turns", KEYS), mean("shipped", "turns", KEYS),
+             mean("shipped", "turns", KEYS)/max(1e-9, mean(1, "turns", KEYS))))
+    print("  KO rise stage 0-1 : %+.1f pp   |   stage 3-4 : %+.1f pp" % (100*rise_early, 100*rise_late))
+    print("  worst row as shipped : " + min(KEYS, key=lambda k: res[("shipped", k)][0])
+          + " at %.1f%% wins" % (100*min(res[("shipped", k)][0] for k in KEYS)))
+    print("")
+    print("LAB11 VERDICT: " + ("ALL GATES PASS" if all((d1, d2, d3, d4, d5, d6))
+                               else "GATE FAILURE - apply the pre-registered remedy ladder"))
+    print("lab11 simulated battles: {:,}".format(len(ARMS) * 4 * len(WANDER) * 2 * RUNS_PER))
+
+
 def worker10(task):
     (rk, enemy, party, lv, relic, crafted, armor, noise, policy, runs, seed, kit) = task
     global CUR_KIT
@@ -1098,8 +1409,8 @@ def lab6():
     """
     global RUNS_PER
     RUNS_PER = int(sys.argv[3]) if len(sys.argv) > 3 else 1563
-    CTRL = FULL7 + ["retro"]
-    WITH = FULL7 + ["retro", "lito"]
+    CTRL = FULL7
+    WITH = FULL7 + ["lito"]
     pairs = [("pinj9", "promptinj", 9), ("halluc9", "halluc", 9), ("misalign10", "misaligned", 10), ("misalign12", "misaligned", 12)]
     rows = []
     for key, foe, lv in pairs:
@@ -1228,6 +1539,18 @@ def lab4():
 
 def main():
     global RUNS_PER
+    if len(sys.argv) > 1 and sys.argv[1] == "lab12":
+        if len(sys.argv) > 2 and sys.argv[2] != "-":
+            cfg = json.loads(sys.argv[2])
+            if "MECHS" in cfg: MECHS.update(cfg.pop("MECHS"))
+            KNOBS.update(cfg)
+        lab12(); return
+    if len(sys.argv) > 1 and sys.argv[1] == "lab11":
+        if len(sys.argv) > 2 and sys.argv[2] != "-":
+            cfg = json.loads(sys.argv[2])
+            if "MECHS" in cfg: MECHS.update(cfg.pop("MECHS"))
+            KNOBS.update(cfg)
+        lab11(); return
     if len(sys.argv) > 1 and sys.argv[1] == "lab10":
         if len(sys.argv) > 2 and sys.argv[2] != "-":
             cfg = json.loads(sys.argv[2])

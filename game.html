@@ -2875,11 +2875,17 @@ function packSize(stage, foeId){
   if(SOLO_FOES.indexOf(foeId)>=0) return 1;
   const st=Math.max(0, Math.min(4, stage|0));
   const roll=rng();
-  if(st<=0) return roll<0.75 ? 1 : 2;
-  if(st===1) return roll<0.55 ? 1 : (roll<0.90 ? 2 : 3);
-  if(st===2) return roll<0.35 ? 1 : (roll<0.75 ? 2 : 3);
-  if(st===3) return roll<0.25 ? 1 : (roll<0.60 ? 2 : (roll<0.90 ? 3 : 4));
-  return roll<0.20 ? 1 : (roll<0.50 ? 2 : (roll<0.85 ? 3 : 4));
+  const n = (st<=0) ? (roll<0.88 ? 1 : 2)
+    : (st===1) ? (roll<0.55 ? 1 : (roll<0.90 ? 2 : 3))
+    : (st===2) ? (roll<0.50 ? 1 : (roll<0.85 ? 2 : 3))
+    : (st===3) ? (roll<0.25 ? 1 : (roll<0.60 ? 2 : (roll<0.90 ? 3 : 4)))
+    : (roll<0.20 ? 1 : (roll<0.50 ? 2 : (roll<0.85 ? 3 : 4)));
+  // Never outnumbered by more than you have bodies. A million simulated battles said the
+  // opening walk - a HERO and one Ranger - wiped 13.5% of the time once rooms could hold
+  // two and three. Enemy numbers were not the problem; being outnumbered two to one with
+  // no healer was. This costs the late game nothing, because by then the crew is full.
+  const bodies=1+((S && Array.isArray(S.party)) ? S.party.length : 0);
+  return Math.max(1, Math.min(n, bodies));
 }
 function livingFoes(){ const b=M.b; return (b && b.foes) ? b.foes.filter(f=>f.hp>0) : []; }
 function roomCleared(){ const b=M.b; return !!(b && b.foes) && b.foes.every(f=>f.hp<=0); }
@@ -6083,6 +6089,7 @@ const TESTS = [
  ["wandering foes travel in groups, and the groups grow with the story", ()=>{ const sb=S; const rb=rng; S=NEWS();
     try{
       rng=mulberry32(31337);
+      S.party=["sentinel","wiki","retro","refuter","papafoxx"];   // a full crew, or the party-size cap is what we would be measuring
       const sample=(stage)=>{ S.stage=stage; const seen={};
         for(let i=0;i<400;i++){ const n=packSize(S.stage,"vague"); seen[n]=(seen[n]||0)+1; }
         return seen; };
@@ -6226,6 +6233,7 @@ const TESTS = [
     const sb=S, mb=M.b, rb=rng, tb=battleTransition; S=NEWS();
     try{
       S.z=8; S.stage=4; rng=mulberry32(90210);
+      S.party=["sentinel","wiki","retro","refuter","papafoxx"];
       let seated=null;
       battleTransition=(fn)=>fn();
       const realStart=startBattle;
@@ -6246,6 +6254,7 @@ const TESTS = [
     const sb=S, rb=rng; S=NEWS();
     try{
       rng=mulberry32(4242);
+      S.party=["sentinel","wiki","retro","refuter","papafoxx"];
       const lonely=[];
       Z.forEach(z=>{ const pools=[].concat((z.enc&&z.enc.pool)||[], (z.roam&&z.roam.pool)||[]);
         Array.from(new Set(pools)).forEach(id=>{
@@ -6338,6 +6347,51 @@ const TESTS = [
       if(bit.some(d=>d!==2)) console.log("planted in three, fired in fewer:", JSON.stringify(bit));
       return bit.every(d=>d===2) && b.foes.every(f=>f.dot===1);
     } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
+
+ ["never outnumbered by more than the party can hold", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(2468);
+      const worst=(n)=>{ S.party=["sentinel","wiki","retro","refuter","papafoxx","sharon"].slice(0,Math.max(0,n-1));
+        let m=1; for(let i=0;i<600;i++) m=Math.max(m, packSize(4,"vague")); return m; };
+      const solo=worst(1), duo=worst(2), trio=worst(3), quad=worst(4), five=worst(5);
+      if(duo>2||trio>3||solo>1) console.log("outnumbered: party sizes 1..5 saw max packs",
+        [solo,duo,trio,quad,five].join(","));
+      // a lone HERO meets one thing; two bodies meet at most two; a full crew meets the cap
+      return solo===1 && duo===2 && trio===3 && quad===4 && five===4;
+    } finally { rng=rb; S=sb; } }],
+
+ ["a full party is still allowed a proper crowd", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(1357);
+      S.party=["sentinel","wiki","retro","refuter","papafoxx"];
+      const seen={}; for(let i=0;i<800;i++){ const n=packSize(4,"vague"); seen[n]=(seen[n]||0)+1; }
+      // the cap must not quietly become the rule: stage 4 still reaches four bodies
+      return (seen[4]||0)>50 && (seen[1]||0)>50;
+    } finally { rng=rb; S=sb; } }],
+
+ ["the opening hours stay quiet, and the middle stops compounding", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(60613);
+      S.party=["sentinel","wiki","retro","refuter","papafoxx"];
+      const rate=(stage)=>{ S.stage=stage; let alone=0;
+        for(let i=0;i<3000;i++) if(packSize(stage,"vague")===1) alone++;
+        return alone/3000; };
+      const s0=rate(0), s1=rate(1), s2=rate(2), s3=rate(3), s4=rate(4);
+      // stage 0 comes mostly alone; stage 2 is now about even; the late game is untouched
+      const ok = s0>0.84 && s2>0.45 && s2<0.56 && s3<0.32 && s4<0.27 && s1>0.50 && s1<0.60;
+      if(!ok) console.log("solo rate by stage:", [s0,s1,s2,s3,s4].map(x=>x.toFixed(2)).join(" "));
+      return ok;
+    } finally { rng=rb; S=sb; } }],
+
+ ["the curve still rises: every stage brings more company than the last", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(31415);
+      S.party=["sentinel","wiki","retro","refuter","papafoxx"];
+      const avg=(stage)=>{ let n=0; for(let i=0;i<3000;i++) n+=packSize(stage,"vague"); return n/3000; };
+      const a=[0,1,2,3,4].map(avg);
+      for(let i=1;i<a.length;i++) if(!(a[i]>a[i-1])){ console.log("the curve flattened:", a.map(x=>x.toFixed(2)).join(" ")); return false; }
+      return true;
+    } finally { rng=rb; S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";

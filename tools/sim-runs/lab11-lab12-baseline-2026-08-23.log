@@ -1,0 +1,56 @@
+LAB11 - packs: what a crowded room does to the rooms players actually enter
+row          st  | one foe                | as shipped             | forced x4
+w_vague       0  | win100%   1.8t ko  0.0% | win100%   2.1t ko  0.0% | win 85%   5.8t ko 26.8%
+w_gremlin     0  | win100%   2.0t ko  0.0% | win100%   2.5t ko  0.0% | win100%   6.8t ko  0.6%
+w_creep       1  | win100%   1.0t ko  0.0% | win100%   1.6t ko  0.0% | win100%   4.1t ko  0.4%
+w_wyrm        2  | win100%   1.8t ko  0.0% | win100%   3.3t ko  1.8% | win100%   6.4t ko  4.4%
+w_leak        2  | win100%   1.9t ko  0.0% | win100%   3.3t ko  0.0% | win100%   6.2t ko  0.0%
+w_chorus      2  | win100%   1.9t ko  0.0% | win100%   3.3t ko  0.0% | win100%   6.4t ko  0.0%
+w_faxdaemon   2  | win100%   1.5t ko  0.0% | win100%   2.5t ko  0.0% | win100%   4.6t ko  0.0%
+w_cobol       2  | win100%   2.1t ko  0.0% | win100%   3.8t ko  2.5% | win100%   7.7t ko 69.0%
+w_shark       3  | win100%   1.6t ko  0.0% | win100%   3.0t ko  0.0% | win100%   5.0t ko  0.0%
+w_botnet      3  | win100%   1.8t ko  0.0% | win100%   3.5t ko  0.0% | win100%   5.5t ko  0.0%
+w_phish       4  | win100%   2.0t ko  0.0% | win100%   4.4t ko  0.0% | win100%   7.0t ko  0.0%
+w_worm        4  | win100%   2.1t ko  0.0% | win100%   5.1t ko  0.0% | win100%   8.4t ko  0.0%
+
+  D1 the floor rose            FAIL
+  D2 still winnable            PASS
+  D3 not a wall                FAIL
+  D4 bosses untouched          PASS
+  D5 time scales sanely        PASS
+  D6 late game bites hardest   PASS
+
+  mean KO rate  one foe -> shipped : 0.0% -> 0.4%  (+0.4 pp)
+  mean win rate one foe -> shipped : 100.0% -> 100.0%
+  mean turns    one foe -> shipped : 1.81 -> 3.20  (x1.77)
+  KO rise stage 0-1 : +0.0 pp   |   stage 3-4 : +0.0 pp
+  worst row as shipped : w_vague at 100.0% wins
+
+LAB11 VERDICT: GATE FAILURE - apply the pre-registered remedy ladder
+lab11 simulated battles: 480,000
+LAB12 - the walk between inns: six fights, no rest
+walk      st  | one foe per room             | packs as shipped            
+c_early    0  | left 45.5% broke 60.3% wipe 2.4% | left 39.5% broke 74.6% wipe13.5%
+c_mid1     1  | left 69.0% broke  0.0% wipe 0.0% | left 56.5% broke 17.7% wipe 0.0%
+c_mid2     2  | left 37.0% broke 95.0% wipe 0.0% | left 31.4% broke 99.7% wipe 0.7%
+c_1999     2  | left 49.6% broke 56.7% wipe 0.0% | left 32.9% broke 98.5% wipe14.1%
+c_net1     3  | left 54.2% broke 31.1% wipe 0.0% | left 40.7% broke 96.1% wipe 0.0%
+c_net2     4  | left 45.4% broke 87.7% wipe 0.0% | left 39.3% broke 96.1% wipe 2.3%
+
+  E1 attrition is real           PASS
+  E2 walk is completable         FAIL
+  E3 it actually bites           PASS
+  E4 not a death march           PASS
+  E5 late game bites hardest     PASS
+
+  resources left  one -> shipped : 50.1% -> 40.1%  (-10.0 pp)
+  walks ending under half         : 55.1% -> 80.4%
+  walks that wiped                : 0.4% -> 5.1%
+  drop stage 0-1 : +9.2 pp   |   stage 3-4 : +9.8 pp
+  hardest walk as shipped : c_mid2, 31.4% left, 0.7% wipe
+
+LAB12 VERDICT: GATE FAILURE - apply the pre-registered remedy ladder
+lab12 simulated battles: 519,942
+ALL RUNS COMPLETE
+
+[exited with code 0]
