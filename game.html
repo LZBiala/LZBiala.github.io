@@ -1452,14 +1452,14 @@ const Z = [
        "2,7":{tok:5, text:"📝 Written on the back of a flame-rule, in a very steady hand: <i>'You cleared the Wire in a day. I have been in here nineteen. I am not going to pretend that is not annoying. Keep going. - S.'</i>"}},
  chest:{key:"9,7", text:"🏆 A quartermaster's drop behind the flames - battle rations of the old NOC guard. (+1 Post-Incident Review, +20 ⛁)", give:"postmortem", tok:20} },
 { name:"The Dark NOC", ground:"#120a1d", maps:[
-"rrrrrrrrrrrr","r....E.....r","r..,....,..r","r.B......B.r","pppppppppppr","r.,.b....,.r","r....,..b..r","r.b......c.r","rrrrrrrrrrrr"],
+"rrrrrrrrrrrr","r....E.....r","r..,....,..r","r.B......B.r","pppppppppppr","r.,.b....,.r","r....,....br","r.b......c.r","rrrrrrrrrrrr"],
  exits:{left:10}, battles:{"2,3":"botnet","9,3":"ransomworm"}, elites:{"5,1":"nullbyte","5,5":"misaligned"},
  chains:{"5,1":[{en:"nullroot"}]},
  enc:{tile:",", pool:["botnet","phish"], rate:0.09}, roam:{pool:["packetshark","ransomworm"], x:8, y:6},
  nodes:[{x:3,y:2,t:"metrics"},{x:6,y:6,t:"traces"}],
  loot:{"2,7":{tok:5, text:"📝 The last note, taped to a server rack: <i>'He knows you're coming. I'm not scared - I've read your incident history. Neither should you be. - S.'</i>"},
        "4,5":{tok:5, text:"📝 Wedged behind a rack, hurried: <i>'He moved the cage. If the feed shows me calm it is because I am on my fourth pass at a patch and I refuse to be interrupted by kidnapping. - S.'</i>"},
-       "8,6":{tok:5, text:"📝 On a sticky note, stuck to nothing, floating: <i>'Whoever taught you incident command taught you well. I have been grading you the whole way in. You are getting an exceeds. - S. 💙'</i>"}},
+       "10,6":{tok:5, text:"📝 On a sticky note, stuck to nothing, floating: <i>'Whoever taught you incident command taught you well. I have been grading you the whole way in. You are getting an exceeds. - S. 💙'</i>"}},
  chest:{key:"9,7", text:"🏆 THE HACKER'S CACHE - everything he stole and never understood. (+40 ⛁)", tok:40},
  npcs:[{x:7,y:1,spr:"sharon",name:"SHARONDUH",sharonCage:true,lines:[
   "A holding cage of pure firewall. Inside: the engineer who reviewed your diffs - coding calmly on a laptop she has clearly built out of cage parts. She looks up. She GRINS.",
@@ -7907,7 +7907,12 @@ const TESTS = [
     Z.forEach((z,zi)=>{
       const at=(x,y)=>(z.maps && z.maps[y] && z.maps[y][x]) || "?";
       Object.keys(z.loot||{}).forEach(k=>{ const p=k.split(",").map(Number);
-        if(at(p[0],p[1])!=="b") bad.push((z.name||zi)+" loot "+k+" on '"+at(p[0],p[1])+"'"); });
+        if(at(p[0],p[1])!=="b") bad.push((z.name||zi)+" loot "+k+" on '"+at(p[0],p[1])+"'");
+        // interact() checks for a roamer BEFORE it checks for loot, so a note on the
+        // spawn square starts a fight instead of being read. M.roam is runtime-only, so
+        // no static guard could see this one - it is named here on purpose.
+        if(z.roam && z.roam.x===p[0] && z.roam.y===p[1])
+          bad.push((z.name||zi)+" loot "+k+" is the roamer's spawn"); });
       if(z.chest && z.chest.key){ const p=z.chest.key.split(",").map(Number);
         if(at(p[0],p[1])!=="c") bad.push((z.name||zi)+" chest "+z.chest.key+" on '"+at(p[0],p[1])+"'"); }
       Object.keys(z.battles||{}).forEach(k=>{ const p=k.split(",").map(Number);
