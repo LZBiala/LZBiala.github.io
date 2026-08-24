@@ -1054,7 +1054,7 @@ const IT = {
  bd3:{ name:"Rotation Badge", type:"badge", price:45, def:1, fx:"rotation", d:"HERO -1 damage, and each round the ally lowest on MP regains 1 - nobody carries the pager alone." },
  ch9:{ name:"Rubber Duck", type:"charm", price:30, fx:"duck", d:"every ally's FIRST skill each battle costs 1 less MP - explain it out loud to something that cannot judge you." },
  rw1:{ name:"Kernel Blade", type:"weapon", price:0, atk:5, fits:["hero","sharon"], d:"transmuted at ring zero - +5 ATK. It remembers being an RCA Blade." },
- rar1:{ name:"Frontier Aegis", type:"armor", price:0, def:3, d:"transmuted from the Aegis of Uptime - −3 damage taken, +1 SPEED. The frontier, worn." },
+ rar1:{ name:"Frontier Aegis", type:"armor", price:0, def:3, spd:1, d:"transmuted from the Aegis of Uptime - −3 damage taken, +1 SPEED. The frontier, worn." },
  rch1:{ name:"Five Nines Locket", type:"charm", price:0, d:"transmuted from the Talisman - every ally takes −1 from every foe. Availability, made jewelry." },
  gl1:{ name:"Failover Gloves", type:"weapon", price:40, atk:1, fits:["sharon"], d:"SHARONDUH +1 ATK - patches thrown at mach 2." },
  mvigor:{ name:"ERROR BUDGET Materia", type:"materia", price:0, d:"checkpoint orb: HERO +2 HP each round. Plan to fail a little every day, and you will never fail all at once." },
@@ -1064,9 +1064,9 @@ const IT = {
  ch6:{ name:"Circuit Breaker", type:"charm", price:0, fx:"breaker", d:"torn from the Retry Storm: the FIRST ally to fall each battle trips the breaker and stands at 1 HP instead. Fail fast, fail once." },
  ch7:{ name:"Eval Harness", type:"charm", price:0, d:"won from the Hallucination: measure before you trust - the whole party crits +5%." },
  ch8:{ name:"Alignment Charm", type:"charm", price:0, d:"won from the Injection: the objective, corrected - every ally takes -1 from elite and superboss foes." },
- ar1:{ name:"Mail Vest", type:"armor", price:30, def:1, d:"riveted links over the plaid - -1 damage taken. It shows." },
+ ar1:{ name:"Mail Vest", type:"armor", price:24, def:1, d:"riveted links over the plaid - -1 damage taken. The floor, and there is no shame in the floor." },
  ar2:{ name:"Incident Plate", type:"armor", price:60, def:2, d:"gold-trimmed plate with a visored helm - -2 damage taken. It REALLY shows." },
- ar3:{ name:"Aegis of Uptime", type:"armor", price:0, def:2, d:"forged: humming teal armor - -2 damage taken, +1 SPEED. Five nines, worn." },
+ ar3:{ name:"Aegis of Uptime", type:"armor", price:0, def:2, spd:1, d:"forged: humming teal armor - -2 damage taken, +1 SPEED. Five nines, worn." },
  // ---- answers to a crowd. The room holds four now, and every consumable on the shelf
  // still addressed exactly one of them - PAGER SNOOZE quietly became a quarter of itself
  // the day packs shipped. These are the shelf catching up.
@@ -1084,8 +1084,7 @@ const IT = {
  // ---- the hero's slots
  bd4:{ name:"Escalation Pager", type:"badge", price:45, def:1, d:"HERO -1 damage taken, and the FIRST time an ally falls each battle the whole party regains 3 MP. Somebody always picks up." },
  ch10:{ name:"Blast Radius Compass", type:"charm", price:55, d:"every ally takes -1 from every foe while the party is OUTNUMBERED. Scope shrinks as the room fills." },
- ar4:{ name:"Field Kit Vest", type:"armor", price:24, def:1, d:"webbing and empty pouches - -1 damage taken. The floor, and there is no shame in the floor." },
- ar5:{ name:"Load Balancer Rig", type:"armor", price:75, def:2, d:"weight spread across every strap - -2 damage taken, +1 SPEED. Nothing carries all of it." } };
+ ar5:{ name:"Load Balancer Rig", type:"armor", price:75, def:3, spd:-1, d:"every strap bearing its share - -3 damage taken, but -1 SPEED. Nothing that carries this much moves quickly." } };
 const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","channel","loadshed","canary","debrief","blastmap","freeze","rollcall","kb1","kb2","kb3","sw1","mic1","gl1","mic3","gl2","rt3","bd1","bd2","bd3","bd4","ch1","ch2","ch3","ch9","ch10"];
 
 // ================= DATA: enemies (100k-sim tuned) =================
@@ -1814,12 +1813,12 @@ function outnumberedGuard(){
   const foes=(typeof livingFoes==="function") ? livingFoes().length : 1;
   return foes > living().length ? 1 : 0; }
 function spdOf(a){ return a.spd + (a.id==="hero" && treeHas("v1") ? 1 : 0)
-  + (a.id==="hero" && (S.equip.armor==="ar3"||S.equip.armor==="rar1"||S.equip.armor==="ar5") ? 1 : 0)
+  + ((a.id==="hero" && S.equip.armor && IT[S.equip.armor]) ? (IT[S.equip.armor].spd||0) : 0)
   + ((a.id==="hero" && S.core && S.core.perk==="SPD") ? 1 : 0); }
 function statsOf(a){ return { atk:atkOf(a), def:defOf(a), spd:spdOf(a), crit:critOf(a),
   row:rowOf(a), stance:STANCES[S.stance||"balanced"].name, lb:a.lb||0 }; }
-const ARMOR_STOCK=["ar4","ar1","ar2","ar5"];
-const AVIS={ ar1:"vest", ar2:"plate", ar3:"aegis", rar1:"aegis", ar4:"vest", ar5:"plate" };
+const ARMOR_STOCK=["ar1","ar2","ar5"];
+const AVIS={ ar1:"vest", ar2:"plate", ar3:"aegis", rar1:"aegis", ar5:"plate" };
 // ---- PAPAFOXX: the third companion (fought first, befriended after - like everyone worth keeping) ----
 const CODEX=[
  { term:"BEST-OF-K", plain:"Ask several independent tries and take the majority. Works only when the tries fail DIFFERENTLY - nine copies with one shared blind spot are one opinion wearing nine hats." },
@@ -2255,7 +2254,7 @@ const ITICON={ coffee:"☕", runbook:"📖", patch:"🩹", cache:"♨️", snooz
  mic1:"🎤", gl1:"🥊", rw1:"🌋", rar1:"🌌", rch1:"🔱",
  rt1:"🔪", lt1:"🧰", wd2:"🕯️", bw2:"💥", sw2:"⚖️", mic2:"🤝", bd3:"🔄", ch9:"🦆",
  blastmap:"🗺️", freeze:"🧊", rollcall:"📣", wd3:"🪟", bw3:"🔭", sw3:"🚪", lt2:"🔁",
- mic3:"🗒️", gl2:"🧤", rt3:"🪨", bd4:"📯", ch10:"🧿", ar4:"🎽", ar5:"🎒",
+ mic3:"🗒️", gl2:"🧤", rt3:"🪨", bd4:"📯", ch10:"🧿", ar5:"🎒",
  mvigor:"🟢", mfocus:"🟡", mdrain:"🟣", maegis:"🔵" };
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
 function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){
@@ -5988,8 +5987,12 @@ const TESTS = [
       const open=prod[o], close=(open==="[")?"]":"}";
       let d=0,e=o; while(e<prod.length){ if(prod[e]===open)d++; else if(prod[e]===close){d--; if(!d)break;} e++; }
       prod=prod.slice(0,a)+prod.slice(e+1); });
-    // these earn their price through the generic atk/def fields, so they need no bespoke code
-    const GENERIC=["kb1","kb2","kb3","kb5","rw1","mic1","gl1","sw1","bd1","bd2","ar1","ar2","ar4"];
+    // These earn their price through the generic atk/def/spd fields, so they need no
+    // bespoke code. spd joined the list when armour stopped being three hardcoded ids in
+    // spdOf and started carrying its own number - which is why ar3, rar1 and ar5 moved
+    // here rather than being given a hook they do not need.
+    const GENERIC=["kb1","kb2","kb3","kb5","rw1","mic1","gl1","sw1","bd1","bd2",
+                   "ar1","ar2","ar3","ar5","rar1"];
     const dead=Object.keys(IT).filter(k=>GENERIC.indexOf(k)<0 && prod.split('"'+k+'"').length-1 < 1);
     if(dead.length) console.log("items whose effect nothing reads:", dead.join(", "));
     return dead.length===0; }], ["only a speaker tag gets the speaker colour", ()=>{
@@ -6597,9 +6600,9 @@ const TESTS = [
     try{
       S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",8);
       const h=S.actors.hero;
-      S.items.ar4=1; S.equip.armor="ar4"; const a4=defOf(h)===1;
+      S.items.ar1=1; S.equip.armor="ar1"; const a4=defOf(h)===1;
       S.items.ar5=1; S.equip.armor="ar5";
-      const a5=defOf(h)===2 && spdOf(h)===h.spd+1;
+      const a5=defOf(h)===3 && spdOf(h)===h.spd-1;
       S.equip.armor=null;
       S.items.bd4=1; S.equip.badge="bd4"; const b4=defOf(h)===1;
       if(!a4||!a5||!b4) console.log("hero kit:", JSON.stringify({a4,a5,b4}));
@@ -6644,7 +6647,7 @@ const TESTS = [
     const src=document.documentElement.innerHTML;
     const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
     const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
-    const NEW=["wd3","bw3","sw3","lt2","mic3","gl2","rt3","bd4","ch10","ar4","ar5",
+    const NEW=["wd3","bw3","sw3","lt2","mic3","gl2","rt3","bd4","ch10","ar5",
                "blastmap","freeze","rollcall"];
     const dead=NEW.filter(k=>prod.split('"'+k+'"').length-1 < 1);
     if(dead.length) console.log("new gear with no production hook:", dead.join(", "));
@@ -6653,7 +6656,7 @@ const TESTS = [
  ["every piece of gear is buyable, forgeable or dropped - none of it is unreachable", ()=>{
     const reach=(k)=>SHOP_STOCK.indexOf(k)>=0 || ARMOR_STOCK.indexOf(k)>=0 || !!RECIPES[k]
       || !!(TRANSMUTES && TRANSMUTES[k]);
-    const NEW=["wd3","bw3","sw3","lt2","mic3","gl2","rt3","bd4","ch10","ar4","ar5",
+    const NEW=["wd3","bw3","sw3","lt2","mic3","gl2","rt3","bd4","ch10","ar5",
                "blastmap","freeze","rollcall"];
     const stranded=NEW.filter(k=>!reach(k));
     if(stranded.length) console.log("gear nobody can ever get:", stranded.join(", "));
@@ -6874,6 +6877,62 @@ const TESTS = [
       return b.foes.every(f=>f.dot===0 && f.verified===0 && f.growN===0
         && f.snoozed===false && f.softened===0 && f.roasted===0 && f.hp===EN.golem.hp);
     } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["no two pieces of gear in a slot are the same piece", ()=>{
+    // A fork whose sides are identical is not a choice - lab9 killed a growth-tree fork
+    // for exactly this. Gear obtained by different means must differ by more than price.
+    const bySlot={};
+    Object.keys(IT).forEach(k=>{ const it=IT[k];
+      if(["armor","badge","charm","weapon"].indexOf(it.type)<0) return;
+      const sig=[it.type, it.atk||0, it.def||0, it.spd||0, it.fx||"",
+                 (it.fits||[]).slice().sort().join("+")].join("|");
+      (bySlot[sig]=bySlot[sig]||[]).push(k); });
+    // Domination, not similarity: a rider IS a real difference, and a lower price is a
+    // real reason to exist. What may not exist is an item another shop item beats on
+    // every axis at once. Forged and dropped gear is excluded - materials are not tokens
+    // and a price of 0 does not mean free.
+    const RIDERS=(()=>{ const src=document.documentElement.innerHTML;
+      const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+      let prod=(ti>0&&tj>ti)?(src.slice(0,ti)+src.slice(tj)):src;
+      // Being LISTED is not being implemented. Strip the catalogues first, or every shop
+      // id counts as its own rider because ARMOR_STOCK quotes it.
+      ["SHOP_STOCK","ITICON","WVIS","AVIS","ARMOR_STOCK"].forEach(nm=>{
+        const a=prod.indexOf("const "+nm); if(a<0) return;
+        const o=prod.indexOf(prod[prod.indexOf("=",a)+1]==="["?"[":"{", a);
+        const open=prod[o], close=(open==="[")?"]":"}";
+        let d=0,e=o; while(e<prod.length){ if(prod[e]===open)d++; else if(prod[e]===close){d--; if(!d)break;} e++; }
+        prod=prod.slice(0,a)+prod.slice(e+1); });
+      const has={}; Object.keys(IT).forEach(k=>{ has[k]=prod.split('"'+k+'"').length-1 > 0; });
+      return has; })();
+    const shop=Object.keys(IT).filter(k=>SHOP_STOCK.indexOf(k)>=0 || ARMOR_STOCK.indexOf(k)>=0);
+    const beaten=[];
+    shop.forEach(a=>{ const A=IT[a]; if(RIDERS[a]) return;      // a rider earns its slot
+      shop.forEach(b=>{ if(a===b) return; const B=IT[b];
+        if(A.type!==B.type) return;
+        const sameFit=(A.fits||[]).slice().sort().join("+")===(B.fits||[]).slice().sort().join("+");
+        if(!sameFit) return;
+        const asGood=(B.atk||0)>=(A.atk||0) && (B.def||0)>=(A.def||0) && (B.spd||0)>=(A.spd||0);
+        if(asGood && B.price<=A.price && (B.price<A.price || (B.atk||0)+(B.def||0)+(B.spd||0)>(A.atk||0)+(A.def||0)+(A.spd||0)))
+          beaten.push(a+" beaten by "+b); }); });
+    if(beaten.length) console.log("shop gear nobody would ever buy:", beaten.join(", "));
+    return beaten.length===0; }],
+
+ ["armour carries its own speed instead of the code naming three items", ()=>{ const sb=S; S=NEWS();
+    try{
+      const h=S.actors.hero;
+      const base=h.spd;
+      const check=(id, want)=>{ S.items[id]=1; S.equip.armor=id; return spdOf(h)===base+want; };
+      const aegis=check("ar3", 1), frontier=check("rar1", 1), rig=check("ar5", -1);
+      S.equip.armor=null;
+      const bare=spdOf(h)===base;
+      if(!(aegis&&frontier&&rig&&bare)) console.log("armour speed:", {aegis, frontier, rig, bare});
+      return aegis && frontier && rig && bare;
+    } finally { S=sb; } }],
+
+ ["the heavy option is heavier: the Rig trades speed for cover", ()=>{
+    const rig=IT.ar5, aegis=IT.ar3;
+    return rig.def>aegis.def && (rig.spd||0)<(aegis.spd||0)
+      && /SPEED/.test(rig.d) && /slower|-1 SPEED/i.test(rig.d); }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
