@@ -1066,8 +1066,27 @@ const IT = {
  ch8:{ name:"Alignment Charm", type:"charm", price:0, d:"won from the Injection: the objective, corrected - every ally takes -1 from elite and superboss foes." },
  ar1:{ name:"Mail Vest", type:"armor", price:30, def:1, d:"riveted links over the plaid - -1 damage taken. It shows." },
  ar2:{ name:"Incident Plate", type:"armor", price:60, def:2, d:"gold-trimmed plate with a visored helm - -2 damage taken. It REALLY shows." },
- ar3:{ name:"Aegis of Uptime", type:"armor", price:0, def:2, d:"forged: humming teal armor - -2 damage taken, +1 SPEED. Five nines, worn." } };
-const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","channel","loadshed","canary","debrief","kb1","kb2","kb3","sw1","mic1","gl1","bd1","bd2","bd3","ch1","ch2","ch3","ch9"];
+ ar3:{ name:"Aegis of Uptime", type:"armor", price:0, def:2, d:"forged: humming teal armor - -2 damage taken, +1 SPEED. Five nines, worn." },
+ // ---- answers to a crowd. The room holds four now, and every consumable on the shelf
+ // still addressed exactly one of them - PAGER SNOOZE quietly became a quarter of itself
+ // the day packs shipped. These are the shelf catching up.
+ blastmap:{ name:"Blast Radius Map", type:"use", price:24, d:"the whole room at once: reveals armor AND lifts fog on EVERY enemy present. Draw the boundary before you touch anything." },
+ freeze:{ name:"Change Freeze", type:"use", price:34, d:"nothing ships today: EVERY enemy loses its next turn. The most powerful button in production is the one that stops it." },
+ rollcall:{ name:"Roll Call", type:"use", price:26, d:"every living ally: +3 MP. Say your name, say your status, and find out who is still standing." },
+ // ---- a second weapon for the half of the crew that never had a choice
+ wd3:{ name:"Context Window", type:"weapon", price:0, atk:2, fits:["wiki"], d:"forged: WIKI +2 ATK, and CONTEXA costs 1 less MP - room enough to hold the whole problem at once." },
+ bw3:{ name:"Field Scope", type:"weapon", price:0, atk:1, fits:["sentinel"], d:"forged: SENTINEL +1 ATK, and TRUE STRIKE finds the seam itself - it no longer needs FIVE-WHY to land." },
+ sw3:{ name:"Blast Door", type:"weapon", price:0, atk:2, fits:["refuter"], d:"forged: REFUTER +2 ATK, and OBJECTION! holds the room for 3 rounds instead of 2. Shut it and argue through the glass." },
+ lt2:{ name:"Feedback Loop", type:"weapon", price:0, atk:1, fits:["lito"], d:"forged: LITO +1 ATK, and FIRST PRINCIPLES verifies the round - regeneration denied. Watch the loop, not the symptom." },
+ mic3:{ name:"Heckler's Setlist", type:"weapon", price:55, atk:1, fits:["papafoxx"], d:"PAPAFOXX +1 ATK, and a ROAST stings for 3 rounds instead of 2. He wrote down what worked. Of course he did." },
+ gl2:{ name:"Triage Gloves", type:"weapon", price:65, atk:1, fits:["sharon"], d:"SHARONDUH +1 ATK, and HOTFIX mends 12 instead of 8. Sort first, treat second, argue never." },
+ rt3:{ name:"Slayer's Whetstone", type:"weapon", price:60, atk:1, fits:["retro"], d:"RETROLISTIC +1 ATK, and WARD costs 3 instead of 5. The edge is maintenance, not violence." },
+ // ---- the hero's slots
+ bd4:{ name:"Escalation Pager", type:"badge", price:45, def:1, d:"HERO -1 damage taken, and the FIRST time an ally falls each battle the whole party regains 3 MP. Somebody always picks up." },
+ ch10:{ name:"Blast Radius Compass", type:"charm", price:55, d:"every ally takes -1 from every foe while the party is OUTNUMBERED. Scope shrinks as the room fills." },
+ ar4:{ name:"Field Kit Vest", type:"armor", price:24, def:1, d:"webbing and empty pouches - -1 damage taken. The floor, and there is no shame in the floor." },
+ ar5:{ name:"Load Balancer Rig", type:"armor", price:75, def:2, d:"weight spread across every strap - -2 damage taken, +1 SPEED. Nothing carries all of it." } };
+const SHOP_STOCK = ["coffee","runbook","patch","cache","snooze","handoff","postmortem","channel","loadshed","canary","debrief","blastmap","freeze","rollcall","kb1","kb2","kb3","sw1","mic1","gl1","mic3","gl2","rt3","bd1","bd2","bd3","bd4","ch1","ch2","ch3","ch9","ch10"];
 
 // ================= DATA: enemies (100k-sim tuned) =================
 const EN = {
@@ -1693,12 +1712,14 @@ function stanceIn(st){ return ({balanced:0,firefight:1,safe:-1})[st||S.stance||"
 // ---- Runescape layer: gatherable resources, enemy drops, Peg's forge, two skills ----
 const RESNAME={ logs:"Log Fragments", metrics:"Metric Ore", traces:"Trace Herbs", sigils:"Incident Sigils" };
 const RESICON={ logs:"🪵", metrics:"⛏", traces:"🌿", sigils:"🔮" };
-const RECIPES={ rt1:{metrics:3,traces:2}, lt1:{logs:3,sigils:1}, wd2:{traces:3,metrics:2}, bw2:{logs:3,traces:3}, sw2:{metrics:3,logs:3}, mic2:{traces:3,logs:3}, kb4:{logs:5,traces:3}, kb5:{metrics:5,logs:3}, ch5:{traces:4,metrics:2}, tal:{sigils:5},
+const RECIPES={ rt1:{metrics:3,traces:2}, lt1:{logs:3,sigils:1}, wd2:{traces:3,metrics:2}, bw2:{logs:3,traces:3}, sw2:{metrics:3,logs:3}, mic2:{traces:3,logs:3},
+ wd3:{metrics:4,traces:2}, bw3:{traces:4,logs:2}, sw3:{metrics:4,logs:3}, lt2:{logs:4,sigils:2}, kb4:{logs:5,traces:3}, kb5:{metrics:5,logs:3}, ch5:{traces:4,metrics:2}, tal:{sigils:5},
  bw1:{logs:4,traces:2}, wd1:{metrics:3,traces:3}, ar3:{metrics:4,sigils:2},
  mvigor:{traces:6,sigils:1}, mfocus:{metrics:6,sigils:1}, mdrain:{logs:6,sigils:1}, maegis:{sigils:3} };
 // weapon visual categories (transmog: what shows in the hero's hand)
 const WVIS={ kb1:"kb", kb2:"kb", kb3:"kb", kb4:"staff", kb5:"sword", sw1:"sword", bw1:"bow", wd1:"staff", mic1:"mic", gl1:"glove", rw1:"sword",
- rt1:"sword", lt1:"staff", wd2:"staff", bw2:"bow", sw2:"sword", mic2:"mic" };
+ rt1:"sword", lt1:"staff", wd2:"staff", bw2:"bow", sw2:"sword", mic2:"mic",
+ rt3:"sword", lt2:"staff", wd3:"staff", bw3:"bow", sw3:"sword", mic3:"mic", gl2:"sword" };
 // ---- FFT chapter cards ----
 const CHAPTERS=[
  "PROLOGUE - 2:07 AM",
@@ -1779,13 +1800,26 @@ function comboBonus(n){ const tight=treeHas("v2"); return n>=(tight?8:10)? 2 : (
 function xpPct(a){ if(a.lv>=XPCURVE.length) return 1;
   const lo=XPCURVE[a.lv-1], hi=XPCURVE[a.lv];
   return Math.max(0, Math.min(1, (a.xp-lo)/(hi-lo))); }
+// The pager pays once per battle, on the first fall - a second page to the same room is
+// not a second escalation, it is the same one still open.
+function pagerCall(b, who){
+  if(who) who.ko=true;
+  if(!b || S.equip.badge!=="bd4" || b.pagerUsed) return false;
+  b.pagerUsed=true;
+  living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+3); });
+  return true; }
+// Scope shrinks as the room fills: the Compass reads the room, not the enemy.
+function outnumberedGuard(){
+  if(S.equip.charm!=="ch10") return 0;
+  const foes=(typeof livingFoes==="function") ? livingFoes().length : 1;
+  return foes > living().length ? 1 : 0; }
 function spdOf(a){ return a.spd + (a.id==="hero" && treeHas("v1") ? 1 : 0)
-  + (a.id==="hero" && (S.equip.armor==="ar3"||S.equip.armor==="rar1") ? 1 : 0)
+  + (a.id==="hero" && (S.equip.armor==="ar3"||S.equip.armor==="rar1"||S.equip.armor==="ar5") ? 1 : 0)
   + ((a.id==="hero" && S.core && S.core.perk==="SPD") ? 1 : 0); }
 function statsOf(a){ return { atk:atkOf(a), def:defOf(a), spd:spdOf(a), crit:critOf(a),
   row:rowOf(a), stance:STANCES[S.stance||"balanced"].name, lb:a.lb||0 }; }
-const ARMOR_STOCK=["ar1","ar2"];
-const AVIS={ ar1:"vest", ar2:"plate", ar3:"aegis", rar1:"aegis" };
+const ARMOR_STOCK=["ar4","ar1","ar2","ar5"];
+const AVIS={ ar1:"vest", ar2:"plate", ar3:"aegis", rar1:"aegis", ar4:"vest", ar5:"plate" };
 // ---- PAPAFOXX: the third companion (fought first, befriended after - like everyone worth keeping) ----
 const CODEX=[
  { term:"BEST-OF-K", plain:"Ask several independent tries and take the majority. Works only when the tries fail DIFFERENTLY - nine copies with one shared blind spot are one opinion wearing nine hats." },
@@ -2220,6 +2254,8 @@ const ITICON={ coffee:"☕", runbook:"📖", patch:"🩹", cache:"♨️", snooz
  ar1:"🦺", ar2:"🛡️", ar3:"🔰",
  mic1:"🎤", gl1:"🥊", rw1:"🌋", rar1:"🌌", rch1:"🔱",
  rt1:"🔪", lt1:"🧰", wd2:"🕯️", bw2:"💥", sw2:"⚖️", mic2:"🤝", bd3:"🔄", ch9:"🦆",
+ blastmap:"🗺️", freeze:"🧊", rollcall:"📣", wd3:"🪟", bw3:"🔭", sw3:"🚪", lt2:"🔁",
+ mic3:"🗒️", gl2:"🧤", rt3:"🪨", bd4:"📯", ch10:"🧿", ar4:"🎽", ar5:"🎒",
  mvigor:"🟢", mfocus:"🟡", mdrain:"🟣", maegis:"🔵" };
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
 function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){
@@ -2419,10 +2455,21 @@ const BFX = {
  push(kind,o){ this.list.push(Object.assign({kind, t0:performance.now()}, o||{})); },
  sweep(now){ this.list=this.list.filter(e=>now-e.t0 < (FXDUR[e.kind]||600)); },
  reset(){ this.list=[]; } };
+// A crowd needs choreography or it reads as one enemy with a stutter. Bodies fan out to
+// the left of the party's diagonal, smaller as the room fills, each one on its own ground.
+function FOEPOS(i, n){
+  if(n<=1) return { x:30, y:28, s:6 };
+  if(n===2) return { x:10+i*106, y:34+i*8, s:5 };
+  if(n===3) return { x:6+i*70, y:26+i*13, s:4 };
+  return { x:2+i*54, y:20+i*15, s:4 };
+}
 function BPOS(i){ return { x:232+i*12, y:30+i*12 }; }         // CT diagonal formation, party right (9 souls fit the scene)
 function slotOf(pid){ return ["hero",...S.party].indexOf(pid); }
 function walkBob(n){ return n%2; }
-function fxPopFoe(txt,color){ BFX.push("pop",{x:78,y:56,txt:String(txt),color:color||"#fff"}); }
+function fxPopFoe(txt,color,slot){ const b=M.b;
+  const n=(b&&b.foes)?b.foes.length:1, i=(slot!==undefined&&slot!==null)?slot:((b&&b.ti)||0);
+  const p=FOEPOS(Math.min(i,Math.max(0,n-1)), n);
+  BFX.push("pop",{x:p.x+p.s*8, y:p.y+p.s*8, txt:String(txt), color:color||"#fff"}); }
 function fxPopAlly(pid,txt,color){ const i=slotOf(pid); if(i<0) return;
   const p=BPOS(i); BFX.push("pop",{x:p.x+24,y:p.y+4,txt:String(txt),color:color||"#f87171"}); }
 function fxBlocked(){ fxPopFoe("BLOCKED","#9fb0d8"); }
@@ -2443,18 +2490,38 @@ function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv"
   g.fillStyle="#ffffff12"; for(let i=0;i<10;i++){ g.fillRect((i*89+13)%384,(i*37)%88,2,2); }
   g.fillStyle="#00000030"; for(let i=0;i<12;i++){ g.fillRect((i*71+31)%384,116+((i*53)%54),5,2); }
   // ---- foe (left) ----
-  let fxo=0; const fl=fxActive("foelunge");
-  if(fl&&!RM){ const p=(now-fl.t0)/FXDUR.foelunge; fxo=Math.sin(p*Math.PI)*72; }
+  const fl=fxActive("foelunge");
+  const lungeAt=(fl && fl.slot!==undefined) ? fl.slot : (b.ti||0);
   const bob=RM?0:Math.sin(now/450)*3;
-  g.fillStyle="#00000055"; g.beginPath(); g.ellipse(78+fxo,152,46,10,0,0,7); g.fill();
-  if(isEnraged(b)){ const ep=RM?0.5:(Math.sin(now/220)*0.5+0.5);
-    g.strokeStyle="rgba(248,113,113,"+(0.30+0.45*ep).toFixed(2)+")"; g.lineWidth=3;
-    g.beginPath(); g.ellipse(78+fxo,80+bob,56,62,0,0,7); g.stroke(); }
-  drawSprTo(g,b.def.spr,30+fxo,28+bob,6);
-  if(b.queue && b.queue[b.qi] && b.queue[b.qi].t==="f"){
-    const cy=12+(RM?0:Math.sin(now/250)*3);
-    g.fillStyle="#f87171"; g.beginPath(); g.moveTo(70+fxo,cy); g.lineTo(86+fxo,cy); g.lineTo(78+fxo,cy+10); g.fill(); }
-  if(fxActive("hit")){ g.fillStyle="#ffffffaa"; g.fillRect(30+fxo,28+bob,96,96); }
+  const roster=b.foes||[b];
+  const n=roster.length;
+  const acting=(b.queue && b.queue[b.qi] && b.queue[b.qi].t==="f") ? b.queue[b.qi].fi : null;
+  roster.forEach((f,i)=>{
+    if(f.hp<=0) return;                                   // the fallen leave the floor
+    const p=FOEPOS(i,n), w=p.s*16;
+    let ox=0;
+    if(fl && !RM && i===lungeAt){ const pr=(now-fl.t0)/FXDUR.foelunge; ox=Math.sin(pr*Math.PI)*72; }
+    const cx=p.x+w/2+ox;
+    g.fillStyle="#00000055"; g.beginPath(); g.ellipse(cx,p.y+w+6,w*0.46,10*(p.s/6),0,0,7); g.fill();
+    if(i===(b.ti||0) && isEnraged(b)){ const ep=RM?0.5:(Math.sin(now/220)*0.5+0.5);
+      g.strokeStyle="rgba(248,113,113,"+(0.30+0.45*ep).toFixed(2)+")"; g.lineWidth=3;
+      g.beginPath(); g.ellipse(cx,p.y+w/2+bob,w*0.58,w*0.64,0,0,7); g.stroke(); }
+    drawSprTo(g,(f.def||b.def).spr,p.x+ox,p.y+bob,p.s);
+    if(acting===i){                                        // whose swing is landing
+      const cy=Math.max(2,p.y-16)+(RM?0:Math.sin(now/250)*3);
+      g.fillStyle="#f87171"; g.beginPath(); g.moveTo(cx-8,cy); g.lineTo(cx+8,cy); g.lineTo(cx,cy+10); g.fill(); }
+    if(n>1 && i===(b.ti||0) && b.menu!=="next"){           // and where YOUR blade is pointed
+      const cy=Math.max(2,p.y-16)+(RM?0:Math.sin(now/250)*3);
+      g.strokeStyle="#fbbf24"; g.lineWidth=2;
+      g.beginPath(); g.moveTo(cx-9,cy-1); g.lineTo(cx+9,cy-1); g.lineTo(cx,cy+11); g.closePath(); g.stroke();
+      g.font="bold 10px ui-monospace,Consolas,monospace"; g.textAlign="center";
+      g.fillStyle="#fbbf24"; g.fillText(String.fromCharCode(65+i), cx, p.y+w+18); g.textAlign="left"; }
+    if(n>1){                                               // a sliver of health under each body
+      const bw2=w*0.7, bx=cx-bw2/2, by=p.y+w+2;
+      g.fillStyle="#00000080"; g.fillRect(bx,by,bw2,3);
+      g.fillStyle=(i===(b.ti||0))?"#fbbf24":"#f87171";
+      g.fillRect(bx,by,Math.max(0,bw2*(f.hp/Math.max(1,f.maxhp))),3); }
+    if(fxActive("hit") && i===(b.ti||0)){ g.fillStyle="#ffffffaa"; g.fillRect(p.x+ox,p.y+bob,w,w); } });
   BFX.list.filter(e=>e.kind==="burst").forEach(e=>{ const p=(now-e.t0)/FXDUR.burst;
     g.fillStyle=e.color||"#fff"; g.globalAlpha=Math.max(0,1-p);
     for(let i=0;i<10;i++){ const a2=i/10*6.28+p*3; const r=8+p*46;
@@ -2782,13 +2849,18 @@ function statusLine(){ const b=M.b; const st=[];
   if(isEnraged(b)) st.push("😤 ENRAGED - expects its hardest hit");
   return st.join(" · "); }
 function drawB(){ const b=M.b;
-  document.getElementById("bfoename").innerHTML="<b>"+b.def.name+"</b>";
+  { const up=livingFoes().length, tot=(b.foes||[b]).length;
+    const cur=(b.foes&&b.foes[b.ti]) ? b.foes[b.ti] : b;
+    document.getElementById("bfoename").innerHTML="<b>"+foeLabel(cur, b.ti||0)+"</b>"+
+      (tot>1 ? " <span class='mut'>· "+up+" of "+tot+" still up</span>" : ""); }
   document.getElementById("bstatus").textContent=statusLine();
   document.getElementById("bfoehp").style.width=Math.max(0,b.hp/b.maxhp*100)+"%";
   drawBattleScene();
   const tq=document.getElementById("tqueue");
   if(tq){ tq.innerHTML = b.queue ? "⏱ "+b.queue.map((u,i)=>{
-      const nm = u.t==="f" ? "☠ "+(b.def.name.split(" ")[0]) : MEMBERS[u.id].name;
+      const nm = u.t==="f"
+        ? "☠ "+(b.def.name.split(" ")[0])+((b.foes&&b.foes.length>1&&u.fi!==undefined) ? " "+String.fromCharCode(65+u.fi) : "")
+        : MEMBERS[u.id].name;
       const cls = i===b.qi ? "tqcur" : (i<b.qi ? "tqdone" : "");
       return "<span class='"+cls+"'>"+nm+"</span>"; }).join(" · ") : ""; }
   const pr=document.getElementById("pmrow"); pr.innerHTML="";
@@ -2814,6 +2886,7 @@ function drawMenu(){ const b=M.b, m=document.getElementById("bmenu"); const a=ac
       ((a.lb||0)>=LB_MAX?"<button data-lm='1' style='color:var(--gold)'>★ LIMIT: "+((b.fieldProto&&a.id==="hero")?"FIELD PROTOCOL":LIMITS[a.id].name)+"</button>":"")+
       "<button data-a='fight'>FIGHT</button><button data-a='skill'>SKILL</button><button data-a='defend'>DEFEND</button><button data-a='item'>ITEM</button>"+
       "<button data-a='row'>ROW: "+rowOf(a).toUpperCase()+" ⇄</button>"+
+      ((b.foes && livingFoes().length>1) ? "<button data-a='target'>TARGET: "+String.fromCharCode(65+(b.ti||0))+" ⇄</button>" : "")+
       (a.id==="hero"?"<button data-a='style'>STYLE: "+STANCES[S.stance||"balanced"].name+"</button>":"")+
       (b.def.flee && a.id==="hero"?"<button data-a='flee'>FLEE</button>":"")+(a.mp<2?"<button data-a='grit'>GRIT (+2 MP)</button>":""); }
   else if(b.menu==="skill"){ a.sk.forEach(id=>{ h+="<button data-s='"+id+"'>"+SP[id].name+" ("+SP[id].mp+")<br><span class='mut' style='font-size:.6rem'>"+SP[id].d+"</span></button>"; });
@@ -2895,6 +2968,12 @@ function retarget(){ const b=M.b; if(!b || !b.foes) return -1;
   const next=b.foes.findIndex(f=>f.hp>0);                  // never rest the cursor on a corpse
   if(next>=0) b.ti=next;
   return next; }
+// Aim. The cursor walks only over bodies still standing, in both directions, and wraps -
+// a menu that can land you on a corpse is a menu that lies about what FIGHT will do.
+function cycleTarget(dir){ const b=M.b; if(!b || !b.foes || b.foes.length<2) return b?b.ti:0;
+  const n=b.foes.length; let i=b.ti||0;
+  for(let k=0;k<n;k++){ i=(i+dir+n)%n; if(b.foes[i].hp>0){ b.ti=i; break; } }
+  return b.ti; }
 // a room with more than one thing in it needs its own label
 function foeLabel(f, i){ const b=M.b; const n=(b&&b.foes)? b.foes.length : 1;
   const nm=(f.def&&f.def.name)||"?";
@@ -2925,6 +3004,7 @@ function nextUnit(){ const b=M.b; if(!b) return;
     b.turn=ids.indexOf(u.id); b.introPending=null; b.menu="main"; drawB(); return; } }
 function menuPick(d){ const b=M.b; const a=actor();
   if(d.a==="back"){ b.menu="main"; drawMenu(); return; }
+  if(d.a==="target"){ cycleTarget(1); sfx("blip"); drawB(); return; }
   if(d.a==="next"){ nextUnit(); return; }
   if(d.a==="row"){ a.row=(rowOf(a)==="back")?"front":"back";
     blog(MEMBERS[a.id].name+" shifts to the <b>"+rowOf(a).toUpperCase()+"</b> line. <span class='mut'>(free - positioning is a decision, not a turn)</span>");
@@ -3111,6 +3191,8 @@ const READERS=["fivewhy","contexa","dashboard","firstprinciples","controlarm","a
 function skillCost(sp,id,a){ return Math.max(1, sp.mp
   - ((treeHas("s2") && READERS.indexOf(id)>=0) ? 1 : 0)
   - ((id==="kanban" && heldBy(a)==="rt1") ? 1 : 0)
+  - ((id==="contexa" && heldBy(a)==="wd3") ? 1 : 0)
+  - ((id==="ward" && heldBy(a)==="rt3") ? 2 : 0)
   - ((S.equip.charm==="ch9" && a && M.b && M.b.ducked && !M.b.ducked[a.id]) ? 1 : 0)); }
 function itThreshold(){ return treeHas("s4") ? 6 : 8; }
 function castSkill(a,id){ const b=M.b, sp=SP[id];
@@ -3137,6 +3219,7 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     if(b.def.regen && b.verified===0){ blog(t+"<br><span class='red'>It regenerates instantly!</span>"); b.menu="next"; drawB(); return; }
     return dealt(a,(2+a.lv)*(weakHit?2:1), t+(weakHit?" <span class='gold'>Super effective!</span>":"")); }
   if(id==="truestrike"){
+    if(heldBy(a)==="bw3" && !b.revealed) markRevealed(b);   // the Field Scope finds the seam itself
     if(!b.revealed){ blog(nm+" fires a TRUE STRIKE - <span class='red'>but the armor holds! (FIVE-WHY first.)</span>"); b.menu="next"; drawB(); return; }
     if(b.def.regen && b.verified===0){ blog(nm+" fires a TRUE STRIKE - <span class='red'>it regenerates! (CONTROL ARM first.)</span>"); b.menu="next"; drawB(); return; }
     return dealt(a, atkOf(a)+2, nm+" fires a TRUE STRIKE - it cannot miss!"+( !b.focused?" <span class='gold'>It pierces the fog!</span>":"")); }
@@ -3162,11 +3245,11 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     blog(nm+" casts WARD - <span class='gold'>a placebo barrier wraps the whole party.</span> Next hit on each ally: 0."); b.menu="next"; drawB(); return; }
   if(id==="rollback"){ a.hp=Math.min(a.maxhp,a.hp+7); sfx("heal"); BFX.push("heal",{slot:b.turn});
     blog(nm+" ROLLS BACK to last known good state - <span class='num'>+7 HP</span>."); b.menu="next"; drawB(); return; }
-  if(id==="objection"){ b.taunt=2;
+  if(id==="objection"){ b.taunt=(heldBy(a)==="sw3") ? 3 : 2;
     blog(nm+": <span class='gold'>\"OBJECTION!\"</span> The enemy can't resist arguing - it targets the Tank for 2 turns (-1 dmg)."); b.menu="next"; drawB(); return; }
   if(id==="crowdwork"){ b.softened=(heldBy(a)==="mic2") ? 3 : 2; b.sprint=Math.max(b.sprint||0,1); sfx("heal"); BFX.push("burst",{color:SKILL_FX.crowdwork});
     blog(nm+" works the crowd - <span class='gold'>CROWD WORK!</span> The whole room turns on the heckler: <span class='num'>enemy defense -2 (2 rounds), every ally's hits +2 this round.</span> Nobody boos alone."); b.menu="next"; drawB(); return; }
-  if(id==="roast"){ b.roasted=2;
+  if(id==="roast"){ b.roasted=(heldBy(a)==="mic3") ? 3 : 2;
     return dealt(a, 2, nm+" ROASTS the enemy - a burn so precise it compiles! <span class='gold'>Its attack drops (2 rounds).</span> <span class='mut'>Blameless, but not painless.</span>"); }
   if(id==="ultima"){
     if(!b.revealed && !(b.roasted>0)){ blog(nm+" opens the last page - <span class='gold'>ULTIMA!</span> …<span class='red'>and it breaks on the unexposed core. The setup makes the punchline: FIVE-WHY or ROAST first.</span>"); b.menu="next"; drawB(); return; }
@@ -3184,6 +3267,7 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
       if(!b.revealed){ markRevealed(b); blog("🧭 SYSTEMS COMPASS - the first hypothesis points at the armor. <span class='gold'>The foe is read.</span>"); } }
     return playerHit(a, 2*(2+Math.floor(a.lv/2)), nm+" runs TWIN HYPOTHESIS - <span class='gold'>two explanations, one survives the data.</span>"); }
   if(id==="firstprinciples"){ markRevealed(b); b.focused=true; sfx("blip");
+    if(heldBy(a)==="lt2") b.verified=2;   // watch the loop, not the symptom: regeneration denied
     blog(nm+" rebuilds from FIRST PRINCIPLES - <span class='gold'>the foundation was wrong; start from what is true:</span> armor mapped, fog lifted."+(b.def.tip?"<br><i>"+b.def.tip+"</i>":"")); b.menu="next"; drawB(); return; }
   if(id==="windmill"){ const c=rng()<critOf(a); M.forceCrit=c;
     if(!((!b.revealed && !(a.id==="hero" && S.equip.weapon==="wd1")) || (!b.focused && !(a.id==="hero" && S.equip.weapon==="bw1")) || (b.def.regen && b.verified===0))) windmillFreeze(b,c);
@@ -3212,9 +3296,9 @@ function resolveTarget(a,pid){ const b=M.b; const t=S.actors[pid]; const which=b
   if(which==="hitl"){ sfx("heal");
     if(t.ko){ t.ko=false; t.hp=12; blog(nm+" invokes HUMAN-IN-THE-LOOP - <span class='gold'>"+tn+" rises!</span> (12 HP)"); }
     else { t.hp=Math.min(t.maxhp,t.hp+12); blog(nm+" invokes HUMAN-IN-THE-LOOP on "+tn+" - <span class='num'>+12 HP</span>."); } }
-  if(which==="hotfix"){ sfx("heal");
-    if(t.ko){ t.ko=false; t.hp=8; blog(nm+" ships a HOTFIX - <span class='gold'>"+tn+" reboots!</span> (8 HP)"); }
-    else { t.hp=Math.min(t.maxhp,t.hp+8); blog(nm+" ships a HOTFIX to "+tn+" - <span class='num'>+8 HP</span>. Reviewed, tested, deployed."); } }
+  if(which==="hotfix"){ sfx("heal"); const mend=(heldBy(a)==="gl2") ? 12 : 8;
+    if(t.ko){ t.ko=false; t.hp=mend; blog(nm+" ships a HOTFIX - <span class='gold'>"+tn+" reboots!</span> ("+mend+" HP)"); }
+    else { t.hp=Math.min(t.maxhp,t.hp+mend); blog(nm+" ships a HOTFIX to "+tn+" - <span class='num'>+"+mend+" HP</span>. Reviewed, tested, deployed."); } }
   b.menu="next"; drawB(); }
 function useItem(a,k){ const b=M.b;
   if(k==="handoff"){ const kos=partyActors().filter(p=>p.ko);
@@ -3238,6 +3322,12 @@ function useItem(a,k){ const b=M.b;
     kos.forEach(x=>{ x.ko=false; x.hp=Math.ceil(x.maxhp*0.4); BFX.push("heal",{slot:slotOf(x.id)}); }); sfx("heal");
     blog("📝 BLAMELESS DEBRIEF - <span class='gold'>"+(kos.length||"no one")+" back on their feet.</span> Nobody gets left on the floor."); }
   if(k==="snooze"){ b.snoozed=true; blog("🔕 Pager Snooze - the enemy loses its next turn."); }
+  if(k==="blastmap"){ (b.foes||[b]).forEach(f=>{ f.revealed=true; f.focused=true; }); sfx("blip");
+    blog("🗺️ BLAST RADIUS MAP - the boundary is drawn. <span class='gold'>Every enemy in the room: armor revealed, fog lifted.</span>"); }
+  if(k==="freeze"){ (b.foes||[b]).forEach(f=>{ f.snoozed=true; }); sfx("blip");
+    blog("🧊 CHANGE FREEZE - nothing ships today. <span class='gold'>Every enemy loses its next turn.</span>"); }
+  if(k==="rollcall"){ living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+3); BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
+    blog("📣 ROLL CALL - name and status, one at a time. <span class='num'>Every ally +3 MP.</span>"); }
   if(k==="postmortem"){ a.hp=a.maxhp; a.mp=a.maxmp; sfx("heal"); blog("📋 Post-Incident Review: "+MEMBERS[a.id].name+" <span class='num'>fully restored</span>."); }
   if(k==="runbook"){ markRevealed(b);
     blog("📖 The Runbook…<br><i>"+(b.def.tip||"Fight well; verify everything.")+"</i>"+(b.def.weak?"<br><span class='gold'>Weakness: "+SP[b.def.weak.replace("2","")].name+"</span>":"")); }
@@ -3281,12 +3371,13 @@ function foeAct(standalone, fi){ const b=M.b;
   else if(b.taunt>0 && S.actors.refuter && !S.actors.refuter.ko && rng()<0.7){ targets=[S.actors.refuter]; }
   else { const front=liv.filter(x=>rowOf(x)==="front");
     targets=[ (front.length && rng()<0.7) ? front[Math.floor(rng()*front.length)] : liv[Math.floor(rng()*liv.length)] ]; }
-  BFX.push("foelunge");
+  BFX.push("foelunge",{slot:(b.ti||0)});
   let comboBroken=false;
   for(const tgt of targets){
     let dmg=incoming(raw, tgt, ((tgt.id==="refuter"&&b.taunt>0)?((S.gear&&S.gear.refuter==="sw2")?2:1):0) + ((b.def.multi&&matOn("maegis"))?1:0)
       + ((S.equip.charm==="ch8"&&(b.def.elite||b.def.superboss))?1:0)
-      + ((S.equip.charm==="rch1")?1:0));   // Alignment Charm; Five Nines Locket shields everyone from everything
+      + ((S.equip.charm==="rch1")?1:0)
+      + outnumberedGuard());   // Alignment Charm; Five Nines Locket shields everyone from everything; Compass reads the room
     if(tgt.shield){ tgt.shield=false; fxPopAlly(tgt.id,"0","#93c5fd"); t+="<br>🛡 "+MEMBERS[tgt.id].name+"'s ward absorbs it - 0 damage!"; continue; }
     if(dmg>0){
       if(tgt.id==="hero" && tgt.hp-dmg<=0 && S.equip.charm==="ch3" && !b.uptimeUsed){ b.uptimeUsed=true; tgt.hp=1;
@@ -3298,7 +3389,8 @@ function foeAct(standalone, fi){ const b=M.b;
             t+=" <span class='gold'>🌱 CIRCUIT DISCIPLINE - "+MEMBERS[tgt.id].name+" holds at 1 HP. One cascade, caught.</span>"; }
           else if(S.equip.charm==="ch6" && !b.breakerUsed){ b.breakerUsed=true; tgt.hp=1;
             t+=" <span class='gold'>⚡ The CIRCUIT BREAKER trips - "+MEMBERS[tgt.id].name+" holds at 1 HP! Fail fast, fail once.</span>"; }
-          else { tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>"; } }
+          else { tgt.ko=true; t+=" <span class='red'>"+MEMBERS[tgt.id].name+" falls!</span>";
+            if(pagerCall(b, null)) t+=" <span class='mut'>📟 The Escalation Pager goes off - <span class='num'>the party +3 MP</span>. Somebody always picks up.</span>"; } }
         if(tgt.id==="papafoxx" && !tgt.ko && tgt.hp>0 && tgt.hp<=tgt.maxhp/4 && !b.foxxOof){ b.foxxOof=true;
           t+=" <span class='mut'>PAPAFOXX: '"+FOXX_LINES.lowhp+"'</span>"; }
         const gl=foxxGuardLine(tgt); if(gl) t+=" <span class='mut'>"+gl+"</span>"; }
@@ -4069,7 +4161,7 @@ const TESTS = [
       && FINALE_CHAIN.filter(s=>s.bridge!==undefined).length===4 && BRIDGE.length===4
       && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
- ["shop catalog integrity (24 items)", ()=>SHOP_STOCK.length===24 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
+ ["shop catalog integrity (32 items)", ()=>SHOP_STOCK.length===32 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
  ["8 classes, 28 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===8 && Object.keys(SP).length===28
     && EN.monolith.hp===165 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
@@ -5853,7 +5945,7 @@ const TESTS = [
       let d=0,e=o; while(e<prod.length){ if(prod[e]===open)d++; else if(prod[e]===close){d--; if(!d)break;} e++; }
       prod=prod.slice(0,a)+prod.slice(e+1); });
     // these earn their price through the generic atk/def fields, so they need no bespoke code
-    const GENERIC=["kb1","kb2","kb3","kb5","rw1","mic1","gl1","sw1","bd1","bd2","ar1","ar2"];
+    const GENERIC=["kb1","kb2","kb3","kb5","rw1","mic1","gl1","sw1","bd1","bd2","ar1","ar2","ar4"];
     const dead=Object.keys(IT).filter(k=>GENERIC.indexOf(k)<0 && prod.split('"'+k+'"').length-1 < 1);
     if(dead.length) console.log("items whose effect nothing reads:", dead.join(", "));
     return dead.length===0; }], ["only a speaker tag gets the speaker colour", ()=>{
@@ -6392,6 +6484,221 @@ const TESTS = [
       for(let i=1;i<a.length;i++) if(!(a[i]>a[i-1])){ console.log("the curve flattened:", a.map(x=>x.toFixed(2)).join(" ")); return false; }
       return true;
     } finally { rng=rb; S=sb; } }],
+
+ ["the crowd-answers answer the whole crowd", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(8080);
+      S.party=["sentinel","wiki","retro","refuter"];
+      ["sentinel","wiki","retro","refuter"].forEach(id=>{ S.actors[id]=mkActor(id,8); });
+      startBattle("golem","test",null,{count:4});
+      const b=M.b; b.ti=0;
+      b.foes.forEach(f=>{ f.revealed=false; f.focused=false; f.snoozed=false; });
+      S.items.blastmap=1; useItem(S.actors.hero,"blastmap");
+      const mapped=b.foes.every(f=>f.revealed && f.focused);
+      S.items.freeze=1; useItem(S.actors.hero,"freeze");
+      const frozen=b.foes.every(f=>f.snoozed);
+      partyActors().forEach(p=>{ p.maxmp=20; p.mp=5; });
+      S.items.rollcall=1; useItem(S.actors.hero,"rollcall");
+      const called=living().every(p=>p.mp===8);
+      // the room is the unit now: an answer that reaches one body is not an answer
+      if(!mapped) console.log("blast map lit only", b.foes.filter(f=>f.revealed).length, "of 4");
+      if(!frozen) console.log("change freeze reached only", b.foes.filter(f=>f.snoozed).length, "of 4");
+      return mapped && frozen && called && b.ti===0;
+    } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
+
+ ["every new weapon rider actually fires", ()=>{ const sb=S; S=NEWS();
+    try{
+      ["sentinel","wiki","retro","refuter","papafoxx","sharon","lito"].forEach(id=>{
+        S.party.push(id); S.actors[id]=mkActor(id,9); });
+      M.state="battle";
+      startBattle("golem","test");
+      const b=M.b; b.revealed=true; b.focused=true; b.verified=0;
+      const out={};
+      const arm=(who,it)=>{ S.gear=S.gear||{}; S.gear[who]=it; S.items[it]=1; };
+
+      arm("wiki","wd3");
+      out.wd3 = skillCost(SP.contexa,"contexa",S.actors.wiki)===SP.contexa.mp-1;
+
+      arm("retro","rt3");
+      out.rt3 = skillCost(SP.ward,"ward",S.actors.retro)===SP.ward.mp-2;
+
+      arm("sentinel","bw3"); b.revealed=false;
+      castSkill(S.actors.sentinel,"truestrike");
+      out.bw3 = b.revealed===true;                 // the scope finds the seam by itself
+      b.revealed=true;
+
+      arm("refuter","sw3"); b.taunt=0;
+      castSkill(S.actors.refuter,"objection");
+      out.sw3 = b.taunt===3;
+
+      arm("papafoxx","mic3"); b.roasted=0;
+      castSkill(S.actors.papafoxx,"roast");
+      out.mic3 = b.roasted===3;
+
+      arm("lito","lt2"); b.verified=0;
+      castSkill(S.actors.lito,"firstprinciples");
+      out.lt2 = b.verified===2;
+
+      arm("sharon","gl2");
+      const t=S.actors.refuter; t.maxhp=99; t.hp=1;
+      b.targeting={skill:"hotfix"}; resolveTarget(S.actors.sharon,"refuter");
+      out.gl2 = t.hp===13;                          // 8 becomes 12, on top of the 1 it had
+
+      const dead=Object.keys(out).filter(k=>!out[k]);
+      if(dead.length) console.log("new riders that do not fire:", dead.join(", "));
+      return dead.length===0;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["the hero's new kit reads on the hero", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",8);
+      const h=S.actors.hero;
+      S.items.ar4=1; S.equip.armor="ar4"; const a4=defOf(h)===1;
+      S.items.ar5=1; S.equip.armor="ar5";
+      const a5=defOf(h)===2 && spdOf(h)===h.spd+1;
+      S.equip.armor=null;
+      S.items.bd4=1; S.equip.badge="bd4"; const b4=defOf(h)===1;
+      if(!a4||!a5||!b4) console.log("hero kit:", JSON.stringify({a4,a5,b4}));
+      return a4 && a5 && b4;
+    } finally { S=sb; } }],
+
+ ["the Escalation Pager pays out once, when somebody actually falls", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel","wiki"]; S.actors.sentinel=mkActor("sentinel",8); S.actors.wiki=mkActor("wiki",8);
+      startBattle("golem","test");
+      const b=M.b;
+      S.items.bd4=1; S.equip.badge="bd4";
+      partyActors().forEach(p=>{ p.maxmp=20; p.mp=5; });
+      const before=living().map(p=>p.mp);
+      pagerCall(b, S.actors.wiki);          // the first ally goes down
+      const after1=living().filter(p=>!p.ko).map(p=>p.mp);
+      pagerCall(b, S.actors.sentinel);      // and the second
+      const after2=living().filter(p=>!p.ko).map(p=>p.mp);
+      const paid=after1.every(m=>m===8), oncePaid=after2.every(m=>m===8);
+      if(!paid||!oncePaid) console.log("pager:", before.join(), "->", after1.join(), "->", after2.join());
+      return paid && oncePaid && b.pagerUsed===true;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["the Compass only helps while you are outnumbered", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel","wiki","retro"];
+      ["sentinel","wiki","retro"].forEach(id=>{ S.actors[id]=mkActor(id,8); });
+      startBattle("golem","test",null,{count:4});
+      const b=M.b;
+      S.items.ch10=1; S.equip.charm="ch10";
+      const many=outnumberedGuard();                  // four foes, four allies... not yet
+      b.foes[0].hp=0; b.foes[1].hp=0; b.foes[2].hp=0;
+      const few=outnumberedGuard();
+      startBattle("golem","test",null,{count:4});
+      S.party=["sentinel"]; const b2=M.b; b2.foes.forEach(f=>{ f.hp=40; });
+      const swamped=outnumberedGuard();
+      if(!(swamped===1 && few===0)) console.log("compass:", {many, few, swamped});
+      return swamped===1 && few===0;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["nothing new sits in the shop with an effect the code never reads", ()=>{
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+    const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
+    const NEW=["wd3","bw3","sw3","lt2","mic3","gl2","rt3","bd4","ch10","ar4","ar5",
+               "blastmap","freeze","rollcall"];
+    const dead=NEW.filter(k=>prod.split('"'+k+'"').length-1 < 1);
+    if(dead.length) console.log("new gear with no production hook:", dead.join(", "));
+    return dead.length===0; }],
+
+ ["every piece of gear is buyable, forgeable or dropped - none of it is unreachable", ()=>{
+    const reach=(k)=>SHOP_STOCK.indexOf(k)>=0 || ARMOR_STOCK.indexOf(k)>=0 || !!RECIPES[k]
+      || !!(TRANSMUTES && TRANSMUTES[k]);
+    const NEW=["wd3","bw3","sw3","lt2","mic3","gl2","rt3","bd4","ch10","ar4","ar5",
+               "blastmap","freeze","rollcall"];
+    const stranded=NEW.filter(k=>!reach(k));
+    if(stranded.length) console.log("gear nobody can ever get:", stranded.join(", "));
+    return stranded.length===0; }],
+
+ ["every piece of gear has a name, a price that makes sense, and an icon", ()=>{
+    const bad=[];
+    Object.keys(IT).forEach(k=>{ const it=IT[k];
+      if(!it.name || !it.d) bad.push(k+":unnamed");
+      if(typeof it.price!=="number" || it.price<0) bad.push(k+":price");
+      if(!ITICON[k]) bad.push(k+":icon");
+      if(Array.isArray(it.fits) && it.fits.some(f=>!MEMBERS[f])) bad.push(k+":fits");
+      if(SHOP_STOCK.indexOf(k)>=0 && it.price<=0) bad.push(k+":free-in-shop"); });
+    if(bad.length) console.log("gear entries with holes:", bad.join(", "));
+    return bad.length===0; }],
+
+ ["every body in the room gets a place to stand", ()=>{
+    const seen=[];
+    for(let n=1;n<=4;n++){
+      const slots=[]; for(let i=0;i<n;i++) slots.push(FOEPOS(i,n));
+      // on the canvas, left of the party formation, and never stacked on each other
+      if(slots.some(p=>p.x<0 || p.x+p.s*16>232 || p.y<0 || p.y+p.s*16>176)) seen.push("n"+n+":offstage");
+      for(let i=1;i<n;i++) if(Math.abs(slots[i].x-slots[i-1].x)<28) seen.push("n"+n+":stacked");
+    }
+    if(seen.length) console.log("bad foe placement:", seen.join(", "));
+    return seen.length===0; }],
+
+ ["the name plate and the health bar follow the enemy you are aimed at", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",8);
+      M.state="battle"; startBattle("golem","test",null,{count:3});
+      const b=M.b; b.foes[0].hp=10; b.foes[1].hp=40; b.foes[2].hp=46;
+      b.ti=1; drawB();
+      const nm1=document.getElementById("bfoename").textContent;
+      const w1=document.getElementById("bfoehp").style.width;
+      b.ti=2; drawB();
+      const nm2=document.getElementById("bfoename").textContent;
+      if(!(nm1.indexOf("B")>=0 && nm2.indexOf("C")>=0)) console.log("name plate:", nm1, "|", nm2);
+      return nm1.indexOf("B")>=0 && nm2.indexOf("C")>=0 && nm1!==nm2 && w1!=="100%";
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["you can choose which one to hit, and never choose a corpse", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",8);
+      M.state="battle"; startBattle("golem","test",null,{count:4});
+      const b=M.b; b.menu="main"; b.turn=0;
+      b.ti=0;
+      cycleTarget(1); const a=b.ti;
+      cycleTarget(1); const c=b.ti;
+      b.foes[3].hp=0;                       // D is down
+      b.ti=2; cycleTarget(1);               // forward from C must skip D and wrap to A
+      const skipped=b.ti;
+      cycleTarget(-1);                      // and back again lands on C, not on the corpse
+      const back=b.ti;
+      if(!(a===1 && c===2 && skipped===0 && back===2))
+        console.log("target cursor:", {a, c, skipped, back});
+      return a===1 && c===2 && skipped===0 && back===2;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["the TARGET control appears only when there is a choice to make", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",8);
+      M.state="battle";
+      const hasBtn=()=>!!document.getElementById("bmenu").querySelector("[data-a=target]");
+      startBattle("golem","test");
+      M.b.menu="main"; M.b.turn=0; drawMenu();
+      const alone=hasBtn();
+      startBattle("golem","test",null,{count:3});
+      M.b.menu="main"; M.b.turn=0; drawMenu();
+      const crowd=hasBtn();
+      M.b.foes[1].hp=0; M.b.foes[2].hp=0; drawMenu();
+      const lastOne=hasBtn();
+      if(alone||!crowd||lastOne) console.log("target button:", {alone, crowd, lastOne});
+      return !alone && crowd && !lastOne;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["the turn strip tells the four apart", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",8);
+      M.state="battle"; startBattle("golem","test",null,{count:4});
+      const b=M.b; buildQueue(b); drawB();
+      const strip=document.getElementById("tqueue").textContent;
+      // four foe slots, each wearing its own letter, or the order is unreadable
+      const foeWords=(strip.match(/☠/g)||[]).length;
+      const first=b.def.name.split(" ")[0];
+      const tags=["A","B","C","D"].filter(L=>strip.indexOf(first+" "+L)>=0);
+      if(foeWords!==4 || tags.length!==4) console.log("turn strip:", strip);
+      return foeWords===4 && tags.length===4;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -6419,7 +6726,7 @@ function runTests(){ document.getElementById("objline").hidden=true;
 
 // ================= EXPOSE & BOOT =================
 window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, LIMITS, RECIPES, mkActor, startBattle, startFinale, render, tryMove, interact,
-  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, buildQueue, foeAct, packSize, reconcileActor, GHOST_IDS,
+  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, buildQueue, foeAct, packSize, reconcileActor, GHOST_IDS, pagerCall, outnumberedGuard, FOEPOS, cycleTarget,
   menuPick, castSkill, castDual, castLimit, chargeLB, dualsFor, useItem, saveGame, loadSlot, migrateV2, migrateV3, migrateV4, migrateV5, atkOf, defOf, critOf, incoming,
   pauseMenu, openShop, titleScreen, newGame, living, partyActors, sparXP, allLootDone, eraCleared, ensureRoam, moveRoam, roamWalkable, ending,
   craft, gatherNode, budgetLeft, clsOf, mttxCard, setMusic, playMusic, MUS,
