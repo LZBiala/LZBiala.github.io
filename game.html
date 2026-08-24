@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Quest: SEV-1 - SRE Edition</title>
-<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Eight playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 4,231,220 simulated battles behind the balance, every one of them reproducible. One static file, no frameworks, no API keys.">
+<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Eight playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 6,746,881 simulated battles behind the balance, every one of them reproducible. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
 <meta property="og:title" content="AI Quest: SEV-1 - the 8-bit party JRPG of AI engineering">
-<meta property="og:description" content="Eight playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 4,231,220 simulated battles you can re-run yourself.">
+<meta property="og:description" content="Eight playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 6,746,881 simulated battles you can re-run yourself.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-game.png">
 <meta property="og:url" content="https://lzbiala.github.io/game.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -151,7 +151,7 @@
 </head>
 <body>
 <h1>⚔️ AI QUEST: SEV-1</h1>
-<div class="sub">sre edition · limit breaks · dual techs · growth tree · crafting · time travel · chiptune music · balance tuned on 4,231,220 simulated battles, every one reproducible · by Lito Zarate Biala</div>
+<div class="sub">sre edition · limit breaks · dual techs · growth tree · crafting · time travel · chiptune music · balance tuned on 6,746,881 simulated battles, every one reproducible · by Lito Zarate Biala</div>
 <div class="hudtop">
   <span id="hhero"><b>HERO</b> LV 1</span>
   <span>⛁ <b id="htok">0</b></span><span id="hslo"></span><span id="zonename"><b>-</b></span><span id="sptimer" hidden style="color:var(--gold)">⏱ 0:00</span>
@@ -199,7 +199,7 @@ one static file, no frameworks, no API keys · every real-world number quoted is
 "use strict";
 /* ============================================================
    AI QUEST: SEV-1 - SRE Edition
-   Balance constants below were tuned on 4,231,220 Monte Carlo
+   Balance constants below were tuned on 6,746,881 Monte Carlo
    battles (combat_sim_v2.py, 20 encounters × 50,000): gates 3-5
    turns, marquee bosses 4-7 turns, superboss ~7 turns. Under the
    OPTIMAL incident-command policy (duals + ward + taunt + verify)
@@ -1458,7 +1458,7 @@ const OBJ = [
 const CREDITS = [
  "⚔️ AI QUEST: SEV-1 - SRE Edition",
  "A game about the discipline of trustworthy AI.",
- "Design, writing, code, pixel art, chiptunes & 4,231,220 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
+ "Design, writing, code, pixel art, chiptunes & 6,746,881 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
  "The skills are real practices. The companions are real projects - github.com/LZBiala.",
  "The bosses are real Tuesdays.",
  "No frameworks. No trackers. No API keys. Every real-world number quoted regenerates in CI.",
@@ -2292,10 +2292,16 @@ function craftCost(id){ const base=RECIPES[id]; if(!base) return null;
   const out={}; const disc=S.skills.forge.lv>=3? 1:0;
   for(const k in base) out[k]=Math.max(1, base[k]-disc);
   return out; }
-function grantDrops(id){ const d=DROPS[id]; if(!d) return null;
+// b.def is a PER_FOE proxy onto the TARGETED body, so anything that reads it at victory
+// reads one foe's worth. A room of four was paying what a room of one pays, which made
+// fleeing - free, unconditional, and available on every wandering foe - the correct play.
+function roomTokens(b){ return ((b && b.foes) || [b]).reduce((t,f)=>t+((f && f.def && f.def.tok)||0), 0); }
+function roomXP(b){ return ((b && b.foes) || [b]).reduce((t,f)=>t+((f && f.def && f.def.xp)||0), 0); }
+function grantDrops(id, times){ const d=DROPS[id]; if(!d) return null;
+  const n=Math.max(1, times|0 || 1);
   const parts=[];
-  for(const k in d){ S.res[k]=(S.res[k]||0)+d[k]; parts.push(RESICON[k]+"+"+d[k]+" "+RESNAME[k]); }
-  addSkillXP("obs",2);
+  for(const k in d){ const amt=d[k]*n; S.res[k]=(S.res[k]||0)+amt; parts.push(RESICON[k]+"+"+amt+" "+RESNAME[k]); }
+  addSkillXP("obs",2);   // one room, one lesson in observation, however many things stood in it
   return "Salvage: <span class='num'>"+parts.join(" · ")+"</span>"; }
 function craft(id){ const r=craftCost(id); if(!r) return false;
   if((S.items[id]||0)>0) return false;              // gear is unique - resources are too scarce for dead copies
@@ -2957,12 +2963,16 @@ function packSize(stage, foeId){
     : (st===2) ? (roll<0.50 ? 1 : (roll<0.85 ? 2 : 3))
     : (st===3) ? (roll<0.25 ? 1 : (roll<0.60 ? 2 : (roll<0.90 ? 3 : 4)))
     : (roll<0.20 ? 1 : (roll<0.50 ? 2 : (roll<0.85 ? 3 : 4)));
-  // Never outnumbered by more than you have bodies. A million simulated battles said the
-  // opening walk - a HERO and one Ranger - wiped 13.5% of the time once rooms could hold
-  // two and three. Enemy numbers were not the problem; being outnumbered two to one with
-  // no healer was. This costs the late game nothing, because by then the crew is full.
+  // The party always outnumbers the room. The first version of this rule allowed an EVEN
+  // fight, and an even fight is lethal for a HERO and one Ranger with no healer - once the
+  // simulator was fixed to let every body in a pack actually swing, that opening walk was
+  // wiping about one run in five. Every other walk passed.
+  //
+  // It binds only at party sizes two to four, so the late game is untouched: by then the
+  // crew is full and the cap of four binds first. The consequence is a rule a player can
+  // learn without being told - packs begin when you have a party.
   const bodies=1+((S && Array.isArray(S.party)) ? S.party.length : 0);
-  return Math.max(1, Math.min(n, bodies));
+  return Math.max(1, Math.min(n, bodies-1));
 }
 // A battle object that has not been through seatFoes has no foes array, and every line
 // that resolves a death addresses b.foes[b.ti]. Production always goes through
@@ -3506,13 +3516,13 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
   if(M.roamBattle){ M.roamBattle=false; const rm=M.roam[S.z]; if(rm) rm.alive=false; }
   const zone=Z[S.z];
   let pre=[];
-  const toks=b.def.tok||0; if(toks){ S.tokens+=toks; sfx("coin"); pre.push("Recovered budget: <span class='num'>+"+toks+" ⛁</span>."); }
+  const toks=roomTokens(b); if(toks){ S.tokens+=toks; sfx("coin"); pre.push("Recovered budget: <span class='num'>+"+toks+" ⛁</span>."); }
   if(b.id==="dummy"){ pre.push("<span class='mut'>KAMOGAWA'S LAW: reps build the fighter - but the same rep pays less each time. (Spar #"+(S.sparN+1)+" this level.)</span>"); }
   if(b.def.elite || b.def.superboss || b.id==="monolith" || /^h\d/.test(b.id)){ pre.push(mttxCard(b)); }
   if(CLUES[b.id] && !S.haxWon && !(S.clue&&S.clue[b.id])){ S.clue=S.clue||{}; S.clue[b.id]=1; pre.push("<span class='gold'>"+CLUES[b.id]+"</span>"); }
   if(LESSONS[b.id] && !(S.lesson&&S.lesson[b.id])){ S.lesson=S.lesson||{}; S.lesson[b.id]=1;
     pre.push("<div style='border:2px solid var(--teal);border-radius:8px;padding:5px 9px;margin:4px 0'><b class='gold'>"+LESSONS[b.id].t+"</b><br><span class='mut'>"+LESSONS[b.id].d+"</span></div>"); }
-  const dropTxt=grantDrops(b.id); if(dropTxt) pre.push(dropTxt);
+  const dropTxt=grantDrops(b.id, ((b.foes||[b]).length)); if(dropTxt) pre.push(dropTxt);
   if(S.party.includes("papafoxx") && S.actors.papafoxx && !S.actors.papafoxx.ko && b.id!=="dummy"){
     pre.push("<span class='mut'>"+foxxVictoryLine()+"</span>"); }
   const mat=DISCOVER[b.id];
@@ -3559,7 +3569,7 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
       "⏳ You understand the whole timeline now. Blameless isn't kindness - it's ENGINEERING. Fear hides the data that prevention needs.",
       "(The chest by the wall holds the ROOT CERT relic. Take the past with you.)"], ()=>saveGame(0)); return; }
     saveGame(0); };
-  render(); gainXP(b.id==="dummy"? sparXP() : b.def.xp, afterXP, pre); }
+  render(); gainXP(b.id==="dummy"? sparXP() : roomXP(b), afterXP, pre); }
 function runChain(chain){ const step=chain[0], rest=chain.slice(1);
   if(step.bridge!==undefined){ const br=BRIDGE[step.bridge];
     ask(br.t, br.a, i=>{ if(i===br.c){ say([br.good], ()=>{ gainXP(12, ()=>{ render(); runChain(rest); }); }); }
@@ -3994,7 +4004,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.classList.add("center");
   const auto=loadSlot(0);
   let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>- SRE EDITION -</div>"+
-   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 4,231,220 simulated battles, every one reproducible</div>"+
+   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 6,746,881 simulated battles, every one reproducible</div>"+
    "<div class='choices' style='max-width:360px;margin:0 auto;text-align:left'>";
   if(auto) h+="<button data-t='cont'>▶ CONTINUE (HERO LV "+auto.actors.hero.lv+" · "+Z[auto.z].name+")</button>";
   h+="<button data-t='new'>✦ NEW ADVENTURE</button>";
@@ -5390,8 +5400,8 @@ const TESTS = [
  ["the title screen tells the truth about the battle count", ()=>{
     const banned="19,0"+"00,000";
     const sub=document.querySelector(".sub");
-    return sub && sub.textContent.includes("4,231,220") && !sub.textContent.includes(banned)
-      && String(titleScreen).includes("4,231,220"); }],
+    return sub && sub.textContent.includes("6,746,881") && !sub.textContent.includes(banned)
+      && String(titleScreen).includes("6,746,881"); }],
 
  // ---- LITO REBORN (written RED-first) ----
  ["the guide wears a new face: lito sprite plus three breakdance frames", ()=>{
@@ -6487,26 +6497,11 @@ const TESTS = [
       return bit.every(d=>d===2) && b.foes.every(f=>f.dot===1);
     } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
 
- ["never outnumbered by more than the party can hold", ()=>{ const sb=S, rb=rng; S=NEWS();
-    try{
-      rng=mulberry32(2468);
-      const worst=(n)=>{ S.party=["sentinel","wiki","retro","refuter","papafoxx","sharon"].slice(0,Math.max(0,n-1));
-        let m=1; for(let i=0;i<600;i++) m=Math.max(m, packSize(4,"vague")); return m; };
-      const solo=worst(1), duo=worst(2), trio=worst(3), quad=worst(4), five=worst(5);
-      if(duo>2||trio>3||solo>1) console.log("outnumbered: party sizes 1..5 saw max packs",
-        [solo,duo,trio,quad,five].join(","));
-      // a lone HERO meets one thing; two bodies meet at most two; a full crew meets the cap
-      return solo===1 && duo===2 && trio===3 && quad===4 && five===4;
-    } finally { rng=rb; S=sb; } }],
-
- ["a full party is still allowed a proper crowd", ()=>{ const sb=S, rb=rng; S=NEWS();
-    try{
-      rng=mulberry32(1357);
-      S.party=["sentinel","wiki","retro","refuter","papafoxx"];
-      const seen={}; for(let i=0;i<800;i++){ const n=packSize(4,"vague"); seen[n]=(seen[n]||0)+1; }
-      // the cap must not quietly become the rule: stage 4 still reaches four bodies
-      return (seen[4]||0)>50 && (seen[1]||0)>50;
-    } finally { rng=rb; S=sb; } }],
+// The pair that used to sit here asserted the FIRST version of the cap - that a duo could
+// meet two and a trio three. That rule was retired once the simulator could see a pack
+// swing, and its replacement is asserted just below by "the party always outnumbers the
+// room", which covers party sizes one through seven rather than one through five. Two
+// tests describing two different rules is how a suite starts lying.
 
  ["the opening hours stay quiet, and the middle stops compounding", ()=>{ const sb=S, rb=rng; S=NEWS();
     try{
@@ -6809,7 +6804,7 @@ const TESTS = [
     const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
     const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
     // the ledger accounts for exactly this many, with a log and a seed for each
-    const CHECKABLE="4,231,220";
+    const CHECKABLE="6,746,881";
     const claims=(prod.match(/[0-9][0-9,]{4,}\s*\+?\s*(?:Monte Carlo|simulated|balance simulations|simulations)/g)||[])
       .map(t=>(t.match(/[0-9][0-9,]{4,}/)||[""])[0]);
     const wrong=claims.filter(c=>c!==CHECKABLE);
@@ -6933,6 +6928,73 @@ const TESTS = [
     const rig=IT.ar5, aegis=IT.ar3;
     return rig.def>aegis.def && (rig.spd||0)<(aegis.spd||0)
       && /SPEED/.test(rig.d) && /slower|-1 SPEED/i.test(rig.d); }],
+
+ ["the party always outnumbers the room", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(51515);
+      const worst=(bodies)=>{ S.party=["sentinel","wiki","retro","refuter","papafoxx","sharon"].slice(0,Math.max(0,bodies-1));
+        let m=1; for(let i=0;i<900;i++) m=Math.max(m, packSize(4,"vague")); return m; };
+      const got=[1,2,3,4,5,6,7].map(worst);
+      // a lone hero and a duo meet one thing; a trio meets two; a full crew meets the cap
+      const want=[1,1,2,3,4,4,4];
+      const ok=got.every((v,i)=>v===want[i]);
+      if(!ok) console.log("max pack by party size 1..7:", got.join(",")," want ",want.join(","));
+      return ok;
+    } finally { rng=rb; S=sb; } }],
+
+ ["a full crew still meets a proper crowd", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(24680);
+      S.party=["sentinel","wiki","retro","refuter","papafoxx"];
+      const seen={}; for(let i=0;i<900;i++){ const n=packSize(4,"vague"); seen[n]=(seen[n]||0)+1; }
+      // the cap must not quietly become the rule at the size the late game is played at
+      return (seen[4]||0)>60 && (seen[1]||0)>60;
+    } finally { rng=rb; S=sb; } }],
+
+ ["a room pays for the room", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel","wiki","retro"]; ["sentinel","wiki","retro"].forEach(id=>S.actors[id]=mkActor(id,8));
+      M.state="battle"; startBattle("packetshark","test",null,{count:4});
+      const b=M.b;
+      const one=EN.packetshark.tok, oneXp=EN.packetshark.xp;
+      const paid=roomTokens(b), paidXp=roomXP(b);
+      if(paid!==one*4 || paidXp!==oneXp*4)
+        console.log("four bodies paid", paid+"/"+paidXp, "instead of", (one*4)+"/"+(oneXp*4));
+      return paid===one*4 && paidXp===oneXp*4;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["a lone foe pays exactly what it always paid", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",8);
+      M.state="battle"; startBattle("packetshark","test");
+      const b=M.b;
+      return roomTokens(b)===EN.packetshark.tok && roomXP(b)===EN.packetshark.xp;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["salvage comes off every body, and the lesson is learned once", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.res={logs:0,metrics:0,traces:0,sigils:0};
+      S.skills={obs:{lv:1,xp:0}, forge:{lv:1,xp:0}};
+      const d=DROPS.packetshark;
+      if(!d) return true;                                    // nothing to salvage, nothing to prove
+      const beforeObs=S.skills.obs.xp;
+      grantDrops("packetshark", 3);
+      const scaled=Object.keys(d).every(k=>S.res[k]===d[k]*3);
+      const lessonOnce=(S.skills.obs.xp-beforeObs)===2;
+      if(!scaled||!lessonOnce) console.log("salvage x3:", JSON.stringify(S.res), "obs+", S.skills.obs.xp-beforeObs);
+      return scaled && lessonOnce;
+    } finally { S=sb; } }],
+
+ ["the reward is worth the room: a pack pays more than it costs to be there", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel","wiki","retro"]; ["sentinel","wiki","retro"].forEach(id=>S.actors[id]=mkActor(id,8));
+      M.state="battle";
+      startBattle("packetshark","test"); const solo=roomTokens(M.b);
+      startBattle("packetshark","test",null,{count:3}); const pack=roomTokens(M.b);
+      // a pack costs roughly three times a lone foe, so paying a lone foe's purse for it
+      // is what made fleeing the correct play
+      return pack >= solo*2.5;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -6963,7 +7025,7 @@ function runTests(){ document.getElementById("objline").hidden=true;
 
 // ================= EXPOSE & BOOT =================
 window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, LIMITS, RECIPES, mkActor, startBattle, startFinale, render, tryMove, interact,
-  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, dealtAll, buildQueue, foeAct, packSize, reconcileActor, GHOST_IDS, pagerCall, outnumberedGuard, FOEPOS, cycleTarget,
+  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, dealtAll, buildQueue, foeAct, packSize, reconcileActor, GHOST_IDS, pagerCall, outnumberedGuard, FOEPOS, cycleTarget, roomTokens, roomXP, grantDrops,
   menuPick, castSkill, castDual, castLimit, chargeLB, dualsFor, useItem, saveGame, loadSlot, migrateV2, migrateV3, migrateV4, migrateV5, atkOf, defOf, critOf, incoming,
   pauseMenu, openShop, titleScreen, newGame, living, partyActors, sparXP, allLootDone, eraCleared, ensureRoam, moveRoam, roamWalkable, ending,
   craft, gatherNode, budgetLeft, clsOf, mttxCard, setMusic, playMusic, MUS,

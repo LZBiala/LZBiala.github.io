@@ -1,6 +1,6 @@
 # The balance ledger
 
-The game's title screen says its balance was tuned on 4,231,220 simulated battles.
+The game's title screen says its balance was tuned on 6,746,881 simulated battles.
 This file is where that number is accounted for, because a claim nobody can check is
 just a number in a nice font.
 
@@ -35,13 +35,16 @@ sends the design back, not the gate.
 | lab12 shipped | 520,719 | the walk after the two remedies | E1 fails, E2-E5 pass | same log |
 | lab11 with AoE | 480,000 | does the room-hitting INDEX STORM undo the packs | no: +0.2pp KO, unchanged | `sim-runs/lab11-lab12-with-aoe-2026-08-23.log` |
 | lab12 with AoE | 520,735 | the walk, with the AoE the game actually ships | E1 fails, E2-E5 pass | same log |
+| lab11 instrument fixed | 480,000 | the same questions, on an instrument that can see a pack | D1, D3 fail | `sim-runs/lab11-lab12-instrument-fixed-2026-08-23.log` |
+| lab12 instrument fixed | 514,714 | the walk, measured properly for the first time | E1 PASSES; E2, E4 fail badly | same log |
+| lab11 corrected | 480,000 | after the party-outnumbers rule and the right rosters | D1, D3 fail (both known) | `sim-runs/lab11-lab12-corrected-2026-08-23.log` |
+| lab12 corrected | 520,947 | the walk as the game actually ships it | **ALL GATES PASS** | same log |
 
-**Published total: 4,231,220 battles**, every one of them reproducible from the script
+**Published total: 6,746,881 battles**, every one of them reproducible from the script
 and the seeds in it. That is the whole number the game claims.
 
-The last two rows are the ones that describe the shipped game. The four before them
-describe it accurately in every respect except the room-hitting INDEX STORM, which landed
-after they ran - see below.
+**Only the last two rows describe the shipped game.** Everything above them was measured on
+an instrument that could not see the thing it was measuring - see the retraction below.
 
 ## Why the headline number went DOWN
 
@@ -76,6 +79,57 @@ Two gates were changed after seeing results, and both changes are disclosed in
 fights under three turns, where saving a single round is 0.84 of the control by arithmetic
 alone and the gate was measuring rounding rather than power creep.
 
+## RETRACTION: every pack number above the last two rows was measured blind
+
+This is the biggest thing this ledger has had to say, so it goes near the top of the
+failures rather than at the end.
+
+**The simulator gave a whole pack one attack per round.** When the simulator learned about
+packs, a per-body loop was added at the end of the round - and put behind `if not
+foe_done`. There was already an interleave path that fires one foe action and sets
+`foe_done` as soon as an ally slower than the foe is reached. REFUTER is speed 3 and WIKI
+is 4, so that path fires in very nearly every battle, and the per-body loop was dead code
+from the day it was written. A four-pack hit exactly as hard as one foe.
+
+It is the mirror image of a defect that was found and fixed in the game itself the same
+day - `nextUnit` discarding the foe index so one body swung four times. The fix went into
+the game, and then the same mistake was written into the instrument that was supposed to
+check the game.
+
+**Two walks were also measured with parties that cannot walk them.** `tileAt` gates the
+1999 rift on `S.won` and the internet gateway on `S.haxKnown`, and `ending()` sets `S.won`
+alongside `S.stage=4`. So those zones are only ever walked after the finale, by a
+post-victory party in full kit - and they were being simulated at level 7-8 with partial
+gear and stage tags of 2 and 3.
+
+Both errors pushed the same way: they made packs look weaker than they are.
+
+What the corrected instrument says, on the same six walks:
+
+| | measured blind | measured properly |
+|---|---:|---:|
+| resources left, one foe per room | 50.1% | 60.3% |
+| resources left, packs as shipped | 41.4% | 44.3% |
+| the drop (gate E1, needs >= 10) | 8.7pp - FAIL | **16.0pp - PASS** |
+| walks ending under half | 78.9% | 74.9% |
+| worst single walk's wipe rate | 6.8% | 5.6% |
+
+**The gate that had been failing all along was passing all along.** Every previous entry in
+this file that quotes an 8.7-point drop, or says E1 could not be satisfied without pushing
+some walk over the wipe ceiling, was describing an instrument rather than a game.
+
+There is a design consequence worth stating plainly. That failing gate was the entire
+reason for a planned enemy-scaling system - five independent designs were drafted and
+adversarially reviewed to close a 1.3-point gap that did not exist. **No enemy's numbers
+were changed, and none needed to be.** The adversarial pass on those designs is what found
+the bug; not one of the designs survived its own review, and that turned out to be the most
+valuable thing the exercise produced.
+
+One real change did come out of it. With a pack finally able to swing, the opening walk -
+a HERO and one Ranger - wiped about one run in five, and the rule that had allowed an even
+fight became "the party always outnumbers the room". It binds only at party sizes two to
+four and costs the late game nothing.
+
 ## Two gates that still fail, and why they were not quietly moved
 
 **lab11 D1** asked for the KO rate on wandering fights to rise by 3 points once rooms
@@ -84,17 +138,22 @@ a trash fight is not meant to threaten a wipe, and lab11 handed the party a full
 before every single battle, so it could not see a cost even in principle. lab12 exists
 because of that failure.
 
-**lab12 E1** asked for a 10-point drop in resources across a six-fight walk. The shipped
-game gets 8.7. Getting the last 1.3 means more crowds, and more crowds put the opening
-walk and the 1999 arc back over the wipe ceiling that E2 guards - the two gates are in
-direct tension and this configuration cannot satisfy both. E1's threshold was a guess made
-before any data existed, and the game it would produce is worse than the one that misses
-it, so it stays missed and stays recorded. The real lever is that wandering foes do not
-scale with the story; changing that is an enemy-strength change and it gets its own
-pre-registered run rather than a quiet edit here.
+**lab11 D3** asks that no wandering row stay above 85% wins at a forced four-pack. It fails
+on `w_gremlin`, which wins 1% - and that row is a two-body party facing four foes, which
+the party-outnumbers rule makes structurally impossible. The gate measures a configuration
+the game cannot produce. Earlier it merely wobbled across the threshold on the seed;
+now it fails unmistakably, for a reason that is about the gate rather than the game.
 
-Neither number was moved to make a gate green. That is the whole point of writing them
-down first.
+Re-scoping D3 to the rows where four foes can actually occur is the obvious repair, and it
+is a gate change made after seeing results, so it belongs to a fresh pre-registration.
+
+**lab12 E1 used to be on this list and no longer is.** It asked for a 10-point drop and the
+game delivers 16.0. It was recorded here as an honest failure for as long as the instrument
+was wrong, which is exactly how it should have looked from the inside.
+
+No number was ever moved to make a gate green. That is the whole point of writing them
+down first - and it is what made the retraction above possible to write, because the
+failing number was still sitting there when the instrument was fixed.
 
 ## Two things the last campaign was run specifically to find out
 

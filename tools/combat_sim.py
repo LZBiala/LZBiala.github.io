@@ -303,8 +303,16 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
         foe_done = False; acted_n = 0
         for _ai in ally_order:
             if (not foe_done) and acted_n >= n_before:
-                _r = foe_strike(); foe_done = True
-                if _r == "L": return False, turn+1, actors
+                # EVERY living body acts, not just the one the cursor rests on. This loop
+                # used to live only in the end-of-round branch below, which this path
+                # skipped by setting foe_done - so a four-pack hit once per round.
+                _keep = e
+                for _f in [x for x in foes if x["hp"] > 0]:
+                    e = _f
+                    _r = foe_strike()
+                    if _r == "L": return False, turn+1, actors
+                foe_done = True
+                e = _keep if _keep["hp"] > 0 else next((f for f in foes if f["hp"] > 0), _keep)
             acted_n += 1
             a = actors[_ai]
             if a["ko"] or a["acted"] or e["hp"] <= 0: continue
@@ -506,11 +514,13 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
                 ti = next(i for i, f in enumerate(foes) if f["hp"] > 0)
                 e = foes[ti]                # the rest of the party swings at the next one
         if not foe_done:
+            _keep = e
             for _f in [x for x in foes if x["hp"] > 0]:
                 e = _f                      # each living foe takes its own action
                 _r = foe_strike()
                 if _r == "L": return False, turn+1, actors
             foe_done = True
+            e = _keep if _keep["hp"] > 0 else next((f for f in foes if f["hp"] > 0), _keep)
         if all(f["hp"] <= 0 for f in foes):
             return True, turn+1, actors
         if e["hp"] <= 0:                    # target fell, the room did not: move the cursor
@@ -1040,7 +1050,7 @@ def pack_size(stage, foe_id, rng, bodies=4):
     elif st == 2: n = 1 if roll < 0.50 else (2 if roll < 0.85 else 3)
     elif st == 3: n = 1 if roll < 0.25 else (2 if roll < 0.60 else (3 if roll < 0.90 else 4))
     else: n = 1 if roll < 0.20 else (2 if roll < 0.50 else (3 if roll < 0.85 else 4))
-    return max(1, min(n, bodies))   # never outnumbered by more than you have bodies
+    return max(1, min(n, bodies - 1))   # the party always outnumbers the room
 
 
 # The rooms the player actually walks into, taken from each zone's enc/roam pool in
@@ -1049,6 +1059,7 @@ EARLY = ["hero", "sentinel"]
 MID   = ["hero", "sentinel", "wiki", "retro"]
 LATE  = ["hero", "sentinel", "wiki", "retro", "refuter"]
 LATE6 = LATE + ["papafoxx"]
+POST  = LATE6 + ["sharon"]      # haxWon implies the rescue happened, and the rescue IS Sharon
 WANDER = [
     # key          enemy         party  lv  relic crafted armor stage
     ("w_vague",    "vague",      EARLY, 3,  False, False, False, 0),
@@ -1057,12 +1068,12 @@ WANDER = [
     ("w_wyrm",     "wyrm",       MID,   6,  False, False, False, 2),
     ("w_leak",     "leak",       LATE,  6,  False, False, False, 2),
     ("w_chorus",   "chorus",     LATE,  7,  False, True,  False, 2),
-    ("w_faxdaemon","faxdaemon",  LATE,  7,  False, True,  False, 2),
-    ("w_cobol",    "cobol",      LATE,  7,  False, True,  False, 2),
-    ("w_shark",    "packetshark",LATE6, 8,  True,  True,  True,  3),
-    ("w_botnet",   "botnet",     LATE6, 8,  True,  True,  True,  3),
-    ("w_phish",    "phish",      LATE6, 8,  True,  True,  True,  4),
-    ("w_worm",     "ransomworm", LATE6, 8,  True,  True,  True,  4),
+    ("w_faxdaemon","faxdaemon",  LATE6, 10, True,  True,  True,  4),
+    ("w_cobol",    "cobol",      LATE6, 10, True,  True,  True,  4),
+    ("w_shark",    "packetshark",LATE6, 10, True,  True,  True,  4),
+    ("w_botnet",   "botnet",     LATE6, 10, True,  True,  True,  4),
+    ("w_phish",    "phish",      POST,  10, True,  True,  True,  4),
+    ("w_worm",     "ransomworm", POST,  10, True,  True,  True,  4),
 ]
 ROW_STAGE = {r[0]: r[7] for r in WANDER}
 
@@ -1073,9 +1084,13 @@ CRAWLS = [
     ("c_early", ("vague", "gremlin"),            EARLY, 3, False, False, False, 0, 6),
     ("c_mid1",  ("creep", "gremlin"),            MID,   4, False, False, False, 1, 6),
     ("c_mid2",  ("wyrm", "leak"),                MID,   6, False, False, False, 2, 6),
-    ("c_1999",  ("faxdaemon", "cobol"),          LATE,  7, False, True,  False, 2, 6),
-    ("c_net1",  ("packetshark", "botnet"),       LATE6, 8, True,  True,  True,  3, 6),
-    ("c_net2",  ("phish", "ransomworm"),         LATE6, 8, True,  True,  True,  4, 6),
+    # 1999 and the internet zones are gated behind S.won, and ending() sets S.won and
+    # S.stage=4 together - so every one of these walks happens at stage 4, with the party
+    # and the kit a player who has just finished the game actually has.
+    ("c_1999",  ("faxdaemon", "cobol"),          LATE6, 10, True, True,  True,  4, 6),
+    ("c_net1",  ("packetshark", "botnet"),       LATE6, 10, True, True,  True,  4, 6),
+    # the Bastion and the NOC open on haxWon, and haxWon means SHARONDUH walks with you
+    ("c_net2",  ("phish", "ransomworm"),         POST,  10, True, True,  True,  4, 6),
 ]
 
 
