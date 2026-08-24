@@ -399,7 +399,21 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
                     e["hp"] -= dout(crit(5 + a["lv"] + f["lv"] + BOND, rng)); relief(); continue   # SETUP & PUNCHLINE (maxed hearts)
                 if (e["revealed"] and e["focused"] and a["mp"] >= 5
                         and not (e.get("regen") and e["verified"] == 0)):
-                    e["hp"] -= dout(crit(6 + a["lv"], rng)); a["mp"] -= 5; continue
+                    # INDEX STORM: every card at once. Against a crowd it spreads thinner
+                    # than a single-target burst, which is the choice the player is given.
+                    _up = [x for x in foes if x["hp"] > 0]
+                    if len(_up) > 1:
+                        for _f in _up:
+                            if _f.get("regen") and _f["verified"] == 0:
+                                continue
+                            _f["hp"] -= dout(crit(3 + a["lv"], rng))
+                    else:
+                        e["hp"] -= dout(crit(6 + a["lv"], rng))
+                    a["mp"] -= 5
+                    if e["hp"] <= 0 and any(x["hp"] > 0 for x in foes):
+                        ti = next(i for i, x in enumerate(foes) if x["hp"] > 0)
+                        e = foes[ti]
+                    continue
             if aid == "sentinel":
                 if not stole and a["mp"] >= 2: stole = True; a["mp"] -= 2; e["hp"] -= dout(2); continue
                 w = partner_of(actors, "wiki")

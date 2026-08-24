@@ -1,6 +1,6 @@
 # The balance ledger
 
-The game's title screen says its balance was tuned on 3,230,485 simulated battles.
+The game's title screen says its balance was tuned on 4,231,220 simulated battles.
 This file is where that number is accounted for, because a claim nobody can check is
 just a number in a nice font.
 
@@ -31,11 +31,17 @@ sends the design back, not the gate.
 | lab10 round 2 | 102,400 | after the kit's real lifetimes and numbers | K1 fails by design, K2-K5 pass | `sim-runs/lab10_run2.log` |
 | lab11 baseline | 480,000 | what does a crowded room do to the rooms players walk into | D1 and D3 FAILED | `sim-runs/lab11-lab12-baseline-2026-08-23.log` |
 | lab12 baseline | 519,942 | six fights with no rest: what do packs COST | E2 FAILED | same log |
-| lab11 shipped | 480,000 | the same question after the two remedies | D1 fails, D3 now passes | `sim-runs/lab11-lab12-shipped-2026-08-23.log` |
+| lab11 shipped | 480,000 | the same question after the two remedies | D1 fails, D3 borderline | `sim-runs/lab11-lab12-shipped-2026-08-23.log` |
 | lab12 shipped | 520,719 | the walk after the two remedies | E1 fails, E2-E5 pass | same log |
+| lab11 with AoE | 480,000 | does the room-hitting INDEX STORM undo the packs | no: +0.2pp KO, unchanged | `sim-runs/lab11-lab12-with-aoe-2026-08-23.log` |
+| lab12 with AoE | 520,735 | the walk, with the AoE the game actually ships | E1 fails, E2-E5 pass | same log |
 
-**Published total: 3,230,485 battles**, every one of them reproducible from the script
+**Published total: 4,231,220 battles**, every one of them reproducible from the script
 and the seeds in it. That is the whole number the game claims.
+
+The last two rows are the ones that describe the shipped game. The four before them
+describe it accurately in every respect except the room-hitting INDEX STORM, which landed
+after they ran - see below.
 
 ## Why the headline number went DOWN
 
@@ -52,10 +58,12 @@ log and a seed.
 The earlier work still happened and the design still rests on it. It is simply no longer
 being counted in a number presented as evidence.
 
+From here the number only goes up, and it goes up one archived campaign at a time.
+
 ## Why the failures are in the table
 
-Three of the six campaigns failed their own gates, and each failure killed a design rather
-than a number:
+Most of the campaigns in that table failed at least one of their own gates, and the
+failures are the reason the design is what it is. From the growth-tree rounds:
 
 - A free death-save was taking the KO rate on an underleveled party from 17.9% to 2.0%. It
   now catches only a blow that fells a healthy ally, never a slow bleed.
@@ -87,3 +95,27 @@ pre-registered run rather than a quiet edit here.
 
 Neither number was moved to make a gate green. That is the whole point of writing them
 down first.
+
+## Two things the last campaign was run specifically to find out
+
+**Did the published numbers describe a game nobody plays?** Room-hitting INDEX STORM
+shipped after the campaign above had already run, and handing the party a room-wide attack
+right after making rooms crowded is exactly the kind of change that quietly invalidates a
+measurement. So the simulator learned the AoE and the whole campaign ran again.
+
+It changed almost nothing: attrition across the walk went from -8.7 to -8.6 points, wipes
+stayed at 2.5%, walks ending under half moved 78.9% to 78.3%. The reason is visible in the
+turn counts - wandering fights end in two to three turns, and the storm needs the foe
+revealed, unfogged and five MP, so it rarely gets cast before the room is already clear.
+The suspicion was worth a million battles; the answer was that the earlier numbers stood.
+
+**D3 is a gate that cannot give a stable answer, on a row that cannot happen.** It asks
+that no wandering row fall below 85% wins at a forced four-pack. `w_vague` lands on 85%
+one run and 84% the next - the verdict is decided by the seed, not by the design. And a
+four-pack of `w_vague` is unreachable in play: stage 0 tops out at two foes, and a
+two-body party is capped at two regardless.
+
+Both facts are recorded rather than fixed. Re-scoping D3 to the rows where four foes can
+actually occur is the obvious repair, and it is a gate change made after seeing results,
+so it belongs to a fresh pre-registration rather than to a quiet edit in the run that
+found it.
