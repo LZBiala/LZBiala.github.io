@@ -974,7 +974,7 @@ const SP = {
  truestrike:{ name:"TRUE STRIKE", mp:2, d:"a test that cannot miss - pierces fog. ATK+2 damage." },
  audit:{ name:"AUDIT", mp:2, d:"inspect the books: steal ⛁ (once per battle) + 2 damage." },
  contexa:{ name:"CONTEXA", mp:3, d:"selective recall - damage; lifts fog; strong vs. bloated foes." },
- indexstorm:{ name:"INDEX STORM", mp:5, d:"every card in the box at once: 6+LV damage." },
+ indexstorm:{ name:"INDEX STORM", mp:5, d:"every card in the box at once: 6+LV damage to a lone foe, or 3+LV to EVERY enemy in the room." },
  controlarm:{ name:"CONTROL ARM", mp:3, d:"verify THIS ROUND's strikes vs. regeneration + shield self." },
  repair:{ name:"REPAIR", mp:3, d:"mend an ally: +6 HP." },
  ward:{ name:"WARD", mp:5, d:"placebo ward: every ally's next hit taken becomes 0." },
@@ -990,7 +990,7 @@ const SP = {
  kanban:{ name:"KANBAN CUT", mp:2, d:"two blades, one motion: 2×(2+LV/2) damage. Work in progress, finished." },
  dashboard:{ name:"DASHBOARD", mp:3, d:"see everything at once: reveals armor AND lifts fog in a single glance." },
  sprintplan:{ name:"SPRINT PLAN", mp:5, d:"the well-planned round: every ally's hits +2 this round. Scope it, ship it." },
- crowdwork:{ name:"CROWD WORK", mp:3, d:"the whole room turns on the heckler: enemy defense -2 for two rounds, every ally's hits +2 this round. Nobody boos alone." },
+ crowdwork:{ name:"CROWD WORK", mp:3, d:"the whole room turns on the heckler: EVERY enemy's defense -2 for two rounds, every ally's hits +2 this round. Nobody boos alone." },
  twinhypothesis:{ name:"TWIN HYPOTHESIS", mp:2, d:"two explanations run side by side: 2×(2+LV/2) damage. The one that survives the data stays." },
  firstprinciples:{ name:"FIRST PRINCIPLES", mp:2, d:"the foundation is wrong, stop iterating on it: reveals armor AND lifts fog." },
  windmill:{ name:"WINDMILL HALO FREEZE", mp:3, d:"spin, spin, hold: 3+LV/2 damage, and on a CRITICAL the foe loses its next turn." } };
@@ -3157,6 +3157,27 @@ function playerHit(a,dmg,txt){ const b=M.b;
   if(!b.focused && bowPierce){ txt+=" <span class='num'>The canary arrow sings through the fog!</span>"; }
   if(b.def.regen && b.verified===0){ fxBlocked(); blog(txt+"<br>It takes "+dmg+"... <span class='red'>and REGENERATES! (CONTROL ARM verifies the round.)</span>"); b.menu="next"; drawMenu(); return; }
   dealt(a,dmg,txt); }
+// A blow that reaches the whole room. It resolves body by body through dealt() so every
+// rule that has ever applied to a hit - crits, combo, the interrupt meter, the awakened
+// bonus, drops, the death check - applies to each of them, rather than being reimplemented
+// slightly differently here and drifting apart over time.
+function dealtAll(a, dmg, txt){ const b=M.b;
+  const targets=(b.foes||[b]).map((f,i)=>i).filter(i=>(b.foes?b.foes[i]:b).hp>0);
+  if(targets.length<=1) return dealt(a, dmg, txt);
+  const keep=b.ti;
+  blog(txt);
+  let fellAny=false;
+  for(const i of targets){
+    if(!b.foes[i] || b.foes[i].hp<=0) continue;
+    b.ti=i;
+    b.quietDealt=true;                 // one headline for the storm, not one per body
+    dealt(a, dmg, "");
+    b.quietDealt=false;
+    if(b.foes[i].hp<=0) fellAny=true; }
+  b.ti=(b.foes[keep] && b.foes[keep].hp>0) ? keep : b.ti;
+  if(roomCleared()){ blog("<span class='gold'>The room is clear!</span>"); sfx("win"); b.menu="won"; drawB(); return; }
+  if(fellAny) retarget();
+  b.menu="next"; drawB(); }
 function dealt(a,dmg,txt){ const b=M.b;
   if(a.id==="papafoxx" && typeof FOXX_BITS!=="undefined"){ const bit=FOXX_BITS[Math.floor(rng()*FOXX_BITS.length)]; M.lastBit=bit;
     txt+=" <span class='mut'>🎤 "+bit+"</span>"; }
@@ -3181,11 +3202,13 @@ function dealt(a,dmg,txt){ const b=M.b;
   sc.classList.remove("fx-flash"); void sc.offsetWidth; sc.classList.add("fx-flash"); // reflow so back-to-back hits re-flash
   setTimeout(()=>sc.classList.remove("fx-flash"),350);
   if(b.hp<=0){ const fell=foeLabel(b.foes[b.ti], b.ti);
+    if(b.quietDealt){ blog("<span class='num'>"+dmg+"</span> to "+fell+"... <span class='gold'>down!</span>"); return; }
     blog(txt+"<br><span class='num'>"+dmg+"</span> damage... <span class='gold'>"+fell+" is defeated!</span>");
     if(roomCleared()){ sfx("win"); b.menu="won"; drawB(); return; }
     retarget(); sfx("hit");
     blog("<span class='mut'>"+livingFoes().length+" still standing. Cursor moves to "+foeLabel(b.foes[b.ti], b.ti)+".</span>");
     b.menu="next"; drawB(); return; }
+  if(b.quietDealt){ blog("<span class='num'>"+dmg+"</span> to "+foeLabel(b.foes[b.ti], b.ti)+"."); return; }
   blog(txt+"<br><span class='num'>"+dmg+"</span> damage!"); b.menu="next"; drawB(); }
 const READERS=["fivewhy","contexa","dashboard","firstprinciples","controlarm","audit"];
 function skillCost(sp,id,a){ return Math.max(1, sp.mp
@@ -3238,7 +3261,10 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     if(!b.revealed){ blog(nm+" summons an INDEX STORM - <span class='red'>cards scatter off the armor!</span>"); b.menu="next"; drawB(); return; }
     if(!b.focused){ blog(nm+" summons an INDEX STORM - <span class='red'>the fog swallows it!</span>"); b.menu="next"; drawB(); return; }
     if(b.def.regen && b.verified===0){ blog(nm+" summons an INDEX STORM - <span class='red'>it knits itself back!</span>"); b.menu="next"; drawB(); return; }
-    return dealt(a, 6+a.lv, nm+" summons an INDEX STORM - every card at once!"); }
+    // spread thinner than a single-target burst, so the choice is the room or the one
+    const many=livingFoes().length>1;
+    return dealtAll(a, many ? (3+a.lv) : (6+a.lv),
+      nm+" summons an INDEX STORM - "+(many?"every card at once, at EVERY one of them!":"every card at once!")); }
   if(id==="controlarm"){ b.verified=2; a.shield=true;
     blog(nm+" raises the CONTROL ARM - <span class='gold'>this round's strikes are VERIFIED</span> (regeneration denied), and "+nm+" is shielded."); b.menu="next"; drawB(); return; }
   if(id==="ward"){ living().forEach(p=>p.shield=true); sfx("heal");
@@ -3247,7 +3273,9 @@ function castSkill(a,id){ const b=M.b, sp=SP[id];
     blog(nm+" ROLLS BACK to last known good state - <span class='num'>+7 HP</span>."); b.menu="next"; drawB(); return; }
   if(id==="objection"){ b.taunt=(heldBy(a)==="sw3") ? 3 : 2;
     blog(nm+": <span class='gold'>\"OBJECTION!\"</span> The enemy can't resist arguing - it targets the Tank for 2 turns (-1 dmg)."); b.menu="next"; drawB(); return; }
-  if(id==="crowdwork"){ b.softened=(heldBy(a)==="mic2") ? 3 : 2; b.sprint=Math.max(b.sprint||0,1); sfx("heal"); BFX.push("burst",{color:SKILL_FX.crowdwork});
+  if(id==="crowdwork"){ const soft=(heldBy(a)==="mic2") ? 3 : 2;
+    (b.foes||[b]).forEach(f=>{ if(f.hp>0) f.softened=soft; });   // the WHOLE room turns on the heckler
+    b.sprint=Math.max(b.sprint||0,1); sfx("heal"); BFX.push("burst",{color:SKILL_FX.crowdwork});
     blog(nm+" works the crowd - <span class='gold'>CROWD WORK!</span> The whole room turns on the heckler: <span class='num'>enemy defense -2 (2 rounds), every ally's hits +2 this round.</span> Nobody boos alone."); b.menu="next"; drawB(); return; }
   if(id==="roast"){ b.roasted=(heldBy(a)==="mic3") ? 3 : 2;
     return dealt(a, 2, nm+" ROASTS the enemy - a burn so precise it compiles! <span class='gold'>Its attack drops (2 rounds).</span> <span class='mut'>Blameless, but not painless.</span>"); }
@@ -6699,6 +6727,63 @@ const TESTS = [
       if(foeWords!==4 || tags.length!==4) console.log("turn strip:", strip);
       return foeWords===4 && tags.length===4;
     } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["M6: the storm beats the burst in a crowd, and loses to it one on one", ()=>{
+    const sb=S, rb=rng; S=NEWS();
+    try{
+      const total=(n, skill)=>{ rng=mulberry32(4242);
+        S=NEWS(); S.party=["wiki"]; S.actors.wiki=mkActor("wiki",9); S.actors.hero=mkActor("hero",9);
+        M.state="battle"; startBattle("golem","test",null,{count:n});
+        const b=M.b; b.foes.forEach(f=>{ f.hp=999; f.maxhp=999; f.revealed=true; f.focused=true; f.verified=0; });
+        b.ti=0; M.forceCrit=false;
+        const before=b.foes.reduce((t,f)=>t+f.hp,0);
+        castSkill(S.actors.wiki, skill);
+        delete M.forceCrit;
+        return before - b.foes.reduce((t,f)=>t+f.hp,0); };
+      const crowdStorm=total(3,"indexstorm"), crowdBurst=total(3,"contexa");
+      const soloStorm=total(1,"indexstorm"), soloBurst=total(1,"contexa");
+      const ok = crowdStorm>crowdBurst && soloStorm<soloBurst;
+      if(!ok) console.log("M6 totals - crowd storm/burst:", crowdStorm+"/"+crowdBurst,
+        "| solo storm/burst:", soloStorm+"/"+soloBurst);
+      return ok;
+    } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
+
+ ["a skill that says 'the whole room' means the whole room", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(606);
+      S.party=["papafoxx"]; S.actors.papafoxx=mkActor("papafoxx",9); S.actors.hero=mkActor("hero",9);
+      M.state="battle"; startBattle("golem","test",null,{count:3});
+      const b=M.b; b.foes.forEach(f=>{ f.softened=0; f.hp=400; });
+      b.ti=0;
+      castSkill(S.actors.papafoxx,"crowdwork");
+      const soft=b.foes.map(f=>f.softened||0);
+      if(soft.some(v=>v<2)) console.log("crowd work reached:", JSON.stringify(soft));
+      return soft.every(v=>v>=2);
+    } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
+
+ ["a room-clearing blow ends the fight, and a partial one does not", ()=>{ const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(1717);
+      S.party=["wiki"]; S.actors.wiki=mkActor("wiki",9); S.actors.hero=mkActor("hero",9);
+      M.state="battle"; startBattle("golem","test",null,{count:3});
+      const b=M.b; b.foes.forEach(f=>{ f.hp=2; f.maxhp=50; f.revealed=true; f.focused=true; });
+      b.ti=0; M.forceCrit=false;
+      castSkill(S.actors.wiki,"indexstorm");
+      delete M.forceCrit;
+      const cleared = b.menu==="won" && roomCleared();
+      // and the other way: a storm that leaves someone up must NOT declare victory
+      rng=mulberry32(1717);
+      S=NEWS(); S.party=["wiki"]; S.actors.wiki=mkActor("wiki",9); S.actors.hero=mkActor("hero",9);
+      startBattle("golem","test",null,{count:3});
+      const b2=M.b; b2.foes[0].hp=2; b2.foes[1].hp=2; b2.foes[2].hp=900; b2.foes[2].maxhp=900;
+      b2.foes.forEach(f=>{ f.revealed=true; f.focused=true; });
+      b2.ti=0; M.forceCrit=false;
+      castSkill(S.actors.wiki,"indexstorm");
+      delete M.forceCrit;
+      const partial = b2.menu!=="won" && livingFoes().length===1 && b2.foes[b2.ti].hp>0;
+      if(!cleared||!partial) console.log("storm endings:", {cleared, partial, menu:b2.menu, up:livingFoes().length});
+      return cleared && partial;
+    } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -6726,7 +6811,7 @@ function runTests(){ document.getElementById("objline").hidden=true;
 
 // ================= EXPOSE & BOOT =================
 window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, LIMITS, RECIPES, mkActor, startBattle, startFinale, render, tryMove, interact,
-  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, buildQueue, foeAct, packSize, reconcileActor, GHOST_IDS, pagerCall, outnumberedGuard, FOEPOS, cycleTarget,
+  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, dealtAll, buildQueue, foeAct, packSize, reconcileActor, GHOST_IDS, pagerCall, outnumberedGuard, FOEPOS, cycleTarget,
   menuPick, castSkill, castDual, castLimit, chargeLB, dualsFor, useItem, saveGame, loadSlot, migrateV2, migrateV3, migrateV4, migrateV5, atkOf, defOf, critOf, incoming,
   pauseMenu, openShop, titleScreen, newGame, living, partyActors, sparXP, allLootDone, eraCleared, ensureRoam, moveRoam, roamWalkable, ending,
   craft, gatherNode, budgetLeft, clsOf, mttxCard, setMusic, playMusic, MUS,
