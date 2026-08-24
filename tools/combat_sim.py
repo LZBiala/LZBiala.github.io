@@ -18,9 +18,9 @@ MSPD = { "hero":5, "sentinel":7, "wiki":4, "refuter":3, "papafoxx":6, "sharon":7
 BOND = 3   # worst-case bond bonus on dual techs (maxed hearts) - bosses must survive best friends
 MECHS = dict(BREAK=0, BREAK_TH=3, ASSIST=0, ASSIST_P=0.15, ENRAGE=0, INTERRUPT=0, JOIN_LB_FRAC=-1.0)   # >=0: sharon joins the chain before form 2 with lb=frac*LB_MAX (game-fidelity model)   # experimental mechanics lab: toggled per run via CLI JSON (e.g. '{"MECHS":{"BREAK":1}}')
 ESPD = { "vague":2, "gremlin":8, "creep":3, "golem":3, "wyrm":6, "leak":4, "chorus":4,
- "flaky":8, "drift":5, "monolith":3, "h1":6, "h2":5, "h3":5, "h4":4, "h5":5,
+ "flakytest":8, "configdrift":5, "monolith":3, "h1":6, "h2":5, "h3":5, "h4":4, "h5":5,
  "faxdaemon":6, "cobol":2, "patient0":5, "unknown":7, "retrystorm":6,
- "foxxboss":6, "packetshark":7, "botnet":5, "phish":4, "ransomworm":5, "zeroday":8,
+ "papafoxx":6, "packetshark":7, "botnet":5, "phish":4, "ransomworm":5, "zeroday":8,
  "nullbyte":6, "nullroot":7, "promptinj":6, "halluc":5, "misaligned":8 }
 BACK = ("wiki","papafoxx")   # sharon fights front now; the Slayer never did stand in back
 
@@ -104,8 +104,8 @@ def EN():
     "wyrm":    dict(hp=50, atk=3, moves=[4,4], twice=True),
     "leak":    dict(hp=55, atk=4, moves=[5,5], drain=True),
     "chorus":  dict(hp=64, atk=4, moves=[5,6], smart=True),
-    "flaky":   dict(hp=KNOBS["FLAKY_HP"], atk=4, moves=[5,KNOBS["FLAKY_M2"]], twice=True, smart=True),
-    "drift":   dict(hp=70, atk=5, moves=[5,KNOBS["DRIFT_M2"]], regen=True, grow=True, smart=True),
+    "flakytest":   dict(hp=KNOBS["FLAKY_HP"], atk=4, moves=[5,KNOBS["FLAKY_M2"]], twice=True, smart=True),
+    "configdrift":   dict(hp=70, atk=5, moves=[5,KNOBS["DRIFT_M2"]], regen=True, grow=True, smart=True),
     "monolith":dict(hp=KNOBS["MONO_HP"], atk=6, moves=[8,9,10], smart=True),
     "h1": dict(hp=85, atk=5, moves=[7,6]),
     "h2": dict(hp=85, atk=5, moves=[7,6], foggy=True),
@@ -118,8 +118,8 @@ def EN():
     "unknown": dict(hp=KNOBS["UNKNOWN_HP"], atk=8, moves=[9,12], smart=True, multi=True, multi3=True),
     "retrystorm": dict(hp=KNOBS["RETRY_HP"], atk=7, moves=[8,KNOBS["RETRY_M2"]], smart=True, multi=True, grow=True),
     # ---- v9: the fifth companion, fought first ----
-    "foxxboss": dict(hp=KNOBS["FOXX_HP"], atk=KNOBS["FOXX_ATK"], moves=[4, KNOBS["FOXX_M2"], 9], smart=True, heckler=True),
-    "foxxbossE": dict(hp=KNOBS["FOXX_HP_EARLY"], atk=KNOBS["FOXX_ATK_EARLY"], moves=[4, KNOBS["FOXX_M2"], 9], smart=True, heckler=True),
+    "papafoxx": dict(hp=KNOBS["FOXX_HP"], atk=KNOBS["FOXX_ATK"], moves=[4, KNOBS["FOXX_M2"], 9], smart=True, heckler=True),
+    "papafoxxE": dict(hp=KNOBS["FOXX_HP_EARLY"], atk=KNOBS["FOXX_ATK_EARLY"], moves=[4, KNOBS["FOXX_M2"], 9], smart=True, heckler=True),
     # ---- v9: the internet arc ----
     "packetshark": dict(hp=60, atk=5, moves=[5,7]),
     "botnet":      dict(hp=70, atk=5, moves=[4,6], multi=True, smart=True),
@@ -565,8 +565,8 @@ TABLE = [
  ("h5_5",      "h5",       FULL,  7, False, False, False),
  ("unknown5",  "unknown",  FULL,  7, False, False, False),
  ("retry5",    "retrystorm",FULL, 8, True,  True,  True),
- ("foxxfight5","foxxboss", FULL,  5, False, False, False),   # waking the dad early
- ("foxxfight7","foxxboss", FULL,  7, False, False, False),   # waking him late
+ ("foxxfight5","papafoxx", FULL,  5, False, False, False),   # waking the dad early
+ ("foxxfight7","papafoxx", FULL,  7, False, False, False),   # waking him late
  ("monolith6", "monolith", FULL6, 5, False, False, False),   # 6-member deltas vs frozen bosses
  ("h5_6",      "h5",       FULL6, 7, False, False, False),
  ("unknown6",  "unknown",  FULL6, 7, False, False, False),
@@ -583,7 +583,7 @@ TABLE = [
  ("misalign10","misaligned",FULL7,10, True, True,  True),
  ("misalign12","misaligned",FULL7,12, True, True,  True),    # the grind path (cap-50 era)
  ("golemR",    "golem",    ["hero","sentinel","wiki","retro"], 3, False, False, False),   # the Analyst joins early
- ("flakyR",    "flaky",    ["hero","sentinel","wiki","retro"], 4, False, False, False),
+ ("flakyR",    "flakytest",    ["hero","sentinel","wiki","retro"], 4, False, False, False),
  ("h5R",       "h5",       FULL6, 7, False, False, False),
  ("misalignR", "misaligned",FULL7,10, True, True,  True),
 ]
@@ -894,7 +894,7 @@ def lab8():
 
 
 def worker12(task):
-    (leg_key, pool, party, lv, relic, crafted, armor, noise, stage, arm, crawls, legs, seed) = task
+    (leg_key, pool, party, lv, relic, crafted, armor, noise, stage, arm, crawls, legs, seed, zone) = task
     rng = random.Random(seed)
     wipes = 0; broke = 0; res_sum = 0.0; fights = 0; kos = 0
     for _ in range(crawls):
@@ -903,7 +903,7 @@ def worker12(task):
         alive = True
         for _leg in range(legs):
             enemy = pool[rng.randrange(len(pool))]
-            n = 1 if arm == "one" else pack_size(stage, enemy, rng, len(party))
+            n = 1 if arm == "one" else pack_size(stage, enemy, rng, len(party), zone)
             w, _t, st = battle(party, lv, enemy, items, rng, relic, crafted, noise,
                                "balanced", False, armor, state=st, foe_count=n)
             fights += 1
@@ -954,10 +954,11 @@ def lab12():
     for arm in ARMS:
         cells = []
         for it in (1, 2, 3, 4):
-            for ri, (k, pool, party, lv, relic, crafted, armor, stage, legs) in enumerate(CRAWLS):
+            for ri, (k, pool, party, lv, relic, crafted, armor, stage, legs, zone) in enumerate(CRAWLS):
                 for ai, noise in enumerate((0.0, 0.25)):
                     cells.append((k, pool, party, lv, relic, crafted, armor, noise, stage, arm,
-                                  crawls, legs, 771100 + it*997 + ri*31 + ai + (0 if arm == "one" else 5000)))
+                                  crawls, legs, 771100 + it*997 + ri*31 + ai + (0 if arm == "one" else 5000),
+                                  zone))
         with Pool(processes=10, initializer=_init_knobs, initargs=(dict(KNOBS, _MECHS=dict(MECHS)),)) as pool_:
             got = pool_.map(worker12, cells)
         agg = {}
@@ -1035,21 +1036,30 @@ def worker11(task):
 
 # packSize() from game.html, transcribed. Bosses arrive alone; wandering things bring
 # more friends the further in you are.
-SOLO_FOES = ("monolith", "h5", "unknown", "retrystorm", "papafoxx", "foxxboss", "foxxbossE",
+SOLO_FOES = ("monolith", "h5", "unknown", "retrystorm", "papafoxx", "papafoxx", "papafoxxE",
              "hacker", "nullbyte", "nullroot", "promptinj", "halluc", "misaligned",
              "zeroday", "retroboss", "patient0", "dummy")
 
 
-def pack_size(stage, foe_id, rng, bodies=4):
+# Cumulative chance of one, two, then three bodies; past the last threshold is four.
+# Rows 0-4 are the stage curves; a zone listed in ZPACK is authored rather than inferred.
+PACKROW = [
+    (0.88, 1.00, 1.00),
+    (0.55, 0.90, 1.00),
+    (0.50, 0.85, 1.00),
+    (0.25, 0.60, 0.90),
+    (0.20, 0.50, 0.85),
+]
+ZPACK = {10: 3}     # the Firewall Bastion, the one walk that measured over the wipe ceiling
+
+
+def pack_size(stage, foe_id, rng, bodies=4, zone=None):
     if foe_id in SOLO_FOES:
         return 1
     st = max(0, min(4, int(stage)))
+    row = PACKROW[ZPACK[zone]] if (zone is not None and zone in ZPACK) else PACKROW[st]
     roll = rng.random()
-    if st <= 0: n = 1 if roll < 0.88 else 2
-    elif st == 1: n = 1 if roll < 0.55 else (2 if roll < 0.90 else 3)
-    elif st == 2: n = 1 if roll < 0.50 else (2 if roll < 0.85 else 3)
-    elif st == 3: n = 1 if roll < 0.25 else (2 if roll < 0.60 else (3 if roll < 0.90 else 4))
-    else: n = 1 if roll < 0.20 else (2 if roll < 0.50 else (3 if roll < 0.85 else 4))
+    n = 1 if roll < row[0] else (2 if roll < row[1] else (3 if roll < row[2] else 4))
     return max(1, min(n, bodies - 1))   # the party always outnumbers the room
 
 
@@ -1059,7 +1069,13 @@ EARLY = ["hero", "sentinel"]
 MID   = ["hero", "sentinel", "wiki", "retro"]
 LATE  = ["hero", "sentinel", "wiki", "retro", "refuter"]
 LATE6 = LATE + ["papafoxx"]
-POST  = LATE6 + ["sharon"]      # haxWon implies the rescue happened, and the rescue IS Sharon
+# The GATEWAY conversation sets S.haxKnown AND joins LITO in the same breath
+# (game.html:4132-4133), so you cannot walk into the internet without him.
+WIRE  = LATE6 + ["lito"]
+# SHARONDUH is what you walk OUT with: finishRescue() joins her and sets S.haxWon at the
+# end of the Dark NOC (game.html:2009). A walk measured with her is a walk given its own
+# reward as a starting condition.
+POST  = WIRE + ["sharon"]
 WANDER = [
     # key          enemy         party  lv  relic crafted armor stage
     ("w_vague",    "vague",      EARLY, 3,  False, False, False, 0),
@@ -1072,25 +1088,28 @@ WANDER = [
     ("w_cobol",    "cobol",      LATE6, 10, True,  True,  True,  4),
     ("w_shark",    "packetshark",LATE6, 10, True,  True,  True,  4),
     ("w_botnet",   "botnet",     LATE6, 10, True,  True,  True,  4),
-    ("w_phish",    "phish",      POST,  10, True,  True,  True,  4),
-    ("w_worm",     "ransomworm", POST,  10, True,  True,  True,  4),
+    ("w_phish",    "phish",      WIRE,  10, True,  True,  False, 4),
+    ("w_worm",     "ransomworm", WIRE,  10, True,  True,  False, 4),
 ]
 ROW_STAGE = {r[0]: r[7] for r in WANDER}
 
 # The walk: each stage's real wandering pool, the party and gear a player plausibly has
 # when walking it, and how many fights they take between rest points.
 CRAWLS = [
-    # key      pool                              party  lv relic crafted armor stage legs
-    ("c_early", ("vague", "gremlin"),            EARLY, 3, False, False, False, 0, 6),
-    ("c_mid1",  ("creep", "gremlin"),            MID,   4, False, False, False, 1, 6),
-    ("c_mid2",  ("wyrm", "leak"),                MID,   6, False, False, False, 2, 6),
+    # key      pool                              party  lv relic crafted armor stage legs zone
+    ("c_early", ("vague", "gremlin"),            EARLY, 3, False, False, False, 0, 6, 1),
+    ("c_mid1",  ("creep", "gremlin"),            MID,   4, False, False, False, 1, 6, 2),
+    ("c_mid2",  ("wyrm", "leak"),                MID,   6, False, False, False, 2, 6, 3),
     # 1999 and the internet zones are gated behind S.won, and ending() sets S.won and
     # S.stage=4 together - so every one of these walks happens at stage 4, with the party
     # and the kit a player who has just finished the game actually has.
-    ("c_1999",  ("faxdaemon", "cobol"),          LATE6, 10, True, True,  True,  4, 6),
-    ("c_net1",  ("packetshark", "botnet"),       LATE6, 10, True, True,  True,  4, 6),
-    # the Bastion and the NOC open on haxWon, and haxWon means SHARONDUH walks with you
-    ("c_net2",  ("phish", "ransomworm"),         POST,  10, True, True,  True,  4, 6),
+    ("c_1999",  ("faxdaemon", "cobol"),          LATE6, 10, True, True,  True,  4, 6, 5),
+    # The internet arc, walked IN: LITO is aboard, SHARONDUH is not yet, and the Locket
+    # and the Frontier Aegis are transmutes gated on haxWon, so armour is False.
+    ("c_net1",  ("packetshark", "botnet"),       WIRE,  10, True, True,  False, 4, 6, 9),
+    ("c_net2",  ("phish", "ransomworm"),         WIRE,  10, True, True,  False, 4, 6, 10),
+    # and walked OUT again, once she is rescued and the transmutes are unlocked
+    ("c_net3",  ("phish", "ransomworm"),         POST,  11, True, True,  True,  4, 6, 10),
 ]
 
 
@@ -1496,10 +1515,10 @@ def lab5():
     global RUNS_PER
     RUNS_PER = int(sys.argv[3]) if len(sys.argv) > 3 else 3125
     rows = [
-        ("foxxE3", "foxxbossE", ["hero", "sentinel", "wiki"], 3, False, False, False),
-        ("foxxE4", "foxxbossE", ["hero", "sentinel", "wiki"], 4, False, False, False),
-        ("foxxE5", "foxxbossE", ["hero", "sentinel", "wiki"], 5, False, False, False),
-        ("foxxfight5", "foxxboss", FULL, 5, False, False, False),
+        ("foxxE3", "papafoxxE", ["hero", "sentinel", "wiki"], 3, False, False, False),
+        ("foxxE4", "papafoxxE", ["hero", "sentinel", "wiki"], 4, False, False, False),
+        ("foxxE5", "papafoxxE", ["hero", "sentinel", "wiki"], 5, False, False, False),
+        ("foxxfight5", "papafoxx", FULL, 5, False, False, False),
     ]
     cells = []
     for it in (1, 2, 3, 4):

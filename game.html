@@ -3115,15 +3115,32 @@ function seatFoes(b, count){
 // which is the cheap move that always feels unfair.
 const SOLO_FOES=["monolith","h5","unknown","retrystorm","papafoxx","hacker","nullbyte","promptinj",
   "halluc","misaligned","zeroday","retroboss","dummy"];
+// How full a room gets. Each row is the cumulative chance of one, two, then three bodies;
+// anything past the last threshold is four. Rows 0-4 are the shipped stage curves,
+// transcribed exactly.
+const PACKROW=[
+  [0.88, 1.00, 1.00],   // 0  mean 1.12
+  [0.55, 0.90, 1.00],   // 1  mean 1.55
+  [0.50, 0.85, 1.00],   // 2  mean 1.65
+  [0.25, 0.60, 0.90],   // 3  mean 2.25
+  [0.20, 0.50, 0.85],   // 4  mean 2.45
+];
+// S.stage stops being the story's clock in the second half: it reaches 2 the moment the
+// core four are recruited, 3 only inside startFinale, and 4 only inside ending(). But
+// tileAt gates the Time Rift on S.won and the GATEWAY on S.haxKnown, so 1999, the Wire,
+// the Bastion and the Dark NOC are all walked at stage 4 - four zones of very different
+// difficulty sharing one row. A zone listed here is authored instead of inferred.
+//
+// The Firewall Bastion is the only walk in the game that measured over the wipe ceiling
+// once the walk fixtures were corrected, at 11.0% against a 10% bar. It drops one row.
+const ZPACK={ 10:3 };
 function packSize(stage, foeId){
   if(SOLO_FOES.indexOf(foeId)>=0) return 1;
   const st=Math.max(0, Math.min(4, stage|0));
+  const zi=(S && typeof S.z==="number") ? S.z : -1;
+  const row=PACKROW[(ZPACK[zi]!==undefined) ? ZPACK[zi] : st] || PACKROW[st];
   const roll=rng();
-  const n = (st<=0) ? (roll<0.88 ? 1 : 2)
-    : (st===1) ? (roll<0.55 ? 1 : (roll<0.90 ? 2 : 3))
-    : (st===2) ? (roll<0.50 ? 1 : (roll<0.85 ? 2 : 3))
-    : (st===3) ? (roll<0.25 ? 1 : (roll<0.60 ? 2 : (roll<0.90 ? 3 : 4)))
-    : (roll<0.20 ? 1 : (roll<0.50 ? 2 : (roll<0.85 ? 3 : 4)));
+  const n = roll<row[0] ? 1 : (roll<row[1] ? 2 : (roll<row[2] ? 3 : 4));
   // The party always outnumbers the room. The first version of this rule allowed an EVEN
   // fight, and an even fight is lethal for a HERO and one Ranger with no healer - once the
   // simulator was fixed to let every body in a pack actually swing, that opening walk was
@@ -7340,6 +7357,59 @@ const TESTS = [
     const trade=/(retro|scope|done|backlog|action item|velocity|stakeholder|acceptance|WIP|sprint)/i.test(pm);
     if(bad.length||!trade) console.log("duet problems:", bad.join(", "), "trade vocab:", trade);
     return bad.length===0 && trade; }],
+
+ ["every zone that was not re-authored draws exactly what it drew before", ()=>{
+    const sb=S, rb=rng; S=NEWS();
+    try{
+      S.party=["sentinel","wiki","retro","refuter","papafoxx"];
+      // the shipped ternary, transcribed before the change, as the oracle
+      const before=(st,roll)=> st<=0 ? (roll<0.88?1:2)
+        : st===1 ? (roll<0.55?1:(roll<0.90?2:3))
+        : st===2 ? (roll<0.50?1:(roll<0.85?2:3))
+        : st===3 ? (roll<0.25?1:(roll<0.60?2:(roll<0.90?3:4)))
+        : (roll<0.20?1:(roll<0.50?2:(roll<0.85?3:4)));
+      const bad=[];
+      Z.forEach((z,zi)=>{ if(ZPACK[zi]!==undefined) return;      // authored zones are the point
+        S.z=zi;
+        for(let st=0; st<=4; st++){
+          for(const roll of [0.0,0.19,0.21,0.24,0.26,0.49,0.51,0.54,0.56,0.59,0.61,0.84,0.86,0.89,0.91,0.99]){
+            rng=()=>roll;
+            const got=packSize(st,"vague"), want=Math.min(before(st,roll), 4);
+            if(got!==want) bad.push("z"+zi+" st"+st+" roll"+roll+": "+got+" want "+want); } } });
+      if(bad.length) console.log("density changed where it should not:", bad.slice(0,6).join(" | "));
+      return bad.length===0;
+    } finally { rng=rb; S=sb; } }],
+
+ ["the Firewall Bastion is quieter than the stage it shares", ()=>{
+    const sb=S, rb=rng; S=NEWS();
+    try{
+      S.party=["sentinel","wiki","retro","refuter","papafoxx","lito"];
+      const mean=(zi)=>{ S.z=zi; rng=mulberry32(4242); let n=0;
+        for(let i=0;i<4000;i++) n+=packSize(4,"phish"); return n/4000; };
+      const bastion=mean(10), wire=mean(9), noc=mean(11);
+      // it shares stage 4 with the Wire and the NOC, and must now seat fewer bodies
+      const ok = bastion < wire-0.1 && bastion < noc-0.1 && bastion > 1.5;
+      if(!ok) console.log("mean pack - wire", wire.toFixed(2), "bastion", bastion.toFixed(2), "noc", noc.toFixed(2));
+      return ok;
+    } finally { rng=rb; S=sb; } }],
+
+ ["an authored zone still obeys the party-outnumbers rule", ()=>{
+    const sb=S, rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(99);
+      S.z=10; S.party=["sentinel"];             // two bodies
+      let worst=1; for(let i=0;i<900;i++) worst=Math.max(worst, packSize(4,"phish"));
+      return worst===1;
+    } finally { rng=rb; S=sb; } }],
+
+ ["every authored zone is a real zone and a real row", ()=>{
+    const bad=[];
+    Object.keys(ZPACK).forEach(k=>{ if(!Z[+k]) bad.push("no zone "+k);
+      if(!PACKROW[ZPACK[k]]) bad.push("no row "+ZPACK[k]); });
+    PACKROW.forEach((r,i)=>{ if(r.length!==3) bad.push("row "+i+" has "+r.length+" thresholds");
+      for(let j=1;j<r.length;j++) if(r[j]<r[j-1]) bad.push("row "+i+" is not ascending"); });
+    if(bad.length) console.log("density table:", bad.join(", "));
+    return bad.length===0; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -7370,7 +7440,7 @@ function runTests(){ document.getElementById("objline").hidden=true;
 
 // ================= EXPOSE & BOOT =================
 window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, LIMITS, RECIPES, mkActor, startBattle, startFinale, render, tryMove, interact,
-  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, dealtAll, buildQueue, foeAct, packSize, reconcileActor, GHOST_IDS, pagerCall, outnumberedGuard, FOEPOS, cycleTarget, roomTokens, roomXP, grantDrops,
+  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, dealtAll, buildQueue, foeAct, packSize, PACKROW, ZPACK, reconcileActor, GHOST_IDS, pagerCall, outnumberedGuard, FOEPOS, cycleTarget, roomTokens, roomXP, grantDrops,
   menuPick, castSkill, castDual, castLimit, chargeLB, dualsFor, useItem, saveGame, loadSlot, migrateV2, migrateV3, migrateV4, migrateV5, atkOf, defOf, critOf, incoming,
   pauseMenu, openShop, titleScreen, newGame, living, partyActors, sparXP, allLootDone, eraCleared, ensureRoam, moveRoam, roamWalkable, ending,
   craft, gatherNode, budgetLeft, clsOf, mttxCard, setMusic, playMusic, MUS,

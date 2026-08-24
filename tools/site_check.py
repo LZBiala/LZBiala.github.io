@@ -7,6 +7,7 @@ glossary, walkthrough page), so they fail on the pre-redesign page by design.
 """
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -132,6 +133,19 @@ for pname, body in (("index.html", index), ("walkthrough.html", walk)):
         has = any(c.lower() in body.lower() for c in caveats)
         check(f"{label} in {pname}", has,
               f"quotes {', '.join(quoted)} with no limiting phrase")
+
+# 11. The simulator has tests now, and they are part of the gate rather than a thing to
+# remember. It produces every balance number this site publishes; on 2026-08-23 a guard
+# clause made a four-enemy pack attack once per round and roughly 3.5 million published
+# battles described a game that did not exist. Slow (it fights a few thousand battles), so
+# it can be skipped deliberately with SKIP_SIM_TESTS=1 - never by forgetting.
+if os.environ.get("SKIP_SIM_TESTS") != "1":
+    r = subprocess.run([sys.executable, str(ROOT / "tools" / "test_combat_sim.py")],
+                       cwd=str(ROOT), capture_output=True, text=True)
+    tail = [l for l in (r.stdout + r.stderr).splitlines() if l.startswith("FAIL")]
+    check("simulator self-tests pass", r.returncode == 0, "; ".join(tail)[:300])
+else:
+    print("SKIP  simulator self-tests (SKIP_SIM_TESTS=1)")
 
 print()
 if FAILS:
