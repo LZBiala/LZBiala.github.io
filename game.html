@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Quest: SEV-1 - SRE Edition</title>
-<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Nine playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 23,000,000 simulated battles behind the balance. One static file, no frameworks, no API keys.">
+<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Eight playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 23,000,000 simulated battles behind the balance. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
 <meta property="og:title" content="AI Quest: SEV-1 - the 8-bit party JRPG of AI engineering">
-<meta property="og:description" content="Nine playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 23,000,000 simulated battles.">
+<meta property="og:description" content="Eight playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 23,000,000 simulated battles.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-game.png">
 <meta property="og:url" content="https://lzbiala.github.io/game.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -1220,7 +1220,7 @@ const Z = [
   "THE GUIDE: I spent years embedded where the incidents actually live - client floors, war rooms, 2 AM bridges. One system learned inside-out until I WAS its runbook. An API Gateway was my product. I knew its heartbeat.",
   "THE GUIDE: There's a NAME for engineers who fight that way... but names are earned, kid, not given. Resolve the Sev-1 and I'll tell you yours.",
   "THE GUIDE: East of here the MONOLITH squats - an ungoverned AI that judges its own work. And behind it, something worse is building: a SEV-1. The real thing.",
-  "THE GUIDE: You can't do this alone. Four specialists wait along the road - a Ranger who tests everything, a Wizard of memory, a Cleric of repairs, a Tank who objects to everything. Incident command is separation of responsibilities: you hold the state, they touch the system.",
+  "THE GUIDE: You can't do this alone. Four specialists wait along the road - a Ranger who tests everything, a Wizard of memory, a Slayer who cuts what keeps breaking, a Tank who objects to everything. Incident command is separation of responsibilities: you hold the state, they touch the system.",
   "THE GUIDE: One more law, kid. We keep an error budget here - we SPEND failure on learning, never on excuses. A village that never breaks anything has stopped shipping.",
   "THE GUIDE: Buy gear at Peg's - she stocks shared primitives, not one-off hacks. Rest at Mara's - she saves your progress. And when you reach the Citadel... ask me about the Monolith. There's something you deserve to know. Go east!"]},
  {x:3,y:5,spr:"rowan",name:"ELDER ROWAN",lines:[
@@ -1331,12 +1331,10 @@ const Z = [
   "Sharonduh let me read her cage notebooks. Half genius, half love letters. I filed them under both.",
   "Every belief auditable, every deletion carrying its reason. People too, I think. That's what forgiveness is - a documented deletion.",
   "Your five-why has gotten quieter. The loud ones are for the room. The quiet ones are for the truth."]},
- {x:8,y:6,spr:"retro",name:"RETROLISTIC",inParty:"retro",lines:[
+ {x:10,y:3,spr:"retro",name:"RETROLISTIC",inParty:"retro",lines:[
   "I checked everyone's HP while they slept. Old habit. The placebo of care is still care.",
   "The Retry Storm taught me something: healing isn't undoing damage. It's teaching the system to fail smaller.",
-  "Mara and I trade notes - innkeeping and clerics run the same playbook. Rest, count, never blame the bed.",
-  "You call for repairs less than you used to. I can't decide if I'm proud or unemployed."]},
- {x:10,y:3,spr:"retro",name:"RETROLISTIC",inParty:"retro",lines:[
+  "Mara and I trade notes - innkeeping and incident review run the same playbook. Rest, count, never blame the bed.",
   "I timed the inn's breakfast queue. Mara's throughput is heroic; her bottleneck is the stew ladle. I said nothing. Some systems are perfect because nobody optimized them.",
   "PapaFoxx's jokes land 71% of the time. He says the misses are 'load-bearing'. …He's right, and I hate that the data agrees.",
   "You ask better questions than when we met. That's the whole job, you know - the blades are just punctuation.",
@@ -1520,6 +1518,33 @@ function migrateV4(old){ // v4 party schema → v5 fields → v6
   if(s.sparLv===undefined) s.sparLv=1; if(s.sparN===undefined) s.sparN=0;
   if(s.eraSeen===undefined) s.eraSeen=false; if(s.wizard===undefined) s.wizard=false;
   return migrateV5(s); }
+// Characters change between releases; a save file does not. Every actor in a save is a
+// snapshot of the roster as it stood that day, so reconcile it against MEMBERS on every
+// load: progress travels, the stat line gets rebuilt. This project has now shipped the
+// same defect four times by trusting a saved sheet, and this is the general form of it.
+const GHOST_IDS=["mender"];   // souls the roster deleted; nothing may seat them again
+function reconcileActor(a, sv){
+  const m=a && MEMBERS[a.id]; if(!m) return a;
+  const lv=Math.max(1, Math.min(XPCURVE.length, a.lv|0 || 1));
+  const fresh=mkActor(a.id, lv);
+  // The sheet is a pure function of (roster, level, reawakenings, the Trial's gift).
+  // Everything on that list is recorded in the save, so it is RE-EARNED here rather
+  // than trusted - which is how a stale sheet gets corrected without robbing anyone.
+  const w=(sv && sv.awak && sv.awak[a.id])|0;
+  if(w>0){ fresh.maxhp+=2*w; fresh.maxmp+=2*w; fresh.atk+=w; }
+  const pk=(a.id==="hero" && sv && sv.core && sv.core.perk) || "";
+  if(pk==="VIT"){ fresh.maxhp+=3; }
+  if(pk==="INT"){ fresh.maxmp+=2; }
+  if(pk==="SPR"){ fresh.maxhp+=1; fresh.maxmp+=1; }
+  fresh.hp=fresh.maxhp; fresh.mp=fresh.maxmp;
+  fresh.xp=(typeof a.xp==="number") ? a.xp : fresh.xp;
+  fresh.lb=Math.max(0, Math.min(LB_MAX, a.lb|0));
+  fresh.row=(a.row==="back"||a.row==="front") ? a.row : fresh.row;
+  fresh.ko=!!a.ko;
+  fresh.hp=Math.max(0, Math.min(fresh.maxhp, (typeof a.hp==="number")?a.hp:fresh.maxhp));
+  fresh.mp=Math.max(0, Math.min(fresh.maxmp, (typeof a.mp==="number")?a.mp:fresh.maxmp));
+  if(fresh.hp<=0 && !fresh.ko) fresh.hp=1;   // a standing body is never on zero
+  return fresh; }
 function saveKey(slot){ return slot? "aiquest10_s"+slot : "aiquest10_auto"; }
 function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }
 function saveGame(slot){ try{ tickClock(); localStorage.setItem(saveKey(slot), JSON.stringify(S)); }catch(e){} }
@@ -1532,14 +1557,22 @@ function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d
     Object.keys(out.items||{}).forEach(k=>{ if(!IT[k]) delete out.items[k]; });             // never carry item ids the table no longer knows
     { const sb=S; S=out; try{ treeInit(); } finally { S=sb; } }   // a build that could never be bought must not arrive by save file
     if(Array.isArray(out.party) && out.party.indexOf("mender")>=0){   // the Cleric merged into the Slayer
-      const lv=(out.actors && out.actors.mender && out.actors.mender.lv) || 1;
+      const A=out.actors||{};
+      // two characters became one, so the player keeps the deeper of the two investments
+      const lv=Math.max((A.mender&&A.mender.lv)|0, (A.retro&&A.retro.lv)|0,
+                        (A.hero&&A.hero.lv)|0, 1);
+      const xp=Math.max((A.mender&&A.mender.xp)|0, (A.retro&&A.retro.xp)|0);
       out.party=out.party.filter(id=>id!=="mender");
       if(out.party.indexOf("retro")<0) out.party.push("retro");
       if(out.actors){ delete out.actors.mender;
-        if(!out.actors.retro) out.actors.retro=mkActor("retro", lv); }
+        out.actors.retro=mkActor("retro", lv); out.actors.retro.xp=xp; }
       if(out.gear) delete out.gear.mender;
       if(out.bond){ out.bond.retro=Math.max(out.bond.retro||0, out.bond.mender||0); delete out.bond.mender; }
+      if(out.awak){ if(out.awak.mender) out.awak.retro=true; delete out.awak.mender; }
+      if(out.hang){ out.hang.retro=Math.max(out.hang.retro||0, out.hang.mender||0); delete out.hang.mender; }
     }
+    // last word: whatever the save claimed, the roster decides what a character IS
+    if(out.actors) Object.keys(out.actors).forEach(id=>{ out.actors[id]=reconcileActor(out.actors[id], out); });
     return out; }catch(e){ return null; } }
 function tryMigrate(){
   try{ localStorage.getItem(saveKey(0)); }catch(e){ return false; }   // per-slot never-clobber guards below make migration safely resumable
@@ -1635,7 +1668,7 @@ const SKILL_FX = { promptia:"#2dd4bf", fivewhy:"#fbbf24", rollback:"#34d399", hi
  rootcausex:"#2dd4bf", promptstorm:"#c084fc", xreview:"#f87171", canaryvolley:"#fbbf24", safedeploy:"#60a5fa",
  roast:"#fb923c", ultima:"#f0abfc", dadjoke:"#fde68a", setuppunchline:"#f9a8d4",
  hotfix:"#34d399", sanitize:"#e8f4ee", uptimeaura:"#93c5fd", pairprogramming:"#f472b6", failoverfist:"#fda4af", kanban:"#2dd4bf", dashboard:"#60a5fa", sprintplan:"#fbbf24", limit_retro:"#2dd4bf", crowdwork:"#fb923c", twinhypothesis:"#60a5fa", firstprinciples:"#fbbf24", windmill:"#c084fc", limit_lito:"#60a5fa",
- limit_hero:"#fbbf24", limit_sentinel:"#4ade80", limit_wiki:"#c084fc", limit_mender:"#34d399", limit_refuter:"#fb923c", limit_papafoxx:"#fbbf24", limit_sharon:"#f472b6" };
+ limit_hero:"#fbbf24", limit_sentinel:"#4ade80", limit_wiki:"#c084fc", limit_retro:"#34d399", limit_refuter:"#fb923c", limit_papafoxx:"#fbbf24", limit_sharon:"#f472b6" };
 const FXDUR = { lunge:520, foelunge:520, burst:600, pop:900, heal:700, hit:260 };
 // ---- limit breaks (FF-style: gauges charge from damage taken) ----
 const LB_MAX = 20;
@@ -3582,7 +3615,7 @@ function startFinale(){
         i=>{ if(i===0) ending(); else if(i===1) startBattle("unknown", null); }); return; }
     ask("Atop the Citadel, the air itself feels… unmapped. Face THE UNKNOWN UNKNOWN? (superboss - bring everything)",
       ["FIGHT - the true test","Not yet"], i=>{ if(i===0) startBattle("unknown", null); }); return; }
-  if(!coreFourIn()){ say(["THE MONOLITH: 'ALONE? RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.'","(Recruit all four named specialists - Ranger, Wizard, Cleric, Tank - before the finale. Friends beyond them are welcome, not substitutes.)"]); return; }
+  if(!coreFourIn()){ say(["THE MONOLITH: 'ALONE? RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.'","(Recruit all four named specialists - Ranger, Wizard, Slayer, Tank - before the finale. Friends beyond them are welcome, not substitutes.)"]); return; }
   say(REVEAL, ()=>{ S.stage=Math.max(S.stage,3); chapterCard(3); saveGame(0);
     runChain(FINALE_CHAIN.slice()); }); }
 function allLootDone(){ let need=0, got=0;
@@ -3609,7 +3642,7 @@ function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
   if(better){ best={score:score, grade:grade, ms:S.playMs};
     try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
   const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
-  M.shareText="⚔️ AI Quest: SEV-1 - MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · nine classes, dual techs, time travel, a rescue inside the internet - the final boss is a major incident. Can you beat it? Race my exact seed: https://lzbiala.github.io/game.html?seed="+S.seed;
+  M.shareText="⚔️ AI Quest: SEV-1 - MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · eight classes, dual techs, time travel, a rescue inside the internet - the final boss is a major incident. Can you beat it? Race my exact seed: https://lzbiala.github.io/game.html?seed="+S.seed;
   saveGame(0); ov.hidden=false; ov.classList.remove("center"); M.state="end"; sfx("level");
   box.innerHTML="<b class='gold'>👑 INCIDENT RESOLVED - MTTx: LEGENDARY</b>"+
   "<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
@@ -5168,7 +5201,7 @@ const TESTS = [
     S=sb; return a==="deepsleep" && b!=="deepsleep"; }],
  ["small crowd, softer set: the early heckler scales", ()=>{ const sb=S; S=NEWS();
     S.party=["sentinel","wiki"]; const e=foxxStats();
-    S.party=["sentinel","wiki","mender","refuter"]; const f=foxxStats();
+    S.party=["sentinel","wiki","retro","refuter"]; const f=foxxStats();
     S=sb; return e.hp===95 && e.atk===3 && f.hp===160 && f.atk===5; }],
  ["the voice: new material in the victory and homebase pools", ()=>{
     const pool=JSON.stringify(FOXX_TALK||{});
@@ -5220,7 +5253,7 @@ const TESTS = [
     windmillFreeze(M.b, true); const n2=M.b.snoozed===true;
     M.b=null; S=sb; return n1 && n2; }],
  ["after the final boss, lito asks to come along: the recruit path exists and seats him", ()=>{ const sb=S; S=NEWS();
-    S.party=["sentinel","wiki","mender","refuter","papafoxx","sharon"]; S.actors.hero.lv=9;
+    S.party=["sentinel","wiki","retro","refuter","papafoxx","sharon"]; S.actors.hero.lv=9;
     joinLito(); const ok=S.party.includes("lito") && !!S.actors.lito && S.actors.lito.lv===9;
     joinLito(); const once=S.party.filter(x=>x==="lito").length===1;
     S=sb; return ok && once; }],
@@ -6046,6 +6079,127 @@ const TESTS = [
       return packSize(4,"monolith")===1 && packSize(4,"h5")===1
         && packSize(4,"papafoxx")===1 && packSize(4,"misaligned")===1;
     } finally { S=sb; } }],
+
+ ["a completionist who recruited both keeps a WHOLE Slayer, not half of one", ()=>{
+    const key=saveKey(3); const bak=localStorage.getItem(key);
+    try{
+      const old=Object.assign(NEWS(), { party:["sentinel","wiki","mender","retro","refuter"] });
+      old.actors.mender=mkActor("sentinel",8); old.actors.mender.id="mender";
+      // the pre-merge Analyst: the sheet the old roster granted, frozen in the save file
+      old.actors.retro={ id:"retro", lv:8, xp:0, maxhp:30, maxmp:24, atk:9, spd:6,
+                         row:"front", ko:false, sk:["kanban","dashboard","sprintplan"], lb:0, hp:30, mp:24 };
+      localStorage.setItem(key, JSON.stringify(old));
+      const l=loadSlot(3); if(!l || !l.actors.retro) return false;
+      const a=l.actors.retro, m=MEMBERS.retro;
+      const want=[]; for(let L=1;L<=a.lv;L++) (m.skills[L]||[]).forEach(k=>{ if(want.indexOf(k)<0) want.push(k); });
+      const gotAll=want.every(k=>a.sk.indexOf(k)>=0);
+      // the roster table is the truth; the save only carries progress
+      return gotAll && a.spd===m.spd && a.maxhp===(m.base.hp+m.grow.hp*(a.lv-1))
+        && a.atk===(m.base.atk+m.grow.atk*(a.lv-1)) && l.party.indexOf("mender")<0;
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["no loaded actor keeps a stat line the roster no longer grants", ()=>{
+    const key=saveKey(3); const bak=localStorage.getItem(key);
+    try{
+      const old=Object.assign(NEWS(), { party:["sentinel","wiki","refuter"] });
+      // every one of them is stale in a different way
+      old.actors.sentinel=Object.assign(mkActor("sentinel",6), {spd:1, atk:99, sk:[]});
+      old.actors.wiki=Object.assign(mkActor("wiki",6), {maxhp:1});
+      old.actors.refuter=Object.assign(mkActor("refuter",6), {sk:["kanban"]});
+      localStorage.setItem(key, JSON.stringify(old));
+      const l=loadSlot(3); if(!l) return false;
+      return ["sentinel","wiki","refuter"].every(id=>{
+        const a=l.actors[id], m=MEMBERS[id]; if(!a||!m) return false;
+        const want=[]; for(let L=1;L<=a.lv;L++) (m.skills[L]||[]).forEach(k=>{ if(want.indexOf(k)<0) want.push(k); });
+        return a.spd===m.spd && a.atk===(m.base.atk+m.grow.atk*(a.lv-1))
+          && a.maxhp===(m.base.hp+m.grow.hp*(a.lv-1))
+          && want.every(k=>a.sk.indexOf(k)>=0) && a.sk.every(k=>want.indexOf(k)>=0);
+      });
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["the merge keeps the deeper investment, and the bond and awakening travel with it", ()=>{
+    const key=saveKey(3); const bak=localStorage.getItem(key);
+    try{
+      const old=Object.assign(NEWS(), { party:["sentinel","mender","retro","refuter"] });
+      old.actors.mender=mkActor("sentinel",9); old.actors.mender.id="mender";
+      old.actors.retro=mkActor("retro",3);
+      old.awak={mender:true}; old.hang={mender:2}; old.bond={mender:5, retro:1};
+      localStorage.setItem(key, JSON.stringify(old));
+      const l=loadSlot(3); if(!l || !l.actors.retro) return false;
+      // nine levels of Cleric do not evaporate because two characters became one
+      return l.actors.retro.lv===9 && l.awak.retro===true && !l.awak.mender
+        && (l.hang.retro||0)>=2 && !l.hang.mender && l.bond.retro===5;
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["nobody stands in a room twice, in any room", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel","wiki","retro","refuter","papafoxx","sharon","lito"];
+      const dupes=[];
+      Z.forEach((z,zi)=>{ const seen={};
+        npcsFor(z).forEach(n=>{ if(!n.name) return;
+          if(seen[n.name]) dupes.push(z.name+": "+n.name); seen[n.name]=1; }); });
+      if(dupes.length) console.log("two of the same soul in one room:", dupes.join(" | "));
+      return dupes.length===0;
+    } finally { S=sb; } }],
+
+ ["the suite never seats a soul the roster deleted", ()=>{
+    const src=document.documentElement.outerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+    if(!(ti>0 && tj>ti)) return false;
+    const SELF="the suite never seats a soul";
+    // A test may NAME a deleted soul - proving it is gone is the whole job of the
+    // dangling-reference guard and of the migration fixtures. What no test may do is
+    // SEAT one in the live party, because then it is asserting against a game that
+    // cannot exist. That is how this suite went green while shipping a broken merge.
+    const ghosts=[];
+    src.slice(ti, tj).split("\n").filter(L=>L.indexOf(SELF)<0).forEach((L,i)=>{
+      const seat=L.match(/S\.party\s*(?:=|\.push\()[^;]*/g)||[];
+      seat.forEach(frag=>{ (frag.match(/"([a-z][a-z0-9]{2,12})"/g)||[]).forEach(q=>{
+        if(GHOST_IDS.indexOf(q.slice(1,-1))>=0) ghosts.push("line "+i+": "+q.slice(1,-1)); }); });
+    });
+    if(ghosts.length) console.log("tests still seating deleted characters:", ghosts.join(" | "));
+    return ghosts.length===0; }],
+
+ ["reawakening and the Trial are forever, and a reload cannot take them back", ()=>{
+    const key=saveKey(3); const bak=localStorage.getItem(key);
+    try{
+      const old=Object.assign(NEWS(), { party:["sentinel"] });
+      old.core={perk:"VIT"}; old.awak={hero:2, sentinel:1};
+      // exactly what reawaken() and finishTrial() leave behind on the sheet
+      const h=mkActor("hero",6); h.maxhp+=2*2+3; h.maxmp+=2*2; h.atk+=2; h.hp=h.maxhp; h.mp=h.maxmp;
+      const sn=mkActor("sentinel",4); sn.maxhp+=2; sn.maxmp+=2; sn.atk+=1; sn.hp=sn.maxhp; sn.mp=sn.maxmp;
+      old.actors.hero=h; old.actors.sentinel=sn;
+      localStorage.setItem(key, JSON.stringify(old));
+      const l=loadSlot(3); if(!l) return false;
+      const H=l.actors.hero, S2=l.actors.sentinel, MH=MEMBERS.hero, MS=MEMBERS.sentinel;
+      const wantH=MH.base.hp+MH.grow.hp*5 + 4 + 3, wantHm=MH.base.mp+MH.grow.mp*5 + 4;
+      const wantS=MS.base.hp+MS.grow.hp*3 + 2;
+      if(H.maxhp!==wantH || H.maxmp!==wantHm || H.atk!==(MH.base.atk+MH.grow.atk*5+2)) {
+        console.log("hero robbed: got", H.maxhp+"/"+H.maxmp+"/"+H.atk, "want", wantH+"/"+wantHm+"/"+(MH.base.atk+MH.grow.atk*5+2)); return false; }
+      if(S2.maxhp!==wantS){ console.log("sentinel robbed: got", S2.maxhp, "want", wantS); return false; }
+      return true;
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["a reconciled sheet is exactly what the game would have built anyway", ()=>{
+    // the real invariant: reconcile is a no-op on any actor the game itself produced
+    const sb=S; S=NEWS();
+    try{
+      S.core={perk:"INT"}; S.awak={};
+      const ids=["hero","sentinel","wiki","retro","refuter"];
+      const bad=[];
+      ids.forEach(id=>{
+        for(const lv of [1,5,10]){
+          const built=mkActor(id,lv);
+          if(id==="hero"){ built.maxmp+=2; built.mp=built.maxmp; }   // the Trial's gift
+          const back=reconcileActor(JSON.parse(JSON.stringify(built)), S);
+          ["maxhp","maxmp","atk","spd","lv","hp","mp"].forEach(k=>{
+            if(back[k]!==built[k]) bad.push(id+" lv"+lv+" "+k+": "+back[k]+" != "+built[k]); });
+          if(back.sk.join()!==built.sk.join()) bad.push(id+" lv"+lv+" skills");
+        } });
+      if(bad.length) console.log("reconcile changed a legitimate sheet:", bad.join(" | "));
+      return bad.length===0;
+    } finally { S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -6073,7 +6227,7 @@ function runTests(){ document.getElementById("objline").hidden=true;
 
 // ================= EXPOSE & BOOT =================
 window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, LIMITS, RECIPES, mkActor, startBattle, startFinale, render, tryMove, interact,
-  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, buildQueue, foeAct, packSize,
+  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, buildQueue, foeAct, packSize, reconcileActor, GHOST_IDS,
   menuPick, castSkill, castDual, castLimit, chargeLB, dualsFor, useItem, saveGame, loadSlot, migrateV2, migrateV3, migrateV4, migrateV5, atkOf, defOf, critOf, incoming,
   pauseMenu, openShop, titleScreen, newGame, living, partyActors, sparXP, allLootDone, eraCleared, ensureRoam, moveRoam, roamWalkable, ending,
   craft, gatherNode, budgetLeft, clsOf, mttxCard, setMusic, playMusic, MUS,
