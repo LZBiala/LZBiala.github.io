@@ -2714,6 +2714,7 @@ function startBattle(id,key,chain,opts){ const def=EN[id];
   let intro=def.intro;
   if(id==="h5"){ M.b.fieldProto=true; S.actors.hero.lb=LB_MAX;
     intro+="<br><span class='gold'>Your hands stop shaking. Every rep - every five-why, every rollback, every blameless review - fuses into something NEW. ★ LIMIT evolved: FIELD PROTOCOL.</span>"; }
+  seatFoes(M.b, (opts && opts.count) || 1);   // one unless the encounter says otherwise
   BW.hidden=false; ov.hidden=true; blog(intro);
   partyActors().forEach(a=>{ a.acted=false; });
   M.b.introPending=intro;
@@ -2812,10 +2813,57 @@ function navBattle(d){ const b=M.b; if(!b) return;
   b.sel=(((b.sel||0)+d)%bs.length+bs.length)%bs.length;
   bs.forEach((x,i)=>x.classList.toggle("sel", i===b.sel)); sfx("blip"); }
 // -------- FFT INITIATIVE QUEUE: every unit acts in speed order, foe interleaved --------
+// ---- THE ROOM: up to four foes, addressed one at a time ----
+// These fields describe A FOE, not the battle. Proxying them keeps every existing
+// call site correct: b.hp has always meant "the hit points of the thing I am aimed at".
+const PER_FOE=["def","hp","maxhp","revealed","focused","dot","verified","growN","snoozed","softened","roasted"];
+function seatFoes(b, count){
+  const seed={}; PER_FOE.forEach(k=>{ seed[k]=b[k]; });
+  const foes=[];
+  for(let i=0;i<Math.max(1, Math.min(4, count|0 || 1)); i++){
+    const f={}; PER_FOE.forEach(k=>{ f[k]=seed[k]; });
+    f.dot=0; f.verified=0; f.growN=0; f.snoozed=false; f.softened=0; f.roasted=0;
+    foes.push(f);
+  }
+  PER_FOE.forEach(k=>{ delete b[k]; });          // drop the data properties first
+  b.foes=foes; b.ti=0;
+  PER_FOE.forEach(k=>Object.defineProperty(b, k, {
+    get(){ const f=b.foes[b.ti]; return f? f[k] : undefined; },
+    set(v){ const f=b.foes[b.ti]; if(f) f[k]=v; },
+    enumerable:true, configurable:true }));
+  return b;
+}
+// Bosses arrive alone. Wandering things do not, and they bring more friends the further
+// in you are: this is how the floor rises without inflating any single enemy's numbers,
+// which is the cheap move that always feels unfair.
+const SOLO_FOES=["monolith","h5","unknown","retrystorm","papafoxx","hacker","nullbyte","promptinj",
+  "halluc","misaligned","zeroday","retroboss","packetshark","botnet","ransomworm","phish","dummy"];
+function packSize(stage, foeId){
+  if(SOLO_FOES.indexOf(foeId)>=0) return 1;
+  const st=Math.max(0, Math.min(4, stage|0));
+  const roll=rng();
+  if(st<=0) return roll<0.75 ? 1 : 2;
+  if(st===1) return roll<0.55 ? 1 : (roll<0.90 ? 2 : 3);
+  if(st===2) return roll<0.35 ? 1 : (roll<0.75 ? 2 : 3);
+  if(st===3) return roll<0.25 ? 1 : (roll<0.60 ? 2 : (roll<0.90 ? 3 : 4));
+  return roll<0.20 ? 1 : (roll<0.50 ? 2 : (roll<0.85 ? 3 : 4));
+}
+function livingFoes(){ const b=M.b; return (b && b.foes) ? b.foes.filter(f=>f.hp>0) : []; }
+function roomCleared(){ const b=M.b; return !!(b && b.foes) && b.foes.every(f=>f.hp<=0); }
+function foeIndex(f){ const b=M.b; return (b&&b.foes)? b.foes.indexOf(f) : -1; }
+function retarget(){ const b=M.b; if(!b || !b.foes) return -1;
+  if(b.foes[b.ti] && b.foes[b.ti].hp>0) return b.ti;      // still a legal target
+  const next=b.foes.findIndex(f=>f.hp>0);                  // never rest the cursor on a corpse
+  if(next>=0) b.ti=next;
+  return next; }
+// a room with more than one thing in it needs its own label
+function foeLabel(f, i){ const b=M.b; const n=(b&&b.foes)? b.foes.length : 1;
+  const nm=(f.def&&f.def.name)||"?";
+  return n>1 ? nm+" "+String.fromCharCode(65+i) : nm; }
 function buildQueue(b){ const ids=["hero",...S.party];
   const units=[];
   ids.forEach(id=>{ const a=S.actors[id]; if(a && !a.ko) units.push({t:"a", id, spd:spdOf(a)}); });
-  units.push({t:"f", spd:unitSpd(b.def)});
+  (b.foes||[b]).forEach((f,fi)=>{ if(f.hp>0 || !b.foes) units.push({t:"f", fi, spd:unitSpd(f.def||b.def)}); });
   if((treeHas("v4") && (b.rounds||0)===0) || b.canary) units.sort((x,y)=>(x.t!==y.t ? (x.t==="a"?-1:1) : y.spd-x.spd));
   else units.sort((x,y)=>y.spd-x.spd);        // stable: equal-speed allies keep formation order, foe after them
   b.queue=units; b.qi=-1; }
@@ -3011,7 +3059,12 @@ function dealt(a,dmg,txt){ const b=M.b;
   const sc=document.getElementById("bscene");
   sc.classList.remove("fx-flash"); void sc.offsetWidth; sc.classList.add("fx-flash"); // reflow so back-to-back hits re-flash
   setTimeout(()=>sc.classList.remove("fx-flash"),350);
-  if(b.hp<=0){ blog(txt+"<br><span class='num'>"+dmg+"</span> damage... <span class='gold'>"+b.def.name+" is defeated!</span>"); sfx("win"); b.menu="won"; drawB(); return; }
+  if(b.hp<=0){ const fell=foeLabel(b.foes[b.ti], b.ti);
+    blog(txt+"<br><span class='num'>"+dmg+"</span> damage... <span class='gold'>"+fell+" is defeated!</span>");
+    if(roomCleared()){ sfx("win"); b.menu="won"; drawB(); return; }
+    retarget(); sfx("hit");
+    blog("<span class='mut'>"+livingFoes().length+" still standing. Cursor moves to "+foeLabel(b.foes[b.ti], b.ti)+".</span>");
+    b.menu="next"; drawB(); return; }
   blog(txt+"<br><span class='num'>"+dmg+"</span> damage!"); b.menu="next"; drawB(); }
 const READERS=["fivewhy","contexa","dashboard","firstprinciples","controlarm","audit"];
 function skillCost(sp,id,a){ return Math.max(1, sp.mp
@@ -3663,7 +3716,8 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
     if(M.encGuard>0){ M.encGuard--; }
     else if(rng()<zone.enc.rate){ M.encGuard=4;
       const foe=zone.enc.pool[Math.floor(rng()*zone.enc.pool.length)];
-      battleTransition(()=>{ startBattle(foe, null, null, {ambush:true}); }); return; } }
+      const pack=packSize(S.stage, foe);
+      battleTransition(()=>{ startBattle(foe, null, null, {ambush:true, count:pack}); }); return; } }
   if(M.state==="explore" && moveRoam(zone)) return;
   render(); }
 function battleTransition(cb){
@@ -5905,6 +5959,93 @@ const TESTS = [
     rows.forEach(r=>{ for(const ch of r){ if(!(ch in PAL)) bad.push(ch); } });
     if(bad.length) console.log("sprite uses palette keys that do not exist:", Array.from(new Set(bad)).join(","));
     return bad.length===0; }],
+
+ ["a room can hold more than one thing", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",6);
+      startBattle("golem","test",null,{count:3});
+      const b=M.b;
+      return Array.isArray(b.foes) && b.foes.length===3 && b.foes.every(f=>f.hp>0);
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["with one foe seated, nothing about the old battle changed", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",6);
+      startBattle("golem","test");
+      const b=M.b;
+      // the legacy fields still address the targeted foe, so every old call site works
+      const hp0=b.hp;
+      b.hp-=7;
+      return b.foes.length===1 && b.maxhp===EN.golem.hp && hp0-b.hp===7
+        && b.def===b.foes[0].def && b.hp===b.foes[0].hp;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["the fight ends when the room is clear, not when one thing dies", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",6);
+      startBattle("golem","test",null,{count:3});
+      const b=M.b;
+      b.foes[0].hp=0;
+      const stillFighting = livingFoes().length===2 && !roomCleared();
+      b.foes.forEach(f=>{ f.hp=0; });
+      return stillFighting && roomCleared();
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["the cursor never rests on a corpse", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",6);
+      startBattle("golem","test",null,{count:3});
+      const b=M.b;
+      b.ti=0; b.foes[0].hp=0; retarget();
+      const moved = b.ti!==0 && b.foes[b.ti].hp>0;
+      b.foes[b.ti].hp=0; retarget();
+      const movedAgain = b.foes[b.ti].hp>0;
+      return moved && movedAgain;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["every living foe acts, not just the first", ()=>{ const sb=S; const rb=rng; S=NEWS();
+    try{
+      S.party=["sentinel","wiki"];
+      S.actors.sentinel=mkActor("sentinel",9); S.actors.wiki=mkActor("wiki",9);
+      partyActors().forEach(x=>{ x.maxhp=999; x.hp=999; });
+      startBattle("golem","test",null,{count:3});
+      const b=M.b; rng=mulberry32(7);
+      const before=partyActors().reduce((n,x)=>n+x.hp,0);
+      b.foes.forEach((f,i)=>{ b.ti=i; foeAct(true); });
+      const after=partyActors().reduce((n,x)=>n+x.hp,0);
+      // three foes swinging must cost the party more than one would
+      return before-after > 0 && b.foes.length===3;
+    } finally { rng=rb; M.b=null; M.state="test"; S=sb; } }],
+
+ ["the initiative queue seats every foe", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",6);
+      startBattle("golem","test",null,{count:4});
+      const b=M.b; b.rounds=1; buildQueue(b);
+      const foeSlots=(b.queue||[]).filter(u=>u.t==="f");
+      return foeSlots.length===4 && new Set(foeSlots.map(u=>u.fi)).size===4;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["wandering foes travel in groups, and the groups grow with the story", ()=>{ const sb=S; const rb=rng; S=NEWS();
+    try{
+      rng=mulberry32(31337);
+      const sample=(stage)=>{ S.stage=stage; const seen={};
+        for(let i=0;i<400;i++){ const n=packSize(S.stage,"vague"); seen[n]=(seen[n]||0)+1; }
+        return seen; };
+      const early=sample(0), late=sample(4);
+      const avg=o=>Object.keys(o).reduce((n,k)=>n+(+k)*o[k],0)/Object.values(o).reduce((n,v)=>n+v,0);
+      // never absurd, always legal, and later fights bring more bodies
+      const bounded=Object.keys(early).concat(Object.keys(late)).every(k=>+k>=1 && +k<=4);
+      return bounded && avg(late) > avg(early) && avg(early) < 2.0;
+    } finally { rng=rb; S=sb; } }],
+
+ ["a boss is never a crowd", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.stage=4;
+      // elites and story bosses arrive alone no matter how far in the player is
+      return packSize(4,"monolith")===1 && packSize(4,"h5")===1
+        && packSize(4,"papafoxx")===1 && packSize(4,"misaligned")===1;
+    } finally { S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -5932,6 +6073,7 @@ function runTests(){ document.getElementById("objline").hidden=true;
 
 // ================= EXPOSE & BOOT =================
 window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, LIMITS, RECIPES, mkActor, startBattle, startFinale, render, tryMove, interact,
+  seatFoes, livingFoes, roomCleared, retarget, foeLabel, foeIndex, dealt, buildQueue, foeAct, packSize,
   menuPick, castSkill, castDual, castLimit, chargeLB, dualsFor, useItem, saveGame, loadSlot, migrateV2, migrateV3, migrateV4, migrateV5, atkOf, defOf, critOf, incoming,
   pauseMenu, openShop, titleScreen, newGame, living, partyActors, sparXP, allLootDone, eraCleared, ensureRoam, moveRoam, roamWalkable, ending,
   craft, gatherNode, budgetLeft, clsOf, mttxCard, setMusic, playMusic, MUS,
