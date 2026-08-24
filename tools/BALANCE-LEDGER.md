@@ -1,6 +1,6 @@
 # The balance ledger
 
-The game's title screen says its balance was tuned on 6,746,881 simulated battles.
+The game's title screen says its balance was tuned on 7,834,585 simulated battles.
 This file is where that number is accounted for, because a claim nobody can check is
 just a number in a nice font.
 
@@ -39,12 +39,16 @@ sends the design back, not the gate.
 | lab12 instrument fixed | 514,714 | the walk, measured properly for the first time | E1 PASSES; E2, E4 fail badly | same log |
 | lab11 corrected | 480,000 | after the party-outnumbers rule and the right rosters | D1, D3 fail (both known) | `sim-runs/lab11-lab12-corrected-2026-08-23.log` |
 | lab12 corrected | 520,947 | the walk as the game actually ships it | **ALL GATES PASS** | same log |
+| lab11 zoned | 480,000 | on a TESTED instrument, with honest walk fixtures | D1, D3 fail (both known) | `sim-runs/lab11-lab12-zoned-2026-08-23.log` |
+| lab12 zoned | 607,704 | the walk, once the party stops being given what it has not earned | **ALL GATES PASS** | same log |
 
-**Published total: 6,746,881 battles**, every one of them reproducible from the script
+**Published total: 7,834,585 battles**, every one of them reproducible from the script
 and the seeds in it. That is the whole number the game claims.
 
-**Only the last two rows describe the shipped game.** Everything above them was measured on
-an instrument that could not see the thing it was measuring - see the retraction below.
+**Only the last two rows describe the shipped game**, and they are the first rows in this
+table produced by an instrument that has tests of its own. Everything above the "instrument
+fixed" pair was measured by a simulator that could not see the thing it was measuring - see
+the retraction below.
 
 ## Why the headline number went DOWN
 
@@ -129,6 +133,34 @@ One real change did come out of it. With a pack finally able to swing, the openi
 a HERO and one Ranger - wiped about one run in five, and the rule that had allowed an even
 fight became "the party always outnumbers the room". It binds only at party sizes two to
 four and costs the late game nothing.
+
+## The simulator has tests now
+
+`tools/test_combat_sim.py`, run by `site_check.py` as part of the gate. Twenty-three checks
+in three classes, and each class earned its place by finding something on its first run.
+
+**Fidelity** parses `game.html` and compares - rosters, enemy attacks, the pack table, the
+solo list. Two implementations of the same combat maths drift, and this found three enemies
+the simulator modelled under names the game does not use.
+
+**Sensitivity** asks the only question that matters of a measuring device: if the thing I
+am measuring changed, would this number move? It took two attempts. The obvious version -
+a four-pack costs more per BATTLE - passes WITH the pack bug in place, because four foes
+carry four times the health so the fight runs four times as long. It measured the pack's
+health bar rather than its damage. The real check measures damage per ROUND, and it was
+verified the only way that counts: the bug was put back and the suite was watched failing
+on it, reading 1.38 per round at one body and 1.38 at four.
+
+**Fixtures** check that a measured party is one the game can actually produce. This found
+the internet walk being handed SHARONDUH, who joins at the END of that arc; missing LITO,
+who joins in the statement that opens the GATEWAY; and carrying two transmutes gated on a
+flag it has not set. All three made the arc look easier than it is.
+
+With honest fixtures the Firewall Bastion wiped 11.0% against a 10% ceiling - the only walk
+that failed, invisible until the party stopped being given things it had not earned. The
+remedy was pack odds, as the ladder requires, applied to the zone that failed rather than
+to all four that share its stage. A test asserts every other zone draws exactly the
+distribution it drew before, so the change is provably local.
 
 ## Two gates that still fail, and why they were not quietly moved
 

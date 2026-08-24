@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Quest: SEV-1 - SRE Edition</title>
-<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Eight playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 6,746,881 simulated battles behind the balance, every one of them reproducible. One static file, no frameworks, no API keys.">
+<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Eight playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 7,834,585 simulated battles behind the balance, every one of them reproducible. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
 <meta property="og:title" content="AI Quest: SEV-1 - the 8-bit party JRPG of AI engineering">
-<meta property="og:description" content="Eight playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 6,746,881 simulated battles you can re-run yourself.">
+<meta property="og:description" content="Eight playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 7,834,585 simulated battles you can re-run yourself.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-game.png">
 <meta property="og:url" content="https://lzbiala.github.io/game.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -151,7 +151,7 @@
 </head>
 <body>
 <h1>⚔️ AI QUEST: SEV-1</h1>
-<div class="sub">sre edition · limit breaks · dual techs · growth tree · crafting · time travel · chiptune music · balance tuned on 6,746,881 simulated battles, every one reproducible · by Lito Zarate Biala</div>
+<div class="sub">sre edition · limit breaks · dual techs · growth tree · crafting · time travel · chiptune music · balance tuned on 7,834,585 simulated battles, every one reproducible · by Lito Zarate Biala</div>
 <div class="hudtop">
   <span id="hhero"><b>HERO</b> LV 1</span>
   <span>⛁ <b id="htok">0</b></span><span id="hslo"></span><span id="zonename"><b>-</b></span><span id="sptimer" hidden style="color:var(--gold)">⏱ 0:00</span>
@@ -199,7 +199,7 @@ one static file, no frameworks, no API keys · every real-world number quoted is
 "use strict";
 /* ============================================================
    AI QUEST: SEV-1 - SRE Edition
-   Balance constants below were tuned on 6,746,881 Monte Carlo
+   Balance constants below were tuned on 7,834,585 Monte Carlo
    battles (combat_sim_v2.py, 20 encounters × 50,000): gates 3-5
    turns, marquee bosses 4-7 turns, superboss ~7 turns. Under the
    OPTIMAL incident-command policy (duals + ward + taunt + verify)
@@ -1511,7 +1511,7 @@ const OBJ = [
 const CREDITS = [
  "⚔️ AI QUEST: SEV-1 - SRE Edition",
  "A game about the discipline of trustworthy AI.",
- "Design, writing, code, pixel art, chiptunes & 6,746,881 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
+ "Design, writing, code, pixel art, chiptunes & 7,834,585 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
  "The skills are real practices. The companions are real projects - github.com/LZBiala.",
  "The bosses are real Tuesdays.",
  "No frameworks. No trackers. No API keys. Every real-world number quoted regenerates in CI.",
@@ -4185,7 +4185,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.classList.add("center");
   const auto=loadSlot(0);
   let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>- SRE EDITION -</div>"+
-   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 6,746,881 simulated battles, every one reproducible</div>"+
+   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 7,834,585 simulated battles, every one reproducible</div>"+
    "<div class='choices' style='max-width:360px;margin:0 auto;text-align:left'>";
   if(auto) h+="<button data-t='cont'>▶ CONTINUE (HERO LV "+auto.actors.hero.lv+" · "+Z[auto.z].name+")</button>";
   h+="<button data-t='new'>✦ NEW ADVENTURE</button>";
@@ -5581,8 +5581,8 @@ const TESTS = [
  ["the title screen tells the truth about the battle count", ()=>{
     const banned="19,0"+"00,000";
     const sub=document.querySelector(".sub");
-    return sub && sub.textContent.includes("6,746,881") && !sub.textContent.includes(banned)
-      && String(titleScreen).includes("6,746,881"); }],
+    return sub && sub.textContent.includes("7,834,585") && !sub.textContent.includes(banned)
+      && String(titleScreen).includes("7,834,585"); }],
 
  // ---- LITO REBORN (written RED-first) ----
  ["the guide wears a new face: lito sprite plus three breakdance frames", ()=>{
@@ -6985,7 +6985,7 @@ const TESTS = [
     const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
     const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
     // the ledger accounts for exactly this many, with a log and a seed for each
-    const CHECKABLE="6,746,881";
+    const CHECKABLE="7,834,585";
     const claims=(prod.match(/[0-9][0-9,]{4,}\s*\+?\s*(?:Monte Carlo|simulated|balance simulations|simulations)/g)||[])
       .map(t=>(t.match(/[0-9][0-9,]{4,}/)||[""])[0]);
     const wrong=claims.filter(c=>c!==CHECKABLE);
