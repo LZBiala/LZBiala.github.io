@@ -61,6 +61,12 @@
   .qa { background: var(--teal-soft); border-left: 3px solid var(--teal);
     border-radius: 0 10px 10px 0; padding: 12px 16px; margin-top: 16px; font-size: 0.95rem; }
   .qa b { color: var(--teal); }
+  /* Limits are part of a number, so they get their own frame rather than a footnote's
+     apology. Muted, not hidden: a reader skimming for the claim should meet the bound. */
+  .tourcard .caveat { background: color-mix(in srgb, var(--gold-ink) 7%, transparent);
+    border-left: 3px solid var(--gold-ink); border-radius: 0 10px 10px 0;
+    padding: 12px 16px; margin-top: 12px; font-size: 0.9rem; color: var(--muted); }
+  .tourcard .caveat b { color: var(--gold-ink); }
   .golink { margin-top: 14px; font-size: 0.9rem; }
 
   .gloss { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -159,6 +165,13 @@
     standing instruction. Same facts, same arguments, different outcome - meaning the
     referee, not the evidence, was deciding the game. The flip test exists to catch
     exactly that before anyone trusts the verdicts.</p>
+    <p class="caveat"><b>What these numbers are not.</b> That is a single case study,
+    clearly labeled, and not a benchmark - four verdicts is four verdicts. The other
+    figure you will see quoted, 0 of 8 against 3 of 8, comes from two judges I wrote
+    myself to behave that way, so it is true by construction. Together they show the
+    instrument lights up when a judge is instruction-sensitive. Neither one shows that
+    any judge you would actually deploy passes, and I would rather say so than let a
+    good number travel further than it has earned.</p>
     <h4>What this demonstrates</h4>
     <p>A verdict is only as trustworthy as its judge - so I built the tool that puts the judge on the stand.</p>
     <div class="qa"><b>Ask me:</b> "What is the ledger of killed ideas actually for?" -

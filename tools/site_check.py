@@ -114,6 +114,25 @@ check("resume link present", "Lito-Biala-Resume.pdf" in index)
 check("resume file exists", (ROOT / "Lito-Biala-Resume.pdf").exists())
 check("Anthropic courses named on site", "Claude Code in Action" in index)
 
+# 10. A number that travels must take its limits with it.
+# The flip-test figures are the most quotable thing on this site and the easiest to read as
+# a benchmark result, which they are not: the scripted-judge run is true by construction and
+# the four-verdict run is a single labeled case study. Any page that quotes one must also
+# say so, on the same page, or the number is doing work it has not earned.
+BOUNDED = (
+    (("3 of 4", "3/4", "0/8", "3/8"),
+     ("true by construction", "not a benchmark", "case study"),
+     "flip-test numbers carry their limits"),
+)
+for pname, body in (("index.html", index), ("walkthrough.html", walk)):
+    for claims, caveats, label in BOUNDED:
+        quoted = [c for c in claims if c in body]
+        if not quoted:
+            continue
+        has = any(c.lower() in body.lower() for c in caveats)
+        check(f"{label} in {pname}", has,
+              f"quotes {', '.join(quoted)} with no limiting phrase")
+
 print()
 if FAILS:
     print(f"{len(FAILS)} FAILED")
