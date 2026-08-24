@@ -1433,33 +1433,33 @@ const Z = [
   "SABLE: Vest for the careful. Plate for the committed. Bring storm-materials to Peg's forge and she'll hum you an AEGIS.",
   "SABLE: Try it on. It shows the moment you buckle it - that's the point."]}] },
 { name:"The Wire", ground:"#0b2436", maps:[
-"tttttttttttt","t.g..gg.g..t","t..B..g..E.t","t..g..g..b.t","tppppppppppp","t.g..g..g..t","tI.....g...t","t..g.g...c.t","tttttttttttt"],
+"tttttttttttt","t.gb.gg.g..t","t..B..g..E.t","t..g..g..b.t","tppppppppppp","t.g..g..g..t","tI.....g...t","tb.g.g...c.t","tttttttttttt"],
  exits:{right:10}, battles:{"3,2":"packetshark"}, elites:{"9,2":"zeroday","5,6":"halluc"},
  enc:{tile:"g", pool:["packetshark","botnet"], rate:0.11}, roam:{pool:["packetshark","botnet"], x:8, y:5},
  nodes:[{x:2,y:5,t:"logs"},{x:9,y:5,t:"metrics"}],
  loot:{"9,3":{tok:5, text:"📝 A commit note, wedged in the stream: <i>'whoever keeps rolling back the corruption - your diffs are CLEAN. I'm patching from inside. Don't stop. - S.'</i>"},
-       "2,3":{tok:5, text:"📝 Scratched into a router's casing: <i>'Day 19. Cage runs on my own uptime spells, which is either poetic or petty. Shipped four fixes today anyway. He doesn't check what I push, only that I push. - S.'</i>"},
-       "9,5":{tok:5, text:"📝 A note folded into a dropped packet: <i>'Someone rolled back my corrupted commit before I could. That was not me. Hello, whoever you are. I have questions and one of them is your name. - S.'</i>"}},
+       "3,1":{tok:5, text:"📝 Scratched into a router's casing: <i>'Day 19. Cage runs on my own uptime spells, which is either poetic or petty. Shipped four fixes today anyway. He doesn't check what I push, only that I push. - S.'</i>"},
+       "1,7":{tok:5, text:"📝 A note folded into a dropped packet: <i>'Someone rolled back my corrupted commit before I could. That was not me. Hello, whoever you are. I have questions and one of them is your name. - S.'</i>"}},
  chest:{key:"9,7", text:"🏆 A traveler's cache, packet-wrapped - someone left supplies for whoever came to fight. (+1 Cache Warmer, +20 ⛁)", give:"cache", tok:20},
  signs:{"3,5":"🌐 THE WIRE · east: Firewall Bastion · portal: jack out"} },
 { name:"Firewall Bastion", ground:"#38160c", maps:[
-"rrrrrrrrrrrr","r.,..rr.,..r","r..B....,..r","r,..r...,..r","pppppppppppp","r.,..r..B..r","r..b.......r","rb...,...c.r","rrrrrrrrrrrr"],
+"rrrrrrrrrrrr","r.,..rr.,..r","r..B....,..r","r,..r...,..r","pppppppppppp","r.,..r..B..r","r..b.......r","rbb..,...c.r","rrrrrrrrrrrr"],
  exits:{left:9,right:11}, battles:{"3,2":"phish","8,5":"ransomworm"}, elites:{"6,6":"promptinj"},
  enc:{tile:",", pool:["phish","ransomworm"], rate:0.11}, roam:{pool:["phish","ransomworm"], x:7, y:3},
  nodes:[{x:5,y:3,t:"traces"},{x:10,y:6,t:"metrics"}],
  loot:{"3,6":{tok:5, text:"📝 A note scorched into the wall: <i>'He thinks a cage stops a super software engineer. I shipped three hotfixes THROUGH the bars today. Also: your five-why from Tuesday? Beautiful. - S.'</i>"},
        "1,7":{tok:5, text:"📝 A note folded into a firewall rule: <i>'If you're reading this you're close. Careful - he's worse in kernel mode. …I saved you a seat at standup. - S. 💙'</i>"},
-       "10,6":{tok:5, text:"📝 Written on the back of a flame-rule, in a very steady hand: <i>'You cleared the Wire in a day. I have been in here nineteen. I am not going to pretend that is not annoying. Keep going. - S.'</i>"}},
+       "2,7":{tok:5, text:"📝 Written on the back of a flame-rule, in a very steady hand: <i>'You cleared the Wire in a day. I have been in here nineteen. I am not going to pretend that is not annoying. Keep going. - S.'</i>"}},
  chest:{key:"9,7", text:"🏆 A quartermaster's drop behind the flames - battle rations of the old NOC guard. (+1 Post-Incident Review, +20 ⛁)", give:"postmortem", tok:20} },
 { name:"The Dark NOC", ground:"#120a1d", maps:[
-"rrrrrrrrrrrr","r....E.....r","r..,....,..r","r.B......B.r","pppppppppppr","r.,......,.r","r....,.....r","r.b......c.r","rrrrrrrrrrrr"],
+"rrrrrrrrrrrr","r....E.....r","r..,....,..r","r.B......B.r","pppppppppppr","r.,.b....,.r","r....,..b..r","r.b......c.r","rrrrrrrrrrrr"],
  exits:{left:10}, battles:{"2,3":"botnet","9,3":"ransomworm"}, elites:{"5,1":"nullbyte","5,5":"misaligned"},
  chains:{"5,1":[{en:"nullroot"}]},
  enc:{tile:",", pool:["botnet","phish"], rate:0.09}, roam:{pool:["packetshark","ransomworm"], x:8, y:6},
  nodes:[{x:3,y:2,t:"metrics"},{x:6,y:6,t:"traces"}],
  loot:{"2,7":{tok:5, text:"📝 The last note, taped to a server rack: <i>'He knows you're coming. I'm not scared - I've read your incident history. Neither should you be. - S.'</i>"},
-       "9,5":{tok:5, text:"📝 Wedged behind a rack, hurried: <i>'He moved the cage. If the feed shows me calm it is because I am on my fourth pass at a patch and I refuse to be interrupted by kidnapping. - S.'</i>"},
-       "6,6":{tok:5, text:"📝 On a sticky note, stuck to nothing, floating: <i>'Whoever taught you incident command taught you well. I have been grading you the whole way in. You are getting an exceeds. - S. 💙'</i>"}},
+       "4,5":{tok:5, text:"📝 Wedged behind a rack, hurried: <i>'He moved the cage. If the feed shows me calm it is because I am on my fourth pass at a patch and I refuse to be interrupted by kidnapping. - S.'</i>"},
+       "8,6":{tok:5, text:"📝 On a sticky note, stuck to nothing, floating: <i>'Whoever taught you incident command taught you well. I have been grading you the whole way in. You are getting an exceeds. - S. 💙'</i>"}},
  chest:{key:"9,7", text:"🏆 THE HACKER'S CACHE - everything he stole and never understood. (+40 ⛁)", tok:40},
  npcs:[{x:7,y:1,spr:"sharon",name:"SHARONDUH",sharonCage:true,lines:[
   "A holding cage of pure firewall. Inside: the engineer who reviewed your diffs - coding calmly on a laptop she has clearly built out of cage parts. She looks up. She GRINS.",
@@ -4609,8 +4609,8 @@ const TESTS = [
     S=sb; return closed && open; }],
  ["era bestiary + roam pools reference real enemies", ()=>Z.every(z=>(!z.roam || z.roam.pool.every(id=>EN[id])))
     && EN.faxdaemon.hp===42 && EN.cobol.regen===true && EN.patient0.hidden===true && Z[5].name.includes("1999")],
- ["completion census: 21 lootables, fresh run has none", ()=>{ const sb=S; S=NEWS();
-    const r=allLootDone(); S=sb; return r.need===21 && r.got===0 && r.done===false; }],
+ ["completion census: 26 lootables, fresh run has none", ()=>{ const sb=S; S=NEWS();
+    const r=allLootDone(); S=sb; return r.need===26 && r.got===0 && r.done===false; }],
  ["roamer walkability respects walls and NPCs", ()=>{ const ok1=!roamWalkable(Z[0],0,0); // tree ring
     const ok2=!roamWalkable(Z[0],6,2); // THE GUIDE stands here
     const ok3=roamWalkable(Z[1],2,1); // open grass
@@ -7898,6 +7898,44 @@ const TESTS = [
     const drift=pools.filter((p,i)=>JSON.stringify(p)!==JSON.stringify(want[i]));
     if(drift.length) console.log("the road's combat changed:", JSON.stringify(drift));
     return drift.length===0; }],
+
+ ["everything the map promises is standing on the map", ()=>{
+    // Loot opens only on a "b" tile and a chest only on "c". A key pointing at floor is
+    // content that exists and does nothing - the sixth time in this file, and the first
+    // one written alongside its own passing tests.
+    const bad=[];
+    Z.forEach((z,zi)=>{
+      const at=(x,y)=>(z.maps && z.maps[y] && z.maps[y][x]) || "?";
+      Object.keys(z.loot||{}).forEach(k=>{ const p=k.split(",").map(Number);
+        if(at(p[0],p[1])!=="b") bad.push((z.name||zi)+" loot "+k+" on '"+at(p[0],p[1])+"'"); });
+      if(z.chest && z.chest.key){ const p=z.chest.key.split(",").map(Number);
+        if(at(p[0],p[1])!=="c") bad.push((z.name||zi)+" chest "+z.chest.key+" on '"+at(p[0],p[1])+"'"); }
+      Object.keys(z.battles||{}).forEach(k=>{ const p=k.split(",").map(Number);
+        if(at(p[0],p[1])!=="B") bad.push((z.name||zi)+" battle "+k+" on '"+at(p[0],p[1])+"'"); });
+      // Elites can be REVEALED by tileAt under story flags rather than sitting on the raw
+      // map - the Retry Storm, the Masked Analyst and the three post-rescue AI incidents
+      // all appear that way. So ask the game, with every reveal flag set, instead of
+      // reading the map and calling a working tile a defect.
+      Object.keys(z.elites||{}).forEach(k=>{ const p=k.split(",").map(Number);
+        const sb=S; S=Object.assign(NEWS(), {z:zi, won:true, haxKnown:true, haxWon:true,
+          party:["sentinel","wiki","retro","refuter"], cleared:{}});
+        const shown=tileAt(z,p[0],p[1]); S=sb;
+        if(shown!=="E") bad.push((z.name||zi)+" elite "+k+" shows '"+shown+"'"); });
+      (z.nodes||[]).forEach(n=>{ const c=at(n.x,n.y);
+        if(c==="t"||c==="r"||c==="W") bad.push((z.name||zi)+" node "+n.x+","+n.y+" inside a wall"); });
+    });
+    if(bad.length) console.log("promised and not there:", bad.join(" | "));
+    return bad.length===0; }],
+
+ ["every one of her letters can actually be picked up", ()=>{
+    const notes=[];
+    [9,10,11].forEach(zi=>{ const z=Z[zi];
+      Object.keys(z.loot||{}).forEach(k=>{ const t=(z.loot[k].text)||"";
+        if(/- S\./.test(t)){ const p=k.split(",").map(Number);
+          notes.push({ z:z.name, k, ok:(z.maps[p[1]]||"")[p[0]]==="b" }); } }); });
+    const unreachable=notes.filter(n=>!n.ok);
+    if(unreachable.length) console.log("letters nobody can read:", unreachable.map(n=>n.z+" "+n.k).join(", "));
+    return notes.length>=9 && unreachable.length===0; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
