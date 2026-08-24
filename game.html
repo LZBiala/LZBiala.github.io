@@ -2126,6 +2126,39 @@ const SHARON_TALKS_FINALE="You did it. Every injection sanitized, every hallucin
 function sharonTalkLine(){ if(frontierDone() && (S.sharonTalk||0)%(SHARON_TALKS.length+1)===SHARON_TALKS.length){ S.sharonTalk=(S.sharonTalk||0)+1; return SHARON_TALKS_FINALE; }
   const t=SHARON_TALKS[(S.sharonTalk||0)%SHARON_TALKS.length]; S.sharonTalk=(S.sharonTalk||0)+1; return t; }
 function frontierDone(){ return !!(S.cleared["9:5,6"] && S.cleared["10:6,6"] && S.cleared["11:5,5"]); }
+// THE FRONTIER. The SEV-1 card calls itself INCIDENT RESOLVED and it is right to - it is an
+// act break, and it says so, pointing at an empty desk. The rescue gets a night at the inn.
+// Then the last three AI incidents fall, which is the actual end of the actual story, and
+// until now the only thing that happened was that the village music changed. The credits
+// sat behind a button on the act-two screen, two acts early.
+const FRONTIER_BEATS_T=[
+ "The MISALIGNED comes apart quietly, the way a bad objective does once somebody finally writes down what was actually wanted.",
+ "SHARONDUH: 'That's the last one. Injection, hallucination, misalignment - sanitized, grounded, aligned.' She closes the laptop. 'I have been waiting a long time to close that laptop.'",
+ "RETROLISTIC: 'Retro on the whole campaign, then. What went well: everything we wrote down. What did not: everything we did not.'",
+ "PAPAFOXX: 'That's it? That's the retro? Slayer, we saved the WORLD.'",
+ "RETROLISTIC: '…Fine. What went well: everything, and everyone came home.' He writes it down. 'Happy?'",
+ "PAPAFOXX: 'Bro, I'm gonna cry. BAAAHHH.'",
+ "THE GUIDE is waiting where the road turns, holding two coffees and no pager at all.",
+ "THE GUIDE: 'You know what you did back there, kid? You went to where the work actually lived. You scoped ONE thing. You shipped the thinnest fix that could possibly matter, and then you MEASURED it in front of people who could have blamed you.'",
+ "THE GUIDE: 'There is a name for engineers who fight that way. I told you names are earned. Forward Deployed Engineer - and you have been one since the plains. You just did not have the word yet.'",
+ "The village is quiet. Somewhere east, past the frontier, somebody's system is breaking and nobody there knows your name yet.",
+ "That is the job. That has always been the job.",
+];
+const FRONTIER_BEATS=FRONTIER_BEATS_T.map((t,i)=>({
+  t, spr:(i===1?"sharon":i===2||i===4?"retro":i===3||i===5?"foxx":null),
+  left:(i===1), dark:(i<2?0.35:0.12), from:"50% 45%", z:(i===0?1:1.25) }));
+function frontierEnding(){
+  if(S.frontierSeen) return false;
+  if(!frontierDone()) return false;
+  S.frontierSeen=1; saveGame(0);
+  playMusic("ending");
+  panelSay(FRONTIER_BEATS, ()=>{
+    say(CREDITS, ()=>{ playMusic("overworld"); saveGame(0); render(); }); });
+  return true; }
+// winBattle clears the tile it just won; this is the line that notices the story ended.
+function frontierWatch(key){
+  if(key) S.cleared[S.z+":"+key]=true;
+  return frontierEnding(); }
 const CONDS={ preWon:()=>!S.won, mentorEra:()=>S.stage>=2 && !S.won };
 function coreFourIn(){ return ["sentinel","wiki","retro","refuter"].every(id=>S.party.includes(id)); }
 function npcsFor(zone){ return (zone.npcs||[]).filter(n=>(!n.when || S[n.when]) && (!n.inParty || S.party.includes(n.inParty)) && (!n.cond || (CONDS[n.cond] && CONDS[n.cond]()))); }
@@ -3691,6 +3724,7 @@ function sparXP(){ const h=hero();
   S.sparN++; return xp; }
 function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic("overworld");
   if(b.key && b.id!=="nullbyte") S.cleared[S.z+":"+b.key]=true;   // the hacker's tile clears only when KERNEL MODE falls - lose form 2, refight both
+  const storyOver=frontierDone() && !S.frontierSeen;   // checked here, fired after the spoils
   if(M.roamBattle){ M.roamBattle=false; const rm=M.roam[S.z]; if(rm) rm.alive=false; }
   const zone=Z[S.z];
   let pre=[];
@@ -3749,6 +3783,8 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
       "Every silence after that fed the ridge. The Monolith wasn't built in a quarter. It was built in the quiet.",
       "⏳ You understand the whole timeline now. Blameless isn't kindness - it's ENGINEERING. Fear hides the data that prevention needs.",
       "(The chest by the wall holds the ROOT CERT relic. Take the past with you.)"], ()=>saveGame(0)); return; }
+    // the spoils are paid, the recruit joined, the chain advanced - now the story can end
+    if(storyOver && frontierEnding()) return;
     saveGame(0); };
   render(); gainXP(b.id==="dummy"? sparXP() : roomXP(b), afterXP, pre); }
 function runChain(chain){ const step=chain[0], rest=chain.slice(1);
@@ -4025,7 +4061,7 @@ function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(t).then(()=>{ sb.textContent="✅ COPIED - go brag!"; },()=>{ window.prompt("Copy your result:", t); }); }
     else window.prompt("Copy your result:", t); };
-  box.querySelector("[data-cr]").onclick=()=>{ say(CREDITS, ()=>{ M.state="end"; ending(); }); };
+  box.querySelector("[data-cr]").onclick=()=>{ say(CREDITS, ()=>{ M.state="end"; ending(); }); };   // still replayable from the act-two card
   box.querySelector("[data-ng]").onclick=()=>{ ngPlusArm(); };
   box.querySelector("[data-ct]").onclick=()=>{ ov.hidden=true; M.state="explore"; render(); }; }
 
@@ -7444,6 +7480,131 @@ const TESTS = [
     const rate=flat.filter(l=>C.test(l)).length/flat.length;
     // the same lines the game actually ships, de-contracted: the check must see zero
     return rate===0; }],
+
+ ["the story ends where the story ends", ()=>{ const sb=S, sy=window.say, sp=window.panelSay, pm=window.playMusic;
+    S=NEWS();
+    try{
+      let credits=0, scene=0;
+      window.say=(l,cb)=>{ if(Array.isArray(l) && l===CREDITS) credits++; if(cb) cb(); };
+      window.panelSay=(b,cb)=>{ scene++; if(cb) cb(); };
+      window.playMusic=()=>{};
+      S.won=true; S.haxWon=true;
+      // two of three down: the story is not over and nothing fires
+      S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true;
+      const early=frontierEnding();
+      // the third closes it
+      S.cleared["11:5,5"]=true;
+      const fired=frontierEnding();
+      const once=frontierEnding();
+      if(early!==false || fired!==true || once!==false)
+        console.log("frontier ending:", {early, fired, once, credits, scene});
+      return early===false && fired===true && once===false && credits===1 && scene===1;
+    } finally { window.say=sy; window.panelSay=sp; window.playMusic=pm; S=sb; } }],
+
+ ["beating the last AI incident is what fires it", ()=>{ const sb=S, sy=window.say, sp=window.panelSay, pm=window.playMusic;
+    S=NEWS();
+    try{
+      let fired=0;
+      window.say=(l,cb)=>{ if(cb) cb(); };
+      window.panelSay=(b,cb)=>{ fired++; if(cb) cb(); };
+      window.playMusic=()=>{};
+      S.won=true; S.haxWon=true;
+      S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true;
+      // the production path: winBattle clears the tile, and the ending notices
+      S.z=11; frontierWatch("5,5");
+      return fired===1 && !!S.frontierSeen;
+    } finally { window.say=sy; window.panelSay=sp; window.playMusic=pm; S=sb; } }],
+
+ ["the closing scene is written, and it names what the player just became", ()=>{
+    const txt=FRONTIER_BEATS.map(b=>b.t).join(" ");
+    const long=FRONTIER_BEATS.length>=4 && txt.length>400;
+    // the whole arc has been pointing at one job title since the EPILOGUE
+    const fde=/Forward Deployed/i.test(txt) || /Forward Deployed/i.test(EPILOGUE.join(" "));
+    const crew=/SHARONDUH|RETROLISTIC|PAPAFOXX/.test(txt);
+    const dash=/[\u2013\u2014]/.test(txt);
+    const slop=/(delve|seamless|cutting-edge|tapestry|testament|game-changer)/i.test(txt);
+    if(!(long&&fde&&crew)||dash||slop) console.log("closing scene:", {long, fde, crew, dash, slop});
+    return long && fde && crew && !dash && !slop; }],
+
+ ["nothing that gates content changed meaning", ()=>{ const sb=S; S=NEWS();
+    try{
+      // the four flags the whole story hangs on keep their exact triggers
+      const a=frontierDone()===false;
+      S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true; S.cleared["11:5,5"]=true;
+      const b=frontierDone()===true;
+      S=NEWS();
+      const c=!S.won && !S.haxKnown && !S.haxWon;
+      finishRescue();
+      const d=S.haxWon===true && S.party.indexOf("sharon")>=0 && S.cleared["11:5,1"]===true;
+      return a && b && c && d;
+    } finally { S=sb; } }],
+
+ ["a player who already finished is not shown the credits again", ()=>{
+    const key=saveKey(3); const bak=localStorage.getItem(key); const sb=S;
+    try{
+      S=NEWS(); S.won=true; S.haxWon=true; S.frontierSeen=1;
+      S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true; S.cleared["11:5,5"]=true;
+      localStorage.setItem(key, JSON.stringify(S));
+      const l=loadSlot(3);
+      if(!l) return false;
+      const sb2=S; S=l;
+      const again=frontierEnding();
+      S=sb2;
+      return l.frontierSeen===1 && again===false;
+    } finally { S=sb; if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["winning the last incident is what rolls the credits, and the spoils come first", ()=>{
+    const sb=S, sy=window.say, sp=window.panelSay, pm=window.playMusic, sg=window.saveGame;
+    S=NEWS();
+    try{
+      let scene=0, spoilsFirst=null;
+      window.say=(l,cb)=>{ if(cb) cb(); };
+      window.panelSay=(b,cb)=>{ scene++; if(spoilsFirst===null) spoilsFirst=(S.tokens>0); if(cb) cb(); };
+      window.playMusic=()=>{}; window.saveGame=()=>{};
+      S.won=true; S.haxWon=true; S.tokens=0;
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",12);
+      S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true;
+      S.z=11;
+      M.state="battle"; startBattle("misaligned","5,5");
+      const b=M.b; b.foes.forEach(f=>{ f.hp=0; });
+      winBattle();
+      // the tile cleared, the purse filled, and the story closed once
+      if(!(scene===1 && spoilsFirst===true && S.frontierSeen===1))
+        console.log("last incident:", {scene, spoilsFirst, seen:S.frontierSeen, tok:S.tokens});
+      return scene===1 && spoilsFirst===true && S.frontierSeen===1;
+    } finally { window.say=sy; window.panelSay=sp; window.playMusic=pm; window.saveGame=sg;
+      M.b=null; M.state="test"; S=sb; } }],
+
+ ["an ordinary victory rolls no credits", ()=>{
+    const sb=S, sy=window.say, sp=window.panelSay, pm=window.playMusic, sg=window.saveGame;
+    S=NEWS();
+    try{
+      let scene=0;
+      window.say=(l,cb)=>{ if(cb) cb(); };
+      window.panelSay=(b,cb)=>{ scene++; if(cb) cb(); };
+      window.playMusic=()=>{}; window.saveGame=()=>{};
+      S.won=true; S.haxWon=true;
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",12);
+      S.cleared["9:5,6"]=true;                      // only one of three down
+      S.z=10;
+      M.state="battle"; startBattle("phish","6,6");
+      M.b.foes.forEach(f=>{ f.hp=0; });
+      winBattle();
+      return scene===0 && !S.frontierSeen;
+    } finally { window.say=sy; window.panelSay=sp; window.playMusic=pm; window.saveGame=sg;
+      M.b=null; M.state="test"; S=sb; } }],
+
+ ["nothing in this file computes a thing it never uses", ()=>{
+    // The fifth time is not the charm. T72 shipped `storyOver` computed and unread.
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+    const prod=(ti>0&&tj>ti)?(src.slice(0,ti)+src.slice(tj)):src;
+    const dead=[];
+    ["storyOver"].forEach(name=>{
+      const uses=prod.split(new RegExp("\\b"+name+"\\b")).length-1;
+      if(uses===1) dead.push(name+" is assigned and never read"); });
+    if(dead.length) console.log(dead.join(", "));
+    return dead.length===0; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -7487,7 +7648,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   FOXX_JOKES, FOXX_LINES, foxxJokeLine, foxxBedState, LB_MAX,
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
-  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, RETRO_ARC, retroBeat, sprFor, RETRO_PM, retroCard, DUETS, retroFoxxDuet, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
+  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, RETRO_ARC, retroBeat, sprFor, FRONTIER_BEATS, frontierEnding, frontierWatch, RETRO_PM, retroCard, DUETS, retroFoxxDuet, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
   heldBy, resolveTarget, castSkill,
   TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, treeHolds, TREE_SCENE, keystoneBeats, migrateV9, skillCost, itThreshold, incoming, buildQueue, tryMigrate, dealt, reawaken, gainXP, XPCURVE, REP_LEVEL_CAP,
   buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse, tileHash, lungeScale, overworldThemeFor, battleThemeFor,
