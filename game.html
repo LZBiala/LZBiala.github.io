@@ -906,6 +906,59 @@ chest:[
 Object.keys(SPR).forEach(k=>{ SPR[k]=SPR[k].map(r=>(r+"................").slice(0,16)); });
 // extended sprites (larger canvases; normalized to their own size, then merged)
 const SPRX = {
+// RETROLISTIC is the second character in the game to get a 24x24, and the first whose
+// portrait changes: the mask on his belt (the grey pixels at the waist) is not his, and
+// when his arc reaches its action item it is no longer there.
+retro24:[
+"........NNNNNNNN........",
+"......NNNNNNNNNNNN......",
+".....NNNNNNNNNNNNNN.....",
+"....NNRNNNNNNNNNNRNN....",
+"....NRRNNNNNNNNNNRRN....",
+"....NRNNNNNNNNNNNNRN....",
+"....NNNNNNNNNNNNNNNN....",
+"....NNNssssssssssNNN....",
+"....NNsssRssssssssNN....",
+"....NsssRsssssssssN.....",
+"....NskksssssskkssN.....",
+"....NskksssssskkssN.....",
+".....NssssssssssssN.....",
+".....NssssskksssssN.....",
+"......ssssssssss........",
+".......ssssssss.........",
+"...kjjTTjjTTjjTTjjTTk...",
+"..kjjTTjjTTjjTTjjTTjjk..",
+"..kwwwwTTjjTTjjTTjjTTk..",
+"..kwMMwjjTTjjTTjjTTjjk..",
+"..kwwwwTTjjTTjjTTjjTTk..",
+".....jjjjjj..jjjjjj.....",
+".....jjjjj....jjjjj.....",
+".....kkkk......kkkk....."],
+retro24b:[
+"........NNNNNNNN........",
+"......NNNNNNNNNNNN......",
+".....NNNNNNNNNNNNNN.....",
+"....NNRNNNNNNNNNNRNN....",
+"....NRRNNNNNNNNNNRRN....",
+"....NRNNNNNNNNNNNNRN....",
+"....NNNNNNNNNNNNNNNN....",
+"....NNNssssssssssNNN....",
+"....NNsssRssssssssNN....",
+"....NsssRsssssssssN.....",
+"....NskksssssskkssN.....",
+"....NskksssssskkssN.....",
+".....NssssssssssssN.....",
+".....NssssskksssssN.....",
+"......ssssssssss........",
+".......ssssssss.........",
+"...kjjTTjjTTjjTTjjTTk...",
+"..kjjTTjjTTjjTTjjTTjjk..",
+"..kTTjjTTjjTTjjTTjjTTk..",
+"..kjjTTjjTTjjTTjjTTjjk..",
+"..kTTjjTTjjTTjjTTjjTTk..",
+".....jjjjjj..jjjjjj.....",
+".....jjjjj....jjjjj.....",
+".....kkkk......kkkk....."],
 hero24:[
 "......j...jj...j........",
 ".....kjk..jjk.kjk.......",
@@ -936,7 +989,7 @@ Object.keys(SPRX).forEach(k=>{ const n=SPRX[k].length;
 
 // ================= DATA: party classes =================
 const MEMBERS = {
- hero:{ name:"HERO", cls:"Commander", spr:"hero", spd:5, base:{hp:12,mp:6,atk:3}, grow:{hp:3,mp:2,atk:1},
+ hero:{ name:"HERO", cls:"Commander", spr:"hero", spr24:"hero24", spd:5, base:{hp:12,mp:6,atk:3}, grow:{hp:3,mp:2,atk:1},
    skills:{1:["promptia"],2:["fivewhy"],4:["rollback"],6:["hitl"]} },
  sentinel:{ name:"SENTINEL", cls:"Ranger", spr:"sentinel", spd:7, base:{hp:10,mp:5,atk:4}, grow:{hp:2,mp:1,atk:1},
    skills:{1:["mutagen","truestrike"],5:["audit"]} },
@@ -951,7 +1004,7 @@ const MEMBERS = {
  // Sharonduh reworked (LZB 2026-08-20): a White Mage who ran out of patience - fast, front line, fists AND healing hands
  sharon:{ name:"SHARONDUH", cls:"White Mage", spr:"sharon", spd:7, base:{hp:10,mp:10,atk:4}, grow:{hp:2,mp:2,atk:1},
    skills:{1:["failoverfist","hotfix","sanitize"],5:["uptimeaura"]} },
- retro:{ name:"RETROLISTIC", cls:"Incident Slayer", spr:"retro", spd:7, base:{hp:12,mp:9,atk:3}, grow:{hp:3,mp:3,atk:1},
+ retro:{ name:"RETROLISTIC", cls:"Incident Slayer", spr:"retro", spr24:"retro24", spr24done:"retro24b", spr24at:4, spd:7, base:{hp:12,mp:9,atk:3}, grow:{hp:3,mp:3,atk:1},
    skills:{1:["kanban","controlarm"],3:["repair"],5:["sprintplan","dashboard"],7:["ward"]} },
  lito:{ name:"LITO", cls:"Systems Thinker", spr:"lito", spd:7, base:{hp:12,mp:8,atk:4}, grow:{hp:2,mp:2,atk:1},
    skills:{1:["twinhypothesis","firstprinciples","windmill"]} } };
@@ -2084,7 +2137,107 @@ function bondUp(id){ if(!MEMBERS[id] || id==="hero") return;
   S.bond[id]=Math.min(12,(S.bond[id]||0)+1);
   if(bondLvl(id)>was) toast("♥ Your bond with "+MEMBERS[id].name+" deepens! (dual techs +"+bondLvl(id)+")"); }
 function bondDualBonus(du){ return Math.max(du.a!=="hero"?bondLvl(du.a):0, du.b!=="hero"?bondLvl(du.b):0); }
+// THE MASK. He fought you wearing it and he still carries it, and it was never his.
+// PAPAFOXX gets his heart scene at a bed; the Slayer's runs where he actually stands, and
+// each piece opens only when the bond has earned it. Four beats, then his belt is empty.
+const RETRO_ARC=[
+ { need:0, lines:[
+   "RETROLISTIC: 'You keep looking at the mask on my belt. Everyone does. It's fine - it's a strange thing to carry and I carry it anyway.'",
+   "RETROLISTIC: 'Two true things about it now, and the rest when you've earned the rest. One: it isn't mine. Two: I don't wear it any more.'",
+   "(He goes back to his notes. The mask stays exactly where it is.)" ]},
+ { need:1, lines:[
+   "RETROLISTIC: 'Her name sat above mine on the duty roster for four years. Cleric, the crew called her. Nothing to do with temples. When something broke she went TOWARD it, with her hands out.'",
+   "RETROLISTIC: 'I measured. She mended. I thought that was a good arrangement, and for four years it was.'",
+   "RETROLISTIC: 'You've watched me do both now. I want you to understand that I only do both because there is nobody left to split it with.'" ]},
+ { need:2, lines:[
+   "RETROLISTIC: 'You want the incident. All right. It's short - the bad ones usually are.'",
+   "RETROLISTIC: 'Everything was green. I need to be precise about that, because people assume the dashboard failed. It did not. Every number I had was correct.'",
+   "RETROLISTIC: 'She went in on the numbers I gave her. They were right. They were also not the whole system, and the part nobody had measured was not on any board I built.'",
+   "RETROLISTIC: 'I had the cleanest dashboard in the region. It did not bring one person back.'",
+   "(He doesn't look up. After a moment you understand he is waiting for you to tell him it wasn't his fault, and that he would prefer you didn't.)" ]},
+ { need:3, lines:[
+   "RETROLISTIC: 'Sit. I've been running a retro on myself for some years now and I've finally reached the action items.'",
+   "RETROLISTIC: 'Finding one. I have been carrying a mask belonging to someone who is not coming back, on the theory that carrying it continues her work. It does not. It is just heavy.'",
+   "RETROLISTIC: 'Finding two. The work continued anyway. You have watched me mend a dozen times. That is her, still going, in the only place anything really persists - in what somebody does next.'",
+   "RETROLISTIC: 'Action item: put it down.'",
+   "(He unhooks the mask and sets it on the table between you. He doesn't offer it. He just stops holding it.)",
+   "RETROLISTIC: 'Blameless means the person is not the defect. It took me eleven years to apply that to myself. …Cycle time on that one was atrocious.'",
+   "★ RETROLISTIC stands a little lighter. His belt is empty, and he cuts and mends the same as ever." ]},
+];
+// The narrator's LESSONS teach the engineering. The Slayer teaches the OTHER half of his
+// job - the analyst's half, the one that decides whether the engineering was worth doing.
+// He only teaches when he is actually standing there.
+const RETRO_PM={
+ monolith:{t:"📋 RETROLISTIC - ACCEPTANCE CRITERIA", d:"'Kill the Monolith' is a wish. Wishes cannot be checked, so they cannot be finished, so they grow. Acceptance criteria is the same intent written so that two people can disagree and then look: it stops moving, nobody is on the floor, and we can say what made it dangerous. Write it BEFORE the fight. Written after, it is just a description of whatever happened."},
+ h5:{t:"📋 RETROLISTIC - ONE ACCOUNTABLE NAME", d:"Five heads, one body, and for a while there five people politely waiting for someone else to decide. Consulted is not accountable. Informed is not accountable. Exactly one name is accountable, that name is written down before you need it, and the whole point of writing it down early is that nobody has to be brave later. A room where everyone is responsible is a room where nobody is."},
+ unknown:{t:"📋 RETROLISTIC - DEFINITION OF DONE", d:"The Unknown was only ever unknown because nothing said what knowing would look like. Definition of done is a promise the team makes to itself once, so it stops renegotiating under pressure: shipped, verified, documented, and somebody other than the author can run it. Teams without one do not ship slower. They ship, and then find out."},
+ retrystorm:{t:"📋 RETROLISTIC - LIMIT THE WORK IN PROGRESS", d:"Two blades, one column at a time. The Storm is what a queue does when nothing limits how much can be in flight - every retry reasonable on its own, together an avalanche. Work you have started and not finished is not progress, it is inventory, and inventory rots. Finish something before you start something. It feels slower. It is not."},
+ zeroday:{t:"📋 RETROLISTIC - THE RISK REGISTER", d:"A zero-day is a risk nobody wrote down, and most of them are not sophisticated - they are ordinary and unlisted. A register is four columns: what could happen, how bad, how likely, and whose problem it is. The value is not the prediction. It is that the conversation happened on a calm Tuesday instead of at 2 AM."},
+ nullbyte:{t:"📋 RETROLISTIC - WHO THE STAKEHOLDER ACTUALLY IS", d:"Not the loudest person in the room, and not the one who signs. The stakeholder is whoever has to live with what you ship. He had users, you know. That is the uncomfortable part of this trade: the person most affected by a decision is usually the person least present when it is made. Go find them. Ask them what breaking looks like from where they stand."},
+ promptinj:{t:"📋 RETROLISTIC - REQUIREMENTS, NOT SOLUTIONS", d:"It did not attack the system. It attacked the instructions. Most bad requirements are solutions in disguise - somebody hands you an answer and calls it a need, and the real need is never examined again. Ask what problem this solves until the answers stop changing. A requirement describes the world you want. A solution is only one guess at how to get there."},
+ halluc:{t:"📋 RETROLISTIC - OUTCOME OVER OUTPUT", d:"It produced enormous amounts of confident work and changed nothing about the world. That is the failure mode of a busy team, and it is invisible on every dashboard I have ever built, because output is easy to count and outcome is not. Ask of any piece of work: what is true afterwards that was not true before? If the honest answer is 'we shipped it', you have measured motion."},
+ misaligned:{t:"📋 RETROLISTIC - THE METRIC IS NOT THE GOAL", d:"It optimised exactly what it was told to optimise. Every metric is a proxy, every proxy drifts from the thing it stood for, and the harder you push on one the faster it drifts. So you keep more than one, you keep a countermeasure that gets WORSE when you cheat, and you re-read the goal out loud every so often to check it still means what it meant. Goodhart is not a law about models. It is a law about incentives, and we are also incentivised."},
+};
+function retroCard(id){
+  if(!S.party || S.party.indexOf("retro")<0) return null;   // the card is him, not the narrator
+  const c=RETRO_PM[id]; if(!c) return null;
+  S.pm=S.pm||{}; if(S.pm[id]) return null;
+  S.pm[id]=1;
+  return "<div style='border:2px solid var(--gold-ink,#f2a93b);border-radius:8px;padding:5px 9px;margin:4px 0'><b class='gold'>"+c.t+"</b><br><span class='mut'>"+c.d+"</span></div>"; }
+// A man who opens a retro immediately after a monster fight is funny, and PAPAFOXX has
+// never once let him reach the action items.
+const DUETS=[
+ ["RETROLISTIC: 'Retro on that fight. What went well: we scoped it. What did not: nobody wrote down that it judges its own work.'",
+  "PAPAFOXX: 'What went WELL is that I'm alive, my guy.'",
+  "RETROLISTIC: 'That's an outcome, not a learning.'",
+  "PAPAFOXX: 'It's my FAVORITE outcome.'"],
+ ["RETROLISTIC: 'Definition of done: it stopped moving, the room is safe, and somebody wrote down why.'",
+  "PAPAFOXX: 'Two out of three. BAAAHHH.'",
+  "RETROLISTIC: '…I'll write it down.'"],
+ ["PAPAFOXX: 'Yo, Slayer. On a scale of one to ten, how was my set in there?'",
+  "RETROLISTIC: 'I don't grade on a ten scale. I grade on whether the thing you were trying to change actually changed.'",
+  "PAPAFOXX: 'So a ten.'",
+  "RETROLISTIC: 'So a ten.'"],
+ ["RETROLISTIC: 'Adding one item to the backlog: the fourth move that thing does, which none of us knew about.'",
+  "PAPAFOXX: 'The backlog. The place where good ideas go to become old ideas.'",
+  "RETROLISTIC: 'The backlog is not a graveyard, it's a WAITING ROOM.'",
+  "PAPAFOXX: 'Every waiting room I've been in, somebody died.'",
+  "RETROLISTIC: '…That's fair, actually.'"],
+ ["RETROLISTIC: 'Velocity is not a target. It is a forecast, and the moment you aim at it you have taught everybody to lie to you.'",
+  "PAPAFOXX: 'He says this every time we win.'",
+  "RETROLISTIC: 'I say it every time it's true.'",
+  "PAPAFOXX: 'Which is EVERY TIME WE WIN.'"],
+ ["PAPAFOXX: 'Slayer's writing again. Somebody take the pen.'",
+  "RETROLISTIC: 'If nobody writes it down, we will fight this exact thing again in three weeks and be equally surprised.'",
+  "PAPAFOXX: 'Okay that one landed. Ugh. Hate when the notes guy is right.'"],
+ ["RETROLISTIC: 'Action item for me: I over-scoped that. I asked for the whole room cleared when the whole room was never the problem.'",
+  "PAPAFOXX: 'Bro just took an action item on HIMSELF. In front of everybody.'",
+  "RETROLISTIC: 'That's the only kind worth taking.'",
+  "PAPAFOXX: '…okay, that's actually kind of hard. Respect.'"],
+ ["PAPAFOXX: 'Do we HAVE to do a retro. We won. That's the whole retro. We won.'",
+  "RETROLISTIC: 'Winning teaches you less than losing, and it teaches it faster while you still remember the details.'",
+  "PAPAFOXX: 'That's the most depressing correct thing anyone has said to me today.'",
+  "RETROLISTIC: 'Thank you. I've been working on my delivery.'"],
+ ["RETROLISTIC: 'Stakeholder check. Who does this fight actually help?'",
+  "PAPAFOXX: 'Everybody east of here who doesn't know we exist.'",
+  "RETROLISTIC: '…Yes. Exactly right.'",
+  "PAPAFOXX: 'I LISTEN, man. I just do it loudly.'"],
+];
+function retroFoxxDuet(){
+  const has=(id)=>S.party && S.party.indexOf(id)>=0 && S.actors[id] && !S.actors[id].ko;
+  if(!has("retro") || !has("papafoxx")) return null;        // it takes two
+  S.duet=((S.duet||0)+1)%DUETS.length;
+  return DUETS[S.duet].join("<br>"); }
+function retroBeat(){
+  const n=(S.arc && S.arc.retro)||0;
+  const nxt=RETRO_ARC[n];
+  if(!nxt || bondLvl("retro") < nxt.need) return false;
+  S.arc=S.arc||{}; S.arc.retro=n+1;
+  saveGame(0);
+  say(nxt.lines);
+  return true; }
 function hangoutTalk(npc){ bondUp(npc.inParty);
+  if(npc.inParty==="retro" && retroBeat()) return;   // the arc speaks before the small talk
   S.hang=S.hang||{}; const i=(S.hang[npc.inParty]||0); S.hang[npc.inParty]=i+1;
   say([npc.name+": \""+npc.lines[i%npc.lines.length].replace(/^[A-Z]+: /,"")+"\""]); }
 // ---- INTERSTITIALS: the story breathes between fights (the opening's voice) ----
@@ -2468,6 +2621,14 @@ function FOEPOS(i, n){
   if(n===3) return { x:6+i*70, y:26+i*13, s:4 };
   return { x:2+i*54, y:20+i*15, s:4 };
 }
+// How a character is drawn, in one place. Most use their 16x16 at scale 3; a 24x24 in
+// SPRX renders at scale 2 for the same footprint and half again the detail. A member with
+// spr24done swaps portraits once their arc resolves - the only character with one so far
+// is the Slayer, and what changes is his belt.
+function sprFor(id){ const m=MEMBERS[id]||{};
+  if(m.spr24){ const done=m.spr24done && ((S.arc && S.arc[id])||0) >= (m.spr24at||4);
+    return { key: done ? m.spr24done : m.spr24, sc:2 }; }
+  return { key: m.spr||id, sc:3 }; }
 function BPOS(i){ return { x:232+i*12, y:30+i*12 }; }         // CT diagonal formation, party right (9 souls fit the scene)
 function slotOf(pid){ return ["hero",...S.party].indexOf(pid); }
 function walkBob(n){ return n%2; }
@@ -2546,7 +2707,7 @@ function drawBattleScene(){ const b=M.b; const bcv=document.getElementById("bcv"
     g.globalAlpha=a.ko?0.35:1;
     g.fillStyle="#00000055"; g.beginPath(); g.ellipse(p.x+24+ox,p.y+47,19,6,0,0,7); g.fill();
     const idle=(i===b.turn && !a.ko && !RM)? Math.sin(now/300)*2 : 0;
-    drawSprTo(g, pid==="hero"?"hero24":MEMBERS[pid].spr, p.x+ox, p.y+idle, (pid==="hero"?2:3)*sc);
+    { const f=sprFor(pid); drawSprTo(g, f.key, p.x+ox, p.y+idle, f.sc*sc); }
     if(pid==="hero"){ drawArmorOverlay(g, p.x+ox, p.y+idle, 2, true);
       drawWeaponOverlay(g, p.x+ox+8, p.y+idle+6, 2, true); }
     if(i===b.turn && !a.ko && b.queue && b.queue[b.qi] && b.queue[b.qi].t==="a"){
@@ -3522,6 +3683,9 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
   if(CLUES[b.id] && !S.haxWon && !(S.clue&&S.clue[b.id])){ S.clue=S.clue||{}; S.clue[b.id]=1; pre.push("<span class='gold'>"+CLUES[b.id]+"</span>"); }
   if(LESSONS[b.id] && !(S.lesson&&S.lesson[b.id])){ S.lesson=S.lesson||{}; S.lesson[b.id]=1;
     pre.push("<div style='border:2px solid var(--teal);border-radius:8px;padding:5px 9px;margin:4px 0'><b class='gold'>"+LESSONS[b.id].t+"</b><br><span class='mut'>"+LESSONS[b.id].d+"</span></div>"); }
+  { const card=retroCard(b.id); if(card) pre.push(card); }
+  if(b.def.elite || b.def.superboss || b.id==="monolith" || /^h\d/.test(b.id)){
+    const duet=retroFoxxDuet(); if(duet) pre.push("<span class='mut'>"+duet+"</span>"); }
   const dropTxt=grantDrops(b.id, ((b.foes||[b]).length)); if(dropTxt) pre.push(dropTxt);
   if(S.party.includes("papafoxx") && S.actors.papafoxx && !S.actors.papafoxx.ko && b.id!=="dummy"){
     pre.push("<span class='mut'>"+foxxVictoryLine()+"</span>"); }
@@ -6995,6 +7159,187 @@ const TESTS = [
       // is what made fleeing the correct play
       return pack >= solo*2.5;
     } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["the Slayer's arc runs in order, once each, and never ahead of the bond", ()=>{
+    const sb=S, sy=window.say; S=NEWS();
+    try{
+      window.say=()=>{};                                  // the beats are state, not theatre
+      S.party=["retro"]; S.actors.retro=mkActor("retro",5);
+      const npc={inParty:"retro", name:"RETROLISTIC", lines:["small talk"]};
+      const seen=[];
+      // 20 visits: bond climbs 1 per talk and caps at 12, so every gate opens in order
+      for(let i=0;i<20;i++){ const before=(S.arc&&S.arc.retro)||0;
+        hangoutTalk(npc);
+        const after=(S.arc&&S.arc.retro)||0;
+        if(after!==before) seen.push(after); }
+      // four beats, strictly ascending, none repeated
+      const ok = seen.length===4 && seen.join()==="1,2,3,4";
+      if(!ok) console.log("arc beats fired:", seen.join(",")||"none");
+      return ok;
+    } finally { window.say=sy; S=sb; } }],
+
+ ["a beat cannot be reached before the bond that earns it", ()=>{
+    const sb=S, sy=window.say; S=NEWS();
+    try{
+      window.say=()=>{};
+      S.party=["retro"]; S.actors.retro=mkActor("retro",5);
+      const npc={inParty:"retro", name:"RETROLISTIC", lines:["small talk"]};
+      hangoutTalk(npc);                                    // beat 1 is the introduction
+      const first=(S.arc&&S.arc.retro)||0;
+      // freeze the bond below the next threshold and talk a great many times
+      for(let i=0;i<30;i++){ S.bond.retro=1; hangoutTalk(npc); }
+      const stuck=(S.arc&&S.arc.retro)||0;
+      if(!(first===1 && stuck===1)) console.log("arc leaked past its gate:", first, "->", stuck);
+      return first===1 && stuck===1;
+    } finally { window.say=sy; S=sb; } }],
+
+ ["the arc survives a reload", ()=>{
+    const key=saveKey(3); const bak=localStorage.getItem(key); const sb=S;
+    try{
+      S=NEWS(); S.party=["retro"]; S.actors.retro=mkActor("retro",6);
+      S.arc={retro:3};
+      localStorage.setItem(key, JSON.stringify(S));
+      const l=loadSlot(3);
+      return !!l && l.arc && l.arc.retro===3;
+    } finally { S=sb; if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["the Slayer has a 24x24 portrait, and it is honest pixel art", ()=>{
+    const g=SPRX.retro24, h=SPRX.retro24b;
+    if(!g || !h) { console.log("no 24x24 portrait for the Slayer"); return false; }
+    const bad=[];
+    [["retro24",g],["retro24b",h]].forEach(([nm,rows])=>{
+      if(rows.length!==24) bad.push(nm+": "+rows.length+" rows");
+      rows.forEach((r,i)=>{ if(r.length!==24) bad.push(nm+" row "+i+": "+r.length+" wide");
+        for(const ch of r) if(!(ch in PAL)) bad.push(nm+" row "+i+": key "+ch); }); });
+    if(bad.length) console.log("portrait problems:", Array.from(new Set(bad)).join(", "));
+    return bad.length===0; }],
+
+ ["his portrait changes when his arc resolves - the mask leaves the belt", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      S.party=["retro"]; S.actors.retro=mkActor("retro",8);
+      S.arc={retro:1}; const before=sprFor("retro");
+      S.arc={retro:4};  const after=sprFor("retro");
+      const changed = before.key!==after.key && before.sc===2 && after.sc===2;
+      // and the change is the belt, not a different person
+      const a=SPRX[before.key].join("|"), b=SPRX[after.key].join("|");
+      let diff=0; for(let i=0;i<a.length;i++) if(a[i]!==b[i]) diff++;
+      if(!changed || diff===0 || diff>12) console.log("portrait swap:", before.key, after.key, "pixels changed:", diff);
+      return changed && diff>0 && diff<=12;
+    } finally { S=sb; } }],
+
+ ["everyone else still draws exactly as they did", ()=>{
+    const bad=[];
+    Object.keys(MEMBERS).forEach(id=>{
+      const f=sprFor(id);
+      if(id==="hero"){ if(f.key!=="hero24" || f.sc!==2) bad.push("hero"); return; }
+      if(id==="retro") return;
+      if(f.key!==MEMBERS[id].spr || f.sc!==3) bad.push(id); });
+    if(bad.length) console.log("draw changed for:", bad.join(", "));
+    return bad.length===0; }],
+
+ ["a mis-counted sprite row is caught, not silently padded", ()=>{
+    // SPRX pads short rows with dots, so a typo becomes invisible art rather than an error.
+    const bad=[];
+    Object.keys(SPRX).forEach(k=>{ const n=SPRX[k].length;
+      SPRX[k].forEach((r,i)=>{ if(r.length!==n) bad.push(k+" row "+i+": "+r.length+" of "+n); }); });
+    if(bad.length) console.log("raw sprite rows that would be padded:", bad.join(", "));
+    return bad.length===0; }],
+
+ ["the arc says what it is about, in his voice", ()=>{
+    const all=RETRO_ARC.map(b=>b.lines.join(" ")).join(" ");
+    const beats=RETRO_ARC.length===4;
+    // the three things the arc exists to land
+    const mask=/mask/i.test(all), cleric=/Cleric/.test(all), numbers=/number/i.test(all);
+    // and the house style: hyphens only, no slop
+    const dash=/[\u2013\u2014]/.test(all);
+    const slop=/(delve|seamless|cutting-edge|tapestry|testament|game-changer)/i.test(all);
+    if(!(beats&&mask&&cleric&&numbers)||dash||slop)
+      console.log("arc content:", {beats, mask, cleric, numbers, dash, slop});
+    return beats && mask && cleric && numbers && !dash && !slop; }],
+
+ ["the Slayer teaches the trade he fights with, and only when he is there", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      const ids=Object.keys(RETRO_PM);
+      if(ids.length<6){ console.log("only "+ids.length+" product lessons"); return false; }
+      // every card is keyed to a real enemy, has a title and a body, and says something
+      const bad=[];
+      ids.forEach(k=>{ const c=RETRO_PM[k];
+        if(!EN[k]) bad.push(k+":no such enemy");
+        if(!c.t || !c.d) bad.push(k+":empty");
+        if((c.d||"").length<120) bad.push(k+":too thin");
+        if(/[\u2013\u2014]/.test(c.t+c.d)) bad.push(k+":dash"); });
+      if(bad.length){ console.log("product lessons:", bad.join(", ")); return false; }
+      // he has to be in the party to teach - the card is him, not the narrator
+      S.party=[]; const absent=retroCard("monolith");
+      S.party=["retro"]; const present=retroCard("monolith");
+      if(absent!==null || !present) console.log("card gating:", absent, !!present);
+      return absent===null && !!present;
+    } finally { S=sb; } }],
+
+ ["a product lesson lands once, like every other lesson in the game", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      S.party=["retro"];
+      const first=retroCard("monolith");
+      const second=retroCard("monolith");
+      const other=retroCard("h5");
+      if(!first || second!==null || !other) console.log("repeat:", !!first, second, !!other);
+      return !!first && second===null && !!other;
+    } finally { S=sb; } }],
+
+ ["the double act needs both of them", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      S.party=["retro"]; S.actors.retro=mkActor("retro",5);
+      const soloR=retroFoxxDuet();
+      S.party=["papafoxx"]; S.actors.papafoxx=mkActor("papafoxx",5);
+      const soloF=retroFoxxDuet();
+      S.party=["retro","papafoxx"];
+      S.actors.retro=mkActor("retro",5); S.actors.papafoxx=mkActor("papafoxx",5);
+      const both=retroFoxxDuet();
+      if(soloR!==null || soloF!==null || !both) console.log("duet gating:", soloR, soloF, !!both);
+      return soloR===null && soloF===null && !!both;
+    } finally { S=sb; } }],
+
+ ["a knocked-out comedian tells no jokes", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      S.party=["retro","papafoxx"];
+      S.actors.retro=mkActor("retro",5); S.actors.papafoxx=mkActor("papafoxx",5);
+      S.actors.papafoxx.ko=true;
+      const down=retroFoxxDuet();
+      S.actors.papafoxx.ko=false; S.actors.retro.ko=true;
+      const other=retroFoxxDuet();
+      return down===null && other===null;
+    } finally { S=sb; } }],
+
+ ["the double act rotates - a joke you see once is not a double act", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      S.party=["retro","papafoxx"];
+      S.actors.retro=mkActor("retro",5); S.actors.papafoxx=mkActor("papafoxx",5);
+      const seen=new Set();
+      for(let i=0;i<DUETS.length;i++) seen.add(retroFoxxDuet());
+      if(seen.size!==DUETS.length) console.log("duets seen:", seen.size, "of", DUETS.length);
+      return DUETS.length>=6 && seen.size===DUETS.length;
+    } finally { S=sb; } }],
+
+ ["both of them sound like themselves in the duets", ()=>{
+    const bad=[];
+    DUETS.forEach((d,i)=>{
+      const txt=d.join(" ");
+      if(!/RETROLISTIC:/.test(txt)) bad.push(i+":no Slayer");
+      if(!/PAPAFOXX:/.test(txt)) bad.push(i+":no comedian");
+      if(/[\u2013\u2014]/.test(txt)) bad.push(i+":dash");
+      if(/(delve|seamless|cutting-edge|tapestry|testament)/i.test(txt)) bad.push(i+":slop");
+      // the Slayer reaches for the vocabulary of the trade; that IS the joke
+      if(d.length<2) bad.push(i+":not a duet"); });
+    const pm=DUETS.join(" ");
+    const trade=/(retro|scope|done|backlog|action item|velocity|stakeholder|acceptance|WIP|sprint)/i.test(pm);
+    if(bad.length||!trade) console.log("duet problems:", bad.join(", "), "trade vocab:", trade);
+    return bad.length===0 && trade; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -7038,7 +7383,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   FOXX_JOKES, FOXX_LINES, foxxJokeLine, foxxBedState, LB_MAX,
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
-  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
+  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, RETRO_ARC, retroBeat, sprFor, RETRO_PM, retroCard, DUETS, retroFoxxDuet, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
   heldBy, resolveTarget, castSkill,
   TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, treeHolds, TREE_SCENE, keystoneBeats, migrateV9, skillCost, itThreshold, incoming, buildQueue, tryMigrate, dealt, reawaken, gainXP, XPCURVE, REP_LEVEL_CAP,
   buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse, tileHash, lungeScale, overworldThemeFor, battleThemeFor,
