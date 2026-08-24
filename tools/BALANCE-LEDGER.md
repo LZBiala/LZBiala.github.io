@@ -1,8 +1,11 @@
 # The balance ledger
 
-The game's title screen says its balance was tuned on 25,000,000+ simulated battles.
+The game's title screen says its balance was tuned on 3,230,485 simulated battles.
 This file is where that number is accounted for, because a claim nobody can check is
 just a number in a nice font.
+
+Every one of those battles has a log in `sim-runs/` and a seed in `combat_sim.py`. You can
+re-run any campaign in this table and get the numbers back.
 
 ## What is published here
 
@@ -32,24 +35,22 @@ sends the design back, not the gate.
 | lab12 shipped | 520,719 | the walk after the two remedies | E1 fails, E2-E5 pass | same log |
 
 **Published total: 3,230,485 battles**, every one of them reproducible from the script
-and the seeds in it.
+and the seeds in it. That is the whole number the game claims.
 
-## The rest of the number, stated plainly
+## Why the headline number went DOWN
 
-The 25,000,000+ figure is cumulative across the whole build, not just the campaigns above.
-The earlier campaigns - encounter tuning, the boss table, limit breaks, dual techs, the
-companion roster, the crafting economy - ran across earlier sessions and are recorded in a
-private engineering journal, not in this repo. Their counts are asserted here; they are not
-independently checkable by a reader, and I am not going to pretend otherwise.
+It used to say 25,000,000+. That figure was true and it was mostly uncheckable: about
+21.8M of it came from earlier campaigns - encounter tuning, the boss table, limit breaks,
+dual techs, the companion roster, the crafting economy - that ran in sessions whose logs
+live in a private engineering journal rather than in this repo.
 
-So, precisely:
+A reader could not verify them, and this site's whole argument is that a system should
+prove it worked. A big number I am asking you to take on faith undercuts that argument
+more than a smaller one strengthens it, so the headline now counts only what ships with a
+log and a seed.
 
-- **checkable from this repo: 3,230,485 battles**, with logs and a runnable script.
-- **asserted from the build journal: the remainder**, roughly 21.8M, carried forward as a
-  running total in dated entries.
-
-If you only trust what you can run yourself, trust the first number. The simulator is right
-there.
+The earlier work still happened and the design still rests on it. It is simply no longer
+being counted in a number presented as evidence.
 
 ## Why the failures are in the table
 

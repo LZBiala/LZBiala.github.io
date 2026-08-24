@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Quest: SEV-1 - SRE Edition</title>
-<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Eight playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 25,000,000 simulated battles behind the balance. One static file, no frameworks, no API keys.">
+<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Eight playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 3,230,485 simulated battles behind the balance, every one of them reproducible. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
 <meta property="og:title" content="AI Quest: SEV-1 - the 8-bit party JRPG of AI engineering">
-<meta property="og:description" content="Eight playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 25,000,000 simulated battles.">
+<meta property="og:description" content="Eight playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 3,230,485 simulated battles you can re-run yourself.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-game.png">
 <meta property="og:url" content="https://lzbiala.github.io/game.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -151,7 +151,7 @@
 </head>
 <body>
 <h1>⚔️ AI QUEST: SEV-1</h1>
-<div class="sub">sre edition · limit breaks · dual techs · growth tree · crafting · time travel · chiptune music · balance tuned on 25,000,000+ simulated battles · by Lito Zarate Biala</div>
+<div class="sub">sre edition · limit breaks · dual techs · growth tree · crafting · time travel · chiptune music · balance tuned on 3,230,485 simulated battles, every one reproducible · by Lito Zarate Biala</div>
 <div class="hudtop">
   <span id="hhero"><b>HERO</b> LV 1</span>
   <span>⛁ <b id="htok">0</b></span><span id="hslo"></span><span id="zonename"><b>-</b></span><span id="sptimer" hidden style="color:var(--gold)">⏱ 0:00</span>
@@ -199,7 +199,7 @@ one static file, no frameworks, no API keys · every real-world number quoted is
 "use strict";
 /* ============================================================
    AI QUEST: SEV-1 - SRE Edition
-   Balance constants below were tuned on 25,000,000 Monte Carlo
+   Balance constants below were tuned on 3,230,485 Monte Carlo
    battles (combat_sim_v2.py, 20 encounters × 50,000): gates 3-5
    turns, marquee bosses 4-7 turns, superboss ~7 turns. Under the
    OPTIMAL incident-command policy (duals + ward + taunt + verify)
@@ -1459,7 +1459,7 @@ const OBJ = [
 const CREDITS = [
  "⚔️ AI QUEST: SEV-1 - SRE Edition",
  "A game about the discipline of trustworthy AI.",
- "Design, writing, code, pixel art, chiptunes & 25,000,000 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
+ "Design, writing, code, pixel art, chiptunes & 3,230,485 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
  "The skills are real practices. The companions are real projects - github.com/LZBiala.",
  "The bosses are real Tuesdays.",
  "No frameworks. No trackers. No API keys. Every real-world number quoted regenerates in CI.",
@@ -2926,9 +2926,14 @@ const PER_FOE=["def","hp","maxhp","revealed","focused","dot","verified","growN",
 function seatFoes(b, count){
   const seed={}; PER_FOE.forEach(k=>{ seed[k]=b[k]; });
   const foes=[];
+  // Defaults fill in what the caller omitted; they never overrule what it said. Zeroing
+  // these unconditionally quietly discarded any status a caller seated the room with, and
+  // startBattle names every one of them itself, so nothing real depended on the reset.
+  const FOE_DEFAULT={dot:0, verified:0, growN:0, snoozed:false, softened:0, roasted:0};
   for(let i=0;i<Math.max(1, Math.min(4, count|0 || 1)); i++){
-    const f={}; PER_FOE.forEach(k=>{ f[k]=seed[k]; });
-    f.dot=0; f.verified=0; f.growN=0; f.snoozed=false; f.softened=0; f.roasted=0;
+    const f={}; PER_FOE.forEach(k=>{
+      f[k] = (seed[k]!==undefined) ? seed[k]
+           : (Object.prototype.hasOwnProperty.call(FOE_DEFAULT,k) ? FOE_DEFAULT[k] : undefined); });
     foes.push(f);
   }
   PER_FOE.forEach(k=>{ delete b[k]; });          // drop the data properties first
@@ -2960,6 +2965,17 @@ function packSize(stage, foeId){
   const bodies=1+((S && Array.isArray(S.party)) ? S.party.length : 0);
   return Math.max(1, Math.min(n, bodies));
 }
+// A battle object that has not been through seatFoes has no foes array, and every line
+// that resolves a death addresses b.foes[b.ti]. Production always goes through
+// startBattle, so production was never at risk - but ~80 test literals in this file are
+// assigned directly, and they were safe only for as long as no roll happened to kill
+// anything. One did. Rather than patch eighty call sites, the battle object seats itself:
+// assign a bare literal and it becomes a one-foe room with the same fields it always had.
+(function(){ let _b=(typeof M!=="undefined") ? M.b : null;
+  Object.defineProperty(M, "b", {
+    get(){ return _b; },
+    set(v){ _b = (v && typeof v==="object" && !v.foes) ? seatFoes(v, 1) : v; },
+    enumerable:true, configurable:true }); })();
 function livingFoes(){ const b=M.b; return (b && b.foes) ? b.foes.filter(f=>f.hp>0) : []; }
 function roomCleared(){ const b=M.b; return !!(b && b.foes) && b.foes.every(f=>f.hp<=0); }
 function foeIndex(f){ const b=M.b; return (b&&b.foes)? b.foes.indexOf(f) : -1; }
@@ -3979,7 +3995,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.classList.add("center");
   const auto=loadSlot(0);
   let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>- SRE EDITION -</div>"+
-   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 25,000,000+ simulated battles</div>"+
+   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 3,230,485 simulated battles, every one reproducible</div>"+
    "<div class='choices' style='max-width:360px;margin:0 auto;text-align:left'>";
   if(auto) h+="<button data-t='cont'>▶ CONTINUE (HERO LV "+auto.actors.hero.lv+" · "+Z[auto.z].name+")</button>";
   h+="<button data-t='new'>✦ NEW ADVENTURE</button>";
@@ -5375,8 +5391,8 @@ const TESTS = [
  ["the title screen tells the truth about the battle count", ()=>{
     const banned="19,0"+"00,000";
     const sub=document.querySelector(".sub");
-    return sub && sub.textContent.includes("25,000,000+") && !sub.textContent.includes(banned)
-      && String(titleScreen).includes("25,000,000+"); }],
+    return sub && sub.textContent.includes("3,230,485") && !sub.textContent.includes(banned)
+      && String(titleScreen).includes("3,230,485"); }],
 
  // ---- LITO REBORN (written RED-first) ----
  ["the guide wears a new face: lito sprite plus three breakdance frames", ()=>{
@@ -6784,6 +6800,80 @@ const TESTS = [
       if(!cleared||!partial) console.log("storm endings:", {cleared, partial, menu:b2.menu, up:livingFoes().length});
       return cleared && partial;
     } finally { M.b=null; M.state="test"; rng=rb; S=sb; } }],
+
+ ["the headline number is one a reader can re-run", ()=>{
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+    const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
+    // the ledger accounts for exactly this many, with a log and a seed for each
+    const CHECKABLE="3,230,485";
+    const claims=(prod.match(/[0-9][0-9,]{4,}\s*\+?\s*(?:Monte Carlo|simulated|balance simulations|simulations)/g)||[])
+      .map(t=>(t.match(/[0-9][0-9,]{4,}/)||[""])[0]);
+    const wrong=claims.filter(c=>c!==CHECKABLE);
+    if(wrong.length) console.log("claims that are not the checkable figure:", Array.from(new Set(wrong)).join(", "));
+    // and the figure this page used to assert may not survive anywhere on it.
+    // Scanning for "any large comma-grouped number" instead was tried and was wrong:
+    // it matched the chiptune note tables, where 523.25,440 reads as a stale count.
+    const stale=["25,000,000","23,000,000"].filter(n=>prod.indexOf(n)>=0);
+    if(stale.length) console.log("an asserted-only battle count is still on the page:", stale.join(", "));
+    return claims.length>=4 && wrong.length===0 && stale.length===0; }],
+
+ ["a bare battle literal survives a killing blow", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; const a=S.actors.sentinel=mkActor("sentinel",9);
+      M.state="battle";
+      // exactly the shape ~80 tests in this file use: no foes array, no ti
+      M.b={ def:EN.creep, hp:3, maxhp:24, revealed:true, focused:true, verified:0, dot:0,
+            taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main",
+            turn:0, snoozed:false, rounds:0, queue:[], qi:0 };
+      M.forceCrit=false;
+      dealt(a, 99, "test blow");     // enough to kill, which is where it used to throw
+      delete M.forceCrit;
+      const won = M.b.menu==="won";
+      const seated = Array.isArray(M.b.foes) && M.b.foes.length===1;
+      if(!won || !seated) console.log("bare literal after a kill:", {menu:M.b.menu, foes:M.b.foes});
+      return won && seated;
+    } finally { delete M.forceCrit; M.b=null; M.state="test"; S=sb; } }],
+
+ ["a bare battle literal still addresses the same fields it always did", ()=>{ const sb=S; S=NEWS();
+    try{
+      M.state="battle";
+      M.b={ def:EN.golem, hp:46, maxhp:46, revealed:false, focused:false, verified:0, dot:0,
+            taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main",
+            turn:0, snoozed:false, rounds:0 };
+      const b=M.b;
+      // the legacy fields must keep meaning exactly what they meant before
+      const readsBack = b.hp===46 && b.maxhp===46 && b.def===EN.golem && b.revealed===false;
+      b.hp-=6; b.revealed=true; b.dot=3;
+      const writesThrough = b.hp===40 && b.foes[0].hp===40 && b.foes[0].revealed===true && b.foes[0].dot===3;
+      return readsBack && writesThrough && b.ti===0;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["setting the battle to null still clears it", ()=>{
+    M.b={ def:EN.golem, hp:10, maxhp:10 };
+    const seated=!!(M.b && M.b.foes);
+    M.b=null;
+    return seated && M.b===null; }],
+
+ ["seating a room keeps the statuses it was handed, and defaults only what it was not", ()=>{
+    const b=seatFoes({ def:EN.golem, hp:46, maxhp:46, revealed:true, focused:true,
+                       roasted:2, dot:3, verified:1 }, 2);
+    const kept = b.foes.every(f=>f.roasted===2 && f.dot===3 && f.verified===1
+                                && f.revealed===true && f.focused===true);
+    // and the fields nobody mentioned come up as their sane defaults, not undefined
+    const filled = b.foes.every(f=>f.growN===0 && f.snoozed===false && f.softened===0);
+    if(!kept || !filled) console.log("seatFoes seeding:", JSON.stringify(b.foes));
+    return kept && filled; }],
+
+ ["a real battle still starts with a clean slate", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",6);
+      startBattle("golem","test",null,{count:3});
+      const b=M.b;
+      // startBattle names every status itself, so the defaults must not have changed it
+      return b.foes.every(f=>f.dot===0 && f.verified===0 && f.growN===0
+        && f.snoozed===false && f.softened===0 && f.roasted===0 && f.hp===EN.golem.hp);
+    } finally { M.b=null; M.state="test"; S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -6796,16 +6886,19 @@ function runTests(){ document.getElementById("objline").hidden=true;
     if(k && /^aiquest/.test(k)) SAVEKEYS.push(k); }
   const SNAP=SAVEKEYS.map(k=>[k, localStorage.getItem(k)]);
   try{
-  TESTS.forEach(([name,fn])=>{ let ok=false, err="";
+  const failed=[];
+  TESTS.forEach(([name,fn],i)=>{ let ok=false, err="";
     try{ ok=!!fn(); }catch(e){ err=" - "+e.message; }
-    if(ok) pass++;
+    if(ok) pass++; else failed.push({i, name, err:err.replace(/^ - /,"")});
     rows+="<div style='font-size:.76rem'>"+(ok?"<span class='num'>✔</span> ":"<span class='red'>✘</span> ")+name+err+"</div>"; });
+  window.TESTFAILED=failed;   // re-running the suite in-page pollutes globals, so the
+                              // FIRST run is the only honest one - keep what it found
   } finally {
     for(let i=localStorage.length-1;i>=0;i--){ const k=localStorage.key(i);
       if(k && /^aiquest/.test(k)) localStorage.removeItem(k); }
     SNAP.forEach(([k,v])=>{ if(v!==null) localStorage.setItem(k,v); });
   }
-  window.TESTRESULTS={pass, total:TESTS.length};
+  window.TESTRESULTS={pass, total:TESTS.length, failed:(window.TESTFAILED||[]).map(f=>f.name)};
   box.innerHTML="<b class='gold'>AUTOMATED TESTS</b> - "+pass+"/"+TESTS.length+" passed<br><br>"+rows+
    "<div class='choices'><button onclick='location.href=\"game.html\"'>▶ PLAY</button></div>"; }
 
