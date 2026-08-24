@@ -2167,6 +2167,7 @@ function frontierEnding(){
 // link that goes nowhere is worse than no link.
 const DEPLOY=[
  { id:"router", title:"THE PAGER THAT WOKE UP", client:"a payments team, three time zones away",
+   repo:"oncall-router-mcp", url:"https://github.com/LZBiala/oncall-router-mcp",
    brief:[
      "The pager buzzes for the first time since the Guide handed it over. Not an incident. A REQUEST.",
      "CLIENT: 'We need an AI that writes our incident postmortems. Ours take four days and they're bad. Can you build that?'",
@@ -2179,7 +2180,7 @@ const DEPLOY=[
        good:"You sat on their bridge at 2 AM. The postmortems were fine. What was broken was the twenty minutes BEFORE one - nobody knew who to page, so the first thing that happened to every incident was a search for a human. You did not build a writer. You built a router, and their time-to-engage fell off a cliff.",
        bad:"You built exactly what they asked for. It works. They still take four days to resolve anything, because the writing was never the slow part - and now they have a beautiful document describing an incident nobody got to in time." },
    card:{ t:"📋 FIELD LESSON - REQUIREMENTS ARE NOT SOLUTIONS",
-          d:"A client hands you an answer and calls it a need. 'We need an AI that writes postmortems' is a solution; the need underneath it is 'our incidents take four days'. Those are not the same problem and they do not have the same fix. Ask what happens on the day it goes wrong, in order, until the answers stop changing - and go WATCH one if they will let you. The gap between what a team asks for and what a team needs is where a forward deployed engineer earns the title, and it is almost always found by being in the room rather than by reading the ticket." },
+          d:"A client hands you an answer and calls it a need. 'We need an AI that writes postmortems' is a solution; the need underneath it is 'our incidents take four days'. Those are not the same problem and they do not have the same fix. Ask what happens on the day it goes wrong, in order, until the answers stop changing - and go WATCH one if they will let you. The gap between what a team asks for and what a team needs is where a forward deployed engineer earns the title, and it is almost always found by being in the room rather than by reading the ticket. The router that came out of this one measures escalation timing from when impact STARTED, not from when somebody opened a ticket - because a ticket filed twenty minutes late does not buy the responder twenty extra minutes, and a tool that measures from ticket creation will quietly tell you that it does." },
    retro:"RETROLISTIC: 'They asked for a deliverable and you gave them an outcome. That's the whole difference, and it's why they'll call you again.'" },
 
  { id:"context", title:"THE CONTEXT VAULT", client:"a support org drowning in its own documentation",
@@ -4164,7 +4165,8 @@ function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
   "Your party was a real portfolio: <a href='https://github.com/LZBiala/agent-mutation-lab' style='color:var(--teal)'>agent-mutation-lab</a> · "+
   "<a href='https://github.com/LZBiala/wiki-memory-lab' style='color:var(--teal)'>wiki-memory-lab</a> · "+
   "<a href='https://github.com/LZBiala/memory-repair-lab' style='color:var(--teal)'>memory-repair-lab</a> · "+
-  "<a href='https://github.com/LZBiala/adversarial-chambers' style='color:var(--teal)'>adversarial-chambers</a><br>"+
+  "<a href='https://github.com/LZBiala/adversarial-chambers' style='color:var(--teal)'>adversarial-chambers</a> · "+
+  "<a href='https://github.com/LZBiala/oncall-router-mcp' style='color:var(--teal)'>oncall-router-mcp</a><br>"+
   "And the Guide is real: <a href='index.html' style='color:var(--teal)'>lzbiala.github.io</a> · <a href='Lito-Biala-Resume.pdf' style='color:var(--teal)'>resume</a> · <a href='https://www.linkedin.com/in/lzbiala/' style='color:var(--teal)'>LinkedIn</a>"+
   "<div class='choices'><button data-cr='1'>🎬 CREDITS</button><button data-ng='1'>↻ NEW GAME+</button><button data-ct='1'>▶ KEEP EXPLORING</button></div>";
   const sb=document.getElementById("sharebtn");
@@ -7740,15 +7742,15 @@ const TESTS = [
  ["every repository the act names is one that actually ships", ()=>{
     // The four with public remotes. oncall-router-mcp is local-only, so the engagement
     // that would have named it names no artifact at all.
-    const REAL=["wiki-memory-lab","agent-mutation-lab","adversarial-chambers","memory-repair-lab"];
+    const REAL=["wiki-memory-lab","agent-mutation-lab","adversarial-chambers","memory-repair-lab","oncall-router-mcp"];
     const bad=[];
     DEPLOY.forEach(d=>{
       if(d.repo && REAL.indexOf(d.repo)<0) bad.push(d.id+": "+d.repo+" does not ship");
       if(d.url && d.url.indexOf("github.com/LZBiala/")<0) bad.push(d.id+": odd url");
       if(d.url && d.repo && d.url.indexOf(d.repo)<0) bad.push(d.id+": url does not match repo"); });
     const named=DEPLOY.filter(d=>d.repo).length;
-    if(bad.length||named<4) console.log("repos:", bad.join(", "), "named:", named);
-    return bad.length===0 && named>=4; }],
+    if(bad.length||named<5) console.log("repos:", bad.join(", "), "named:", named);
+    return bad.length===0 && named>=5; }],
 
  ["each engagement is a decision, with one right answer and answers that all teach", ()=>{
     const bad=[];
