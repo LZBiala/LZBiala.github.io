@@ -1,6 +1,6 @@
 # The balance ledger
 
-The game's title screen says its balance was tuned on 23,000,000+ simulated battles.
+The game's title screen says its balance was tuned on 25,000,000+ simulated battles.
 This file is where that number is accounted for, because a claim nobody can check is
 just a number in a nice font.
 
@@ -26,13 +26,17 @@ sends the design back, not the gate.
 | lab9 round 4 | 256,000 | after the breaker stopped erasing death | **all 7 PASS** | `sim-runs/lab9_run4.log` |
 | lab10 round 1 | 102,400 | is the incident-response kit worth carrying | K1 FAILED | `sim-runs/lab10_run.log` |
 | lab10 round 2 | 102,400 | after the kit's real lifetimes and numbers | K1 fails by design, K2-K5 pass | `sim-runs/lab10_run2.log` |
+| lab11 baseline | 480,000 | what does a crowded room do to the rooms players walk into | D1 and D3 FAILED | `sim-runs/lab11-lab12-baseline-2026-08-23.log` |
+| lab12 baseline | 519,942 | six fights with no rest: what do packs COST | E2 FAILED | same log |
+| lab11 shipped | 480,000 | the same question after the two remedies | D1 fails, D3 now passes | `sim-runs/lab11-lab12-shipped-2026-08-23.log` |
+| lab12 shipped | 520,719 | the walk after the two remedies | E1 fails, E2-E5 pass | same log |
 
-**Published total: 1,229,824 battles**, every one of them reproducible from the script
+**Published total: 3,230,485 battles**, every one of them reproducible from the script
 and the seeds in it.
 
 ## The rest of the number, stated plainly
 
-The 23,000,000+ figure is cumulative across the whole build, not just the campaigns above.
+The 25,000,000+ figure is cumulative across the whole build, not just the campaigns above.
 The earlier campaigns - encounter tuning, the boss table, limit breaks, dual techs, the
 companion roster, the crafting economy - ran across earlier sessions and are recorded in a
 private engineering journal, not in this repo. Their counts are asserted here; they are not
@@ -40,7 +44,7 @@ independently checkable by a reader, and I am not going to pretend otherwise.
 
 So, precisely:
 
-- **checkable from this repo: 1,229,824 battles**, with logs and a runnable script.
+- **checkable from this repo: 3,230,485 battles**, with logs and a runnable script.
 - **asserted from the build journal: the remainder**, roughly 21.8M, carried forward as a
   running total in dated entries.
 
@@ -62,3 +66,23 @@ Two gates were changed after seeing results, and both changes are disclosed in
 `combat_sim.py` where they live: one was **tightened**, and one was **re-scoped** away from
 fights under three turns, where saving a single round is 0.84 of the control by arithmetic
 alone and the gate was measuring rounding rather than power creep.
+
+## Two gates that still fail, and why they were not quietly moved
+
+**lab11 D1** asked for the KO rate on wandering fights to rise by 3 points once rooms
+could hold up to four. It rose by 0.2. That answer is true and the question was wrong:
+a trash fight is not meant to threaten a wipe, and lab11 handed the party a full bar
+before every single battle, so it could not see a cost even in principle. lab12 exists
+because of that failure.
+
+**lab12 E1** asked for a 10-point drop in resources across a six-fight walk. The shipped
+game gets 8.7. Getting the last 1.3 means more crowds, and more crowds put the opening
+walk and the 1999 arc back over the wipe ceiling that E2 guards - the two gates are in
+direct tension and this configuration cannot satisfy both. E1's threshold was a guess made
+before any data existed, and the game it would produce is worse than the one that misses
+it, so it stays missed and stays recorded. The real lever is that wandering foes do not
+scale with the story; changing that is an enemy-strength change and it gets its own
+pre-registered run rather than a quiet edit here.
+
+Neither number was moved to make a gate green. That is the whole point of writing them
+down first.
