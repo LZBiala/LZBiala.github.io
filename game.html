@@ -1437,7 +1437,9 @@ const Z = [
  exits:{right:10}, battles:{"3,2":"packetshark"}, elites:{"9,2":"zeroday","5,6":"halluc"},
  enc:{tile:"g", pool:["packetshark","botnet"], rate:0.11}, roam:{pool:["packetshark","botnet"], x:8, y:5},
  nodes:[{x:2,y:5,t:"logs"},{x:9,y:5,t:"metrics"}],
- loot:{"9,3":{tok:5, text:"📝 A commit note, wedged in the stream: <i>'whoever keeps rolling back the corruption - your diffs are CLEAN. I'm patching from inside. Don't stop. - S.'</i>"}},
+ loot:{"9,3":{tok:5, text:"📝 A commit note, wedged in the stream: <i>'whoever keeps rolling back the corruption - your diffs are CLEAN. I'm patching from inside. Don't stop. - S.'</i>"},
+       "2,3":{tok:5, text:"📝 Scratched into a router's casing: <i>'Day 19. Cage runs on my own uptime spells, which is either poetic or petty. Shipped four fixes today anyway. He doesn't check what I push, only that I push. - S.'</i>"},
+       "9,5":{tok:5, text:"📝 A note folded into a dropped packet: <i>'Someone rolled back my corrupted commit before I could. That was not me. Hello, whoever you are. I have questions and one of them is your name. - S.'</i>"}},
  chest:{key:"9,7", text:"🏆 A traveler's cache, packet-wrapped - someone left supplies for whoever came to fight. (+1 Cache Warmer, +20 ⛁)", give:"cache", tok:20},
  signs:{"3,5":"🌐 THE WIRE · east: Firewall Bastion · portal: jack out"} },
 { name:"Firewall Bastion", ground:"#38160c", maps:[
@@ -1446,7 +1448,8 @@ const Z = [
  enc:{tile:",", pool:["phish","ransomworm"], rate:0.11}, roam:{pool:["phish","ransomworm"], x:7, y:3},
  nodes:[{x:5,y:3,t:"traces"},{x:10,y:6,t:"metrics"}],
  loot:{"3,6":{tok:5, text:"📝 A note scorched into the wall: <i>'He thinks a cage stops a super software engineer. I shipped three hotfixes THROUGH the bars today. Also: your five-why from Tuesday? Beautiful. - S.'</i>"},
-       "1,7":{tok:5, text:"📝 A note folded into a firewall rule: <i>'If you're reading this you're close. Careful - he's worse in kernel mode. …I saved you a seat at standup. - S. 💙'</i>"}},
+       "1,7":{tok:5, text:"📝 A note folded into a firewall rule: <i>'If you're reading this you're close. Careful - he's worse in kernel mode. …I saved you a seat at standup. - S. 💙'</i>"},
+       "10,6":{tok:5, text:"📝 Written on the back of a flame-rule, in a very steady hand: <i>'You cleared the Wire in a day. I have been in here nineteen. I am not going to pretend that is not annoying. Keep going. - S.'</i>"}},
  chest:{key:"9,7", text:"🏆 A quartermaster's drop behind the flames - battle rations of the old NOC guard. (+1 Post-Incident Review, +20 ⛁)", give:"postmortem", tok:20} },
 { name:"The Dark NOC", ground:"#120a1d", maps:[
 "rrrrrrrrrrrr","r....E.....r","r..,....,..r","r.B......B.r","pppppppppppr","r.,......,.r","r....,.....r","r.b......c.r","rrrrrrrrrrrr"],
@@ -1454,7 +1457,9 @@ const Z = [
  chains:{"5,1":[{en:"nullroot"}]},
  enc:{tile:",", pool:["botnet","phish"], rate:0.09}, roam:{pool:["packetshark","ransomworm"], x:8, y:6},
  nodes:[{x:3,y:2,t:"metrics"},{x:6,y:6,t:"traces"}],
- loot:{"2,7":{tok:5, text:"📝 The last note, taped to a server rack: <i>'He knows you're coming. I'm not scared - I've read your incident history. Neither should you be. - S.'</i>"}},
+ loot:{"2,7":{tok:5, text:"📝 The last note, taped to a server rack: <i>'He knows you're coming. I'm not scared - I've read your incident history. Neither should you be. - S.'</i>"},
+       "9,5":{tok:5, text:"📝 Wedged behind a rack, hurried: <i>'He moved the cage. If the feed shows me calm it is because I am on my fourth pass at a patch and I refuse to be interrupted by kidnapping. - S.'</i>"},
+       "6,6":{tok:5, text:"📝 On a sticky note, stuck to nothing, floating: <i>'Whoever taught you incident command taught you well. I have been grading you the whole way in. You are getting an exceeds. - S. 💙'</i>"}},
  chest:{key:"9,7", text:"🏆 THE HACKER'S CACHE - everything he stole and never understood. (+40 ⛁)", tok:40},
  npcs:[{x:7,y:1,spr:"sharon",name:"SHARONDUH",sharonCage:true,lines:[
   "A holding cage of pure firewall. Inside: the engineer who reviewed your diffs - coding calmly on a laptop she has clearly built out of cage parts. She looks up. She GRINS.",
@@ -2387,6 +2392,13 @@ function hangoutTalk(npc){ bondUp(npc.inParty);
   say([npc.name+": \""+npc.lines[i%npc.lines.length].replace(/^[A-Z]+: /,"")+"\""]); }
 // ---- INTERSTITIALS: the story breathes between fights (the opening's voice) ----
 const INTERSTITIALS={
+ wire:[
+  "The GATEWAY does not open. It RESOLVES - the square dissolving into addressing, the way a name becomes a number when something finally answers.",
+  "Then you are standing in a current, and the current is made of other people's sentences. Requests. Receipts. A birthday message going somewhere at the speed of light.",
+  "REFUTER, flatly: 'I object to this on principle. I am aware that is not useful. I am saying it anyway.'",
+  "RETROLISTIC has already started counting. 'Packet loss is under two percent. Whoever runs this cared about it once.'",
+  "Somewhere ahead, downstream, something has been rolling back corruption for three weeks without being asked.",
+  "She is that way. Walk." ],
  bastion:[
   "The heat hits first. Walls of flame in ordered rows - someone BUILT this fire, rule by rule, and called it safety.",
   "Her second note is here somewhere. You catch yourself scanning for it before you scan for threats.",
@@ -2426,6 +2438,13 @@ function buildFoxxJoinBeats(){ const L=Z[6].recruitAfter["7,1"].lines; return [
   { t:L[1], spr:"foxx", left:true, dark:.12, from:"45% 55%", src:"map", z:1.35 },
   { t:L[3], spr:"foxx", dark:.06, from:"50% 50%", src:"map", z:1.3 },
   { t:"They walk out into the morning together. Behind them, the pager stays quiet a little longer than usual.", dark:0, from:"50% 42%", src:"map", z:1.15 } ]; }
+// The Bastion and the NOC announce themselves. The Wire - the threshold of the whole act,
+// the moment the party stops being in a world and starts being in a machine - did not.
+function wireArrival(){
+  if(S.wireSeen || S.z!==9) return false;
+  S.wireSeen=true;
+  panelSay(buildInterstitialBeats("wire"), ()=>saveGame(0));
+  return true; }
 function buildInterstitialBeats(key){
   const L=INTERSTITIALS[key]||[];
   const darks=key==="noc"? [.35,.45,.3,.55] : [.2,.15,.25,.3];
@@ -4210,6 +4229,7 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
       if(dir==="right")S.x=0; if(dir==="left")S.x=11; if(dir==="down")S.y=0; if(dir==="up")S.y=8;
       if(S.stage<1){ S.stage=1; chapterCard(1); }
       render();
+      if(S.z===9) wireArrival();
       if(S.z===10 && !S.bastionSeen){ S.bastionSeen=true; panelSay(buildInterstitialBeats("bastion"), ()=>saveGame(0)); }
       else if(S.z===11 && !S.nocSeen){ S.nocSeen=true;
         panelSay(buildInterstitialBeats("noc"), ()=>{ saveGame(0);
@@ -7820,6 +7840,64 @@ const TESTS = [
     const rate=his.filter(l=>C.test(l)).length/his.length;
     if(rate<0.4) console.log("his register flattened in the new act:", rate.toFixed(2));
     return rate>=0.4; }],
+
+ ["crossing into the internet is a moment, not a loading screen", ()=>{
+    const w=INTERSTITIALS.wire;
+    if(!w || w.length<4){ console.log("the Wire has no arrival scene"); return false; }
+    const txt=w.join(" ");
+    // it is a threshold: the body is elsewhere, and the game should say so
+    const threshold=/(jack|packet|body|current|stream|signal|inside)/i.test(txt);
+    const dash=/[\u2013\u2014]/.test(txt);
+    const slop=/(delve|seamless|cutting-edge|tapestry|testament)/i.test(txt);
+    if(!threshold||dash||slop) console.log("wire arrival:", {threshold, dash, slop});
+    return threshold && !dash && !slop; }],
+
+ ["the arrival fires once, the first time you are there", ()=>{ const sb=S, sp=window.panelSay;
+    S=NEWS();
+    try{
+      let n=0; window.panelSay=(b,cb)=>{ n++; if(cb) cb(); };
+      S.z=9; S.haxKnown=true;
+      wireArrival(); const first=n;
+      wireArrival(); const second=n;
+      return first===1 && second===1 && !!S.wireSeen;
+    } finally { window.panelSay=sp; S=sb; } }],
+
+ ["her notes read as one correspondence, in order, across the whole road", ()=>{
+    const notes=[];
+    [9,10,11].forEach(zi=>{ const L=Z[zi].loot||{};
+      Object.keys(L).forEach(k=>{ const t=L[k].text||""; if(/- S\./.test(t)) notes.push({zi, k, t}); }); });
+    if(notes.length<8){ console.log("only "+notes.length+" notes on a three-zone road"); return false; }
+    const perZone=[9,10,11].map(zi=>notes.filter(n=>n.zi===zi).length);
+    // every zone carries her, not just the middle one
+    const spread=perZone.every(c=>c>=2);
+    // she is working the whole time, and she never once says she is afraid
+    const all=notes.map(n=>n.t).join(" ");
+    const working=/(patch|ship|review|diff|commit|fix|hotfix|build)/i.test(all);
+    const brave=!/I('m| am) (so )?(scared|afraid|terrified)/i.test(all);
+    const dash=/[\u2013\u2014]/.test(all);
+    if(!(spread&&working&&brave)||dash) console.log("notes:", {perZone, working, brave, dash});
+    return spread && working && brave && !dash; }],
+
+ ["the crew has something to say about being inside a machine", ()=>{
+    const txt=(INTERSTITIALS.wire||[]).concat(INTERSTITIALS.bastion||[], INTERSTITIALS.noc||[]).join(" ");
+    const named=/(RETROLISTIC|PAPAFOXX|REFUTER|SENTINEL|WIKI|LITO)/.test(txt);
+    if(!named) console.log("nobody in the party speaks on the whole road");
+    return named; }],
+
+ ["the road adds no combat, so no balance number moves", ()=>{
+    // F5 again: the extension is writing. If a zone gained an enemy it needs a lab row.
+    const pools=[9,10,11].map(zi=>({
+      z:zi,
+      enc:(Z[zi].enc&&Z[zi].enc.pool||[]).slice().sort().join(","),
+      battles:Object.values(Z[zi].battles||{}).sort().join(","),
+      elites:Object.values(Z[zi].elites||{}).sort().join(",") }));
+    const want=[
+      {z:9,  enc:"botnet,packetshark", battles:"packetshark", elites:"halluc,zeroday"},
+      {z:10, enc:"phish,ransomworm",   battles:"phish,ransomworm", elites:"promptinj"},
+      {z:11, enc:"botnet,phish",       battles:"botnet,ransomworm", elites:"misaligned,nullbyte"}];
+    const drift=pools.filter((p,i)=>JSON.stringify(p)!==JSON.stringify(want[i]));
+    if(drift.length) console.log("the road's combat changed:", JSON.stringify(drift));
+    return drift.length===0; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
