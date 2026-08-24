@@ -272,23 +272,6 @@ wiki:[
 ".....kyyyyk..n..",
 ".....kyyyyk.....",
 ".....kkkkkk....."],
-mender:[
-"................",
-".....kkkkkk.....",
-"....kggggggk....",
-"...kggggggggk...",
-"...kgkssssкgk...".replace("к","k"),
-"....kskssksk....",
-"....kssssssk....",
-".....kssssk.....",
-"....kggggggk....",
-"...ksggwwggsk...",
-"...ksgGwwGgsk...",
-"....kggggggk....",
-"....kkGGGGkk....",
-".....kggggk.....",
-".....kggggk.....",
-".....kkkkkk....."],
 refuter:[
 "................",
 ".....kkkkkk.....",
@@ -732,22 +715,22 @@ hax:[
 "....kdd..ddk....",
 "....kkk..kkk...."],
 retro:[
-"....kkkkkkkk....",
-"...kjjjjjjjjk...",
-"..kjjjjjjjjjjk..",
-"..kjjsttssttjk..",
-"..kjjssssssjjk..",
-"...kjjjjjjjjk...",
-"..kjtjjjjjjtjk..",
-".kwkjjjjjjjjkwk.",
-".kwkjjtjjtjjkwk.",
-".kwkjjjjjjjjkwk.",
-"..kkjjjjjjjjkk..",
-"...kjjtjjtjjk...",
-"....kjj..jjk....",
-"....kjj..jjk....",
-"...kjj....jjk...",
-"...kkk....kkk..."],
+"....NNNNNNNN....",
+"...NNNNNNNNNN...",
+"..NNRNNNNNNRNN..",
+"..NNRsssssssNN..",
+"..NsskssskssN...",
+"...NssssssssN...",
+"....ssssssss....",
+"..ktktktktktkt..",
+"..tkjjjjjjjjkt..",
+"..ktjjjjjjjjtk..",
+"..tkjjjjjjjjkt..",
+"..ktktktktktkt..",
+"...jjjj..jjjj...",
+"...jjj....jjj...",
+"...jj......jj...",
+"...kk......kk..."],
 drg1:[
 "....k.....k.....",
 "...krk...krk....",
@@ -959,8 +942,6 @@ const MEMBERS = {
    skills:{1:["mutagen","truestrike"],5:["audit"]} },
  wiki:{ name:"WIKI", cls:"Wizard", spr:"wiki", spd:4, base:{hp:8,mp:10,atk:2}, grow:{hp:2,mp:3,atk:1},
    skills:{1:["contexa"],5:["indexstorm"]} },
- mender:{ name:"MENDER", cls:"Cleric", spr:"mender", spd:4, base:{hp:11,mp:8,atk:2}, grow:{hp:3,mp:2,atk:1},
-   skills:{1:["controlarm","repair"],6:["ward"]} },
  refuter:{ name:"REFUTER", cls:"Tank", spr:"refuter", spd:3, base:{hp:14,mp:5,atk:3}, grow:{hp:4,mp:1,atk:1},
    skills:{1:["fliptest","objection"]} },
  // PapaFoxx: real 3d6 rolls mapped into the envelope - might 10→atk 2, agi 14→spd 6, grit 14→hp 11, kno 13→mp 8.
@@ -970,14 +951,14 @@ const MEMBERS = {
  // Sharonduh reworked (LZB 2026-08-20): a White Mage who ran out of patience - fast, front line, fists AND healing hands
  sharon:{ name:"SHARONDUH", cls:"White Mage", spr:"sharon", spd:7, base:{hp:10,mp:10,atk:4}, grow:{hp:2,mp:2,atk:1},
    skills:{1:["failoverfist","hotfix","sanitize"],5:["uptimeaura"]} },
- retro:{ name:"RETROLISTIC", cls:"BI Ninja", spr:"retro", spd:8, base:{hp:11,mp:7,atk:4}, grow:{hp:2,mp:2,atk:1},
-   skills:{1:["kanban","dashboard"],5:["sprintplan"]} },
+ retro:{ name:"RETROLISTIC", cls:"Incident Slayer", spr:"retro", spd:7, base:{hp:12,mp:9,atk:3}, grow:{hp:3,mp:3,atk:1},
+   skills:{1:["kanban","controlarm"],3:["repair"],5:["sprintplan","dashboard"],7:["ward"]} },
  lito:{ name:"LITO", cls:"Systems Thinker", spr:"lito", spd:7, base:{hp:12,mp:8,atk:4}, grow:{hp:2,mp:2,atk:1},
    skills:{1:["twinhypothesis","firstprinciples","windmill"]} } };
 function mkActor(id, lv){ const m=MEMBERS[id];
   const a={ id, lv, xp:XPCURVE[lv-1]||0,
     maxhp:m.base.hp+m.grow.hp*(lv-1), maxmp:m.base.mp+m.grow.mp*(lv-1), atk:m.base.atk+m.grow.atk*(lv-1),
-    spd:m.spd||4, row:(id==="wiki"||id==="mender"||id==="papafoxx")?"back":"front",
+    spd:m.spd||4, row:(id==="wiki"||id==="papafoxx")?"back":"front",
     ko:false, sk:[], lb:0 };
   a.hp=a.maxhp; a.mp=a.maxmp;
   for(let L=1;L<=lv;L++) (m.skills[L]||[]).forEach(s=>{ if(!a.sk.includes(s)) a.sk.push(s); });
@@ -1027,7 +1008,7 @@ const DUAL = {
    d:"commit and counter-review cross-slash - (both ATK)×2, cuts through fog." },
  canaryvolley:{ name:"✦ CANARY VOLLEY", a:"sentinel", b:"wiki", mpa:3, mpb:3,
    d:"three enchanted canaries seek the fault - triple hit. Needs root + focus." },
- safedeploy:{ name:"✦ SAFE DEPLOY", a:"mender", b:"refuter", mpa:4, mpb:2,
+ safedeploy:{ name:"✦ SAFE DEPLOY", a:"retro", b:"refuter", mpa:4, mpb:2,
    d:"ward the whole party AND draw the enemy's fire - one coordinated motion." },
  setuppunchline:{ name:"✦ SETUP & PUNCHLINE", a:"wiki", b:"papafoxx", mpa:3, mpb:4,
    d:"WIKI feeds the setup from the index; FOXX lands the punchline. Needs the core exposed - or roasted." },
@@ -1062,11 +1043,11 @@ const IT = {
  tal:{ name:"SEV Talisman", type:"charm", price:0, fx:"tal", d:"forged from Incident Sigils: HERO +1 ATK and -1 damage taken. Every scar, worn as strength." },
  sw1:{ name:"Refactor Blade", type:"weapon", price:45, atk:3, fits:["hero","refuter"], d:"a clean edge for clean cuts - a true sword for the working engineer." },
  bw1:{ name:"Canary Bow", type:"weapon", price:0, atk:2, fits:["hero","sentinel"], d:"forged: arrows that sing through fog - basic attacks pierce CONTEXT FOG." },
- wd1:{ name:"Postmortem Wand", type:"weapon", price:0, atk:1, fits:["hero","wiki","sharon","mender"], d:"forged: +1 ATK (HERO, WIKI, SHARONDUH or MENDER) - in the HERO's hands its swings bite even ARMORED foes." },
+ wd1:{ name:"Postmortem Wand", type:"weapon", price:0, atk:1, fits:["hero","wiki","sharon","retro"], d:"forged: +1 ATK (HERO, WIKI, SHARONDUH or RETROLISTIC) - in the HERO's hands its swings bite even ARMORED foes." },
  mic1:{ name:"Golden Mic", type:"weapon", price:40, atk:1, fits:["papafoxx"], d:"PAPAFOXX +1 ATK - the punchline lands heavier." },
  rt1:{ name:"Kanban Blades", type:"weapon", price:0, atk:1, fits:["retro"], d:"RETROLISTIC +1 ATK, and KANBAN CUT costs 1 less MP - two blades, one column at a time." },
  lt1:{ name:"Systems Compass", type:"weapon", price:0, atk:1, fits:["lito"], d:"LITO +1 ATK, and the first TWIN HYPOTHESIS each battle reveals the foe - it points at the loop that made the mess." },
- wd2:{ name:"Blameless Censer", type:"weapon", price:0, atk:1, fits:["mender"], d:"MENDER +1 ATK, and REPAIR mends 8 instead of 6 - smoke over the incident, never over a name." },
+ wd2:{ name:"Blameless Censer", type:"weapon", price:0, atk:1, fits:["retro"], d:"RETROLISTIC +1 ATK, and REPAIR mends 8 instead of 6 - smoke over the incident, never over a name." },
  bw2:{ name:"Blast Radius Quiver", type:"weapon", price:0, atk:1, fits:["sentinel"], d:"SENTINEL +1 ATK, and MUTAGEN ticks a fourth turn - arrows that keep counting after they land." },
  sw2:{ name:"Objection Gavel", type:"weapon", price:0, atk:1, fits:["refuter"], d:"REFUTER +1 ATK, and OBJECTION! cuts incoming damage by 2 instead of 1 - one strike and every eye goes to the Tank." },
  mic2:{ name:"Crowd Work Cuffs", type:"weapon", price:0, atk:1, fits:["papafoxx"], d:"PAPAFOXX +1 ATK, and CROWD WORK's defense drop lasts a third round - the front row does half the work." },
@@ -1216,7 +1197,7 @@ const ENSPD={ dummy:1, vague:2, gremlin:8, creep:3, golem:3, wyrm:6, leak:4, cho
  packetshark:7, botnet:5, phish:4, ransomworm:5, zeroday:8, nullbyte:6, nullroot:7, promptinj:6, halluc:5, misaligned:8 };
 Object.keys(ENSPD).forEach(k=>{ if(EN[k]) EN[k].spd=ENSPD[k]; });
 function unitSpd(def){ return def.spd||4; }
-function rowOf(a){ return a.row || ((a.id==="wiki"||a.id==="mender"||a.id==="papafoxx")?"back":"front"); }
+function rowOf(a){ return a.row || ((a.id==="wiki"||a.id==="papafoxx")?"back":"front"); }
 function fightBase(a){ const cat=(a.id==="hero" && S.equip.weapon)? WVIS[S.equip.weapon] : null;
   const exempt = cat==="bow" || cat==="staff";   // ranged and casting implements strike true from the back line
   return Math.max(1, atkOf(a) - ((rowOf(a)==="back" && !exempt)?1:0)); }
@@ -1285,8 +1266,9 @@ const Z = [
  elites:{"8,6":"retroboss"},
  recruitAfter:{"8,6":{ id:"retro",
   lines:["The mask comes off. Under it: a grin that has clearly been taking notes.",
-   "RETROLISTIC the BI Ninja joins the party! 'Two blades: MEASURE and SHIP. I've been benchmarking your fights since the plains - your cycle time is improving, by the way.'",
-   "★ RETROLISTIC carries KANBAN CUT and DASHBOARD - learns SPRINT PLAN at LV 5. Fastest hands on the roster.",
+   "RETROLISTIC the Incident Slayer joins the party! 'Two blades: MEASURE and MEND. I've been benchmarking your fights since the plains - your cycle time is improving, by the way.'",
+   "RETROLISTIC: 'I used to run the retro after the fire went out. Then I learned to run it during. The model never learns; the notes do, so I take the notes and I carry the water.'",
+   "★ RETROLISTIC carries KANBAN CUT and CONTROL ARM - learns REPAIR at LV 3, DASHBOARD and SPRINT PLAN at LV 5, WARD at LV 7. He cuts, and he mends.",
    "RETROLISTIC: 'One question before we walk: what are we building, what does DONE look like, and who is it for? …Good. I ask that every morning. You'll get used to me.'"]},
   "5,4":{ id:"wiki",
   lines:["WIKI the Wizard joins the party!","WIKI: 'Memory should be auditable - every belief a readable note, every deletion carrying its reason.'","★ WIKI casts CONTEXA - and learns INDEX STORM at LV 5."]}},
@@ -1297,8 +1279,8 @@ const Z = [
  enc:{tile:",", pool:["wyrm","leak"], rate:0.11}, roam:{pool:["wyrm","leak"], x:8, y:7},
  nodes:[{x:2,y:1,t:"traces"},{x:8,y:5,t:"metrics"},{x:9,y:7,t:"traces"}],
  loot:{"1,7":{item:"snooze", text:"An abandoned barrel - a <b>Pager Snooze</b>! Bless whoever left this."}},
- recruitAfter:{"5,6":{ id:"mender",
-  lines:["MENDER the Cleric joins the party!","MENDER: 'The model never learns; the notes do. Improvement must beat its own placebo.'","★ MENDER carries CONTROL ARM and REPAIR - and learns WARD at LV 6."]}},
+ recruitAfter:{"5,6":{ id:"retro",
+   lines:["RETROLISTIC the Incident Slayer joins the party!","RETROLISTIC: 'I used to run the retro after the fire went out. Then I learned to run it during.'","RETROLISTIC: 'The model never learns; the notes do. So I take the notes, and I carry the water.'","★ RETROLISTIC heals with CONTROL ARM and REPAIR, cuts with KANBAN - learns WARD at LV 7."]}},
  chest:{key:"9,6", text:"🏆 ARTIFACT: memory-repair-lab - placebo-controlled memory repair: 8/10 → 10/10 on a sealed held-out split. github.com/LZBiala/memory-repair-lab  (+1 Coffee, +15 ⛁)", give:"coffee", tok:15} },
 { name:"Graph Citadel", ground:"#33283a", maps:[
 "rrrrrrrrrrrr","r....M.....r","r.,......,.r","r....B.....r","r.,......,.r","r.c........r","r...,,,....r","rb.......b.r","rrrrrr.rrrrr"],
@@ -1349,7 +1331,7 @@ const Z = [
   "Sharonduh let me read her cage notebooks. Half genius, half love letters. I filed them under both.",
   "Every belief auditable, every deletion carrying its reason. People too, I think. That's what forgiveness is - a documented deletion.",
   "Your five-why has gotten quieter. The loud ones are for the room. The quiet ones are for the truth."]},
- {x:8,y:6,spr:"mender",name:"MENDER",inParty:"mender",lines:[
+ {x:8,y:6,spr:"retro",name:"RETROLISTIC",inParty:"retro",lines:[
   "I checked everyone's HP while they slept. Old habit. The placebo of care is still care.",
   "The Retry Storm taught me something: healing isn't undoing damage. It's teaching the system to fail smaller.",
   "Mara and I trade notes - innkeeping and clerics run the same playbook. Rest, count, never blame the bed.",
@@ -1549,6 +1531,15 @@ function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d
     out.skills=Object.assign({obs:{lv:1,xp:0}, forge:{lv:1,xp:0}}, p.skills||{});
     Object.keys(out.items||{}).forEach(k=>{ if(!IT[k]) delete out.items[k]; });             // never carry item ids the table no longer knows
     { const sb=S; S=out; try{ treeInit(); } finally { S=sb; } }   // a build that could never be bought must not arrive by save file
+    if(Array.isArray(out.party) && out.party.indexOf("mender")>=0){   // the Cleric merged into the Slayer
+      const lv=(out.actors && out.actors.mender && out.actors.mender.lv) || 1;
+      out.party=out.party.filter(id=>id!=="mender");
+      if(out.party.indexOf("retro")<0) out.party.push("retro");
+      if(out.actors){ delete out.actors.mender;
+        if(!out.actors.retro) out.actors.retro=mkActor("retro", lv); }
+      if(out.gear) delete out.gear.mender;
+      if(out.bond){ out.bond.retro=Math.max(out.bond.retro||0, out.bond.mender||0); delete out.bond.mender; }
+    }
     return out; }catch(e){ return null; } }
 function tryMigrate(){
   try{ localStorage.getItem(saveKey(0)); }catch(e){ return false; }   // per-slot never-clobber guards below make migration safely resumable
@@ -1652,11 +1643,11 @@ const LIMITS = {
  hero:{ name:"FIVE-WHY OVERDRIVE", d:"all five whys at once - reveals, focuses, verifies the round, and strikes." },
  sentinel:{ name:"CANARY STORM", d:"a flock no gate can stop: 14 true damage through armor, fog, and regen." },
  wiki:{ name:"TOTAL RECALL", d:"the whole wiki at once: every living ally +4 MP." },
- mender:{ name:"BLAMELESS DAWN", d:"the postmortem that heals: every living ally +8 HP and a ward." },
+
  refuter:{ name:"FINAL OBJECTION", d:"the argument that stops the world: taunt 3 rounds, enemy loses its next turn." },
  papafoxx:{ name:"DEEZ NUTS BAAAHHH", d:"the forbidden punchline: 14 damage, and the whole party heals 5. Laughter is the best medicine." },
  sharon:{ name:"FIVE NINES", d:"99.999% availability, made flesh: every fallen ally rises at half HP; the living heal 6." },
- retro:{ name:"RETROSPECTIVE", d:"the meeting that actually helps: 12 damage, every heckle cleared, every ally +3 HP." },
+ retro:{ name:"BLAMELESS RETRO", d:"the postmortem that heals: 12 damage, every heckle cleared, every living ally +8 HP and a ward." },
  lito:{ name:"ONE MORNING AT A TIME", d:"don't overcome your whole life, overcome this morning: 12 damage, every ally +5 HP, every heckle cleared." } };
 function chargeLB(a,d){ a.lb=Math.min(LB_MAX,(a.lb||0)+d); }
 // ---- combat stances (RuneScape attack styles, taught as deployment postures) ----
@@ -1940,11 +1931,10 @@ const CORE={
  hero:null,
  sentinel:{STR:5,INT:6,DEF:4,VIT:5,SPD:9,SPR:4,LCK:6},
  wiki:{STR:2,INT:9,DEF:3,VIT:4,SPD:5,SPR:6,LCK:5},
- mender:{STR:3,INT:6,DEF:6,VIT:7,SPD:4,SPR:9,LCK:4},
  refuter:{STR:7,INT:5,DEF:9,VIT:8,SPD:3,SPR:4,LCK:3},
  papafoxx:{STR:6,INT:7,DEF:4,VIT:8,SPD:8,SPR:4,LCK:8},
  sharon:{STR:8,INT:8,DEF:4,VIT:6,SPD:9,SPR:8,LCK:5},
- retro:{STR:8,INT:7,DEF:4,VIT:5,SPD:9,SPR:4,LCK:6},
+ retro:{STR:6,INT:7,DEF:5,VIT:6,SPD:7,SPR:7,LCK:5},
  lito:{STR:6,INT:8,DEF:5,VIT:7,SPD:7,SPR:6,LCK:6} };
 const CORE_DEFAULT={STR:5,INT:5,DEF:5,VIT:5,SPD:5,SPR:5,LCK:4};
 function coreOf(id){ if(id==="hero") return (S.core&&S.core.stats)||CORE_DEFAULT; return CORE[id]||CORE_DEFAULT; }
@@ -2018,7 +2008,7 @@ function sharonTalkLine(){ if(frontierDone() && (S.sharonTalk||0)%(SHARON_TALKS.
   const t=SHARON_TALKS[(S.sharonTalk||0)%SHARON_TALKS.length]; S.sharonTalk=(S.sharonTalk||0)+1; return t; }
 function frontierDone(){ return !!(S.cleared["9:5,6"] && S.cleared["10:6,6"] && S.cleared["11:5,5"]); }
 const CONDS={ preWon:()=>!S.won, mentorEra:()=>S.stage>=2 && !S.won };
-function coreFourIn(){ return ["sentinel","wiki","mender","refuter"].every(id=>S.party.includes(id)); }
+function coreFourIn(){ return ["sentinel","wiki","retro","refuter"].every(id=>S.party.includes(id)); }
 function npcsFor(zone){ return (zone.npcs||[]).filter(n=>(!n.when || S[n.when]) && (!n.inParty || S.party.includes(n.inParty)) && (!n.cond || (CONDS[n.cond] && CONDS[n.cond]()))); }
 // ---- BONDS: friendship is a stat you earn by showing up (talks at home base, dual techs in the field) ----
 function bondOf(id){ return (S.bond && S.bond[id])||0; }
@@ -2654,7 +2644,7 @@ setInterval(()=>{ M.frame++; if(M.state==="explore") render(); }, 600);
 // ================= DIALOG =================
 const SPEAKERS={ "SHARONDUH":"sharon","PAPAFOXX":"foxx","THE GUIDE":"lito","LITO":"lito","ELDER ROWAN":"rowan","YOUNG ROWAN":"rowan",
  "KID BIT":"kid","MARA":"mara","PEG":"peg","QUARTERMASTER PEG":"peg","SABLE":"sable","SABLE THE ARMORER":"sable",
- "RETROLISTIC":"retro","SENTINEL":"sentinel","WIKI":"wiki","MENDER":"mender","REFUTER":"refuter",
+ "RETROLISTIC":"retro","SENTINEL":"sentinel","WIKI":"wiki","REFUTER":"refuter",
  "A HOODED CONTRACTOR":"hax","NULLBYTE":"hax","PAGER THE CAT":"cat" };
 function speakerOf(line){ const t=String(line).replace(/<[^>]*>/g,"").replace(/^[^A-Z]*/,"");
   const m2=/^([A-Z][A-Z0-9 .'’-]{1,26}?)(?:\s*\([^)]*\))?:/.exec(t); if(!m2) return null;
@@ -2897,8 +2887,6 @@ function castLimit(a){ const b=M.b;
     return dealt(a, 14+(om?6:0), "<span class='gold'>★ "+omTag+"CANARY STORM</span> - "+nm+" looses the whole flock. No armor, no fog, no regeneration stops a true canary!"); }
   if(a.id==="wiki"){ living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+(om?6:4)); BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
     blog("<span class='gold'>★ "+omTag+"TOTAL RECALL</span> - "+nm+" opens the entire wiki at once. <span class='num'>Every ally +"+(om?6:4)+" MP.</span>"); b.menu="next"; drawB(); return; }
-  if(a.id==="mender"){ living().forEach(p=>{ p.hp=Math.min(p.maxhp,p.hp+(om?12:8)); p.shield=true; BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
-    blog("<span class='gold'>★ "+omTag+"BLAMELESS DAWN</span> - "+nm+" reads the postmortem that heals. <span class='num'>Every ally +"+(om?12:8)+" HP and a ward.</span>"); b.menu="next"; drawB(); return; }
   if(a.id==="refuter"){ b.taunt=3; b.snoozed=true;
     blog("<span class='gold'>★ FINAL OBJECTION</span> - "+nm+" makes the argument that stops the world. Taunt ×3, and the enemy loses its next turn."); b.menu="next"; drawB(); return; }
   if(a.id==="papafoxx"){ b.foxxRelief=true;
@@ -2909,10 +2897,10 @@ function castLimit(a){ const b=M.b;
     living().forEach(p2=>{ p2.hp=Math.min(p2.maxhp,p2.hp+(om?8:5)); BFX.push("heal",{slot:slotOf(p2.id)}); }); sfx("heal");
     BFX.push("lunge",{slot:slotOf(a.id)});
     return dealt(a, 12+(om?6:0), "<span class='gold'>★ "+omTag+"ONE MORNING AT A TIME</span> - "+nm+" resets the room: not the whole life, just this morning. <span class='num'>party +"+(om?8:5)+"</span>, heckles cleared, one clean fix."); }
-  if(a.id==="retro"){ if(b.heckled>0) b.heckled=0;
-    living().forEach(p2=>{ p2.hp=Math.min(p2.maxhp,p2.hp+(om?5:3)); BFX.push("heal",{slot:slotOf(p2.id)}); }); sfx("heal");
+  if(a.id==="retro"){ if(b.heckled>0) b.heckled=0;   // the Slayer's limit carries both halves of the merge: the cut and the ward
+    living().forEach(p2=>{ p2.hp=Math.min(p2.maxhp,p2.hp+(om?12:8)); p2.shield=true; BFX.push("heal",{slot:slotOf(p2.id)}); }); sfx("heal");
     BFX.push("lunge",{slot:slotOf(a.id)});
-    return dealt(a, 12+(om?6:0), "<span class='gold'>★ "+omTag+"RETROSPECTIVE</span> - "+nm+" runs the meeting that actually helps: what hurt, what healed, <span class='num'>party +"+(om?5:3)+"</span>, and the blocker gets CUT."); }
+    return dealt(a, 12+(om?6:0), "<span class='gold'>★ "+omTag+"BLAMELESS RETRO</span> - "+nm+" runs the postmortem that heals: what hurt, what healed, <span class='num'>every ally +"+(om?12:8)+" HP and a ward</span>, and the blocker gets CUT."); }
   if(a.id==="sharon"){
     partyActors().forEach(p=>{ if(p.ko){ p.ko=false; p.hp=om? p.maxhp : Math.ceil(p.maxhp/2); }
       else p.hp=Math.min(p.maxhp,p.hp+(om?9:6));
@@ -3936,11 +3924,11 @@ const TESTS = [
     const t0=S.tokens; castSkill(a,"audit"); const gained=S.tokens>t0; const flag=M.b.stolen===true;
     M.b.menu="main"; castSkill(a,"audit"); const same=S.tokens===t0+Math.max(3,Math.round(EN.golem.tok/2));
     M.b=null; S=sb; return gained && flag && same; }],
- ["ward shields every living ally", ()=>{ const sb=S; S=NEWS(); S.party=["mender","wiki"];
-    S.actors.mender=mkActor("mender",6); S.actors.wiki=mkActor("wiki",1); S.actors.wiki.ko=true;
+ ["ward shields every living ally", ()=>{ const sb=S; S=NEWS(); S.party=["retro","wiki"];
+    S.actors.retro=mkActor("retro",8); S.actors.wiki=mkActor("wiki",1); S.actors.wiki.ko=true;
     M.b={ def:EN.h5, hp:110, maxhp:110, revealed:true, focused:true, verified:0, menu:"main", turn:1, growN:0, doubled:false };
-    castSkill(S.actors.mender,"ward");
-    const ok=S.actors.hero.shield===true && S.actors.mender.shield===true && !S.actors.wiki.shield;
+    castSkill(S.actors.retro,"ward");
+    const ok=S.actors.hero.shield===true && S.actors.retro.shield===true && !S.actors.wiki.shield;
     M.b=null; S=sb; return ok; }],
  ["a taunting REFUTER really does draw the fire", ()=>{ const sb=S; const rb=rng;
     try{
@@ -3968,7 +3956,7 @@ const TESTS = [
       && FINALE_CHAIN.every(s=>s.bridge===undefined || BRIDGE[s.bridge]); }],
  ["superboss exists and gates behind won", ()=>EN.unknown.superboss===true && EN.unknown.hp===260],
  ["shop catalog integrity (24 items)", ()=>SHOP_STOCK.length===24 && SHOP_STOCK.every(id=>IT[id] && IT[id].price>0)],
- ["9 classes, 28 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===9 && Object.keys(SP).length===28
+ ["8 classes, 28 skills, tuned bestiary", ()=>{ return Object.keys(MEMBERS).length===8 && Object.keys(SP).length===28
     && EN.monolith.hp===165 && EN.h5.multi===true && EN.unknown.multi3===true; }],
  ["all sprites square: base 16×16, extended to their own size", ()=>Object.keys(SPR).every(k=>{ const s=SPR[k], n=SPRX[k]? SPRX[k].length : 16;
     return s.length===n && s.every(r=>r.length===n); })],
@@ -4741,8 +4729,8 @@ const TESTS = [
     window.setTimeout=st; M.b=null; M.state="test"; S=sb; return l1 && capped && boosted && grew; }],
  ["home base: the whole recruited crew hangs out at the inn, and talking bonds", ()=>{ const sb=S; S=NEWS();
     const before=!npcsFor(Z[6]).some(n=>n.inParty);
-    S.party=["sentinel","wiki","mender","refuter"];
-    const there=["SENTINEL","WIKI","MENDER","REFUTER"].every(nm=>npcsFor(Z[6]).some(n=>n.name===nm));
+    S.party=["sentinel","wiki","retro","refuter"];
+    const there=["SENTINEL","WIKI","RETROLISTIC","REFUTER"].every(nm=>npcsFor(Z[6]).some(n=>n.name===nm));
     const linesOk=(Z[6].npcs||[]).filter(n=>n.inParty).every(n=>n.lines.length>=4);
     const b0=bondOf("sentinel"); hangoutTalk(Z[6].npcs.find(n=>n.inParty==="sentinel"));
     const bonded=bondOf("sentinel")===b0+1;
@@ -4813,7 +4801,7 @@ const TESTS = [
     S=sb; return ok1 && armed && no; }],
  ["core stats: every soul on the roster carries a 1-10 D&D sheet, stars render true", ()=>{
     const ids=Object.keys(MEMBERS);   // derived, so a tenth soul is covered the day it joins
-    if(ids.length<9) return false;
+    if(ids.length!==Object.keys(MEMBERS).length || ids.length<8) return false;
     const keys=["STR","INT","DEF","VIT","SPD","SPR","LCK"];
     const ok=ids.every(id=>{ const c=coreOf(id); return c && keys.every(k=>c[k]>=1 && c[k]<=10); });
     return ok && starBar(7)==="★★★★★★★☆☆☆" && starBar(10)==="★★★★★★★★★★"; }],
@@ -4974,7 +4962,7 @@ const TESTS = [
     const named=/Kernel Blade/i.test(box.textContent);
     ov.hidden=true; M.state="test"; S=sb; return teased && named; }],
 
- // ---- RETROLISTIC, THE BI NINJA + visible item teaching (written RED-first) ----
+ // ---- RETROLISTIC, THE INCIDENT SLAYER + visible item teaching (written RED-first) ----
  ["items teach at a glance: battle menu shows what each consumable does, inventory reads on tap", ()=>{ const sb=S; S=NEWS();
     const st=window.setTimeout; window.setTimeout=()=>0;
     M.b={ def:EN.creep, hp:24, maxhp:24, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"item", turn:0, rounds:0, queue:[], qi:0 };
@@ -4986,12 +4974,15 @@ const TESTS = [
     if(cell) cell.click();
     const invTeaches=!!document.getElementById("invcap") && /\+5 HP, \+2 MP|acting ally/.test((document.getElementById("invcap")||{}).textContent);
     ov.hidden=true; M.state="test"; S=sb; return battleTeaches && invTeaches; }],
- ["RETROLISTIC: the BI Ninja - fastest blade in the party, jack of all trades", ()=>{
+ ["RETROLISTIC: the Incident Slayer - he cuts, and he mends", ()=>{
     const m=MEMBERS.retro;
-    if(!m || m.cls!=="BI Ninja" || m.spd!==8 || m.base.atk!==4) return false;
-    const a1=mkActor("retro",1), a5=mkActor("retro",5);
-    return a1.sk.includes("kanban") && a1.sk.includes("dashboard") && !a1.sk.includes("sprintplan")
-      && a5.sk.includes("sprintplan") && rowOf(a1)==="front" && coreOf("retro").SPD>=9; }],
+    if(!m || m.cls!=="Incident Slayer") return false;
+    const a1=mkActor("retro",1), a3=mkActor("retro",3), a7=mkActor("retro",7);
+    // the monk half and the cleric half both arrive, on a curve rather than all at once
+    return a1.sk.includes("kanban") && a1.sk.includes("controlarm")
+      && !a1.sk.includes("repair") && a3.sk.includes("repair")
+      && a7.sk.includes("ward") && a7.sk.includes("sprintplan")
+      && rowOf(a1)==="front"; }],
  ["his kit works: twin cuts land, the DASHBOARD sees everything, the SPRINT lifts the round", ()=>{ const sb=S; S=NEWS();
     S.party=["retro"]; let r=mkActor("retro",4); S.actors.retro=r;
     const st=window.setTimeout; window.setTimeout=()=>0;
@@ -5009,14 +5000,15 @@ const TESTS = [
     const before=M.b.hp; dealt(S.actors.hero, 3, "t");
     const lifted=(before-M.b.hp)>=5;
     window.setTimeout=st; M.b=null; M.state="test"; S=sb; return cut && seen && planned && lifted; }],
- ["RETROSPECTIVE: the meeting that actually helps", ()=>{ const sb=S; S=NEWS();
+ ["BLAMELESS RETRO: the postmortem that cuts and heals", ()=>{ const sb=S; S=NEWS();
     if(!LIMITS.retro || !SKILL_FX.limit_retro) return false;
     S.party=["retro"]; const r=mkActor("retro",1); S.actors.retro=r; r.lb=LB_MAX;
     S.actors.hero.hp=3;
     const st=window.setTimeout; window.setTimeout=()=>0;
     M.b={ def:EN.creep, hp:44, maxhp:44, heckled:2, revealed:true, focused:true, verified:0, taunt:0, dot:0, menu:"main", turn:1, rounds:0, queue:[], qi:0 };
     castLimit(r);
-    const ok=M.b.hp<44 && M.b.heckled===0 && S.actors.hero.hp===6 && r.lb===0;
+    const ok=M.b.hp<44 && M.b.heckled===0 && S.actors.hero.hp===11
+      && S.actors.hero.shield===true && r.lb===0;   // the merge: cut, clear, heal 8, and ward
     window.setTimeout=st; M.b=null; M.state="test"; S=sb; return ok; }],
  ["THE MASKED ANALYST: he benchmarks you in the caverns once the Wizard is yours", ()=>{ const sb=S; S=NEWS();
     const e=EN.retroboss;
@@ -5028,9 +5020,9 @@ const TESTS = [
     const after=tileAt(Z[2],8,6)==="E";
     S=sb; return !!rec && before && after; }],
  ["the Monolith demands the four NAMED specialists - a fifth friend is no shortcut", ()=>{ const sb=S; S=NEWS();
-    S.party=["sentinel","wiki","retro","mender"];
+    S.party=["sentinel","wiki","retro","papafoxx"];
     const blocked=coreFourIn()===false;
-    S.party=["sentinel","wiki","mender","refuter"];
+    S.party=["sentinel","wiki","retro","refuter"];
     const open=coreFourIn()===true;
     S=sb; return blocked && open; }],
  ["eight souls fit the battle scene", ()=>{ let ok=true, px=-1, py=-1;
@@ -5164,9 +5156,10 @@ const TESTS = [
     const pool=LITO_TALKS.join(" ");
     return LITO_TALKS.length>=11 && /0\.61/.test(pool) && /9\/10|9 of 10/.test(pool) && /3 of 4/.test(pool) && /8\/10|8 of 10/.test(pool)
       && /systems thinking/i.test(pool) && /controllab/i.test(pool); }],
- ["the ninth soul: class, kit, and limit exist; the formation seats nine", ()=>{
+ ["the last soul: class, kit, and limit exist; the formation still seats the whole roster", ()=>{
+    const n=Object.keys(MEMBERS).length;
     return !!MEMBERS.lito && MEMBERS.lito.spr==="lito" && !!SP.twinhypothesis && !!SP.firstprinciples && !!SP.windmill && !!LIMITS.lito
-      && Object.keys(MEMBERS).length===9 && BPOS(8).x>BPOS(7).x; }],
+      && n===8 && BPOS(n-1).x>BPOS(n-2).x; }],
  ["windmill halo freeze: a crit steals the foe's next turn, a normal hit does not", ()=>{ const sb=S; S=NEWS();
     M.b={ def:EN.golem, hp:50, maxhp:50, snoozed:false, revealed:true, focused:true, verified:0, dot:0, taunt:0 };
     windmillFreeze(M.b, false); const n1=M.b.snoozed===false;
@@ -5233,8 +5226,10 @@ const TESTS = [
     return FOXX_BITS.some(b=>/cron job with feelings/.test(b)) && FOXX_JOKES.some(j=>/Jersey/.test(j))
       && !pool.includes("#"+"$%") && FOXX_BITS.every(b=>b.length<=140); }],
  ["nobody fights bare-handed: every companion has gear that fits", ()=>{
-    const ids=["sentinel","wiki","mender","refuter","papafoxx","sharon","retro","lito"];
-    return ids.every(id=>Object.keys(IT).some(k=>IT[k].fits && IT[k].fits.includes(id))); }],
+    const ids=Object.keys(MEMBERS).filter(id=>id!=="hero");
+    const bare=ids.filter(id=>!Object.keys(IT).some(k=>IT[k].fits && IT[k].fits.includes(id)));
+    if(bare.length) console.log("companions with no gear that fits:", bare.join(", "));
+    return bare.length===0; }],
  ["the six new sticks exist, cost real materials, and stay inside the damage envelope", ()=>{
     const ids=["rt1","lt1","wd2","bw2","sw2","mic2"];
     return ids.every(k=>IT[k] && IT[k].type==="weapon" && IT[k].atk===1 && RECIPES[k]) ; }],
@@ -5359,7 +5354,7 @@ const TESTS = [
 
  ["every node the player can buy actually fires somewhere in the code", ()=>{
     const src0=document.documentElement.innerHTML;
-    const ti0=src0.indexOf("const TESTS"), tj0=src0.indexOf("function runTests(){");
+    const ti0=src0.indexOf("const TESTS"), tj0=src0.lastIndexOf("function runTests(){");
     const src=(ti0>0 && tj0>ti0) ? (src0.slice(0,ti0)+src0.slice(tj0)) : src0;   // a mention inside a test is not a hook
     const dead=Object.keys(TREE).filter(id=>src.split('treeHas("'+id+'")').length-1 < 1);
     if(dead.length) console.log("nodes with no hook:", dead.join(", "));
@@ -5545,7 +5540,7 @@ const TESTS = [
     ov.hidden=true; M.state="test"; return survived; }],
 
  ["the kit heals the whole room, not one person", ()=>{ const sb=S; S=NEWS();
-    S.party=["sentinel","mender"]; S.actors.sentinel=mkActor("sentinel",6); S.actors.mender=mkActor("mender",6);
+    S.party=["sentinel","retro"]; S.actors.sentinel=mkActor("sentinel",6); S.actors.retro=mkActor("retro",6);
     M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
     S.items.channel=1;
     partyActors().forEach(x=>{ x.maxhp=30; x.hp=10; });
@@ -5573,14 +5568,14 @@ const TESTS = [
     M.b=null; M.state="test"; S=sb;
     return !!before && !!after && before.t==="f" && after.t==="a"; }],
  ["the DEBRIEF brings back everyone who fell", ()=>{ const sb=S; S=NEWS();
-    S.party=["sentinel","mender"]; S.actors.sentinel=mkActor("sentinel",6); S.actors.mender=mkActor("mender",6);
+    S.party=["sentinel","retro"]; S.actors.sentinel=mkActor("sentinel",6); S.actors.retro=mkActor("retro",6);
     M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
     S.items.debrief=1;
     S.actors.sentinel.ko=true; S.actors.sentinel.hp=0;
-    S.actors.mender.ko=true; S.actors.mender.hp=0;
+    S.actors.retro.ko=true; S.actors.retro.hp=0;
     useItem(S.actors.hero, "debrief");
-    const up=!S.actors.sentinel.ko && !S.actors.mender.ko
-      && S.actors.sentinel.hp>0 && S.actors.mender.hp>0;
+    const up=!S.actors.sentinel.ko && !S.actors.retro.ko
+      && S.actors.sentinel.hp>0 && S.actors.retro.hp>0;
     M.b=null; M.state="test"; S=sb; return up; }],
  ["every item the shop sells is an item the game understands", ()=>{
     const src=document.documentElement.innerHTML;
@@ -5622,19 +5617,19 @@ const TESTS = [
     M.b=null; M.state="test"; S=sb;
     return !!led && !!back && led.t==="a" && back.t==="f"; }],
  ["the kit is worth what the quartermaster charges", ()=>{ const sb=S; S=NEWS();
-    S.party=["sentinel","mender"]; S.actors.sentinel=mkActor("sentinel",6); S.actors.mender=mkActor("mender",6);
+    S.party=["sentinel","retro"]; S.actors.sentinel=mkActor("sentinel",6); S.actors.retro=mkActor("retro",6);
     M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
     S.items.channel=1; S.items.debrief=1;
     partyActors().forEach(x=>{ x.maxhp=30; x.hp=10; });
     useItem(S.actors.hero, "channel");
     const fed=partyActors().every(x=>x.hp===15);
-    const m=S.actors.mender; m.ko=true; m.hp=0;
+    const m=S.actors.retro; m.ko=true; m.hp=0;
     useItem(S.actors.hero, "debrief");
     const up=!m.ko && m.hp===Math.ceil(m.maxhp*0.4);
     M.b=null; M.state="test"; S=sb; return fed && up; }],
 
  ["every signature weapon pays the rider its text promises", ()=>{ const sb=S; S=NEWS();
-    ["retro","lito","mender","sentinel","refuter","papafoxx"].forEach(id=>{ S.party.push(id); S.actors[id]=mkActor(id,8); });
+    ["retro","lito","sentinel","refuter","papafoxx"].forEach(id=>{ S.party.push(id); S.actors[id]=mkActor(id,8); });
     M.state="battle"; M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0, dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main", turn:0, snoozed:false, rounds:0 };
     const b=M.b; const arm=(id,item)=>{ S.items[item]=1; S.gear=S.gear||{}; S.gear[id]=item; };
     const out={};
@@ -5642,8 +5637,8 @@ const TESTS = [
     arm("retro","rt1");   out.rt1 = skillCost(SP.kanban,"kanban",S.actors.retro)===SP.kanban.mp-1
                               && skillCost(SP.kanban,"kanban",S.actors.hero)===SP.kanban.mp;
 
-    arm("mender","wd2");  b.targeting={skill:"repair"}; const t1=S.actors.hero; t1.maxhp=99; t1.hp=1;
-                          resolveTarget(S.actors.mender,"hero"); out.wd2 = t1.hp===9;
+    arm("retro","wd2");  b.targeting={skill:"repair"}; const t1=S.actors.hero; t1.maxhp=99; t1.hp=1;
+                          resolveTarget(S.actors.retro,"hero"); out.wd2 = t1.hp===9;
 
     arm("sentinel","bw2"); b.dot=0; castSkill(S.actors.sentinel,"mutagen"); out.bw2 = b.dot===4;
 
@@ -5661,16 +5656,19 @@ const TESTS = [
     return dead.length===0; }],
  ["no equipment sits in the shop with an effect the code never reads", ()=>{
     const src=document.documentElement.innerHTML;
-    const ti=src.indexOf("const TESTS"), tj=src.indexOf("function runTests(){");
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
     const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
+    // The IT declaration is written unquoted (wd2:{...}), so a QUOTED occurrence in
+    // production is the hook itself. This asked for two and only ever passed because a
+    // broken slice let test code count toward the total.
     const RIDERS=["rt1","lt1","wd2","bw2","sw2","mic2"];
-    const dead=RIDERS.filter(k=>prod.split('"'+k+'"').length-1 < 2);
+    const dead=RIDERS.filter(k=>prod.split('"'+k+'"').length-1 < 1);
     if(dead.length) console.log("gear ids with no production hook:", dead.join(", "));
     return dead.length===0; }],
 
  ["every battle count in the game agrees with every other", ()=>{
     const src=document.documentElement.innerHTML;
-    const ti=src.indexOf("const TESTS"), tj=src.indexOf("function runTests(){");
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
     const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
     const claims=(prod.match(/[0-9][0-9,]{4,}\s*\+?\s*(?:Monte Carlo|simulated|balance simulations|simulations)/g)||[])
       .map(t=>(t.match(/[0-9][0-9,]{4,}/)||[""])[0]);
@@ -5688,7 +5686,7 @@ const TESTS = [
     } finally { window.matchMedia=rm; S=sb; } }],
  ["the dead-node guard reads the game, not its own tests", ()=>{
     const src=document.documentElement.innerHTML;
-    const ti=src.indexOf("const TESTS"), tj=src.indexOf("function runTests(){");
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
     if(!(ti>0 && tj>ti)) return false;
     const prod=src.slice(0,ti)+src.slice(tj);
     const dead=Object.keys(TREE).filter(id=>prod.split(String.fromCharCode(116,114,101,101,72,97,115,40,34)+id+String.fromCharCode(34,41)).length-1 < 1);
@@ -5732,7 +5730,7 @@ const TESTS = [
     // six signature weapons, and the Rotation Badge and Rubber Duck. The listing tables do not
     // count as an implementation, and neither does a mention inside these tests.
     const src=document.documentElement.innerHTML;
-    const ti=src.indexOf("const TESTS"), tj=src.indexOf("function runTests(){");
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
     let prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
     ["SHOP_STOCK","ITICON","WVIS","AVIS","ARMOR_STOCK"].forEach(nm=>{
       const a=prod.indexOf("const "+nm); if(a<0) return;
@@ -5832,7 +5830,82 @@ const TESTS = [
       document.dispatchEvent(ev);
       // cursor still points at 0; the player is looking at button 1. Do not press 0 for them.
       return ev.defaultPrevented===false && document.activeElement===second;
-    } finally { document.getElementById("bmenu").innerHTML=""; M.b=null; M.state=bakState; S=sb; } }],];
+    } finally { document.getElementById("bmenu").innerHTML=""; M.b=null; M.state=bakState; S=sb; } }],
+ ["RETROLISTIC is the Incident Slayer, and the old title is gone", ()=>{
+    const m=MEMBERS.retro;
+    if(!m || m.cls!=="Incident Slayer") return false;
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+    const prod=(ti>0&&tj>ti)?(src.slice(0,ti)+src.slice(tj)):src;
+    return prod.indexOf("BI Ninja")<0; }],
+
+ ["the Incident Slayer carries both kits", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["retro"]; const a=S.actors.retro=mkActor("retro",8);
+      const kit=new Set(a.sk);
+      // the monk half and the cleric half both survive the merge
+      return ["kanban","dashboard","controlarm","repair"].every(k=>kit.has(k));
+    } finally { S=sb; } }],
+
+ ["the Cleric's kit still casts through its new owner", ()=>{ const sb=S; S=NEWS();
+    try{
+      S.party=["retro"]; const a=S.actors.retro=mkActor("retro",8); a.mp=30;
+      M.state="battle";
+      M.b={ id:"golem", def:EN.golem, hp:300, maxhp:300, revealed:true, focused:true, verified:0,
+        dot:0, taunt:0, sprint:0, softened:0, heckled:0, roasted:0, combo:0, menu:"main",
+        turn:0, snoozed:false, rounds:0, ducked:{} };
+      const b=M.b;
+      // REPAIR heals through the target flow
+      b.targeting={skill:"repair"}; const h=S.actors.hero; h.maxhp=99; h.hp=1;
+      resolveTarget(a,"hero"); const healed=h.hp>1;
+      // CONTROL ARM verifies
+      b.verified=0; castSkill(a,"controlarm"); const verified=b.verified>0;
+      M.b=null; M.state="test";
+      return healed && verified;
+    } finally { M.b=null; M.state="test"; S=sb; } }],
+
+ ["the merge blends, it does not stack", ()=>{
+    // a character holding both kits AND both stat lines removes every party decision
+    const c=CORE.retro;
+    if(!c) return false;
+    const axes=["STR","INT","DEF","VIT","SPD","SPR","LCK"];
+    return axes.every(k=>c[k]>=1 && c[k]<=10) && axes.reduce((n,k)=>n+c[k],0) <= 45; }],
+
+ ["nothing still points at the retired Cleric", ()=>{
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+    const prod=(ti>0&&tj>ti)?(src.slice(0,ti)+src.slice(tj)):src;
+    const dangling=[];
+    if(MEMBERS.mender) dangling.push("MEMBERS");
+    if(typeof SPR!=="undefined" && SPR.mender) dangling.push("SPR");
+    if(typeof LIMITS!=="undefined" && LIMITS.mender) dangling.push("LIMITS");
+    if(typeof CORE!=="undefined" && CORE.mender) dangling.push("CORE");
+    Object.keys(IT).forEach(k=>{ const f=IT[k].fits; if(Array.isArray(f)&&f.indexOf("mender")>=0) dangling.push("IT."+k); });
+    Object.keys(DUAL).forEach(k=>{ const d=DUAL[k]; if(d.a==="mender"||d.b==="mender") dangling.push("DUAL."+k); });
+    if(dangling.length) console.log("still pointing at mender:", dangling.join(", "));
+    return dangling.length===0; }],
+
+ ["a save that recruited the Cleric still loads", ()=>{
+    const key=saveKey(3); const bak=localStorage.getItem(key);
+    try{
+      const old=Object.assign(NEWS(), { party:["sentinel","mender","refuter"] });
+      old.actors.mender=mkActor("sentinel",5); old.actors.mender.id="mender";
+      localStorage.setItem(key, JSON.stringify(old));
+      const l=loadSlot(3);
+      if(!l) return false;
+      // the Cleric became the Slayer: no dead id in the party, and somebody took the slot
+      return l.party.indexOf("mender")<0 && l.party.indexOf("retro")>=0 && !!l.actors.retro;
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["the Slayer's sprite is drawable", ()=>{
+    const rows=SPR.retro;
+    if(!Array.isArray(rows) || rows.length!==16) return false;
+    if(!rows.every(r=>typeof r==="string" && r.length===16)) return false;
+    const bad=[];
+    rows.forEach(r=>{ for(const ch of r){ if(!(ch in PAL)) bad.push(ch); } });
+    if(bad.length) console.log("sprite uses palette keys that do not exist:", Array.from(new Set(bad)).join(","));
+    return bad.length===0; }],
+];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
   let pass=0, rows="";
