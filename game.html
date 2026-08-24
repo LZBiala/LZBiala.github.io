@@ -2156,6 +2156,117 @@ function frontierEnding(){
     say(CREDITS, ()=>{ playMusic("overworld"); saveGame(0); render(); }); });
   return true; }
 // winBattle clears the tile it just won; this is the line that notices the story ended.
+// ================= ACT VI: FORWARD DEPLOYED =================
+// The Guide hands you his pager, powered off, when the SEV-1 closes. After the credits it
+// powers back on. The work changes shape: you stop being the person who fixes the system
+// and start being the person who goes to where it is USED and makes it fit.
+//
+// Every engagement is a decision rather than a fight, which is the point - none of this is
+// solved by having more hit points. Four of the five name a repository you can go and read.
+// The fifth names nothing, because the tool it would have named is not published, and a
+// link that goes nowhere is worse than no link.
+const DEPLOY=[
+ { id:"router", title:"THE PAGER THAT WOKE UP", client:"a payments team, three time zones away",
+   brief:[
+     "The pager buzzes for the first time since the Guide handed it over. Not an incident. A REQUEST.",
+     "CLIENT: 'We need an AI that writes our incident postmortems. Ours take four days and they're bad. Can you build that?'",
+     "You could. It would take a week. They would be delighted for about a month."],
+   q:{ t:"They asked for a postmortem writer. What do you do first?",
+       a:["Build the postmortem writer. It is what they asked for and you can ship it fast.",
+          "Go sit on their next incident bridge and watch what actually happens.",
+          "Explain that language models are unreliable at postmortems and propose something else."],
+       c:1,
+       good:"You sat on their bridge at 2 AM. The postmortems were fine. What was broken was the twenty minutes BEFORE one - nobody knew who to page, so the first thing that happened to every incident was a search for a human. You did not build a writer. You built a router, and their time-to-engage fell off a cliff.",
+       bad:"You built exactly what they asked for. It works. They still take four days to resolve anything, because the writing was never the slow part - and now they have a beautiful document describing an incident nobody got to in time." },
+   card:{ t:"📋 FIELD LESSON - REQUIREMENTS ARE NOT SOLUTIONS",
+          d:"A client hands you an answer and calls it a need. 'We need an AI that writes postmortems' is a solution; the need underneath it is 'our incidents take four days'. Those are not the same problem and they do not have the same fix. Ask what happens on the day it goes wrong, in order, until the answers stop changing - and go WATCH one if they will let you. The gap between what a team asks for and what a team needs is where a forward deployed engineer earns the title, and it is almost always found by being in the room rather than by reading the ticket." },
+   retro:"RETROLISTIC: 'They asked for a deliverable and you gave them an outcome. That's the whole difference, and it's why they'll call you again.'" },
+
+ { id:"context", title:"THE CONTEXT VAULT", client:"a support org drowning in its own documentation",
+   repo:"wiki-memory-lab", url:"https://github.com/LZBiala/wiki-memory-lab",
+   brief:[
+     "CLIENT: 'The assistant keeps forgetting things. We need a bigger context window. What's the biggest one you can get us?'",
+     "Their knowledge base is thirty thousand pages. Their assistant reads all of it, every time, and still misses the answer."],
+   q:{ t:"They want a bigger window. What do you actually measure?",
+       a:["Get the biggest context window available and load everything into it.",
+          "Measure what it RETRIEVES, then feed it less and better.",
+          "Fine-tune a model on all thirty thousand pages."],
+       c:1,
+       good:"You measured retrieval before you touched the window. Selective reading used 0.61 of the tokens that loading everything did, and answered better - because the failure was never capacity, it was that the right page was buried under twenty-nine thousand wrong ones.",
+       bad:"You bought the bigger window. It costs more per call and it still misses, because a model that cannot find the right page in thirty thousand cannot find it in three hundred thousand either. Capacity was never the constraint." },
+   card:{ t:"📋 FIELD LESSON - CONTEXT IS A BUDGET, NOT A BUCKET",
+          d:"Everything the model can see, it pays for - in money, in latency, and in attention spent on the wrong thing. The job is not fitting more in. It is choosing what goes in, and being able to show that the choosing works. Measure retrieval before you buy capacity. And publish the case where the simple approach won, because a technique with no published loss is a sales pitch: on a small note set, load-everything beat selective reading at 1.27 times the cost of being clever." },
+   retro:"RETROLISTIC: 'You measured before you bought. I've watched teams skip that step and buy the same problem twice.'" },
+
+ { id:"proving", title:"THE PROVING GROUND", client:"a platform team with an AI code reviewer",
+   repo:"agent-mutation-lab", url:"https://github.com/LZBiala/agent-mutation-lab",
+   brief:[
+     "CLIENT: 'Our AI reviewer is great. The demo was incredible. We want to make it required on every pull request by Friday.'",
+     "You ask how they know it is great. There is a pause on the call."],
+   q:{ t:"They want to gate every change on a reviewer nobody has measured. What do you propose?",
+       a:["Ship it Friday. The demo was genuinely impressive and the team is confident.",
+          "Plant known bugs in clean code and count how many it catches.",
+          "Ask the reviewer to grade its own performance on the last hundred reviews."],
+       c:1,
+       good:"You planted a single known bug in otherwise clean code and checked whether the alarm went off at the right spot. Nine of ten planted bugs caught, at the planted line, within two lines. The tenth is a deliberate blind spot left in, because a scorecard with no misses on it is a scorecard nobody should trust.",
+       bad:"It went live on Friday. Three weeks later somebody asks what it has actually caught, and there is no way to answer, because nothing was ever planted and nothing was ever counted. You cannot tell whether it is a reviewer or a rubber stamp." },
+   card:{ t:"📋 FIELD LESSON - YOU CANNOT SHIP WHAT YOU CANNOT EVALUATE",
+          d:"Waiting for a real fire to find out whether the alarm works is not a test, it is a hope. Plant a bug you already understand and check the alarm goes off at the right place. Do it enough times to have a rate rather than an anecdote. And leave a known miss on the scorecard on purpose - a measuring instrument that has never failed is one nobody has calibrated, and the first thing an honest eval buys you is the ability to say how often you are wrong." },
+   retro:"RETROLISTIC: 'A blind spot you can name isn't a weakness, it's an inventory. It's the unnamed ones that end up on a bridge call.'" },
+
+ { id:"court", title:"THE COURT", client:"a fund using an AI to score proposals",
+   repo:"adversarial-chambers", url:"https://github.com/LZBiala/adversarial-chambers",
+   brief:[
+     "CLIENT: 'We use a model to score which proposals get funded. It's objective - it applies the same rubric to everyone.'",
+     "Objective is doing a great deal of work in that sentence."],
+   q:{ t:"They trust the judge because it is consistent. How do you test a judge?",
+       a:["Consistency is the point. Confirm it scores the same proposal the same way twice.",
+          "Change ONLY the judge's standing instruction and see whether the verdicts move.",
+          "Add a second model that reviews the first one's decisions."],
+       c:1,
+       good:"You changed nothing about the evidence and only the judge's standing instruction. Two judges written to behave differently: the evidence-led one flipped none of eight verdicts, the deferential one flipped three of eight, and they were exactly the ambiguous ones. That result is true by construction - both judges were written that way - so it proves the INSTRUMENT lights up, not that any live judge passes.",
+       bad:"You confirmed it is consistent. It is. A judge can be perfectly consistent and still be deciding on the instruction rather than the evidence, and consistency is exactly what that looks like from the outside." },
+   card:{ t:"📋 FIELD LESSON - PUT THE JUDGE ON THE STAND",
+          d:"Any pipeline that ends in a model's verdict has a referee nobody examines. Hold the evidence fixed, change only the standing instruction, and see whether the outcome moves - if it does, the referee is deciding the game. Two things keep this honest. The scripted result above is true by construction and shows only that the test detects instruction-sensitivity, not that a real judge passes. And a single case study, clearly labelled, is a case study: four verdicts is four verdicts, not a benchmark." },
+   retro:"RETROLISTIC: 'Everybody audits the model. Almost nobody audits the thing grading the model. That's where I'd look first, and I usually do.'" },
+
+ { id:"repair", title:"THE REPAIR BAY", client:"an agent that will not stop trying",
+   repo:"memory-repair-lab", url:"https://github.com/LZBiala/memory-repair-lab",
+   brief:[
+     "CLIENT: 'It fails sometimes. Just make it retry until it works.'",
+     "You have met this shape before. It had a name and it nearly took the Labyrinth apart."],
+   q:{ t:"They want a loop that retries until it succeeds. What do you give them?",
+       a:["Retry until it works. It is what they asked for and it usually terminates.",
+          "A budget, a backoff, and a breaker that stops the loop and says why.",
+          "Never retry. A failure should surface immediately, every time."],
+       c:1,
+       good:"You gave the loop a budget it cannot exceed, a wait that grows after each attempt, and a breaker that trips and reports. It still repairs itself most of the time. The difference is that when it cannot, it says so instead of taking the service down with it.",
+       bad:"It retries until it works, and one afternoon the thing it is retrying against is already struggling. A loop with no exit is not resilience. It is the outage, arriving from inside the house." },
+   card:{ t:"📋 FIELD LESSON - EVERY LOOP NEEDS AN EXIT",
+          d:"Self-repair is the most attractive idea in agent design and the easiest one to ship badly. A loop that fixes itself needs three things before it is safe to leave running: a budget, so it cannot spend forever; a backoff, so it stops hammering whatever is already hurting; and a breaker, so somebody finds out. The interesting engineering is never the repair. It is the exit condition - and a repair loop that cannot say WHY it stopped is one you will be debugging from a phone at 2 AM." },
+   retro:"RETROLISTIC: 'Look, it's the Retry Storm wearing a suit. They always come back. That's why I write them down.'" },
+];
+function deployOpen(){ return !!S.frontierSeen; }
+function deployDone(id){ return !!((S.deploy||{})[id]); }
+function runDeploy(id){
+  const d=DEPLOY.find(x=>x.id===id); if(!d || !deployOpen()) return false;
+  S.deploy=S.deploy||{};
+  const lesson=()=>{
+    const link=d.repo ? ("<br><span class='mut'>Built, and readable: <a href='"+d.url+"' style='color:var(--teal)'>"+d.repo+"</a></span>") : "";
+    say(["<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px'><b class='gold'>"+d.card.t+"</b><br><span class='mut'>"+d.card.d+"</span>"+link+"</div>",
+         d.retro], ()=>{
+      if(DEPLOY.every(x=>deployDone(x.id)) && !S.fieldCert){
+        S.fieldCert=1; saveGame(0);
+        say(["🎖 <b class='gold'>FIELD CERTIFIED.</b> Five engagements, five teams who can now do without you - which is the only version of this job that ever worked.",
+             "THE GUIDE: 'That's the whole trick, kid. You are not there to be needed. You are there to leave something behind that keeps working after the plane home.'",
+             "(Your share card carries the badge.)"]); return; }
+      saveGame(0); }); };
+  say(d.brief, ()=>{
+    ask(d.q.t, d.q.a, i=>{
+      const right=(i===d.q.c);
+      S.deploy[id]=right?1:2;                       // 2 means learned the hard way
+      say([right ? ("✅ "+d.q.good) : ("⚠ "+d.q.bad)], lesson); }); });
+  return true; }
 function frontierWatch(key){
   if(key) S.cleared[S.z+":"+key]=true;
   return frontierEnding(); }
@@ -4029,7 +4140,7 @@ function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
   if(better){ best={score:score, grade:grade, ms:S.playMs};
     try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
   const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
-  M.shareText="⚔️ AI Quest: SEV-1 - MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · eight classes, dual techs, time travel, a rescue inside the internet - the final boss is a major incident. Can you beat it? Race my exact seed: https://lzbiala.github.io/game.html?seed="+S.seed;
+  M.shareText="⚔️ AI Quest: SEV-1 - MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+(S.fieldCert?" · 🎖 FIELD CERTIFIED":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · eight classes, dual techs, time travel, a rescue inside the internet - the final boss is a major incident. Can you beat it? Race my exact seed: https://lzbiala.github.io/game.html?seed="+S.seed;
   saveGame(0); ov.hidden=false; ov.classList.remove("center"); M.state="end"; sfx("level");
   box.innerHTML="<b class='gold'>👑 INCIDENT RESOLVED - MTTx: LEGENDARY</b>"+
   "<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
@@ -4184,6 +4295,10 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
         "THE GUIDE: 'His creatures hold the road, and they're sloppy - beat them and they BLEED EVIDENCE. Follow the clues. Bring her home. And read everything she leaves you - engineers like that don't drop breadcrumbs by accident.'"],
         ()=>{ S.haxKnown=true; saveGame(0); render();
           if(!S.party.includes("lito")) panelSay(buildLitoJoinBeats(), ()=>{ joinLito(); saveGame(0); toast("★ LITO joins the party - the Systems Thinker"); render(); }); }); return; }
+      if(npc.name==="THE GUIDE" && deployOpen()){
+        const rows=DEPLOY.map(d=>(deployDone(d.id)?(S.deploy[d.id]===1?"✅ ":"◑ "):"▸ ")+d.title+" - "+d.client);
+        ask("📟 THE PAGER, powered back on. <span class='mut'>Five teams, none of them on fire. This part is optional - the story ended at the credits.</span>",
+          rows.concat(["(not today)"]), i=>{ if(i>=DEPLOY.length) return; runDeploy(DEPLOY[i].id); }); return; }
       if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; chapterCard(1); saveGame(0); render(); }); return; }
       if(npc.name==="THE GUIDE"){ say(guideLines(S.stage)); return; }
       say(npc.lines); return; }
@@ -7605,6 +7720,104 @@ const TESTS = [
       if(uses===1) dead.push(name+" is assigned and never read"); });
     if(dead.length) console.log(dead.join(", "));
     return dead.length===0; }],
+
+ ["FORWARD DEPLOYED is optional, and unreachable before the credits", ()=>{ const sb=S; S=NEWS();
+    try{
+      const closed=deployOpen()===false;                 // a fresh save
+      S.won=true; S.haxWon=true;
+      const stillClosed=deployOpen()===false;            // story not finished
+      S.frontierSeen=1;
+      const open=deployOpen()===true;
+      // and nothing in the game requires it: no ending, count or unlock depends on it
+      const src=document.documentElement.innerHTML;
+      const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+      const prod=(ti>0&&tj>ti)?(src.slice(0,ti)+src.slice(tj)):src;
+      const gates=(prod.match(/S\.fieldCert/g)||[]).length;
+      if(!(closed&&stillClosed&&open)) console.log("gating:", {closed, stillClosed, open});
+      return closed && stillClosed && open && gates>=1;
+    } finally { S=sb; } }],
+
+ ["every repository the act names is one that actually ships", ()=>{
+    // The four with public remotes. oncall-router-mcp is local-only, so the engagement
+    // that would have named it names no artifact at all.
+    const REAL=["wiki-memory-lab","agent-mutation-lab","adversarial-chambers","memory-repair-lab"];
+    const bad=[];
+    DEPLOY.forEach(d=>{
+      if(d.repo && REAL.indexOf(d.repo)<0) bad.push(d.id+": "+d.repo+" does not ship");
+      if(d.url && d.url.indexOf("github.com/LZBiala/")<0) bad.push(d.id+": odd url");
+      if(d.url && d.repo && d.url.indexOf(d.repo)<0) bad.push(d.id+": url does not match repo"); });
+    const named=DEPLOY.filter(d=>d.repo).length;
+    if(bad.length||named<4) console.log("repos:", bad.join(", "), "named:", named);
+    return bad.length===0 && named>=4; }],
+
+ ["each engagement is a decision, with one right answer and answers that all teach", ()=>{
+    const bad=[];
+    DEPLOY.forEach(d=>{
+      if(!d.q || !Array.isArray(d.q.a) || d.q.a.length<3) bad.push(d.id+": not a real choice");
+      else if(typeof d.q.c!=="number" || d.q.c<0 || d.q.c>=d.q.a.length) bad.push(d.id+": no correct answer");
+      if(!d.q || !d.q.good || !d.q.bad) bad.push(d.id+": an answer that teaches nothing");
+      if(!d.card || !d.card.t || !d.card.d) bad.push(d.id+": no lesson");
+      if(d.card && d.card.d.length<200) bad.push(d.id+": lesson too thin");
+      if(!Array.isArray(d.brief) || d.brief.length<2) bad.push(d.id+": no brief"); });
+    if(bad.length) console.log("engagements:", bad.join(" | "));
+    return DEPLOY.length>=5 && bad.length===0; }],
+
+ ["the act teaches without advertising", ()=>{
+    const all=DEPLOY.map(d=>[d.card.t,d.card.d,d.q.t,d.q.good,d.q.bad,d.brief.join(" "),d.q.a.join(" ")].join(" ")).join(" ");
+    const dash=/[\u2013\u2014]/.test(all);
+    const slop=/(delve|seamless|cutting-edge|tapestry|testament|game-changer|leverage|robust solution)/i.test(all);
+    // the flip-test figures may not travel without their limits, here as anywhere else
+    const quotesFlip=/(0 of 8|3 of 8|3 of 4)/.test(all);
+    const caveat=/(true by construction|not a benchmark|case study)/i.test(all);
+    const bounded=!quotesFlip || caveat;
+    if(dash||slop||!bounded) console.log("style:", {dash, slop, quotesFlip, caveat});
+    return !dash && !slop && bounded; }],
+
+ ["finishing every engagement certifies you, once", ()=>{ const sb=S, sy=window.say, sa=window.ask;
+    S=NEWS();
+    try{
+      window.say=(l,cb)=>{ if(cb) cb(); };
+      window.ask=(t,o,cb)=>cb(DEPLOY.find(d=>d.q.t===t).q.c);   // always answer correctly
+      S.won=true; S.haxWon=true; S.frontierSeen=1;
+      DEPLOY.forEach(d=>runDeploy(d.id));
+      const cert=S.fieldCert===1;
+      const done=DEPLOY.every(d=>(S.deploy||{})[d.id]);
+      // and it does not re-fire
+      runDeploy(DEPLOY[0].id);
+      const still=S.fieldCert===1;
+      if(!(cert&&done&&still)) console.log("cert:", {cert, done, still, deploy:S.deploy});
+      return cert && done && still;
+    } finally { window.say=sy; window.ask=sa; S=sb; } }],
+
+ ["a wrong answer still teaches, and can be retried", ()=>{ const sb=S, sy=window.say, sa=window.ask;
+    S=NEWS();
+    try{
+      let taught=0;
+      window.say=(l,cb)=>{ if(String(l).indexOf("FIELD LESSON")>=0 || (Array.isArray(l)&&l.join(" ").indexOf("FIELD LESSON")>=0)) taught++; if(cb) cb(); };
+      window.ask=(t,o,cb)=>{ const d=DEPLOY.find(x=>x.q.t===t); cb((d.q.c+1)%d.q.a.length); };
+      S.won=true; S.haxWon=true; S.frontierSeen=1;
+      runDeploy(DEPLOY[0].id);
+      // the lesson lands either way, and the engagement is marked as learned the hard way
+      const mark=(S.deploy||{})[DEPLOY[0].id];
+      if(!(taught>=1 && mark===2)) console.log("wrong answer:", {taught, mark});
+      return taught>=1 && mark===2;
+    } finally { window.say=sy; window.ask=sa; S=sb; } }],
+
+ ["the act adds no combat, so no balance number moves", ()=>{
+    // F5: every engagement is a conversation. If one ever starts a fight it needs its own
+    // pre-registered lab row first.
+    const src=String(runDeploy)+DEPLOY.map(d=>JSON.stringify(d)).join("");
+    const fights=/startBattle|runChain|foeAct/.test(src);
+    if(fights) console.log("an engagement starts a fight - it needs a lab row");
+    return !fights; }],
+
+ ["the Slayer sounds like himself in the new act too", ()=>{
+    const C=/\b(I'|[Yy]ou'|[Ii]t'|isn'|don'|doesn'|didn'|[Tt]hat'|[Hh]e'|[Ww]e'|[Tt]hey'|won'|can'|there'|here'|what'|nobody'|somebody')/;
+    const his=DEPLOY.map(d=>d.retro).filter(Boolean);
+    if(his.length<5) { console.log("he only speaks in "+his.length+" of "+DEPLOY.length); return false; }
+    const rate=his.filter(l=>C.test(l)).length/his.length;
+    if(rate<0.4) console.log("his register flattened in the new act:", rate.toFixed(2));
+    return rate>=0.4; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -7648,7 +7861,7 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   FOXX_JOKES, FOXX_LINES, foxxJokeLine, foxxBedState, LB_MAX,
   reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
-  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, RETRO_ARC, retroBeat, sprFor, FRONTIER_BEATS, frontierEnding, frontierWatch, RETRO_PM, retroCard, DUETS, retroFoxxDuet, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
+  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, RETRO_ARC, retroBeat, sprFor, FRONTIER_BEATS, frontierEnding, frontierWatch, DEPLOY, deployOpen, deployDone, runDeploy, RETRO_PM, retroCard, DUETS, retroFoxxDuet, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
   heldBy, resolveTarget, castSkill,
   TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, treeHolds, TREE_SCENE, keystoneBeats, migrateV9, skillCost, itThreshold, incoming, buildQueue, tryMigrate, dealt, reawaken, gainXP, XPCURVE, REP_LEVEL_CAP,
   buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse, tileHash, lungeScale, overworldThemeFor, battleThemeFor,

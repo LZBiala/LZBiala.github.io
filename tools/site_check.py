@@ -125,7 +125,11 @@ BOUNDED = (
      ("true by construction", "not a benchmark", "case study"),
      "flip-test numbers carry their limits"),
 )
-for pname, body in (("index.html", index), ("walkthrough.html", walk)):
+game_txt = (ROOT / "game.html").read_text(encoding="utf-8")
+# game.html joined this scan when the FORWARD DEPLOYED act started quoting the flip test
+# inside a teaching card. A number that travels into the game is still a number that
+# travels.
+for pname, body in (("index.html", index), ("walkthrough.html", walk), ("game.html", game_txt)):
     for claims, caveats, label in BOUNDED:
         quoted = [c for c in claims if c in body]
         if not quoted:
