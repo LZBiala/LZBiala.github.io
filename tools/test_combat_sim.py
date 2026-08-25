@@ -110,15 +110,40 @@ for k, e in C.EN().items():
 check("every simulated enemy is a real enemy, at the game's attack", not edrift, " | ".join(edrift))
 
 # --- the pack rules -----------------------------------------------------------
-js_pack = GAME[GAME.index("function packSize(stage, foeId){"):]
-js_pack = js_pack[:js_pack.index("\nfunction ")]
-js_rolls = re.findall(r"roll<(0\.\d+)", js_pack)
-py_pack = io.open(os.path.join(HERE, "combat_sim.py"), encoding="utf-8").read()
-py_block = py_pack[py_pack.index("def pack_size("):]
-py_block = py_block[:py_block.index("\n\n")]
-py_rolls = re.findall(r"roll < (0\.\d+)", py_block)
+# This guard used to compare the roll thresholds written INLINE in each packSize, with
+# `roll<(0\.\d+)`. Both sides later moved those numbers out into PACKROW tables, so both
+# regexes matched nothing and the guard asserted [] == [] - green for several commits, and
+# blind to every threshold in the game. A comparison of two extractions is only a check if
+# the extractions found something, so the tables are parsed, their SHAPE is asserted, and
+# only then are they compared.
+def table_rows(src, head, tail):
+    """The numeric rows of a PACKROW-shaped literal, whichever language wrote it."""
+    block = src[src.index(head) + len(head):]
+    block = block[:block.index(tail)]
+    return [tuple(float(x) for x in re.findall(r"\d+(?:\.\d+)?", row))
+            for row in re.findall(r"[\[(]([^\])]*)[\])]", block)]
+
+
+def zone_rows(src, head, tail):
+    block = src[src.index(head) + len(head):]
+    return {int(k): int(v) for k, v in re.findall(r"(\d+)\s*:\s*(\d+)",
+                                                  block[:block.index(tail)])}
+
+
+SIM = io.open(os.path.join(HERE, "combat_sim.py"), encoding="utf-8").read()
+js_rows = table_rows(GAME, "const PACKROW=[", "\n];")
+py_rows = table_rows(SIM, "PACKROW = [", "\n]")
+check("the pack table parses out of BOTH files at all",
+      len(js_rows) == 5 and js_rows and all(len(r) == 3 for r in js_rows) and
+      len(py_rows) == 5 and all(len(r) == 3 for r in py_rows),
+      "game %s / sim %s" % (js_rows, py_rows))
 check("the pack-size table matches the game's, threshold for threshold",
-      js_rolls == py_rolls, "game %s vs sim %s" % (js_rolls, py_rolls))
+      js_rows == py_rows, "game %s vs sim %s" % (js_rows, py_rows))
+
+js_zp = zone_rows(GAME, "const ZPACK={", "}")
+py_zp = zone_rows(SIM, "ZPACK = {", "}")
+check("the authored per-zone rows match too", js_zp == py_zp and len(js_zp) >= 1,
+      "game %s vs sim %s" % (js_zp, py_zp))
 
 js_solo = set(re.findall(r'"(\w+)"', GAME[GAME.index("const SOLO_FOES="):GAME.index("function packSize")]))
 py_solo = set(C.SOLO_FOES)
@@ -129,6 +154,10 @@ pools = set()
 for m in re.finditer(r'(?:enc|roam):\{[^}]*?pool:\[([^\]]*)\]', GAME):
     pools |= set(re.findall(r'"(\w+)"', m.group(1)))
 disagree = sorted((js_solo ^ py_solo) & pools)
+# Same lesson as the table above: an intersection with an empty set is empty, so this check
+# would go green if the pool regex ever stopped matching. Prove the inputs exist first.
+check("the solo list and the wandering pools parse out of the game at all",
+      len(js_solo) >= 4 and len(pools) >= 10, "%d solo ids, %d pooled ids" % (len(js_solo), len(pools)))
 check("no wandering foe is solo in one and packable in the other", not disagree, ", ".join(disagree))
 check("every foe the game calls solo is solo in the sim too", not (js_solo - py_solo),
       ", ".join(sorted(js_solo - py_solo)))
@@ -238,7 +267,10 @@ def cost(foe, n=1, lv=8, party=None, relic=True, crafted=True, armor=True, runs=
 # conditions that isolate it: a party that cannot die and foes that cannot be killed, so
 # every round has all N bodies alive and swinging. Verified against the real defect by
 # reintroducing it and watching this fail.
-def per_round(foe, n, rounds_cap=60, runs=90, seed=17):
+# (There used to be a `rounds_cap=60` parameter here that nothing read. A knob that does
+# nothing is worse than no knob: it tells the next reader the round count is bounded by this
+# function when it is bounded by combat_sim's own cap.)
+def per_round(foe, n, runs=90, seed=17):
     real_EN = C.EN
     def fat():
         t = real_EN()

@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI Quest: SEV-1 - SRE Edition</title>
-<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Eight playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 7,834,585 simulated battles behind the balance, every one of them reproducible. One static file, no frameworks, no API keys.">
+<meta name="description" content="An 8-bit party JRPG where AI engineering is magic and the final boss is a major incident. Eight playable souls, dual techs, a three-road growth tree, random encounters, time travel to 1999, a superboss, and 7,313,561 simulated battles behind the balance, every one of them reproducible. One static file, no frameworks, no API keys.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>">
 <meta property="og:title" content="AI Quest: SEV-1 - the 8-bit party JRPG of AI engineering">
-<meta property="og:description" content="Eight playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 7,834,585 simulated battles you can re-run yourself.">
+<meta property="og:description" content="Eight playable souls, dual techs, a three-road growth tree, time travel. Spells are AI techniques, bosses are incidents, and the balance was tuned on 7,313,561 simulated battles you can re-run yourself.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-game.png">
 <meta property="og:url" content="https://lzbiala.github.io/game.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -151,7 +151,7 @@
 </head>
 <body>
 <h1>⚔️ AI QUEST: SEV-1</h1>
-<div class="sub">sre edition · limit breaks · dual techs · growth tree · crafting · time travel · chiptune music · balance tuned on 7,834,585 simulated battles, every one reproducible · by Lito Zarate Biala</div>
+<div class="sub">sre edition · limit breaks · dual techs · growth tree · crafting · time travel · chiptune music · balance tuned on 7,313,561 simulated battles, every one reproducible · by Lito Zarate Biala</div>
 <div class="hudtop">
   <span id="hhero"><b>HERO</b> LV 1</span>
   <span>⛁ <b id="htok">0</b></span><span id="hslo"></span><span id="zonename"><b>-</b></span><span id="sptimer" hidden style="color:var(--gold)">⏱ 0:00</span>
@@ -199,7 +199,7 @@ one static file, no frameworks, no API keys · every real-world number quoted is
 "use strict";
 /* ============================================================
    AI QUEST: SEV-1 - SRE Edition
-   Balance constants below were tuned on 7,834,585 Monte Carlo
+   Balance constants below were tuned on 7,313,561 Monte Carlo
    battles (combat_sim_v2.py, 20 encounters × 50,000): gates 3-5
    turns, marquee bosses 4-7 turns, superboss ~7 turns. Under the
    OPTIMAL incident-command policy (duals + ward + taunt + verify)
@@ -1166,7 +1166,7 @@ const EN = {
  chorus:{ name:"YES-MAN CHORUS", spr:"chorus", hp:64, atk:4, xp:16, tok:14, weak:"fliptest", flee:true, ai:"smart",
   moves:[["agrees with everything you say",5],["harmonizes 'LGTM!'",6]],
   intro:"A chorus of yes-men blocks the gate. They approve everything. That's the problem.",
-  tip:"FLIP TEST shatters flattery - 0/8 vs 3/8, a real measured contrast." },
+  tip:"FLIP TEST shatters flattery - 0/8 vs 3/8 between two judges written to differ, so it is true by construction: it shows the test bites, not that a judge passes." },
  flakytest:{ name:"ELITE: THE FLAKY TEST", spr:"flaky", hp:50, atk:4, xp:22, tok:30, weak:"controlarm2", twice:true, elite:true, ai:"smart",
   moves:[["passes... then fails on rerun",5],["fails only on Fridays",5]],   // 50hp / 5+5 set by the expert loop: the alpha strike must be survivable
   intro:"An ELITE appears - THE FLAKY TEST. Green, red, green, red...", tip:"Verified strikes only: CONTROL ARM, then unload." },
@@ -1362,7 +1362,7 @@ const Z = [
        "9,7":{tok:20, text:"The Citadel's tithe barrel - <b>20 ⛁</b>!"}},
  recruitAfter:{"5,3":{ id:"refuter",
   lines:["REFUTER the Tank joins the party!","REFUTER: 'My only job is attack - and OBJECTION. Ideas that survive me have earned it.'","★ REFUTER wields FLIP TEST and OBJECTION! - the enemy will learn to fear the taunt.","REFUTER: 'The Monolith waits above. And behind it... I smell a SEV-1. Ready the party.'"]}},
- chest:{key:"2,5", text:"🏆 ARTIFACT: adversarial-chambers - the judge on trial. Instruction-flip test: 0/8 vs 3/8. github.com/LZBiala/adversarial-chambers  (+1 Runbook, +20 ⛁)", give:"runbook", tok:20} },
+ chest:{key:"2,5", text:"🏆 ARTIFACT: adversarial-chambers - the judge on trial. Instruction-flip test: 0/8 vs 3/8, true by construction - two judges written to differ, so it proves the instrument bites. github.com/LZBiala/adversarial-chambers  (+1 Runbook, +20 ⛁)", give:"runbook", tok:20} },
 { name:"1999 - Legacy Ops", ground:"#3a2d1e", maps:[
 "rrrrrrrrrrrr","r.,....,.,.r","r..,.E.....r","r.,..r..,..r","r..,B..,B..r","r,.....,...r","r.,..,...c.r","r.O....,.b.r","rrrrrrrrrrrr"],
  exits:{}, battles:{"4,4":"faxdaemon","8,4":"cobol"}, elites:{"5,2":"patient0"},
@@ -1402,7 +1402,10 @@ const Z = [
   "Sharonduh let me read her cage notebooks. Half genius, half love letters. I filed them under both.",
   "Every belief auditable, every deletion carrying its reason. People too, I think. That's what forgiveness is - a documented deletion.",
   "Your five-why has gotten quieter. The loud ones are for the room. The quiet ones are for the truth."]},
- {x:10,y:3,spr:"retro",name:"RETROLISTIC",inParty:"retro",lines:[
+ // He stood INSIDE the stew pot at 10,3 - a solid tile, so he was drawn on top of the
+ // scenery and nobody could ever share his square. One tile left puts him beside it, which
+ // is where a man who times the breakfast queue belongs anyway.
+ {x:8,y:3,spr:"retro",name:"RETROLISTIC",inParty:"retro",lines:[
   "I checked everyone's HP while they slept. Old habit. The placebo of care is still care.",
   "The Retry Storm taught me something: healing isn't undoing damage. It's teaching the system to fail smaller.",
   "Mara and I trade notes - innkeeping and incident review run the same playbook. Rest, count, never blame the bed.",
@@ -1410,7 +1413,11 @@ const Z = [
   "PapaFoxx's jokes land 71% of the time. He says the misses are 'load-bearing'. …He's right, and I hate that the data agrees.",
   "You ask better questions than when we met. That's the whole job, you know - the blades are just punctuation.",
   "Scope it, ship it, measure it, thank the team. Everything else is meetings."]},
- {x:7,y:2,spr:"lito",name:"LITO",inParty:"lito",talks:"lito",lines:LITO_HOME},
+ // He used to stand at 7,2 - the ONLY square from which the third bed can be reached. The
+ // square to the bed's left is shadowed by the bed beside it, so once LITO joined, PapaFoxx
+ // became unrecruitable and his heart scene unreachable, forever, on that save. A companion
+ // arriving must never close a door behind him.
+ {x:7,y:6,spr:"lito",name:"LITO",inParty:"lito",talks:"lito",lines:LITO_HOME},
  {x:10,y:5,spr:"refuter",name:"REFUTER",inParty:"refuter",lines:[
   "OBJECTION. …Sorry. Reflex. You walked in confidently and my whole body reacted.",
   "The comedian ROASTS and I OBJECT. Legally distinct. Mine holds up in court; his holds up the room.",
@@ -1427,13 +1434,15 @@ const Z = [
   "PEG: A blade shows on your belt, hon. Around here, what you carry says what you've survived."]}] },
 { name:"The Armory", ground:"#2b2430", interior:true, maps:[
 "WWWWWWWWWWWW","WSS......SSW","W..........W","WCCC..CCCCCW","W....u.....W","W..........W","WA.......A.W","W..........W","WWWWWDWWWWWW"],
- exits:{}, doorTo:{z:0,x:2,y:5},
+ // out the door and onto the path BELOW the hut - 2,5 is the village's loot barrel, and a
+ // door that puts you inside the scenery is a door nobody drew a step for
+ exits:{}, doorTo:{z:0,x:2,y:7},
  npcs:[{x:2,y:2,spr:"sable",name:"SABLE THE ARMORER",armorer:true,lines:[
   "SABLE: Armor isn't decoration, hon - it's posture made permanent. What you wear says how you deploy.",
   "SABLE: Vest for the careful. Plate for the committed. Bring storm-materials to Peg's forge and she'll hum you an AEGIS.",
   "SABLE: Try it on. It shows the moment you buckle it - that's the point."]}] },
 { name:"The Wire", ground:"#0b2436", maps:[
-"tttttttttttt","t.gb.gg.g..t","t..B..g..E.t","t..g..g..b.t","tppppppppppp","t.g..g..g..t","tI.....g...t","tb.g.g...c.t","tttttttttttt"],
+"tttttttttttt","t.gb.gg.g..t","t..B..g..E.t","t..g..g..b.t","tppppppppppp","t.gs.g..g..t","tI.....g...t","tb.g.g...c.t","tttttttttttt"],
  exits:{right:10}, battles:{"3,2":"packetshark"}, elites:{"9,2":"zeroday","5,6":"halluc"},
  enc:{tile:"g", pool:["packetshark","botnet"], rate:0.11}, roam:{pool:["packetshark","botnet"], x:8, y:5},
  nodes:[{x:2,y:5,t:"logs"},{x:9,y:5,t:"metrics"}],
@@ -1516,10 +1525,10 @@ const OBJ = [
 const CREDITS = [
  "⚔️ AI QUEST: SEV-1 - SRE Edition",
  "A game about the discipline of trustworthy AI.",
- "Design, writing, code, pixel art, chiptunes & 7,834,585 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
+ "Design, writing, code, pixel art, chiptunes & 7,313,561 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
  "The skills are real practices. The companions are real projects - github.com/LZBiala.",
  "The bosses are real Tuesdays.",
- "No frameworks. No trackers. No API keys. Every real-world number quoted regenerates in CI.",
+ "No frameworks. No trackers. No API keys. Every real-world number quoted regenerates in CI - except the four-verdict case story, which its own repo labels private work you cannot rerun.",
  "Thanks for playing. May your pages be few and your postmortems blameless. 🥊" ];
 
 // ================= STATE & SAVES =================
@@ -1630,21 +1639,32 @@ function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d
     out.equip=Object.assign({weapon:null,badge:null,charm:null,armor:null}, p.equip||{});   // backfill keys nested in old containers
     out.res=Object.assign({logs:0,metrics:0,traces:0,sigils:0}, p.res||{});
     out.skills=Object.assign({obs:{lv:1,xp:0}, forge:{lv:1,xp:0}}, p.skills||{});
-    Object.keys(out.items||{}).forEach(k=>{ if(!IT[k]) delete out.items[k]; });             // never carry item ids the table no longer knows
+    // never carry item ids the table no longer knows - and equip, gear and materia hold ids
+    // from that same table, so they get swept too rather than only the backpack
+    Object.keys(out.items||{}).forEach(k=>{ if(!IT[k]) delete out.items[k]; });
+    Object.keys(out.equip||{}).forEach(k=>{ if(out.equip[k] && !IT[out.equip[k]]) out.equip[k]=null; });
+    Object.keys(out.gear||{}).forEach(k=>{ if(!IT[out.gear[k]]) delete out.gear[k]; });
+    if(Array.isArray(out.materia)) out.materia=out.materia.map(k=>(k && IT[k]) ? k : null);
     { const sb=S; S=out; try{ treeInit(); } finally { S=sb; } }   // a build that could never be bought must not arrive by save file
     if(Array.isArray(out.party) && out.party.indexOf("mender")>=0){   // the Cleric merged into the Slayer
       const A=out.actors||{};
       // two characters became one, so the player keeps the deeper of the two investments
       const lv=Math.max((A.mender&&A.mender.lv)|0, (A.retro&&A.retro.lv)|0,
                         (A.hero&&A.hero.lv)|0, 1);
-      const xp=Math.max((A.mender&&A.mender.xp)|0, (A.retro&&A.retro.xp)|0);
+      // XP is CUMULATIVE, so it has to clear the floor of whatever level he lands on -
+      // otherwise a LV 20 sheet carrying a LV 9 total reads 0% forever and the next level
+      // costs eleven levels of grinding
+      const xp=Math.max((A.mender&&A.mender.xp)|0, (A.retro&&A.retro.xp)|0, XPCURVE[lv-1]|0);
       out.party=out.party.filter(id=>id!=="mender");
       if(out.party.indexOf("retro")<0) out.party.push("retro");
       if(out.actors){ delete out.actors.mender;
         out.actors.retro=mkActor("retro", lv); out.actors.retro.xp=xp; }
       if(out.gear) delete out.gear.mender;
       if(out.bond){ out.bond.retro=Math.max(out.bond.retro||0, out.bond.mender||0); delete out.bond.mender; }
-      if(out.awak){ if(out.awak.mender) out.awak.retro=true; delete out.awak.mender; }
+      // a COUNT, like every other line in this block - `=true` rendered as "Ω×true" and
+      // dropped every awakening past the first
+      if(out.awak){ out.awak.retro=Math.max(out.awak.retro|0, out.awak.mender|0); delete out.awak.mender;
+        if(!out.awak.retro) delete out.awak.retro; }
       if(out.hang){ out.hang.retro=Math.max(out.hang.retro||0, out.hang.mender||0); delete out.hang.mender; }
     }
     // last word: whatever the save claimed, the roster decides what a character IS
@@ -1976,7 +1996,7 @@ function guideLines(stage){ const n=Z[0].npcs.find(x=>x.name==="THE GUIDE"); if(
 const LITO_TALKS=[
  "LITO MODULE 1 - THE WIKI THAT REMEMBERS: Picture an AI whose memory is a wiki you can open and read, not a black box. On the bench it used 0.61x the tokens of loading everything. The honest part: on tiny corpora it loses, at 1.27x against the same baseline. Good memory knows where it's weak.",
  "LITO MODULE 2 - TEST THE TESTER: How do you know your AI reviewer is any good? Plant one bug on purpose and see if it notices. One reviewer: 9/10 planted bugs caught, zero false alarms. A separate voting study shows nine independent copies beat one, and nine copycats gain nothing. Never trust a guard you've never tried to sneak past.",
- "LITO MODULE 3 - THREE CHAIRS: One AI proposes, one plays skeptic, one judges. Then the flip test: change only the judge's standing instruction and see if the verdict changes. 3 of 4 verdicts flipped. That's not the lab failing - that's the lab doing its job. Now we know which verdicts to trust.",
+ "LITO MODULE 3 - THREE CHAIRS: One AI proposes, one plays skeptic, one judges. Then the flip test: change only the judge's standing instruction and see if the verdict changes. 3 of 4 verdicts flipped. That's one case story from private work you cannot rerun - four verdicts, not a benchmark - and it's not the lab failing, it's the lab doing its job. Now we know which verdicts to trust.",
  "LITO MODULE 4 - THE SEALED ENVELOPE: Write the exam, seal it, THEN repair the memory - so nobody can teach to the test. Scores went from 8/10 to 10/10. And the sugar-pill arm, where we only pretended to repair, stayed flat. That's how you know the fix was the fix.",
  "LITO MODULE 5 - THIS VILLAGE: Every number you've heard me say tonight traces to a public repo with the code and the logs behind it - except the 3-of-4, which its own repo labels a case story from private work you cannot rerun. Saying which is which is the whole job. A village that can't show its receipts is just a story. This one can.",
  "LITO MODULE 6 - SYSTEMS THINKING: Here's the bet I'd make. As typing code gets cheap, the value moves to understanding how the parts interact and judging whether the whole works. Every SRE knew this before AI did - the pager never cared which line you wrote.",
@@ -2196,7 +2216,7 @@ const DEPLOY=[
           "Measure what it RETRIEVES, then feed it less and better.",
           "Fine-tune a model on all thirty thousand pages."],
        c:1,
-       good:"You measured retrieval before you touched the window. Selective reading used 0.61 of the tokens that loading everything did, and answered better - because the failure was never capacity, it was that the right page was buried under twenty-nine thousand wrong ones.",
+       good:"You measured retrieval before you touched the window. Selective reading cost 0.61 of the tokens that loading everything did, and the one-line hooks pulled back the labeled notes at 0.95 - an upper bound, because the same author wrote the tasks, the hooks and the labels. Notice what is NOT in that sentence: whether the answers got better. The repo names answer quality as outside what it measures, and a number nobody measured is not a number you get to quote.",
        bad:"You bought the bigger window. It costs more per call and it still misses, because a model that cannot find the right page in thirty thousand cannot find it in three hundred thousand either. Capacity was never the constraint." },
    card:{ t:"📋 FIELD LESSON - CONTEXT IS A BUDGET, NOT A BUCKET",
           d:"Everything the model can see, it pays for - in money, in latency, and in attention spent on the wrong thing. The job is not fitting more in. It is choosing what goes in, and being able to show that the choosing works. Measure retrieval before you buy capacity. And publish the case where the simple approach won, because a technique with no published loss is a sales pitch: on a small note set, load-everything beat selective reading at 1.27 times the cost of being clever." },
@@ -4253,12 +4273,17 @@ function tryMove(dx,dy){ if(M.state!=="explore") return;
     else { S.z=0; S.x=6; S.y=5; render(); say(["The rift returns you to the present. The village hums on - governed, this time."]); return; } }
   if(chr==="I"){ const oz=S.z; delete M.roam[oz]; M.gathered={};
     if(S.z===0){ S.z=9; S.x=1; S.y=5;
+      // The arrival scene belongs HERE, on the door a player actually walks through. It
+      // used to live only on the zone-edge branch above, which the gateway never reaches.
       if(!S.netSeen){ S.netSeen=true; render(); sfx("level");
         say(["The GATEWAY swallows you whole. Everything is packets. The ground hums at 60Hz.",
              "🌐 THE WIRE - you are INSIDE the internet. Somewhere past the Firewall Bastion, in the Dark NOC, NULLBYTE is holding her.",
-             "(Fight east. Read everything signed '- S.' - she's been leaving you the route.)"], ()=>saveGame(0)); return; }
-      render(); say(["🌐 The gateway hums. Back on the Wire."]); return; }
-    else { S.z=0; S.x=8; S.y=5; render(); say(["You jack out. The village air tastes like uptime."]); return; } }
+             "(Fight east. Read everything signed '- S.' - she's been leaving you the route.)"],
+          ()=>{ saveGame(0); wireArrival(); }); return; }
+      render(); if(!wireArrival()) say(["🌐 The gateway hums. Back on the Wire."]); return; }
+    // below the gateway, not above it - 8,5 is where KID BIT stands, and you were landing
+    // on top of the boy every time you jacked out
+    else { S.z=0; S.x=8; S.y=7; render(); say(["You jack out. The village air tastes like uptime."]); return; } }
   if(chr==="B" && zone.battles && zone.battles[key] && !S.cleared[S.z+":"+key]){ battleTransition(()=>startBattle(zone.battles[key], key)); return; }
   if(chr==="E" && zone.elites && zone.elites[key] && !S.cleared[S.z+":"+key]){ battleTransition(()=>startBattle(zone.elites[key], key, zone.chains && zone.chains[key])); return; }
   if(zone.enc && chr===zone.enc.tile){
@@ -4274,10 +4299,15 @@ function battleTransition(cb){
   M.state="enc";
   const st=document.getElementById("stage"); st.classList.add("fx-enc"); sfx("hurt");
   setTimeout(()=>{ st.classList.remove("fx-enc"); cb(); }, 300); }
+// The scan order interact() walks: up, down, left, right, then the square you stand on.
+// The FIRST square holding anything takes the turn, so a bed with another bed to its left
+// cannot be reached from between them. That shadowing has cost this game real content more
+// than once, so the order lives in one place and the guards read it from here.
+const IACT=[[0,-1],[0,1],[-1,0],[1,0],[0,0]];
 function interact(){ if(M.state==="dialog"){ advDlg(); return; }
   if(M.state!=="explore") return;
   const zone=Z[S.z];
-  for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0],[0,0]]){
+  for(const [dx,dy] of IACT){
     const x=S.x+dx, y=S.y+dy, key=x+","+y;
     const rmA=M.roam[S.z];
     if(rmA && rmA.alive && rmA.x===x && rmA.y===y){ toast("⚔ You strike first!"); roamBattleNow(rmA,"first"); return; }
@@ -4357,7 +4387,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
 function titleScreen(){ M.state="title"; BW.hidden=true; ov.hidden=false; ov.classList.add("center");
   const auto=loadSlot(0);
   let h="<div class='titlecard'><h2>⚔️ AI QUEST: SEV-1</h2><div class='ed'>- SRE EDITION -</div>"+
-   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 7,834,585 simulated battles, every one reproducible</div>"+
+   "<div class='mut' style='font-size:.78rem;margin-bottom:10px'>begin as a junior SRE · ★ limit breaks · ✦ dual techs · ⚒ gather &amp; forge · ♫ chiptunes · time travel to 1999 · a rescue inside the internet<br>the final boss is a SEV-1 · balance tuned on 7,313,561 simulated battles, every one reproducible</div>"+
    "<div class='choices' style='max-width:360px;margin:0 auto;text-align:left'>";
   if(auto) h+="<button data-t='cont'>▶ CONTINUE (HERO LV "+auto.actors.hero.lv+" · "+Z[auto.z].name+")</button>";
   h+="<button data-t='new'>✦ NEW ADVENTURE</button>";
@@ -5055,8 +5085,10 @@ const TESTS = [
     S=sb; return items && d1 && d3 && d0 && vis; }],
  ["the Armory: a third enterable building with its own keeper", ()=>{ const sb=S; S=NEWS();
     const z8=Z[8] && /Armory/i.test(Z[8].name) && (Z[8].npcs||[]).some(n=>/SABLE/i.test(n.name));
-    M.state="explore"; S.z=0; S.x=2; S.y=5;
-    tryMove(0,1);
+    // approach from the path BELOW the hut - 2,5 is the loot barrel, a solid tile the
+    // player can no longer be standing on now the Armory's exit stops putting them there
+    M.state="explore"; S.z=0; S.x=2; S.y=7;
+    tryMove(0,-1);
     const inside=S.z===8;
     const label=labelsFor(Z[0],0).some(l=>/ARMORY/.test(l.t));
     M.state="test"; S=sb; return z8 && inside && label; }],
@@ -5753,8 +5785,8 @@ const TESTS = [
  ["the title screen tells the truth about the battle count", ()=>{
     const banned="19,0"+"00,000";
     const sub=document.querySelector(".sub");
-    return sub && sub.textContent.includes("7,834,585") && !sub.textContent.includes(banned)
-      && String(titleScreen).includes("7,834,585"); }],
+    return sub && sub.textContent.includes("7,313,561") && !sub.textContent.includes(banned)
+      && String(titleScreen).includes("7,313,561"); }],
 
  // ---- LITO REBORN (written RED-first) ----
  ["the guide wears a new face: lito sprite plus three breakdance frames", ()=>{
@@ -6341,15 +6373,7 @@ const TESTS = [
     // Three times now a purchasable thing has shipped with its effect unwritten: 13 tree nodes,
     // six signature weapons, and the Rotation Badge and Rubber Duck. The listing tables do not
     // count as an implementation, and neither does a mention inside these tests.
-    const src=document.documentElement.innerHTML;
-    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
-    let prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
-    ["SHOP_STOCK","ITICON","WVIS","AVIS","ARMOR_STOCK"].forEach(nm=>{
-      const a=prod.indexOf("const "+nm); if(a<0) return;
-      const o=prod.indexOf(prod[prod.indexOf("=",a)+1]==="["?"[":"{", a);
-      const open=prod[o], close=(open==="[")?"]":"}";
-      let d=0,e=o; while(e<prod.length){ if(prod[e]===open)d++; else if(prod[e]===close){d--; if(!d)break;} e++; }
-      prod=prod.slice(0,a)+prod.slice(e+1); });
+    const prod=prodSource();
     // These earn their price through the generic atk/def/spd fields, so they need no
     // bespoke code. spd joined the list when armour stopped being three hardcoded ids in
     // spdOf and started carrying its own number - which is why ar3, rar1 and ar5 moved
@@ -6653,12 +6677,56 @@ const TESTS = [
       const old=Object.assign(NEWS(), { party:["sentinel","mender","retro","refuter"] });
       old.actors.mender=mkActor("sentinel",9); old.actors.mender.id="mender";
       old.actors.retro=mkActor("retro",3);
-      old.awak={mender:true}; old.hang={mender:2}; old.bond={mender:5, retro:1};
+      // reawaken() writes a COUNT, never a flag - so the fixture uses a count, and the
+      // merge has to carry the number across. It used to set `retro=true`, which reads out
+      // of the menu as "Ω×true" and quietly throws away every awakening after the first.
+      old.awak={mender:2}; old.hang={mender:2}; old.bond={mender:5, retro:1};
       localStorage.setItem(key, JSON.stringify(old));
       const l=loadSlot(3); if(!l || !l.actors.retro) return false;
       // nine levels of Cleric do not evaporate because two characters became one
-      return l.actors.retro.lv===9 && l.awak.retro===true && !l.awak.mender
+      return l.actors.retro.lv===9 && l.awak.retro===2 && !l.awak.mender
         && (l.hang.retro||0)>=2 && !l.hang.mender && l.bond.retro===5;
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["the merge leaves a coherent XP bar, not a frozen one", ()=>{
+    // The level was the max of mender, retro AND the hero; the XP was the max of only the
+    // first two. So a LV 20 hero merging a LV 9 Cleric produced a LV 20 Slayer carrying a
+    // LV 9 XP total: xpPct clamps to 0 and his next level costs eleven levels of grinding.
+    const key=saveKey(3); const bak=localStorage.getItem(key);
+    try{
+      const old=Object.assign(NEWS(), { party:["sentinel","mender"] });
+      old.actors.hero=mkActor("hero",20);
+      old.actors.mender=mkActor("sentinel",9); old.actors.mender.id="mender";
+      localStorage.setItem(key, JSON.stringify(old));
+      const l=loadSlot(3); if(!l || !l.actors.retro) return false;
+      const r=l.actors.retro, floor=XPCURVE[r.lv-1]||0;
+      const ok = r.lv===20 && r.xp>=floor && xpPct(r)>=0 && xpPct(r)<1;
+      if(!ok) console.log("merged sheet:", {lv:r.lv, xp:r.xp, floor, pct:xpPct(r)});
+      return ok;
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["a save cannot arrive holding gear the table no longer knows", ()=>{
+    // loadSlot already refuses item ids IT has forgotten. equip, gear and materia hold ids
+    // from the same table and were never swept, so a save written before a rename could
+    // come back wearing a weapon that no longer exists.
+    const key=saveKey(3); const bak=localStorage.getItem(key);
+    try{
+      const old=Object.assign(NEWS(), { party:["sentinel"] });
+      old.items={ coffee:2, ghost_item:1 };
+      old.equip={ weapon:"ghost_wpn", badge:null, charm:null, armor:"ar1" };
+      old.gear={ sentinel:"ghost_gear", hero:"sw1" };
+      old.materia=["ghost_mat", null];
+      localStorage.setItem(key, JSON.stringify(old));
+      const l=loadSlot(3); if(!l) return false;
+      const bad=[];
+      if(l.items.ghost_item!==undefined) bad.push("items");
+      if(l.equip.weapon!==null) bad.push("equip.weapon="+l.equip.weapon);
+      if(l.equip.armor!=="ar1") bad.push("equip.armor lost a real id");
+      if(l.gear.sentinel!==undefined) bad.push("gear.sentinel="+l.gear.sentinel);
+      if(l.gear.hero!=="sw1") bad.push("gear lost a real id");
+      if(l.materia[0]!==null) bad.push("materia[0]="+l.materia[0]);
+      if(bad.length) console.log("ghost ids survived the load:", bad.join(", "));
+      return bad.length===0;
     } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
 
  ["nobody stands in a room twice, in any room", ()=>{
@@ -6992,11 +7060,17 @@ const TESTS = [
     } finally { M.b=null; M.state="test"; S=sb; } }],
 
  ["nothing new sits in the shop with an effect the code never reads", ()=>{
-    const src=document.documentElement.innerHTML;
-    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
-    const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
-    const NEW=["wd3","bw3","sw3","lt2","mic3","gl2","rt3","bd4","ch10","ar5",
-               "blastmap","freeze","rollcall"];
+    // This one never got the lesson its two siblings learned: it stripped nothing, so
+    // "blastmap" counted as implemented because SHOP_STOCK contains the word "blastmap".
+    // Every id in this list was satisfied by the catalogue that sells it.
+    const prod=prodSource();
+    // ar5 is exempt BY NAME, not by a looser rule: the Load Balancer Rig earns its price
+    // through the generic def/spd fields defOf and spdOf already read off any armour
+    // (measured: def 0 to 3, spd 5 to 4), so a bespoke hook would be dead weight. Its
+    // sibling guard exempts it the same way and for the same reason.
+    const GENERIC=["ar5"];
+    const NEW=["wd3","bw3","sw3","lt2","mic3","gl2","rt3","bd4","ch10",
+               "blastmap","freeze","rollcall"].filter(k=>GENERIC.indexOf(k)<0);
     const dead=NEW.filter(k=>prod.split('"'+k+'"').length-1 < 1);
     if(dead.length) console.log("new gear with no production hook:", dead.join(", "));
     return dead.length===0; }],
@@ -7157,7 +7231,7 @@ const TESTS = [
     const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
     const prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
     // the ledger accounts for exactly this many, with a log and a seed for each
-    const CHECKABLE="7,834,585";
+    const CHECKABLE="7,313,561";
     const claims=(prod.match(/[0-9][0-9,]{4,}\s*\+?\s*(?:Monte Carlo|simulated|balance simulations|simulations)/g)||[])
       .map(t=>(t.match(/[0-9][0-9,]{4,}/)||[""])[0]);
     const wrong=claims.filter(c=>c!==CHECKABLE);
@@ -7239,17 +7313,9 @@ const TESTS = [
     // real reason to exist. What may not exist is an item another shop item beats on
     // every axis at once. Forged and dropped gear is excluded - materials are not tokens
     // and a price of 0 does not mean free.
-    const RIDERS=(()=>{ const src=document.documentElement.innerHTML;
-      const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
-      let prod=(ti>0&&tj>ti)?(src.slice(0,ti)+src.slice(tj)):src;
-      // Being LISTED is not being implemented. Strip the catalogues first, or every shop
-      // id counts as its own rider because ARMOR_STOCK quotes it.
-      ["SHOP_STOCK","ITICON","WVIS","AVIS","ARMOR_STOCK"].forEach(nm=>{
-        const a=prod.indexOf("const "+nm); if(a<0) return;
-        const o=prod.indexOf(prod[prod.indexOf("=",a)+1]==="["?"[":"{", a);
-        const open=prod[o], close=(open==="[")?"]":"}";
-        let d=0,e=o; while(e<prod.length){ if(prod[e]===open)d++; else if(prod[e]===close){d--; if(!d)break;} e++; }
-        prod=prod.slice(0,a)+prod.slice(e+1); });
+    // Being LISTED is not being implemented, so prodSource() strips the catalogues first -
+    // otherwise every shop id counts as its own rider because ARMOR_STOCK quotes it.
+    const RIDERS=(()=>{ const prod=prodSource();
       const has={}; Object.keys(IT).forEach(k=>{ has[k]=prod.split('"'+k+'"').length-1 > 0; });
       return has; })();
     const shop=Object.keys(IT).filter(k=>SHOP_STOCK.indexOf(k)>=0 || ARMOR_STOCK.indexOf(k)>=0);
@@ -7583,6 +7649,107 @@ const TESTS = [
     if(bad.length) console.log("density table:", bad.join(", "));
     return bad.length===0; }],
 
+ // ---- SQUARES: a thing nobody can reach is not content ----
+ // This project's most persistent defect is content that exists and does nothing, and its
+ // commonest cause is geometry: two things claiming one square, or an interactable whose
+ // only approach is shadowed by the scan order. Letters have landed on resource nodes,
+ // beside chests, and on elite spawns. Careful placement keeps failing, so the rule gets
+ // guards that compute reachability instead of a person eyeballing a map string.
+ ["every NPC stands on a square a person could stand on", ()=>{
+    const bad=[];
+    Z.forEach(z=>(z.npcs||[]).forEach(n=>{
+      const ch=(z.maps[n.y]||"")[n.x];
+      if(ch===undefined) bad.push(z.name+": "+n.name+" is off the map");
+      else if(solid(ch)) bad.push(z.name+": "+n.name+" is inside a solid '"+ch+"' at "+n.x+","+n.y); }));
+    if(bad.length) console.log("NPCs standing in scenery:", bad.join(" | "));
+    return bad.length===0; }],
+
+ ["every signpost is drawn as a signpost", ()=>{
+    // The village's sign sits on an 's' tile, which is what draws the post and makes it
+    // solid. The Wire's sign was keyed to a blank floor square: nothing to see, nothing to
+    // walk up to, and the resource node beside it took the turn first.
+    const bad=[];
+    Z.forEach(z=>Object.keys(z.signs||{}).forEach(k=>{
+      const [x,y]=k.split(",").map(Number); const raw=(z.maps[y]||"")[x];
+      if(raw!=="s") bad.push(z.name+": the sign at "+k+" stands on '"+raw+"', not a post"); }));
+    const signs=Z.reduce((n,z)=>n+Object.keys(z.signs||{}).length, 0);
+    if(bad.length) console.log("signs:", bad.join(" | "));
+    return signs>=2 && bad.length===0; }],
+
+ ["every NPC and the third bed can actually be reached, in every party the game hands you", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      // Mirrors interact(): walk IACT - the same array the real function walks - and take
+      // the first square that holds anything. Nothing here has side effects.
+      const claims=(z,x,y)=>{
+        if(x<0||x>11||y<0||y>8) return false;
+        const key=x+","+y;
+        if((z.nodes||[]).some(n=>n.x===x&&n.y===y) && !M.gathered[S.z+":"+key]) return true;
+        if(npcsFor(z).some(n=>n.x===x&&n.y===y)) return true;
+        if(z.signs && z.signs[key]) return true;
+        if(z.inn===key || z.shop===key || z.armory===key) return true;
+        const c=tileAt(z,x,y);
+        if("=qFLM".indexOf(c)>=0) return true;
+        if(c==="b" && z.loot && z.loot[key] && !S.opened[S.z+":"+key]) return true;
+        if(c==="c" && z.chest && z.chest.key===key) return true;
+        return false; };
+      const pickFrom=(z,sx,sy)=>{ for(const [dx,dy] of IACT){ const x=sx+dx, y=sy+dy;
+          if(claims(z,x,y)) return x+","+y; } return null; };
+      const reaches=(z,key)=>{ for(let y=0;y<9;y++) for(let x=0;x<12;x++){
+          if(solid(tileAt(z,x,y))) continue;                                // cannot stand in scenery
+          if(npcsFor(z).some(n=>n.x===x&&n.y===y)) continue;                // nor inside a person
+          if(pickFrom(z,x,y)===key) return x+","+y; }
+        return null; };
+      const PARTIES=[[],["sentinel","wiki"],["sentinel","wiki","retro","refuter"],
+        ["sentinel","wiki","retro","refuter","papafoxx"],
+        ["sentinel","wiki","retro","refuter","papafoxx","lito"],
+        ["sentinel","wiki","retro","refuter","papafoxx","lito","sharon"]];
+      const bad=[];
+      PARTIES.forEach(p=>{ S.party=p.slice();
+        Z.forEach((z,zi)=>{ S.z=zi;
+          npcsFor(z).forEach(n=>{ if(!reaches(z,n.x+","+n.y))
+            bad.push("["+(p.join(",")||"alone")+"] "+z.name+": "+n.name+" unreachable"); }); });
+        Z.forEach((z,zi)=>{ S.z=zi;
+          Object.keys(z.signs||{}).forEach(k=>{ if(!reaches(z,k))
+            bad.push("["+(p.join(",")||"alone")+"] "+z.name+": the sign at "+k+" is unreachable"); }); });
+        S.z=6;
+        if(!reaches(Z[6],"7,1")) bad.push("["+(p.join(",")||"alone")+"] the third bed is unreachable"); });
+      if(bad.length) console.log("unreachable:", Array.from(new Set(bad)).slice(0,8).join(" | "));
+      return bad.length===0;
+    } finally { S=sb; } }],
+
+ ["every door sets you down on a square a person could stand on", ()=>{
+    // Same defect class from the other side: the Armory's exit put the player INSIDE the
+    // village's loot barrel - a solid tile with a barrel drawn over the top of them. The
+    // landings are read from the data AND out of tryMove's own source, so a new door added
+    // tomorrow is covered without anyone remembering to list it here.
+    const sb=S; S=NEWS();
+    try{
+      const bad=[], seen=[];
+      const land=(label,zi,x,y)=>{ if(!Z[zi]) { bad.push(label+" goes to no zone "+zi); return; }
+        S.z=zi; seen.push(label);
+        const c=tileAt(Z[zi],x,y);
+        if(solid(c)) bad.push(label+" lands on a solid '"+c+"' at z"+zi+" "+x+","+y);
+        const n=npcsFor(Z[zi]).find(p=>p.x===x&&p.y===y);
+        if(n) bad.push(label+" lands inside "+n.name); };
+      Z.forEach(z=>{ if(z.doorTo) land(z.name+" exit", z.doorTo.z, z.doorTo.x, z.doorTo.y); });
+      let m; const re=/S\.z=(\d+);\s*S\.x=(\d+);\s*S\.y=(\d+)/g, src=tryMove.toString();
+      while((m=re.exec(src))) land("a landing in tryMove", +m[1], +m[2], +m[3]);
+      if(bad.length) console.log("doors:", bad.join(" | "));
+      return seen.length>=6 && bad.length===0;      // and the scan must have found the doors at all
+    } finally { S=sb; } }],
+
+ ["the reachability guard knows every tile interact() answers to", ()=>{
+    // If interact() learns a new interactable character and the guard above does not, the
+    // guard starts reporting reachable things that are really shadowed. Read the real
+    // function's source and demand the two lists agree.
+    const src=interact.toString();
+    const found=Array.from(new Set((src.match(/chr0?==="(.)"/g)||[]).map(s=>s.slice(-2,-1))));
+    const known="=qFLMbc".split("");
+    const missed=found.filter(c=>known.indexOf(c)<0);
+    if(missed.length) console.log("interact() answers to tiles the guard ignores:", missed.join(", "));
+    return found.length>=5 && missed.length===0; }],
+
  ["the Slayer still talks like himself", ()=>{
     // He contracts in ordinary speech and stops at the grief peaks. That contrast is the
     // character; a writer who flattens it turns him into a generic measured mentor, and
@@ -7746,8 +7913,10 @@ const TESTS = [
     } finally { S=sb; } }],
 
  ["every repository the act names is one that actually ships", ()=>{
-    // The four with public remotes. oncall-router-mcp is local-only, so the engagement
-    // that would have named it names no artifact at all.
+    // The five with public remotes. oncall-router-mcp was local-only when this act was
+    // written, and the fifth engagement deliberately named no artifact rather than link a
+    // 404; it was published on 2026-08-23 and joined the list, which is why every one of
+    // the five now has to name a repo below.
     const REAL=["wiki-memory-lab","agent-mutation-lab","adversarial-chambers","memory-repair-lab","oncall-router-mcp"];
     const bad=[];
     DEPLOY.forEach(d=>{
@@ -7774,12 +7943,18 @@ const TESTS = [
     const all=DEPLOY.map(d=>[d.card.t,d.card.d,d.q.t,d.q.good,d.q.bad,d.brief.join(" "),d.q.a.join(" ")].join(" ")).join(" ");
     const dash=/[\u2013\u2014]/.test(all);
     const slop=/(delve|seamless|cutting-edge|tapestry|testament|game-changer|leverage|robust solution)/i.test(all);
-    // the flip-test figures may not travel without their limits, here as anywhere else
-    const quotesFlip=/(0 of 8|3 of 8|3 of 4)/.test(all);
-    const caveat=/(true by construction|not a benchmark|case study)/i.test(all);
-    const bounded=!quotesFlip || caveat;
-    if(dash||slop||!bounded) console.log("style:", {dash, slop, quotesFlip, caveat});
-    return !dash && !slop && bounded; }],
+    // The flip-test figures may not travel without their limits, here as anywhere else.
+    // This guard used to look for "0 of 8" and "3 of 4" while the prose says "none of
+    // eight" and "three of eight" - so it matched nothing, and a check that finds nothing
+    // reports the same green as a check that finds everything in order. It now demands the
+    // quote be FOUND, and bounded inside the SAME engagement rather than anywhere in the act.
+    const FLIP=/(0\s*(?:of|\/)\s*8|3\s*(?:of|\/)\s*8|3\s*(?:of|\/)\s*4|none of eight|three of eight|three of four)/i;
+    const CAV=/(true by construction|not a benchmark|case study|four verdicts is four verdicts)/i;
+    let quoted=0; const unbounded=[];
+    DEPLOY.forEach(d=>{ const txt=[d.card.t,d.card.d,d.q.t,d.q.good,d.q.bad,d.brief.join(" "),d.q.a.join(" ")].join(" ");
+      if(FLIP.test(txt)){ quoted++; if(!CAV.test(txt)) unbounded.push(d.id); } });
+    if(dash||slop||!quoted||unbounded.length) console.log("style:", {dash, slop, quoted, unbounded});
+    return !dash && !slop && quoted>=1 && unbounded.length===0; }],
 
  ["finishing every engagement certifies you, once", ()=>{ const sb=S, sy=window.say, sa=window.ask;
     S=NEWS();
@@ -7847,6 +8022,27 @@ const TESTS = [
       wireArrival(); const second=n;
       return first===1 && second===1 && !!S.wireSeen;
     } finally { window.panelSay=sp; S=sb; } }],
+
+ ["walking through the GATEWAY is what shows you the Wire", ()=>{
+    // The arrival scene hung off the zone-EDGE branch only. The Wire is entered through a
+    // gateway TILE, which returns before that line is ever reached - so the threshold of
+    // the whole act fired for the first time when you walked back OUT of the Bastion. The
+    // test that covered it called wireArrival() directly, which production never does on
+    // the path a player actually takes. Drive the door, not the function.
+    const sb=S, sy=window.say, sp=window.panelSay, sg=window.saveGame, sf=window.sfx, st=M.state;
+    S=NEWS();
+    try{
+      let beats=null;
+      window.panelSay=(b,cb)=>{ beats=b; if(cb) cb(); };
+      window.say=(l,cb)=>{ if(cb) cb(); };
+      window.saveGame=()=>{}; window.sfx=()=>{};
+      S.haxKnown=true; S.z=0; S.x=8; S.y=5; M.state="explore";
+      tryMove(0,1);                                   // one step down, onto the GATEWAY
+      const arrived=S.z===9, fired=!!beats && beats.length>=4 && !!S.wireSeen;
+      if(!arrived||!fired) console.log("gateway:", {z:S.z, wireSeen:S.wireSeen, beats:beats&&beats.length});
+      return arrived && fired;
+    } finally { window.say=sy; window.panelSay=sp; window.saveGame=sg; window.sfx=sf;
+      M.state=st; S=sb; } }],
 
  ["her notes read as one correspondence, in order, across the whole road", ()=>{
     const notes=[];
@@ -7987,6 +8183,25 @@ const TESTS = [
     if(orphan.length) console.log("called only by their own tests:", orphan.join(", "));
     return orphan.length===0; }],
 ];
+// ---- test infrastructure: the production half of this file, with the catalogues removed ----
+// Three guards ask the same question - "does anything actually READ this id, or is it only
+// listed?" - and all three had their own copy of the stripper. The copies chose the opening
+// bracket with `prod[eq+1]==="["`, which is a SPACE in `const SHOP_STOCK = [`, so they went
+// hunting for a `{` instead and deleted the shop list plus the whole enemy table with it.
+// One copy, and it takes whichever bracket actually comes first.
+const CATALOGUES=["SHOP_STOCK","ITICON","WVIS","AVIS","ARMOR_STOCK"];
+function prodSource(){
+  const src=document.documentElement.innerHTML;
+  const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+  let prod=(ti>0 && tj>ti) ? (src.slice(0,ti)+src.slice(tj)) : src;
+  CATALOGUES.forEach(nm=>{
+    const a=prod.indexOf("const "+nm); if(a<0) return;
+    const m=/[[{]/.exec(prod.slice(prod.indexOf("=",a)));       // whichever bracket opens it
+    if(!m) return;
+    const o=prod.indexOf("=",a)+m.index, open=prod[o], close=(open==="[")?"]":"}";
+    let d=0,e=o; while(e<prod.length){ if(prod[e]===open)d++; else if(prod[e]===close){d--; if(!d)break;} e++; }
+    prod=prod.slice(0,a)+prod.slice(e+1); });
+  return prod; }
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
   let pass=0, rows="";

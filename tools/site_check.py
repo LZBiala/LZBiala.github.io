@@ -125,11 +125,7 @@ BOUNDED = (
      ("true by construction", "not a benchmark", "case study"),
      "flip-test numbers carry their limits"),
 )
-game_txt = (ROOT / "game.html").read_text(encoding="utf-8")
-# game.html joined this scan when the FORWARD DEPLOYED act started quoting the flip test
-# inside a teaching card. A number that travels into the game is still a number that
-# travels.
-for pname, body in (("index.html", index), ("walkthrough.html", walk), ("game.html", game_txt)):
+for pname, body in (("index.html", index), ("walkthrough.html", walk)):
     for claims, caveats, label in BOUNDED:
         quoted = [c for c in claims if c in body]
         if not quoted:
@@ -137,6 +133,28 @@ for pname, body in (("index.html", index), ("walkthrough.html", walk), ("game.ht
         has = any(c.lower() in body.lower() for c in caveats)
         check(f"{label} in {pname}", has,
               f"quotes {', '.join(quoted)} with no limiting phrase")
+
+# 10b. game.html needs a sharper version of the same rule, for two reasons.
+# It is one file holding both the game and its test suite, and the first version of this
+# scan was reading the SUITE's own regex literals - /(0 of 8|3 of 8|3 of 4)/ - as if they
+# were prose a player reads. And a page-wide "is the caveat somewhere in this file" test is
+# far too weak for an 8000-line file: a limit in the credits does not bound a number quoted
+# in a battle tip 6000 lines earlier. So: shipped text only, and the limit has to live in
+# the SAME string as the number it bounds.
+game_txt = (ROOT / "game.html").read_text(encoding="utf-8")
+shipped = game_txt.split("const TESTS = [")[0]
+check("game.html's shipped half is separable from its test suite",
+      "const TESTS = [" in game_txt and len(shipped) > 40000, f"{len(shipped)} chars before the suite")
+FLIP = re.compile(r"0\s*(?:of|/)\s*8|3\s*(?:of|/)\s*8|3\s*(?:of|/)\s*4"
+                  r"|none of eight|three of eight|three of four", re.I)
+CAVEAT = re.compile(r"true by construction|not a benchmark|case study|case story"
+                    r"|four verdicts is four verdicts|you cannot rerun", re.I)
+strings = re.findall(r'"((?:[^"\\]|\\.)*)"', shipped)
+quoting = [s for s in strings if FLIP.search(s)]
+unbounded = [s for s in quoting if not CAVEAT.search(s)]
+check("every flip-test figure a player reads carries its limit in the same breath",
+      bool(quoting) and not unbounded,
+      f"{len(quoting)} quote(s), unbounded: " + " | ".join(s[:90] for s in unbounded[:3]))
 
 # 11. The simulator has tests now, and they are part of the gate rather than a thing to
 # remember. It produces every balance number this site publishes; on 2026-08-23 a guard
@@ -150,6 +168,28 @@ if os.environ.get("SKIP_SIM_TESTS") != "1":
     check("simulator self-tests pass", r.returncode == 0, "; ".join(tail)[:300])
 else:
     print("SKIP  simulator self-tests (SKIP_SIM_TESTS=1)")
+
+# 12. The ledger has to add up.
+# It exists to make the title screen's battle count checkable, and on 2026-08-23 it was out
+# by 521,024 because three separate updates edited the stated total rather than recomputing
+# it. A reader with a calculator was the only check that would have caught it, so the build
+# does that now: sum the campaign table, and require the ledger's own total and every figure
+# quoted inside the game to match it exactly.
+ledger = (ROOT / "tools" / "BALANCE-LEDGER.md").read_text(encoding="utf-8")
+rows = re.findall(r"^\| lab\d+[^|]*\|\s*([\d,]+)\s*\|", ledger, re.M)
+table_sum = sum(int(r.replace(",", "")) for r in rows)
+stated = re.search(r"\*\*Published total: ([\d,]+) battles\*\*", ledger)
+check("the ledger states a total", bool(stated) and len(rows) >= 6,
+      f"{len(rows)} campaign rows found")
+if stated:
+    said = int(stated.group(1).replace(",", ""))
+    check("the ledger's campaigns add up to the total it claims", said == table_sum,
+          f"table sums to {table_sum:,}, file claims {said:,} (out by {abs(said-table_sum):,})")
+    quoted = set(re.findall(r"([\d][\d,]{6,})\s*\+?\s*(?:Monte Carlo|simulated|balance simulations|simulations)",
+                            (ROOT / "game.html").read_text(encoding="utf-8")))
+    wrong = sorted(q for q in quoted if int(q.replace(",", "")) != table_sum)
+    check("every battle count in the game matches the ledger's arithmetic", not wrong,
+          f"game says {', '.join(wrong)}; the table sums to {table_sum:,}")
 
 print()
 if FAILS:

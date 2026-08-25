@@ -1,6 +1,6 @@
 # The balance ledger
 
-The game's title screen says its balance was tuned on 7,834,585 simulated battles.
+The game's title screen says its balance was tuned on 7,313,561 simulated battles.
 This file is where that number is accounted for, because a claim nobody can check is
 just a number in a nice font.
 
@@ -42,13 +42,26 @@ sends the design back, not the gate.
 | lab11 zoned | 480,000 | on a TESTED instrument, with honest walk fixtures | D1, D3 fail (both known) | `sim-runs/lab11-lab12-zoned-2026-08-23.log` |
 | lab12 zoned | 607,704 | the walk, once the party stops being given what it has not earned | **ALL GATES PASS** | same log |
 
-**Published total: 7,834,585 battles**, every one of them reproducible from the script
+**Published total: 7,313,561 battles**, every one of them reproducible from the script
 and the seeds in it. That is the whole number the game claims.
 
 **Only the last two rows describe the shipped game**, and they are the first rows in this
 table produced by an instrument that has tests of its own. Everything above the "instrument
 fixed" pair was measured by a simulator that could not see the thing it was measuring - see
 the retraction below.
+
+## The time this file did not add up
+
+On 2026-08-23 the bolded total above, and the headline on the game's title screen, both
+read 7,834,585 while the campaign table summed to 7,313,561 - out by 521,024. A
+mis-addition entered when the instrument-fixed rows landed and was carried forward through
+two more updates, because every one of those updates edited the total instead of
+recomputing it.
+
+The number is corrected. More usefully, `site_check.py` now ADDS THE COLUMN itself and
+fails if the table, this file's stated total, and every figure quoted inside the game do
+not agree. The one check nobody had run was a reader with a calculator, and that reader is
+now part of the build.
 
 ## Why the headline number went DOWN
 
