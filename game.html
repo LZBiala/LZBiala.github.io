@@ -7935,6 +7935,127 @@ const TESTS = [
     if(!ok) console.log("scan order is now", JSON.stringify(IACT));
     return ok; }],
 
+ // ---- round 2: the critical gaps an INDEPENDENT catalogue found ----
+ // 111 defects designed by readers who had not written these tests. The suite caught 9.
+ // These seven are the ones rated critical: a defect that ends a run, eats a save, or
+ // breaks the climax. The rest are named in tools/MUTATION-LEDGER.md and still in the
+ // catalogue, uncaught and on the record, rather than quietly dropped.
+
+ ["a ward is spent when it absorbs a hit, not kept forever", ()=>{
+    // Built through startBattle rather than by hand: b.foes and b.ti are the multi-foe
+    // proxy the whole combat path reads through, and a hand-rolled battle object without
+    // them tests a shape production never has.
+    const sb=S, rb=rng; S=NEWS(); const st=window.setTimeout; window.setTimeout=()=>0;
+    try{
+      S.party=["sentinel"]; const a=mkActor("sentinel",8); S.actors.sentinel=a;
+      startBattle("golem","test",null,{count:1});
+      const b=M.b; b.revealed=true; b.focused=true; b.verified=2;
+      a.hp=a.maxhp; a.ko=false; a.shield=true; rng=()=>0.5;
+      const full=a.hp;
+      foeAct();                                     // the ward eats this one
+      const afterFirst=a.hp, shieldGone=!a.shield;
+      foeAct();                                     // and this one has to land
+      const afterSecond=a.hp;
+      const ok = afterFirst===full && shieldGone && afterSecond<afterFirst;
+      if(!ok) console.log("ward:", {full, afterFirst, afterSecond, shield:a.shield});
+      return ok;
+    } finally { window.setTimeout=st; rng=rb; M.b=null; M.state="test"; S=sb; } }],
+
+ ["a boss's second form is never weaker than the form before it", ()=>{
+    // KERNEL MODE losing a digit (320 -> 32) collapses the climax of the rescue arc, and
+    // nothing asserted its health. Stated as the design rule rather than as the number, so
+    // it holds for every chain rather than for this one boss.
+    const bad=[];
+    Object.keys(EN).forEach(k=>{ const e=EN[k]; if(!Array.isArray(e.chain)) return;
+      e.chain.forEach(step=>{ const nxt=EN[step && step.id]; if(!nxt) return;
+        if(nxt.hp<e.hp) bad.push(k+" ("+e.hp+") escalates to "+step.id+" ("+nxt.hp+")"); }); });
+    if(!EN.nullroot || !EN.nullbyte) return false;
+    if(EN.nullroot.hp<EN.nullbyte.hp) bad.push("KERNEL MODE ("+EN.nullroot.hp+") is weaker than NULLBYTE ("+EN.nullbyte.hp+")");
+    if(bad.length) console.log("boss chains that shrink:", bad.join(" | "));
+    return bad.length===0; }],
+
+ ["beating the first form does not clear the room the second form stands in", ()=>{
+    // Mark the tile cleared after form one and a party that then loses to KERNEL MODE can
+    // never fight it again - the rescue becomes unwinnable on that save with no way back.
+    const sb=S; S=NEWS(); const st=window.setTimeout, sy=window.say, sp=window.panelSay, sg=window.saveGame;
+    try{
+      window.setTimeout=()=>0; window.say=(l,cb)=>{ if(cb) cb(); };
+      window.panelSay=(b,cb)=>{ if(cb) cb(); }; window.saveGame=()=>{};
+      S.z=11; S.party=["sentinel","wiki","retro","refuter"];
+      S.party.forEach(id=>{ S.actors[id]=mkActor(id,20); });
+      startBattle("nullbyte","5,5");
+      M.b.hp=0; M.b.foes[0].hp=0;
+      winBattle();
+      const cleared=!!S.cleared["11:5,5"];
+      if(cleared) console.log("the NOC tile was cleared after form one");
+      return cleared===false;
+    } finally { window.setTimeout=st; window.say=sy; window.panelSay=sp; window.saveGame=sg;
+      M.b=null; M.state="test"; S=sb; } }],
+
+ ["every character actually gets stronger for levelling", ()=>{
+    const bad=[];
+    Object.keys(MEMBERS).forEach(id=>{
+      const lo=mkActor(id,1), hi=mkActor(id,10);
+      if(hi.maxhp<=lo.maxhp) bad.push(id+": HP never grows");
+      if(hi.maxmp<=lo.maxmp) bad.push(id+": MP never grows");
+      if(hi.atk<=lo.atk) bad.push(id+": ATK never grows"); });
+    if(bad.length) console.log("levelling buys nothing for:", bad.join(", "));
+    return bad.length===0; }],
+
+ ["every save slot lives in the CURRENT schema's namespace", ()=>{
+    // Point a manual slot at an older namespace and a v10 save silently overwrites an
+    // un-migrated v9 one. Derived from SAVE_VERSION so bumping the schema keeps it true.
+    const want="aiquest"+SAVE_VERSION+"_";
+    const keys=[saveKey(0), saveKey(1), saveKey(2), saveKey(3)];
+    const bad=keys.filter(k=>k.indexOf(want)!==0);
+    if(bad.length || new Set(keys).size!==4) console.log("save keys:", keys.join(", "));
+    return bad.length===0 && new Set(keys).size===4; }],
+
+ ["a limit break is an overdrive, not another attack the armour can stop", ()=>{
+    // Route a limit through the ordinary hit path and armour, fog and unverified
+    // regeneration all block it - which is the one thing a limit is promised never to be.
+    const sb=S; S=NEWS(); const st=window.setTimeout; window.setTimeout=()=>0;
+    try{
+      const bad=[];
+      ["sentinel","hero","wiki"].forEach(id=>{
+        // drained first: WIKI's limit restores MP, and an ally already at full has nowhere
+        // to go - a fixture that starts at maximum makes a working limit look like a broken one
+        S.party=[id]; const a=mkActor(id,12); S.actors[id]=a; a.lb=LB_MAX;
+        a.mp=1; a.hp=Math.max(1, a.maxhp-6);
+        M.b={ id:"configdrift", def:EN.configdrift, hp:400, maxhp:400,
+              revealed:false, focused:false, verified:0,       // armoured, fogged, regenerating
+              dot:0, taunt:0, heckled:0, softened:0, sprint:0, combo:0, rounds:1,
+              menu:"main", turn:0 };
+        // NOT `a.lb===0`: castLimit zeroes the gauge on the way in, so a success condition
+        // that includes it is true whatever happens. That version of this guard passed with
+        // the defect present - a vacuous check written while auditing vacuous checks.
+        const before=M.b.hp;
+        const mpBefore=partyActors().reduce((n,p)=>n+p.mp, 0);
+        const hpBefore=partyActors().reduce((n,p)=>n+p.hp, 0);
+        castLimit(a);
+        const moved = M.b.hp<before
+          || partyActors().reduce((n,p)=>n+p.mp, 0)>mpBefore
+          || partyActors().reduce((n,p)=>n+p.hp, 0)>hpBefore;
+        if(!moved) bad.push(id+": the limit did nothing through armour, fog and regen"); });
+      if(bad.length) console.log("limits blocked:", bad.join(" | "));
+      return bad.length===0;
+    } finally { window.setTimeout=st; M.b=null; M.state="test"; S=sb; } }],
+
+ ["every recruit is wired to a fight that exists on that square", ()=>{
+    // WIKI's recruitAfter key was one row off its own battle tile, so winning that fight
+    // recruited nobody and the companion was simply gone. Derived from the zone data.
+    // The inn's third bed is exempt BY NAME: PapaFoxx's fight is hand-wired through
+    // foxxBed() rather than listed in battles or elites, so it is a real fight square that
+    // this rule cannot see. Naming the one exception keeps the rule strict everywhere else.
+    const HANDWIRED={ "6:7,1":true };
+    const bad=[]; let checked=0;
+    Z.forEach((z,zi)=>Object.keys(z.recruitAfter||{}).forEach(k=>{ checked++;
+      const isFight=(z.battles && z.battles[k]) || (z.elites && z.elites[k]) || HANDWIRED[zi+":"+k];
+      if(!isFight) bad.push(z.name+": nothing to fight at "+k+" (recruits "+z.recruitAfter[k].id+")");
+      if(!MEMBERS[z.recruitAfter[k].id]) bad.push(z.name+": recruits a stranger at "+k); }));
+    if(bad.length) console.log("recruits wired to nothing:", bad.join(" | "));
+    return checked>=4 && bad.length===0; }],
+
  ["the Slayer still talks like himself", ()=>{
     // He contracts in ordinary speech and stops at the grief peaks. That contrast is the
     // character; a writer who flattens it turns him into a generic measured mentor, and

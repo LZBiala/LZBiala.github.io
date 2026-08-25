@@ -11,15 +11,34 @@ iframe, and reports how many defects at least one test noticed.
 
 ## The number
 
-| run | date | tests in the suite | seeded defects | caught | kill rate |
+| run | date | tests | seeded defects | caught | kill rate |
 |---|---|---:|---:|---:|---:|
-| round 1, before | 2026-08-24 | 425 | 32 | 17 | **53.1%** |
-| round 1, after  | 2026-08-24 | 439 | 32 | 32 | **100%** |
+| round 1, before | 2026-08-24 | 425 | 32 (mine) | 17 | **53.1%** |
+| round 1, after  | 2026-08-24 | 439 | 32 (mine) | 32 | **100%** |
+| round 2, before | 2026-08-24 | 439 | 143 | 41 | **28.7%** |
+| round 2, after  | 2026-08-24 | 446 | 143 | 49 | **34.3%** |
 
-The fifteen defects that survived round 1 were live in production code with every one of
-425 tests green. They are still in `mutations.json`, and they always will be: a mutation
-that quietly left the catalogue once the suite learned to catch it would make every later
-number a lie.
+Round 2 is the honest one, and it is worth reading the split rather than the total:
+
+| who designed the defect | seeded | caught (before) | caught (after) | kill rate |
+|---|---:|---:|---:|---:|
+| me, the author of the tests | 32 | 32 | 32 | **100%** |
+| designed independently | 111 | 9 | 17 | **8.1% -> 15.3%** |
+
+The "after" column is seven guards closing the eight defects rated critical. The overall rate
+is still low and is meant to be: the remaining 94 are published, not hidden.
+
+**That gap is the finding.** Round 1's ledger warned that a kill rate measured against
+defects chosen by the person who wrote the tests is optimistic. Round 2 measured how
+optimistic: a suite that catches everything I thought to check catches about one defect in
+twelve that somebody else thought to check.
+
+The 111 independent defects were designed by readers working from the source with no
+knowledge of the tests, one per subsystem, then screened against the file for uniqueness and
+for being real rather than cosmetic. Not one of them failed to apply.
+
+Every surviving mutation stays in `mutations.json`, and always will: a mutation that quietly
+left the catalogue once the suite learned to catch it would make every later number a lie.
 
 ## Why this exists
 
@@ -61,6 +80,53 @@ catches it over the file on disk. It was undetected by the in-page suite, which 
 writer editing this file actually runs. The guard has been ported into the game as well, so
 both nets now hold it.
 
+## What round 2's survivors are, and are not
+
+**They are not bugs in the shipped game.** Every one is a defect that was seeded on purpose
+and then removed; the game does not contain them. What survived is a statement about the
+TESTS: 102 things this suite would not notice if somebody broke them tomorrow.
+
+Rated by the readers who designed them, the survivors were 8 critical, 47 high, 43 medium
+and 4 low. A sample of what "critical" meant:
+
+- a ward is never spent when it absorbs a hit, so one cast makes an ally immune for the
+  rest of the battle
+- KERNEL MODE, the final boss of the rescue arc, loses a digit of health and dies in a round
+- beating NULLBYTE's first form marks the room cleared, so a party that then loses to the
+  second form can never fight it again - the rescue becomes unwinnable with no way back
+- the hero's attack stops growing with level
+- the manual save slots point at the previous schema's namespace and overwrite un-migrated
+  saves
+- WIKI's recruit trigger is one square off its own battle tile, so winning that fight
+  recruits nobody
+
+**The eight critical gaps are closed.** Seven guards, written as invariants: a ward is spent
+and the next hit lands; a boss chain never escalates to something weaker than the form
+before it; beating form one does not clear the room form two stands in; every character
+gains HP, MP and attack from levelling; every save slot lives in the current schema's
+namespace; a limit break lands through armour, fog and unverified regeneration; and every
+recruit is wired to a fight that exists on that square.
+
+Three of those guards were wrong on the first attempt, which is the point of checking them
+against a good file and then against a bad one:
+
+- one was a bad fixture - a hand-built battle object without the `foes` array the whole
+  combat path reads through, a shape production never has;
+- one found a real exception worth naming - the inn's third bed is a fight square wired by
+  hand rather than listed in the zone's battle table;
+- and one **was itself vacuous**. The limit-break guard accepted `a.lb===0` as evidence the
+  limit had fired, and `castLimit` zeroes the gauge on the way in - so the condition was true
+  whatever happened, and it passed with the defect present. It was caught only because the
+  lab reported the mutant surviving a guard written specifically to kill it.
+
+That last one is the argument for this instrument in a single incident: a vacuous guard,
+written during an audit of vacuous guards, by someone who had spent the day thinking about
+nothing else. Review did not catch it. Measurement did.
+
+**The 94 remaining survivors are a published backlog, not a secret.** They stay in
+`mutations.json` with their ids, so anyone can re-run the lab and watch them survive. Fixing
+them by deleting them was available and was not taken.
+
 ## How the guards were written
 
 **Assert the invariant, not the mutant.** A test written to notice one specific edit is
@@ -88,10 +154,12 @@ away from the game it claims to model.
 
 ## What this number is not
 
-- **It is an upper bound, and the catalogue is mine.** I chose the 32 defects. A kill rate
-  measured against defects chosen by the same person who wrote the tests is optimistic in
-  exactly the way `wiki-memory-lab`'s 0.95 precision/recall row is optimistic, and for the
-  same reason. It is a floor on how bad things are, not a ceiling on how good they are.
+- **A catalogue written by the author of the tests is worth very little.** Round 1 said this
+  as a caveat. Round 2 measured it: 100% against my own defects, 8.1% against somebody
+  else's. If you read only one number from this file, read the second one - and treat any
+  mutation score whose catalogue came from the same hands as the tests with the suspicion
+  that gap deserves. It is the same failure mode `wiki-memory-lab` labels "upper bound by
+  construction" on its own precision row, and it is much larger than I expected.
 - **It measures the in-page suite only.** `site_check.py` and `test_combat_sim.py` are
   separate nets that this harness cannot run, and at least one round-1 survivor was already
   caught by them.

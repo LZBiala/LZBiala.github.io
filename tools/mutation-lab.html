@@ -142,7 +142,7 @@ document.getElementById("run").onclick = function(){
   var prog = document.getElementById("progress"), sum = document.getElementById("summary");
   document.querySelector("#out tbody").innerHTML = "";
   sum.textContent = "Loading the game file and the catalogue...";
-  var MUTS = [], killed = 0, survived = 0, errored = 0, t0 = Date.now();
+  var MUTS = [], killed = 0, survived = 0, errored = 0, by = [], t0 = Date.now();
 
   Promise.all([
     fetch("../game.html?t=" + Date.now()).then(function(r){ return r.text(); }),
@@ -167,8 +167,20 @@ document.getElementById("run").onclick = function(){
       if(i >= MUTS.length){
         var real = killed + survived;
         var pct = real ? Math.round(killed / real * 1000) / 10 : 0;
+        // Split by who designed the defect. A kill rate measured against defects chosen by
+        // the same person who wrote the tests flatters itself; the independent rows are the
+        // honest number, and the two are reported apart so nobody has to take that on faith.
+        var line = function(label, o){
+          var k = 0, n = 0;
+          for(var j = 0; j < by.length; j++) if(by[j].origin === o){ n++; if(by[j].killed) k++; }
+          if(!n) return "";
+          return "<div>" + label + ": <b>" + k + " of " + n + "</b> (" +
+            (Math.round(k / n * 1000) / 10) + "%)</div>";
+        };
         sum.innerHTML =
           '<div class="big">' + killed + " of " + real + " seeded defects caught &nbsp;(" + pct + "%)</div>" +
+          line("designed by the author of the tests", "author") +
+          line("designed independently", "independent") +
           "<div>" + survived + " survived" + (errored ? ", " + errored + " could not be applied" : "") +
           " &middot; baseline " + base.pass + "/" + base.total +
           " &middot; " + Math.round((Date.now()-t0)/1000) + "s in this browser</div>" +
@@ -181,8 +193,10 @@ document.getElementById("run").onclick = function(){
       prog.textContent = " " + i + " / " + MUTS.length + "  (" + m.id + ")";
       runOne(m.find, m.replace).then(function(r){
         if(r.err) errored++;
-        else if(r.failed.length) killed++;
-        else survived++;
+        else {
+          if(r.failed.length) killed++; else survived++;
+          by.push({origin: m.origin || "author", killed: r.failed.length > 0});
+        }
         row(m, r);
         step();
       });

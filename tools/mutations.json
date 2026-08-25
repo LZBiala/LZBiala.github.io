@@ -1,101 +1,1149 @@
 {
   "about": "Seeded defects for tools/mutation-lab.html. Each entry is an exact string replacement applied to game.html. 'find' must occur exactly once in the file and must land in the production half, before the line 'const TESTS = ['. A mutation stays in this file after its hole is fixed - removing a mutation once the suite learned to catch it would make the next kill rate a lie.",
   "mutations": [
-    { "id": "geo-lito-blocks-bed", "subsystem": "world",
-      "find": "{x:7,y:6,spr:\"lito\",name:\"LITO\"", "replace": "{x:7,y:2,spr:\"lito\",name:\"LITO\"",
-      "breaks": "LITO stands on the only square from which PapaFoxx's bed can be reached, so recruiting him becomes impossible once LITO joins" },
-    { "id": "geo-retro-in-stew", "subsystem": "world",
-      "find": "{x:8,y:3,spr:\"retro\",name:\"RETROLISTIC\"", "replace": "{x:10,y:3,spr:\"retro\",name:\"RETROLISTIC\"",
-      "breaks": "RETROLISTIC is drawn standing inside the inn's solid stew pot" },
-    { "id": "geo-armory-door", "subsystem": "world",
-      "find": "exits:{}, doorTo:{z:0,x:2,y:7}", "replace": "exits:{}, doorTo:{z:0,x:2,y:5}",
-      "breaks": "leaving the Armory puts the player inside the village's solid loot barrel" },
-    { "id": "geo-jackout-on-kid", "subsystem": "world",
-      "find": "else { S.z=0; S.x=8; S.y=7; render();", "replace": "else { S.z=0; S.x=8; S.y=5; render();",
-      "breaks": "jacking out of the internet lands the player on top of KID BIT" },
-    { "id": "geo-sign-blank", "subsystem": "world",
-      "find": "\"t.gs.g..g..t\"", "replace": "\"t.g..g..g..t\"",
-      "breaks": "the Wire's signpost sits on blank floor: nothing is drawn and the node beside it takes the turn first" },
-    { "id": "flow-no-wire-arrival", "subsystem": "story",
-      "find": "()=>{ saveGame(0); wireArrival(); }); return; }", "replace": "()=>{ saveGame(0); }); return; }",
-      "breaks": "the arrival scene for the whole internet act never fires when you walk through the gateway" },
-    { "id": "claim-battle-count", "subsystem": "story",
-      "find": "& 7,313,561 balance simulations", "replace": "& 7,313,562 balance simulations",
-      "breaks": "the credits quote a battle count that disagrees with every other figure in the game" },
-    { "id": "claim-strip-caveat", "subsystem": "story",
-      "find": "so it is true by construction: it shows the test bites", "replace": "so it shows the test bites",
-      "breaks": "a flip-test figure a player reads loses the limit that makes it honest" },
-    { "id": "claim-lito-061", "subsystem": "story",
-      "find": "On the bench it used 0.61x the tokens", "replace": "On the bench it used 0.51x the tokens",
-      "breaks": "a teaching module quotes a token ratio the cited repo does not report" },
-    { "id": "save-xp-floor", "subsystem": "saves",
-      "find": "(A.retro&&A.retro.xp)|0, XPCURVE[lv-1]|0);", "replace": "(A.retro&&A.retro.xp)|0);",
-      "breaks": "the Cleric merge gives a high-level sheet a low-level XP total, freezing the bar at zero" },
-    { "id": "save-awak-bool", "subsystem": "saves",
-      "find": "out.awak.retro=Math.max(out.awak.retro|0, out.awak.mender|0);", "replace": "out.awak.retro=out.awak.mender?true:(out.awak.retro|0);",
-      "breaks": "reawakening count collapses to a boolean and renders as a word instead of a number" },
-    { "id": "save-version-check", "subsystem": "saves",
-      "find": "if(!p || p.v!==SAVE_VERSION || !p.actors || !p.actors.hero) return null;", "replace": "if(!p || !p.actors || !p.actors.hero) return null;",
-      "breaks": "a save from another schema version loads without migration" },
-    { "id": "save-ghost-seat", "subsystem": "saves",
-      "find": "const GHOST_IDS=[\"mender\"];", "replace": "const GHOST_IDS=[];",
-      "breaks": "the list of deleted souls empties, so nothing stops the retired Cleric being seated again" },
-    { "id": "pack-row4-drift", "subsystem": "enemies",
-      "find": "[0.20, 0.50, 0.85],   // 4  mean 2.45", "replace": "[0.20, 0.50, 0.80],   // 4  mean 2.45",
-      "breaks": "late-game rooms seat more bodies than every published balance campaign measured" },
-    { "id": "pack-zpack-gone", "subsystem": "enemies",
-      "find": "const ZPACK={ 10:3 };", "replace": "const ZPACK={ };",
-      "breaks": "the Firewall Bastion loses its authored density and goes back over the wipe ceiling" },
-    { "id": "gear-ar5-def", "subsystem": "items",
-      "find": "price:75, def:3, spd:-1", "replace": "price:75, def:2, spd:-1",
-      "breaks": "the Load Balancer Rig gives less cover than its own description promises" },
-    { "id": "combat-dmg-floor", "subsystem": "combat",
-      "find": "dmg=Math.max(1, dmg+pre+stanceOut()", "replace": "dmg=Math.max(0, dmg+pre+stanceOut()",
-      "breaks": "an attack can land for zero, so a debuffed party can be unable to hurt anything at all" },
-    { "id": "combat-row-foxx", "subsystem": "combat",
-      "find": "row:(id===\"wiki\"||id===\"papafoxx\")?\"back\":\"front\",", "replace": "row:(id===\"wiki\")?\"back\":\"front\",",
-      "breaks": "PapaFoxx, a caster, joins in the front row and takes melee damage he was never meant to" },
-    { "id": "inv-crit-base", "subsystem": "combat",
-      "find": "function critOf(a){ return 0.15 +", "replace": "function critOf(a){ return 0.25 +",
-      "breaks": "every character crits two thirds more often, which moves every balance number in the game" },
-    { "id": "inv-combo-table", "subsystem": "combat",
-      "find": "return n>=(tight?8:10)? 2 : (n>=(tight?4:5)? 1 : 0);", "replace": "return n>=(tight?8:10)? 3 : (n>=(tight?4:5)? 1 : 0);",
-      "breaks": "the combo bonus pays more at the top step than the design allows" },
-    { "id": "inv-incoming-floor", "subsystem": "combat",
-      "find": "function incoming(raw, a, extraRed){ let d=Math.max(0, raw", "replace": "function incoming(raw, a, extraRed){ let d=Math.max(-2, raw",
-      "breaks": "damage can go negative, so a well-armoured ally is HEALED by being hit" },
-    { "id": "inv-defend-halve", "subsystem": "combat",
-      "find": "if(a.defending) d=Math.ceil(d/2); return d;", "replace": "if(a.defending) d=Math.ceil(d/3); return d;",
-      "breaks": "defending cuts damage by a third instead of a half" },
-    { "id": "inv-backrow-penalty", "subsystem": "combat",
-      "find": "return Math.max(1, atkOf(a) - ((rowOf(a)===\"back\" && !exempt)?1:0));", "replace": "return Math.max(1, atkOf(a) - ((rowOf(a)===\"back\" && !exempt)?2:0));",
-      "breaks": "the back row loses two attack in melee instead of one" },
-    { "id": "inv-unitspd-default", "subsystem": "enemies",
-      "find": "function unitSpd(def){ return def.spd||4; }", "replace": "function unitSpd(def){ return def.spd||9; }",
-      "breaks": "any enemy without an explicit speed acts before the entire party" },
-    { "id": "inv-rowof-fallback", "subsystem": "combat",
-      "find": "function rowOf(a){ return a.row || ((a.id===\"wiki\"||a.id===\"papafoxx\")?\"back\":\"front\"); }", "replace": "function rowOf(a){ return a.row || \"front\"; }",
-      "breaks": "the fallback row rule forgets the casters, so a sheet without a stored row puts them in melee" },
-    { "id": "inv-coffee-heal", "subsystem": "items",
-      "find": "if(k===\"coffee\"){ a.hp=Math.min(a.maxhp,a.hp+5); a.mp=Math.min(a.maxmp,a.mp+2);", "replace": "if(k===\"coffee\"){ a.hp=Math.min(a.maxhp,a.hp+9); a.mp=Math.min(a.maxmp,a.mp+2);",
-      "breaks": "the cheapest consumable heals almost twice what its own text promises" },
-    { "id": "inv-heal-no-clamp", "subsystem": "combat",
-      "find": "if(id===\"rollback\"){ a.hp=Math.min(a.maxhp,a.hp+7);", "replace": "if(id===\"rollback\"){ a.hp=(a.hp+7);",
-      "breaks": "a heal is no longer clamped, so an ally can be pushed above their own maximum HP" },
-    { "id": "inv-xppct-clamp", "subsystem": "roster",
-      "find": "return Math.max(0, Math.min(1, (a.xp-lo)/(hi-lo)));", "replace": "return (a.xp-lo)/(hi-lo);",
-      "breaks": "the XP bar is no longer clamped and can render past its own ends" },
-    { "id": "inv-gather-amount", "subsystem": "items",
-      "find": "const amt=1+(rng()<obsDoubleChance(S.skills.obs.lv)?1:0);", "replace": "const amt=2+(rng()<obsDoubleChance(S.skills.obs.lv)?1:0);",
-      "breaks": "every resource node pays double, which is the whole crafting economy" },
-    { "id": "inv-levelup-cmp", "subsystem": "roster",
-      "find": "while(a.lv<XPCURVE.length && a.xp>=XPCURVE[a.lv]){", "replace": "while(a.lv<XPCURVE.length && a.xp>XPCURVE[a.lv]){",
-      "breaks": "hitting a level threshold exactly no longer levels you up" },
-    { "id": "inv-solid-barrel", "subsystem": "world",
-      "find": "function solid(chr){ return \"trwhsbWCS=FLAq\".includes(chr)", "replace": "function solid(chr){ return \"trwhsWCS=FLAq\".includes(chr)",
-      "breaks": "loot barrels stop being solid, so the player can walk through the scenery" },
-    { "id": "inv-iact-order", "subsystem": "world",
-      "find": "const IACT=[[0,-1],[0,1],[-1,0],[1,0],[0,0]];", "replace": "const IACT=[[0,0],[0,-1],[0,1],[-1,0],[1,0]];",
-      "breaks": "the square you stand on is checked FIRST, so standing on a chest shadows every neighbour you meant to talk to" }
+    {
+      "id": "geo-lito-blocks-bed",
+      "subsystem": "world",
+      "find": "{x:7,y:6,spr:\"lito\",name:\"LITO\"",
+      "replace": "{x:7,y:2,spr:\"lito\",name:\"LITO\"",
+      "breaks": "LITO stands on the only square from which PapaFoxx's bed can be reached, so recruiting him becomes impossible once LITO joins",
+      "origin": "author"
+    },
+    {
+      "id": "geo-retro-in-stew",
+      "subsystem": "world",
+      "find": "{x:8,y:3,spr:\"retro\",name:\"RETROLISTIC\"",
+      "replace": "{x:10,y:3,spr:\"retro\",name:\"RETROLISTIC\"",
+      "breaks": "RETROLISTIC is drawn standing inside the inn's solid stew pot",
+      "origin": "author"
+    },
+    {
+      "id": "geo-armory-door",
+      "subsystem": "world",
+      "find": "exits:{}, doorTo:{z:0,x:2,y:7}",
+      "replace": "exits:{}, doorTo:{z:0,x:2,y:5}",
+      "breaks": "leaving the Armory puts the player inside the village's solid loot barrel",
+      "origin": "author"
+    },
+    {
+      "id": "geo-jackout-on-kid",
+      "subsystem": "world",
+      "find": "else { S.z=0; S.x=8; S.y=7; render();",
+      "replace": "else { S.z=0; S.x=8; S.y=5; render();",
+      "breaks": "jacking out of the internet lands the player on top of KID BIT",
+      "origin": "author"
+    },
+    {
+      "id": "geo-sign-blank",
+      "subsystem": "world",
+      "find": "\"t.gs.g..g..t\"",
+      "replace": "\"t.g..g..g..t\"",
+      "breaks": "the Wire's signpost sits on blank floor: nothing is drawn and the node beside it takes the turn first",
+      "origin": "author"
+    },
+    {
+      "id": "flow-no-wire-arrival",
+      "subsystem": "story",
+      "find": "()=>{ saveGame(0); wireArrival(); }); return; }",
+      "replace": "()=>{ saveGame(0); }); return; }",
+      "breaks": "the arrival scene for the whole internet act never fires when you walk through the gateway",
+      "origin": "author"
+    },
+    {
+      "id": "claim-battle-count",
+      "subsystem": "story",
+      "find": "& 7,313,561 balance simulations",
+      "replace": "& 7,313,562 balance simulations",
+      "breaks": "the credits quote a battle count that disagrees with every other figure in the game",
+      "origin": "author"
+    },
+    {
+      "id": "claim-strip-caveat",
+      "subsystem": "story",
+      "find": "so it is true by construction: it shows the test bites",
+      "replace": "so it shows the test bites",
+      "breaks": "a flip-test figure a player reads loses the limit that makes it honest",
+      "origin": "author"
+    },
+    {
+      "id": "claim-lito-061",
+      "subsystem": "story",
+      "find": "On the bench it used 0.61x the tokens",
+      "replace": "On the bench it used 0.51x the tokens",
+      "breaks": "a teaching module quotes a token ratio the cited repo does not report",
+      "origin": "author"
+    },
+    {
+      "id": "save-xp-floor",
+      "subsystem": "saves",
+      "find": "(A.retro&&A.retro.xp)|0, XPCURVE[lv-1]|0);",
+      "replace": "(A.retro&&A.retro.xp)|0);",
+      "breaks": "the Cleric merge gives a high-level sheet a low-level XP total, freezing the bar at zero",
+      "origin": "author"
+    },
+    {
+      "id": "save-awak-bool",
+      "subsystem": "saves",
+      "find": "out.awak.retro=Math.max(out.awak.retro|0, out.awak.mender|0);",
+      "replace": "out.awak.retro=out.awak.mender?true:(out.awak.retro|0);",
+      "breaks": "reawakening count collapses to a boolean and renders as a word instead of a number",
+      "origin": "author"
+    },
+    {
+      "id": "save-version-check",
+      "subsystem": "saves",
+      "find": "if(!p || p.v!==SAVE_VERSION || !p.actors || !p.actors.hero) return null;",
+      "replace": "if(!p || !p.actors || !p.actors.hero) return null;",
+      "breaks": "a save from another schema version loads without migration",
+      "origin": "author"
+    },
+    {
+      "id": "save-ghost-seat",
+      "subsystem": "saves",
+      "find": "const GHOST_IDS=[\"mender\"];",
+      "replace": "const GHOST_IDS=[];",
+      "breaks": "the list of deleted souls empties, so nothing stops the retired Cleric being seated again",
+      "origin": "author"
+    },
+    {
+      "id": "pack-row4-drift",
+      "subsystem": "enemies",
+      "find": "[0.20, 0.50, 0.85],   // 4  mean 2.45",
+      "replace": "[0.20, 0.50, 0.80],   // 4  mean 2.45",
+      "breaks": "late-game rooms seat more bodies than every published balance campaign measured",
+      "origin": "author"
+    },
+    {
+      "id": "pack-zpack-gone",
+      "subsystem": "enemies",
+      "find": "const ZPACK={ 10:3 };",
+      "replace": "const ZPACK={ };",
+      "breaks": "the Firewall Bastion loses its authored density and goes back over the wipe ceiling",
+      "origin": "author"
+    },
+    {
+      "id": "gear-ar5-def",
+      "subsystem": "items",
+      "find": "price:75, def:3, spd:-1",
+      "replace": "price:75, def:2, spd:-1",
+      "breaks": "the Load Balancer Rig gives less cover than its own description promises",
+      "origin": "author"
+    },
+    {
+      "id": "combat-dmg-floor",
+      "subsystem": "combat",
+      "find": "dmg=Math.max(1, dmg+pre+stanceOut()",
+      "replace": "dmg=Math.max(0, dmg+pre+stanceOut()",
+      "breaks": "an attack can land for zero, so a debuffed party can be unable to hurt anything at all",
+      "origin": "author"
+    },
+    {
+      "id": "combat-row-foxx",
+      "subsystem": "combat",
+      "find": "row:(id===\"wiki\"||id===\"papafoxx\")?\"back\":\"front\",",
+      "replace": "row:(id===\"wiki\")?\"back\":\"front\",",
+      "breaks": "PapaFoxx, a caster, joins in the front row and takes melee damage he was never meant to",
+      "origin": "author"
+    },
+    {
+      "id": "inv-crit-base",
+      "subsystem": "combat",
+      "find": "function critOf(a){ return 0.15 +",
+      "replace": "function critOf(a){ return 0.25 +",
+      "breaks": "every character crits two thirds more often, which moves every balance number in the game",
+      "origin": "author"
+    },
+    {
+      "id": "inv-combo-table",
+      "subsystem": "combat",
+      "find": "return n>=(tight?8:10)? 2 : (n>=(tight?4:5)? 1 : 0);",
+      "replace": "return n>=(tight?8:10)? 3 : (n>=(tight?4:5)? 1 : 0);",
+      "breaks": "the combo bonus pays more at the top step than the design allows",
+      "origin": "author"
+    },
+    {
+      "id": "inv-incoming-floor",
+      "subsystem": "combat",
+      "find": "function incoming(raw, a, extraRed){ let d=Math.max(0, raw",
+      "replace": "function incoming(raw, a, extraRed){ let d=Math.max(-2, raw",
+      "breaks": "damage can go negative, so a well-armoured ally is HEALED by being hit",
+      "origin": "author"
+    },
+    {
+      "id": "inv-defend-halve",
+      "subsystem": "combat",
+      "find": "if(a.defending) d=Math.ceil(d/2); return d;",
+      "replace": "if(a.defending) d=Math.ceil(d/3); return d;",
+      "breaks": "defending cuts damage by a third instead of a half",
+      "origin": "author"
+    },
+    {
+      "id": "inv-backrow-penalty",
+      "subsystem": "combat",
+      "find": "return Math.max(1, atkOf(a) - ((rowOf(a)===\"back\" && !exempt)?1:0));",
+      "replace": "return Math.max(1, atkOf(a) - ((rowOf(a)===\"back\" && !exempt)?2:0));",
+      "breaks": "the back row loses two attack in melee instead of one",
+      "origin": "author"
+    },
+    {
+      "id": "inv-unitspd-default",
+      "subsystem": "enemies",
+      "find": "function unitSpd(def){ return def.spd||4; }",
+      "replace": "function unitSpd(def){ return def.spd||9; }",
+      "breaks": "any enemy without an explicit speed acts before the entire party",
+      "origin": "author"
+    },
+    {
+      "id": "inv-rowof-fallback",
+      "subsystem": "combat",
+      "find": "function rowOf(a){ return a.row || ((a.id===\"wiki\"||a.id===\"papafoxx\")?\"back\":\"front\"); }",
+      "replace": "function rowOf(a){ return a.row || \"front\"; }",
+      "breaks": "the fallback row rule forgets the casters, so a sheet without a stored row puts them in melee",
+      "origin": "author"
+    },
+    {
+      "id": "inv-coffee-heal",
+      "subsystem": "items",
+      "find": "if(k===\"coffee\"){ a.hp=Math.min(a.maxhp,a.hp+5); a.mp=Math.min(a.maxmp,a.mp+2);",
+      "replace": "if(k===\"coffee\"){ a.hp=Math.min(a.maxhp,a.hp+9); a.mp=Math.min(a.maxmp,a.mp+2);",
+      "breaks": "the cheapest consumable heals almost twice what its own text promises",
+      "origin": "author"
+    },
+    {
+      "id": "inv-heal-no-clamp",
+      "subsystem": "combat",
+      "find": "if(id===\"rollback\"){ a.hp=Math.min(a.maxhp,a.hp+7);",
+      "replace": "if(id===\"rollback\"){ a.hp=(a.hp+7);",
+      "breaks": "a heal is no longer clamped, so an ally can be pushed above their own maximum HP",
+      "origin": "author"
+    },
+    {
+      "id": "inv-xppct-clamp",
+      "subsystem": "roster",
+      "find": "return Math.max(0, Math.min(1, (a.xp-lo)/(hi-lo)));",
+      "replace": "return (a.xp-lo)/(hi-lo);",
+      "breaks": "the XP bar is no longer clamped and can render past its own ends",
+      "origin": "author"
+    },
+    {
+      "id": "inv-gather-amount",
+      "subsystem": "items",
+      "find": "const amt=1+(rng()<obsDoubleChance(S.skills.obs.lv)?1:0);",
+      "replace": "const amt=2+(rng()<obsDoubleChance(S.skills.obs.lv)?1:0);",
+      "breaks": "every resource node pays double, which is the whole crafting economy",
+      "origin": "author"
+    },
+    {
+      "id": "inv-levelup-cmp",
+      "subsystem": "roster",
+      "find": "while(a.lv<XPCURVE.length && a.xp>=XPCURVE[a.lv]){",
+      "replace": "while(a.lv<XPCURVE.length && a.xp>XPCURVE[a.lv]){",
+      "breaks": "hitting a level threshold exactly no longer levels you up",
+      "origin": "author"
+    },
+    {
+      "id": "inv-solid-barrel",
+      "subsystem": "world",
+      "find": "function solid(chr){ return \"trwhsbWCS=FLAq\".includes(chr)",
+      "replace": "function solid(chr){ return \"trwhsWCS=FLAq\".includes(chr)",
+      "breaks": "loot barrels stop being solid, so the player can walk through the scenery",
+      "origin": "author"
+    },
+    {
+      "id": "inv-iact-order",
+      "subsystem": "world",
+      "find": "const IACT=[[0,-1],[0,1],[-1,0],[1,0],[0,0]];",
+      "replace": "const IACT=[[0,0],[0,-1],[0,1],[-1,0],[1,0]];",
+      "breaks": "the square you stand on is checked FIRST, so standing on a chest shadows every neighbour you meant to talk to",
+      "origin": "author"
+    },
+    {
+      "id": "combat-math-crit-base-rate",
+      "subsystem": "combat-math",
+      "find": "function critOf(a){ return 0.15 + (a.id===\"hero\"",
+      "replace": "function critOf(a){ return 0.25 + (a.id===\"hero\"",
+      "breaks": "Every actor in the game crits 25% of the time instead of 15%, inflating all damage output and skewing every balance number the game publishes.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-crit-multiplier-swapped",
+      "subsystem": "combat-math",
+      "find": "dmg=Math.round(dmg*(treeHas(\"s5\")?2.25:2));",
+      "replace": "dmg=Math.round(dmg*(treeHas(\"s5\")?2:2.25));",
+      "breaks": "The two crit multipliers are swapped: an ordinary crit now hits for 2.25x and the CALIBRATION keystone downgrades crits to 2x, inverting the keystone's stated trade.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-combo-tight-threshold",
+      "subsystem": "combat-math",
+      "find": "const tight=treeHas(\"v2\"); return n>=(tight?8:10)? 2 :",
+      "replace": "const tight=treeHas(\"v2\"); return n>=(tight?9:10)? 2 :",
+      "breaks": "With TIGHT LOOP taken, the +2 combo tier arrives at 9 hits instead of the promised 8, so the velocity node under-delivers the reward its description sells.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-stance-incoming-sign",
+      "subsystem": "combat-math",
+      "find": "let raw=Math.max(1, mv[1]+stanceIn());",
+      "replace": "let raw=Math.max(1, mv[1]-stanceIn());",
+      "breaks": "The stance modifier on INCOMING damage is inverted: FIREFIGHT makes the party take 1 LESS instead of 1 more, and SAFE ROLLOUT makes it take 1 more instead of 1 less - FIREFIGHT becomes strictly better than balanced in both directions.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-heckle-penalty-doubled",
+      "subsystem": "combat-math",
+      "find": "-(b.heckled>0?1:0));",
+      "replace": "-(b.heckled>0?2:0));",
+      "breaks": "A heckled party loses 2 damage per hit instead of 1, doubling the punishment the HECKLE status is documented to inflict for two full rounds.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-ward-never-consumed",
+      "subsystem": "combat-math",
+      "find": "if(tgt.shield){ tgt.shield=false;",
+      "replace": "if(tgt.shield){ tgt.shield=true;",
+      "breaks": "A ward (WARD, CONTROL ARM, SAFE DEPLOY, BLAMELESS RETRO) is never spent when it absorbs a hit, so a single cast makes every warded ally permanently immune to enemy damage for the rest of the battle.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-lb-charge-flat",
+      "subsystem": "combat-math",
+      "find": "chargeLB(tgt,dmg);",
+      "replace": "chargeLB(tgt,1);",
+      "breaks": "Limit gauges charge a flat 1 per hit taken instead of by the damage taken, so the FF-style rule that big hits fill the gauge fast is silently gone and limits take ~20 hits regardless of severity.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-grow-off-by-one",
+      "subsystem": "combat-math",
+      "find": "if(b.def.grow){ b.growN=Math.min(4,(b.growN||0)+1); raw+=b.growN-1; }",
+      "replace": "if(b.def.grow){ b.growN=Math.min(4,(b.growN||0)+1); raw+=b.growN; }",
+      "breaks": "A growing foe's very first swing already gets the growth bonus, so every grow enemy (CREEP and friends) opens one point harder than designed and tops out one point above its cap.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-multi3-hp-gate-dropped",
+      "subsystem": "combat-math",
+      "find": "const k=(b.def.multi3 && b.hp<130)?3:2;",
+      "replace": "const k=(b.def.multi3)?3:2;",
+      "breaks": "The health gate on the three-target enrage is dropped, so a multi3 boss (UNKNOWN, MISALIGNED) hits three allies from full HP instead of only once it is wounded below 130.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-compass-outnumbered-boundary",
+      "subsystem": "combat-math",
+      "find": "return foes > living().length ? 1 : 0;",
+      "replace": "return foes >= living().length ? 1 : 0;",
+      "breaks": "The Compass charm grants its -1 incoming damage on an even room (4 foes vs 4 allies), not only while genuinely outnumbered, so the charm's stated condition no longer matches its behaviour.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-front-row-target-weight",
+      "subsystem": "combat-math",
+      "find": "targets=[ (front.length && rng()<0.7) ?",
+      "replace": "targets=[ (front.length && rng()<0.3) ?",
+      "breaks": "Enemies aim at the front line only 30% of the time instead of 70%, so back-row positioning stops protecting the fragile casters and the whole row decision inverts in value.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-fightbase-staff-exempt",
+      "subsystem": "combat-math",
+      "find": "const exempt = cat===\"bow\" || cat===\"staff\";",
+      "replace": "const exempt = cat===\"bow\" || cat===\"mic\";",
+      "breaks": "Staff-class weapons lose their back-line exemption (and mic-class weapons wrongly gain one), so a hero holding the Fishbone Staff or a wand deals 1 less from the back row while a comedian with a mic deals 1 more.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-defend-halving-rounds-down",
+      "subsystem": "combat-math",
+      "find": "if(a.defending) d=Math.ceil(d/2); return d;",
+      "replace": "if(a.defending) d=Math.floor(d/2); return d;",
+      "breaks": "DEFEND rounds the halved damage down instead of up, so every odd-damage hit against a defending ally is one point weaker than the published rule.",
+      "origin": "independent"
+    },
+    {
+      "id": "combat-math-queue-ignores-modified-speed",
+      "subsystem": "combat-math",
+      "find": "units.push({t:\"a\", id, spd:spdOf(a)});",
+      "replace": "units.push({t:\"a\", id, spd:a.spd});",
+      "breaks": "The initiative queue seats allies by their raw base speed, ignoring WARM CACHE, armour speed riders and the SPD trial perk, so every speed investment stops buying turn order even though the stats screen still reports it.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-h2-fog-flag-dropped",
+      "subsystem": "enemies",
+      "find": "tok:10, weak:\"contexa\", foggy:true,",
+      "replace": "tok:10, weak:\"contexa\",",
+      "breaks": "The SEV-1 Hydra's CONTEXT FOG HEAD no longer starts a battle fogged, so strikes never miss and CONTEXA/TRUE STRIKE have nothing to lift.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-nullroot-hp-digit-dropped",
+      "subsystem": "enemies",
+      "find": "nullroot:{ name:\"ROOT@NULLBYTE - KERNEL MODE\", spr:\"hax\", hp:320",
+      "replace": "nullroot:{ name:\"ROOT@NULLBYTE - KERNEL MODE\", spr:\"hax\", hp:32",
+      "breaks": "The final boss of the rescue arc (KERNEL MODE) dies to a single round, collapsing the climax of the whole Dark NOC chain.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-pickmove-enrage-inverted",
+      "subsystem": "enemies",
+      "find": "if(b.def.ai===\"smart\"){ if(b.hp<b.maxhp/2 || b.taunt>0) return mv[mv.length-1];",
+      "replace": "if(b.def.ai===\"smart\"){ if(b.hp>b.maxhp/2 || b.taunt>0) return mv[mv.length-1];",
+      "breaks": "Smart enemies use their HARDEST move while healthy and go random once wounded - the exact inverse of the ENRAGED telegraph the status line promises, so the HUD now lies to the player.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-multi3-reads-maxhp",
+      "subsystem": "enemies",
+      "find": "const k=(b.def.multi3 && b.hp<130)?3:2;",
+      "replace": "const k=(b.def.multi3 && b.maxhp<130)?3:2;",
+      "breaks": "THE UNKNOWN UNKNOWN (260 max) and THE MISALIGNED (600 max) never escalate to three simultaneous targets, because maxhp never falls below 130 - both superbosses stay permanently at two hits.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-twice-bonus-flattened",
+      "subsystem": "enemies",
+      "find": "if(b.def.twice){ raw+=b.def.atk; t+=\" (twice!)\"; }",
+      "replace": "if(b.def.twice){ raw+=1; t+=\" (twice!)\"; }",
+      "breaks": "RETRY WYRM and ELITE: THE FLAKY TEST still print '(twice!)' but add a flat +1 instead of a second full attack, so the whole 'strikes twice per turn' mechanic is cosmetic.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-front-line-bias-collapsed",
+      "subsystem": "enemies",
+      "find": "(front.length && rng()<0.7) ? front[Math.floor(rng()*front.length)]",
+      "replace": "(front.length && rng()<0.2) ? front[Math.floor(rng()*front.length)]",
+      "breaks": "Enemies stop preferring the front line, so the ROW system inverts: standing in back no longer shields casters and the free ROW action becomes a trap rather than a decision.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-outnumbered-guard-parity",
+      "subsystem": "enemies",
+      "find": "return foes > living().length ? 1 : 0; }",
+      "replace": "return foes >= living().length ? 1 : 0; }",
+      "breaks": "The Compass charm grants its damage reduction in an EVEN fight, not only when the party is outnumbered - free mitigation in the most common room shape in the game.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-zpack-drops-two-rows",
+      "subsystem": "enemies",
+      "find": "const ZPACK={ 10:3 };",
+      "replace": "const ZPACK={ 10:2 };",
+      "breaks": "The Firewall Bastion drops two density rows instead of the one its comment authorises, so mean pack size falls from 2.25 to 1.65 and the zone becomes markedly emptier than intended.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-roamer-flees-instead-of-hunts",
+      "subsystem": "enemies",
+      "find": "Math.abs(rm.y+dy-S.y) < Math.abs(rm.x-S.x)",
+      "replace": "Math.abs(rm.y+dy-S.y) > Math.abs(rm.x-S.x)",
+      "breaks": "The overworld prowler runs AWAY from the player instead of hunting them, so the Chrono-style visible-encounter loop stops working and roamers are effectively unmeetable except by cornering them.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-roam-pack-uses-zone-not-stage",
+      "subsystem": "enemies",
+      "find": "const pack=packSize(S.stage, rm.id);",
+      "replace": "const pack=packSize(S.z, rm.id);",
+      "breaks": "Roamer pack size is drawn from the zone index instead of the story stage, so late-game roamers in the village and early zones (z 0-3) arrive in near-solo packs while low-stage visits to high-index zones arrive at full density.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-enspd-misaligned-copied",
+      "subsystem": "enemies",
+      "find": "halluc:5, misaligned:8 };",
+      "replace": "halluc:5, misaligned:5 };",
+      "breaks": "THE MISALIGNED loses its top-tier initiative (8 to 5, a copy of its neighbour), so the superboss no longer opens the round ahead of the party's fast units.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-nullbyte-tile-clears-early",
+      "subsystem": "enemies",
+      "find": "if(b.key && b.id!==\"nullbyte\") S.cleared[S.z+\":\"+b.key]=true;",
+      "replace": "if(b.key && b.id!==\"nullroot\") S.cleared[S.z+\":\"+b.key]=true;",
+      "breaks": "Beating NULLBYTE form one marks the Dark NOC tile cleared, so a party that then loses to KERNEL MODE can never re-fight the chain - Sharonduh's rescue and the entire AI arc become unreachable.",
+      "origin": "independent"
+    },
+    {
+      "id": "enemies-botnet-multi-dropped",
+      "subsystem": "enemies",
+      "find": "weak:\"mutagen\", multi:true, flee:true, ai:\"smart\",",
+      "replace": "weak:\"mutagen\", flee:true, ai:\"smart\",",
+      "breaks": "BOTNET DRONE stops being multi-target: it 'floods every listener at once' against a single ally, drops the multi-target status pip, and is no longer a legal INTERRUPT/preemption target.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-xpcurve-ramp-constant",
+      "subsystem": "roster",
+      "find": "c.push(c[c.length-1]+50+(n-8)*12)",
+      "replace": "c.push(c[c.length-1]+50+(n-8)*6)",
+      "breaks": "Levels 9-50 cost roughly half the XP they are supposed to, so the whole late-game pacing curve collapses.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-hero-atk-never-grows",
+      "subsystem": "roster",
+      "find": "base:{hp:12,mp:6,atk:3}, grow:{hp:3,mp:2,atk:1}",
+      "replace": "base:{hp:12,mp:6,atk:3}, grow:{hp:3,mp:2,atk:0}",
+      "breaks": "HERO's ATK is frozen at 3 forever - levelling stops making the main character hit harder.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-mkactor-row-default",
+      "subsystem": "roster",
+      "find": "row:(id===\"wiki\"||id===\"papafoxx\")?\"back\":\"front\"",
+      "replace": "row:(id===\"wiki\")?\"back\":\"front\"",
+      "breaks": "PAPAFOXX, a 2-ATK caster, is seated in the FRONT line on creation, taking full melee damage instead of the back-row reduction.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-gainxp-grow-mp-copypaste",
+      "subsystem": "roster",
+      "find": "a.maxhp+=m.grow.hp; a.maxmp+=m.grow.mp; a.atk+=m.grow.atk;",
+      "replace": "a.maxhp+=m.grow.hp; a.maxmp+=m.grow.hp; a.atk+=m.grow.atk;",
+      "breaks": "Level-ups grow max MP by the HP growth figure, so every in-session sheet diverges from what mkActor/reconcileActor rebuild on reload (WIKI gains 2 MP a level instead of 3, HERO gains 3 instead of 2).",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-gainxp-pays-the-fallen",
+      "subsystem": "roster",
+      "find": "for(const a of living()){",
+      "replace": "for(const a of partyActors()){",
+      "breaks": "Knocked-out allies gain XP and level up mid-battle, so a KO costs nothing and the 'stay standing' incentive disappears.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-reawaken-atk-not-scaled",
+      "subsystem": "roster",
+      "find": "n.maxhp+=2*w; n.maxmp+=2*w; n.atk+=w;",
+      "replace": "n.maxhp+=2*w; n.maxmp+=2*w; n.atk+=1;",
+      "breaks": "The second and later reawakenings grant only +1 ATK instead of +w, so the sheet disagrees with reconcileActor and a reload silently restores ATK the player was never given.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-reawaken-bank-off-by-one",
+      "subsystem": "roster",
+      "find": "S.tree.banked=Math.min(REP_LEVEL_CAP, Math.max(0,(a.lv||1)-1));",
+      "replace": "S.tree.banked=Math.min(REP_LEVEL_CAP, Math.max(0,(a.lv||1)));",
+      "breaks": "Every reawakening banks one rep more than was ever earned, so repeated rebirths inflate the growth-tree budget past what levelling paid for.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-tree-tier-prefix-loosened",
+      "subsystem": "roster",
+      "find": "const need=Object.keys(TREE).filter(k=>TREE[k].lane===nd.lane && TREE[k].tier===nd.tier-1);",
+      "replace": "const need=Object.keys(TREE).filter(k=>TREE[k].lane===nd.lane && TREE[k].tier<nd.tier);",
+      "breaks": "treeCan accepts ANY lower tier as the prefix, so a player holding r1 can buy r4 or the r5 keystone directly, skipping tiers 2 and 3 (and treeInit then silently deletes the node on the next load).",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-tree-awakening-rep-cap",
+      "subsystem": "roster",
+      "find": "const byAwak=Math.min(3, (S.awak && S.awak.hero) ? S.awak.hero : 0);",
+      "replace": "const byAwak=Math.min(2, (S.awak && S.awak.hero) ? S.awak.hero : 0);",
+      "breaks": "Awakenings contribute at most 2 reps instead of 3, so the advertised 28-rep ceiling (REP_CAP) becomes unreachable and the third reawakening pays nothing.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-reconcile-level-clamp",
+      "subsystem": "roster",
+      "find": "const lv=Math.max(1, Math.min(XPCURVE.length, a.lv|0 || 1));",
+      "replace": "const lv=Math.max(1, Math.min(XPCURVE.length-1, a.lv|0 || 1));",
+      "breaks": "A level-50 actor is rebuilt at level 49 on every load, permanently demoting max-level characters and stripping one level of HP/MP/ATK each time the save is opened.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-growth-header-cap-number",
+      "subsystem": "roster",
+      "find": "One rep a level through LV 26.",
+      "replace": "One rep a level through LV 30.",
+      "breaks": "The GROWTH screen publishes a rep cap of LV 30 while REP_LEVEL_CAP=25 actually stops paying after LV 26 - four levels of promised reps that never arrive.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-trial-int-wrong-stat",
+      "subsystem": "roster",
+      "find": "if(t.perk===\"INT\"){ h.maxmp+=2; h.mp=h.maxmp; }",
+      "replace": "if(t.perk===\"INT\"){ h.maxhp+=2; h.hp=h.maxhp; }",
+      "breaks": "An INT hero is handed +2 max HP instead of the +2 max MP the trial card promises, and the gift flips to MP the first time the save is reloaded through reconcileActor.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-reconcile-spr-half-gift",
+      "subsystem": "roster",
+      "find": "if(pk===\"SPR\"){ fresh.maxhp+=1; fresh.maxmp+=1; }",
+      "replace": "if(pk===\"SPR\"){ fresh.maxhp+=1; }",
+      "breaks": "An SPR hero loses the +1 max MP half of the Trial's permanent perk on every save load, so the reconciled sheet is 1 MP short of what finishTrial and reawaken build.",
+      "origin": "independent"
+    },
+    {
+      "id": "roster-reawaken-gate-off-by-one",
+      "subsystem": "roster",
+      "find": "if(!a || a.lv<10) return false;",
+      "replace": "if(!a || a.lv<9) return false;",
+      "breaks": "REAWAKEN accepts a level-9 character, one level below the advertised LV 10+ gate, so the menu's disabled buttons and the function disagree.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-shop-stock-dup-badge",
+      "subsystem": "items",
+      "find": "\"bd1\",\"bd2\",\"bd3\",\"bd4\"",
+      "replace": "\"bd1\",\"bd1\",\"bd3\",\"bd4\"",
+      "breaks": "The Security Badge (bd2) disappears from Peg's shelf and the Access Badge is listed twice, so the -2 badge is unobtainable while SHOP_STOCK still has length 32.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-postmortem-price-digit",
+      "subsystem": "items",
+      "find": "name:\"Post-Incident Review\", type:\"use\", price:30",
+      "replace": "name:\"Post-Incident Review\", type:\"use\", price:3",
+      "breaks": "Full-restore consumable costs 3 tokens instead of 30, collapsing the whole consumable economy (it is cheaper than a Patch Kit).",
+      "origin": "independent"
+    },
+    {
+      "id": "items-kb4-atk-off-by-one",
+      "subsystem": "items",
+      "find": "name:\"Fishbone 5-Why Staff\", type:\"weapon\", price:0, atk:3",
+      "replace": "name:\"Fishbone 5-Why Staff\", type:\"weapon\", price:0, atk:2",
+      "breaks": "The forged Fishbone Staff grants +2 ATK while its own description promises +3, so atkOf(hero) is one lower than every teaching card claims.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-forge-discount-tier",
+      "subsystem": "items",
+      "find": "const disc=S.skills.forge.lv>=3? 1:0;",
+      "replace": "const disc=S.skills.forge.lv>=2? 1:0;",
+      "breaks": "Toolsmithing hands out the -1 material discount a whole level early (Lv 2 instead of Lv 3), contradicting the shop banner that only shows \"(-1 costs!)\" at Lv 3.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-craft-exact-cost-refused",
+      "subsystem": "items",
+      "find": "for(const k in r){ if((S.res[k]||0)<r[k]) return false; }",
+      "replace": "for(const k in r){ if((S.res[k]||0)<=r[k]) return false; }",
+      "breaks": "craft() refuses when the player has exactly the required amount of a material - gathering the last log for the RCA Blade still reports \"not enough materials\".",
+      "origin": "independent"
+    },
+    {
+      "id": "items-transmute-locket-unlock-early",
+      "subsystem": "items",
+      "find": "rch1:{ consumes:{tal:1, sigils:5}, when:()=>frontierDone() }",
+      "replace": "rch1:{ consumes:{tal:1, sigils:5}, when:()=>!!S.haxWon }",
+      "breaks": "The Five Nines Locket (party-wide -1 damage) unlocks at the hacker rescue instead of after the frontier arc, handing out the endgame rare chapters early.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-transmute-stale-armor-equip",
+      "subsystem": "items",
+      "find": "if(S.equip.weapon===k) S.equip.weapon=null; if(S.equip.armor===k) S.equip.armor=null; if(S.equip.charm===k) S.equip.charm=null;",
+      "replace": "if(S.equip.weapon===k) S.equip.weapon=null; if(S.equip.charm===k) S.equip.charm=null;",
+      "breaks": "Transmuting the Aegis of Uptime into the Frontier Aegis while wearing it leaves S.equip.armor pointing at the consumed piece, so defOf/spdOf keep paying for armour the player no longer owns.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-bank-withdraw-overwrite",
+      "subsystem": "items",
+      "find": "S.items[k]=(S.items[k]||0)+S.bank[k];",
+      "replace": "S.items[k]=S.bank[k];",
+      "breaks": "bankWithdrawAll overwrites the carried stack instead of adding to it: hold 2 Coffee, bank 3, withdraw, and you end with 3 instead of 5 - Mara's cellar silently eats items.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-materia-bulkhead-guard-dropped",
+      "subsystem": "items",
+      "find": "((b.def.multi&&matOn(\"maegis\"))?1:0)",
+      "replace": "((matOn(\"maegis\"))?1:0)",
+      "breaks": "The BULKHEAD Materia's multi-target guard is dropped, so it reduces damage from EVERY enemy attack rather than only multi-target ones - a permanent party-wide -1 from one orb.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-materia-drain-rate",
+      "subsystem": "items",
+      "find": "if(a.id===\"hero\" && matOn(\"mdrain\")){ const gain=Math.floor(dmg/4);",
+      "replace": "if(a.id===\"hero\" && matOn(\"mdrain\")){ const gain=Math.floor(dmg/8);",
+      "breaks": "GRADIENT LOOP heals an eighth of damage dealt instead of the 25% its item text promises, halving the orb's whole value.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-obs-double-yield-rate",
+      "subsystem": "items",
+      "find": "Math.min(0.6, 0.30+0.06*(lv-1))",
+      "replace": "Math.min(0.6, 0.30+0.03*(lv-1))",
+      "breaks": "Observability levels raise the double-yield gather chance at half the intended rate, so a maxed skill never approaches the 0.6 cap it was tuned for.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-node-sigil-leak",
+      "subsystem": "items",
+      "find": "{x:9,y:3,t:\"traces\"}",
+      "replace": "{x:9,y:3,t:\"sigils\"}",
+      "breaks": "A plains resource node yields Incident Sigils - a currency the design reserves for bosses - and renders invisible, since drawWorld only paints logs/metrics/traces nodes.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-equipgear-shared-copy",
+      "subsystem": "items",
+      "find": "Object.keys(S.gear).forEach(o=>{ if(S.gear[o]===item) delete S.gear[o]; });",
+      "replace": "Object.keys(S.gear).forEach(o=>{ if(S.gear[o]===id) delete S.gear[o]; });",
+      "breaks": "The \"one copy, one pair of hands\" sweep compares against the member id instead of the item, so a single owned weapon can be worn by two companions at once and both get its ATK and rider.",
+      "origin": "independent"
+    },
+    {
+      "id": "items-shop-buy-stack-overwrite",
+      "subsystem": "items",
+      "find": "S.tokens-=it.price; S.items[id]=(S.items[id]||0)+1;",
+      "replace": "S.tokens-=it.price; S.items[id]=1;",
+      "breaks": "Buying a consumable at Peg's resets the stack to 1 instead of incrementing: pay for a fifth Coffee while holding four and you lose the four you already had.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-indexstorm-mp-cost",
+      "subsystem": "skills",
+      "find": "indexstorm:{ name:\"INDEX STORM\", mp:5",
+      "replace": "indexstorm:{ name:\"INDEX STORM\", mp:2",
+      "breaks": "The wizard's room-clearing nuke costs 2 MP instead of 5, so the AoE that is supposed to be the expensive option becomes spammable every turn.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-aoe-crowd-threshold",
+      "subsystem": "skills",
+      "find": "const many=livingFoes().length>1;",
+      "replace": "const many=livingFoes().length>2;",
+      "breaks": "With exactly two foes standing, INDEX STORM applies the SINGLE-target number (6+LV) to BOTH bodies through dealtAll - the spread-thinner tradeoff the comment promises silently disappears at crowd size 2.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-mutagen-dot-base",
+      "subsystem": "skills",
+      "find": "b.dot=(heldBy(a)===\"bw2\") ? 4 : 3;",
+      "replace": "b.dot=(heldBy(a)===\"bw2\") ? 4 : 2;",
+      "breaks": "MUTAGEN plants only 2 ticks instead of the 3 its SP description advertises (\"2 dmg/turn x3\"), quietly cutting a third of the damage-over-time off every unarmed cast.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-controlarm-drops-self-shield",
+      "subsystem": "skills",
+      "find": "if(id===\"controlarm\"){ b.verified=2; a.shield=true;",
+      "replace": "if(id===\"controlarm\"){ b.verified=2;",
+      "breaks": "CONTROL ARM no longer shields its caster, so the half of the skill its own text promises (\"verify THIS ROUND's strikes vs. regeneration + shield self\") and its own battle log claims (\"and NAME is shielded\") never happens.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-objection-taunt-base",
+      "subsystem": "skills",
+      "find": "b.taunt=(heldBy(a)===\"sw3\") ? 3 : 2;",
+      "replace": "b.taunt=(heldBy(a)===\"sw3\") ? 3 : 1;",
+      "breaks": "OBJECTION! taunts for 1 turn instead of 2, so the Tank stops absorbing the second hit while the skill text and the log line both still say \"2 turns\".",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-rollback-heal-constant",
+      "subsystem": "skills",
+      "find": "a.hp=Math.min(a.maxhp,a.hp+7); sfx(\"heal\"); BFX.push(\"heal\",{slot:b.turn});",
+      "replace": "a.hp=Math.min(a.maxhp,a.hp+3); sfx(\"heal\"); BFX.push(\"heal\",{slot:b.turn});",
+      "breaks": "ROLLBACK restores 3 HP while both the SP description and the battle log still print \"+7 HP\" - the player is told a number the game does not pay.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-failoverfist-picks-healthiest",
+      "subsystem": "skills",
+      "find": ".sort((x,y2)=>x.hp/x.maxhp-y2.hp/y2.maxhp)[0]",
+      "replace": ".sort((x,y2)=>y2.hp/y2.maxhp-x.hp/x.maxhp)[0]",
+      "breaks": "FAILOVER FIST patches the HEALTHIEST wounded ally instead of the weakest, so in a full party the +2 lands on whoever needs it least while the log still names it a follow-through patch.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-windmill-freezes-through-regen",
+      "subsystem": "skills",
+      "find": "|| (b.def.regen && b.verified===0))) windmillFreeze(b,c);",
+      "replace": ")) windmillFreeze(b,c);",
+      "breaks": "WINDMILL HALO FREEZE steals a regenerating foe's turn on a crit even when the round was never verified - the strike itself is blocked by playerHit, so the foe loses a turn to a hit that never landed.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-lb-sentinel-canary-storm-gated",
+      "subsystem": "skills",
+      "find": "return dealt(a, 14+(om?6:0), \"<span class='gold'>★ \"+omTag+\"CANARY STORM",
+      "replace": "return playerHit(a, 14+(om?6:0), \"<span class='gold'>★ \"+omTag+\"CANARY STORM",
+      "breaks": "SENTINEL's limit break now routes through playerHit, so it is blocked by armor, fog and unverified regen - the exact three gates LIMITS.sentinel promises it ignores (\"14 true damage through armor, fog, and regen\"). A full gauge spent on an unrevealed boss does nothing.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-lb-wiki-total-recall-mp",
+      "subsystem": "skills",
+      "find": "living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+(om?6:4))",
+      "replace": "living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+(om?6:2))",
+      "breaks": "TOTAL RECALL restores 2 MP per ally instead of 4, while LIMITS.wiki and the battle log line (which recomputes om?6:4 separately) both still announce +4 MP.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-dual-partner-reusable",
+      "subsystem": "skills",
+      "find": "if(a.ko || a.acted || !p || p.ko || p.dualUsed || p.acted) return;",
+      "replace": "if(a.ko || a.acted || !p || p.ko || p.acted) return;",
+      "breaks": "A partner who has already been spent on a dual tech this round is still offered as available, so one companion can be dragged into two dual techs in a single round - the Chrono rule that a dual costs both characters' turns stops holding.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-dual-partner-pays-leader-cost",
+      "subsystem": "skills",
+      "find": "a.mp-=pick.myCost; p.mp-=pick.theirCost; p.dualUsed=true;",
+      "replace": "a.mp-=pick.myCost; p.mp-=pick.myCost; p.dualUsed=true;",
+      "breaks": "The partner is billed the LEADER's MP cost instead of their own, so asymmetric duals mis-charge: SETUP & PUNCHLINE (3+4) and PROMPT STORM (3+4) drain the wrong side, and the menu's \"(3+4 w/ NAME)\" label no longer matches what is actually spent.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-dual-canaryvolley-gate-and",
+      "subsystem": "skills",
+      "find": "if(!b.revealed || !b.focused){ blog(lead+\"<br><span class='red'>The canaries scatter",
+      "replace": "if(!b.revealed && !b.focused){ blog(lead+\"<br><span class='red'>The canaries scatter",
+      "breaks": "CANARY VOLLEY fires at full triple-hit damage when only ONE of reveal/focus is up, instead of requiring both - it now lands through armor alone or through fog alone, contradicting its own \"Needs root + focus\" description.",
+      "origin": "independent"
+    },
+    {
+      "id": "skills-dual-pairprogramming-heal",
+      "subsystem": "skills",
+      "find": "living().forEach(x=>{ x.hp=Math.min(x.maxhp,x.hp+3);",
+      "replace": "living().forEach(x=>{ x.hp=Math.min(x.maxhp,x.hp+1);",
+      "breaks": "PAIR PROGRAMMING heals the party 1 HP while the DUAL description and all three of its battle-log branches still print \"+3\" - the support half of the tech is cut to a third.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-version-guard-accepts-old",
+      "subsystem": "saves",
+      "find": "if(!p || p.v!==SAVE_VERSION || !p.actors || !p.actors.hero) return null;",
+      "replace": "if(!p || p.v>SAVE_VERSION || !p.actors || !p.actors.hero) return null;",
+      "breaks": "loadSlot stops rejecting stale schemas and only refuses saves from the future, so a v7/v8/v9 file that never went through tryMigrate is loaded verbatim and the game runs on a schema it never migrated.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-savekey-version-not-bumped",
+      "subsystem": "saves",
+      "find": "function saveKey(slot){ return slot? \"aiquest10_s\"+slot : \"aiquest10_auto\"; }",
+      "replace": "function saveKey(slot){ return slot? \"aiquest9_s\"+slot : \"aiquest10_auto\"; }",
+      "breaks": "Manual slots 1-3 read and write the v9 key namespace, so a v10 slot save silently overwrites the player's un-migrated v9 slot save, and tryMigrate's never-clobber guard then refuses to bring any v9 manual slot forward.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-cleric-merge-index-off-by-one",
+      "subsystem": "saves",
+      "find": "if(Array.isArray(out.party) && out.party.indexOf(\"mender\")>=0){",
+      "replace": "if(Array.isArray(out.party) && out.party.indexOf(\"mender\")>0){",
+      "breaks": "A save where the Cleric was the very first recruit (party index 0) never runs the merge, so \"mender\" stays seated in the party with no MEMBERS entry - partyActors drops him and the roster is one short forever.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-cleric-merge-duplicate-seat",
+      "subsystem": "saves",
+      "find": "if(out.party.indexOf(\"retro\")<0) out.party.push(\"retro\");",
+      "replace": "out.party.push(\"retro\");",
+      "breaks": "A completionist who recruited BOTH the Cleric and the Slayer comes back with \"retro\" listed twice in the party, so slotOf collapses two formation seats onto one index and the same actor takes two turns.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-cleric-merge-forgets-retro-level",
+      "subsystem": "saves",
+      "find": "const lv=Math.max((A.mender&&A.mender.lv)|0, (A.retro&&A.retro.lv)|0,",
+      "replace": "const lv=Math.max((A.mender&&A.mender.lv)|0,",
+      "breaks": "The merged level stops considering the Slayer's own level, so a player with a LV 18 Slayer and a LV 4 Cleric is handed a LV 4 Slayer - fourteen levels of grinding deleted by a load.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-grave-reclaim-overwrites-stack",
+      "subsystem": "saves",
+      "find": "Object.keys(g.items).forEach(k=>{ S.items[k]=(S.items[k]||0)+g.items[k]; });",
+      "replace": "Object.keys(g.items).forEach(k=>{ S.items[k]=g.items[k]; });",
+      "breaks": "Reclaiming a grave assigns instead of adding, so any consumable bought or looted between dying and returning is destroyed: buy 3 coffee, reclaim a grave holding 1, and you end with 1.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-grave-coords-transposed",
+      "subsystem": "saves",
+      "find": "S.grave=any? { z:S.z, x:S.x, y:S.y, items:dropped, t:Date.now() } : S.grave;",
+      "replace": "S.grave=any? { z:S.z, x:S.y, y:S.x, items:dropped, t:Date.now() } : S.grave;",
+      "breaks": "The grave is recorded at transposed coordinates, so interact()'s grave.x===x && grave.y===y test never matches where the player actually died - the items are unreachable and the marker is drawn on the wrong tile.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-v8-haxwon-copypaste",
+      "subsystem": "saves",
+      "find": "s.haxKnown=!!old.haxKnown; s.haxWon=!!old.haxWon;",
+      "replace": "s.haxKnown=!!old.haxKnown; s.haxWon=!!old.haxKnown;",
+      "breaks": "A migrated v8 save that only HEARD about the rescue (haxKnown true, haxWon false) arrives with the rescue already completed: SHARONDUH's cage reads as opened, the three frontier elites spawn, and the whole rescue chapter is skipped.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-v2-stage-threshold-off-by-one",
+      "subsystem": "saves",
+      "find": "tokens:25, stage: old.won?4 : ((old.party&&old.party.length>=4)?2:1), seed:1 }));",
+      "replace": "tokens:25, stage: old.won?4 : ((old.party&&old.party.length>=3)?2:1), seed:1 }));",
+      "breaks": "An oldest-schema save carrying exactly three recruits is restored at stage 2 instead of stage 1, so mid-game gating (guide lines, pack sizes, shop stock) unlocks a chapter early for that player.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-v3-drops-cleared-map",
+      "subsystem": "saves",
+      "find": "\"equip\",\"stage\",\"cleared\",\"opened\",\"won\"",
+      "replace": "\"equip\",\"stage\",\"opened\",\"won\"",
+      "breaks": "migrateV3 stops carrying the cleared-room map, so every boss and elite a v3 player already beat is respawned as unfought while their stage and level say otherwise.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-reconcile-loses-back-row",
+      "subsystem": "saves",
+      "find": "fresh.row=(a.row===\"back\"||a.row===\"front\") ? a.row : fresh.row;",
+      "replace": "fresh.row=(a.row===\"front\") ? a.row : fresh.row;",
+      "breaks": "Any character the player deliberately moved to the BACK row is snapped back to their roster default on every load, so a glass-cannon build silently takes full front-row damage after a reload.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-newgame-kit-loses-patch",
+      "subsystem": "saves",
+      "find": "items:{coffee:2, runbook:1, patch:1}, equip:",
+      "replace": "items:{coffee:2, runbook:1}, equip:",
+      "breaks": "A new game starts with no Patch, so the opening chapter's only revive/heal item is missing and the inventory screen shows a two-item kit instead of the three the tutorial describes.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-tickclock-overwrites-playms",
+      "subsystem": "saves",
+      "find": "function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }",
+      "replace": "function tickClock(){ const now=Date.now(); S.playMs=(now-(M.resumeAt||now)); M.resumeAt=now; }",
+      "breaks": "Play time is overwritten by the most recent interval instead of accumulating, so every save resets the clock: the ending's elapsed-time line and the speedrun best-time comparison report a few seconds for a multi-hour run.",
+      "origin": "independent"
+    },
+    {
+      "id": "saves-title-slot-parses-to-nan",
+      "subsystem": "saves",
+      "find": "const d=loadSlot(parseInt(t.slice(1),10));",
+      "replace": "const d=loadSlot(parseInt(t,10));",
+      "breaks": "The title screen's LOAD SLOT buttons parse \"s1\"/\"s2\"/\"s3\" to NaN; saveKey(NaN) falls through to the autosave key, so all three slot buttons load the autosave instead of the chosen slot (or do nothing when no autosave exists).",
+      "origin": "independent"
+    },
+    {
+      "id": "world-solid-drops-barrel",
+      "subsystem": "world",
+      "find": "\"trwhsbWCS=FLAq\".includes(chr)",
+      "replace": "\"trwhsWCS=FLAq\".includes(chr)",
+      "breaks": "Barrel tiles ('b') stop being solid, so the player walks straight through every loot barrel in the game instead of being blocked by it.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-tileat-halluc-gate-flag",
+      "subsystem": "world",
+      "find": "S.z===9 && x===5 && y===6 && S.haxWon",
+      "replace": "S.z===9 && x===5 && y===6 && S.haxKnown",
+      "breaks": "THE HALLUCINATION elite is revealed on the Wire the moment the Guide names the attacker, instead of after the rescue - a post-rescue AI-arc boss becomes fightable on the player's first walk into the internet.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-tileat-opened-vs-cleared",
+      "subsystem": "world",
+      "find": "if((chr===\"c\"||chr===\"b\") && S.opened[S.z+\":\"+k]) chr=\".\";",
+      "replace": "if((chr===\"c\"||chr===\"b\") && S.cleared[S.z+\":\"+k]) chr=\".\";",
+      "breaks": "Looted barrels and opened chests never clear: the sprite stays drawn forever and the 'c' chest tile keeps blocking movement, so the world never shows completion progress.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-exits-caverns-skips-labyrinth",
+      "subsystem": "world",
+      "find": "exits:{left:1,right:3}",
+      "replace": "exits:{left:1,right:4}",
+      "breaks": "Walking east out of Context Caverns jumps to the Graph Citadel, skipping Loop Labyrinth entirely - and lands the player on the Citadel's solid 'r' wall column at x=0.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-enc-tile-moves-to-road",
+      "subsystem": "world",
+      "find": "enc:{tile:\"g\", pool:[\"vague\",\"gremlin\"], rate:0.12}",
+      "replace": "enc:{tile:\"p\", pool:[\"vague\",\"gremlin\"], rate:0.12}",
+      "breaks": "Prompt Plains rolls random encounters on the road tiles instead of the grass, so the through-corridor every player walks becomes the dangerous ground and the grass becomes safe - the exact inverse of the design.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-enc-rate-labyrinth-hot",
+      "subsystem": "world",
+      "find": "pool:[\"wyrm\",\"leak\"], rate:0.11",
+      "replace": "pool:[\"wyrm\",\"leak\"], rate:0.29",
+      "breaks": "Loop Labyrinth's random-encounter rate nearly triples (0.11 to 0.29), roughly one fight every three and a half steps on comma tiles.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-roam-spawns-in-signpost",
+      "subsystem": "world",
+      "find": "roam:{pool:[\"packetshark\",\"botnet\"], x:8, y:5}",
+      "replace": "roam:{pool:[\"packetshark\",\"botnet\"], x:3, y:5}",
+      "breaks": "The Wire's prowler spawns on 3,5 - the signpost tile, a solid square - so it is drawn inside the scenery, and because interact() checks the roamer before signs, the zone's only sign starts a fight instead of being read.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-armory-door-wrong-zone",
+      "subsystem": "world",
+      "find": "exits:{}, doorTo:{z:0,x:2,y:7},",
+      "replace": "exits:{}, doorTo:{z:6,x:2,y:7},",
+      "breaks": "Stepping out of The Armory's door drops the player inside the Error Budget Inn instead of back on the village path.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-iact-drops-right",
+      "subsystem": "world",
+      "find": "const IACT=[[0,-1],[0,1],[-1,0],[1,0],[0,0]];",
+      "replace": "const IACT=[[0,-1],[0,1],[-1,0],[0,0]];",
+      "breaks": "interact() stops scanning the square to the player's right, so nothing can be talked to or opened from its left-hand side - MARA in the inn becomes unreachable, since her only other approach is shadowed by the bed above her.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-edge-exit-up-lands-top",
+      "subsystem": "world",
+      "find": "if(dir===\"right\")S.x=0; if(dir===\"left\")S.x=11; if(dir===\"down\")S.y=0; if(dir===\"up\")S.y=8;",
+      "replace": "if(dir===\"right\")S.x=0; if(dir===\"left\")S.x=11; if(dir===\"down\")S.y=0; if(dir===\"up\")S.y=0;",
+      "breaks": "Leaving a zone through its top edge places the player at row 0 of the destination instead of row 8, so walking up out of Loop Labyrinth lands them inside the Graph Citadel's solid top wall.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-loot-reopen-guard-dropped",
+      "subsystem": "world",
+      "find": "zone.loot && zone.loot[key] && !S.opened[S.z+\":\"+key]",
+      "replace": "zone.loot && zone.loot[key]",
+      "breaks": "The barrel-loot branch loses its already-opened guard, and because the condition also accepts tileAtRaw()===\"b\" it bypasses tileAt's cleared-tile rewrite - every barrel pays out again on every Enter press, giving infinite tokens and items.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-wiki-recruit-key-off",
+      "subsystem": "world",
+      "find": "\"5,4\":{ id:\"wiki\",",
+      "replace": "\"5,3\":{ id:\"wiki\",",
+      "breaks": "WIKI's recruitAfter key no longer matches Context Caverns' battle key 5,4, so winning that fight recruits nobody - WIKI becomes permanently unobtainable, coreFourIn() can never be true, and the Monolith finale is unreachable.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-interior-landing-on-npc",
+      "subsystem": "world",
+      "find": "S.z=zi; S.x=5; S.y=7; sfx(\"blip\"); render(); }",
+      "replace": "S.z=zi; S.x=5; S.y=6; sfx(\"blip\"); render(); }",
+      "breaks": "Every interior door drops the player one square deeper, at 5,6 - which in the Error Budget Inn is exactly where WIKI stands, so entering the inn with the Wizard recruited plants the player on top of a companion.",
+      "origin": "independent"
+    },
+    {
+      "id": "world-npcsfor-drops-inparty",
+      "subsystem": "world",
+      "find": "(!n.inParty || S.party.includes(n.inParty))",
+      "replace": "(!n.inParty || true)",
+      "breaks": "npcsFor() stops filtering companion NPCs by party membership, so SENTINEL, WIKI, RETROLISTIC, LITO and REFUTER all stand around the inn from the first visit, before any of them have been recruited.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-credits-ci-overclaim",
+      "subsystem": "story",
+      "find": "Every real-world number quoted regenerates in CI - except the four-verdict case story, which its own repo labels private work you cannot rerun.",
+      "replace": "Every real-world number quoted regenerates in CI.",
+      "breaks": "The CREDITS now claim every published number is CI-reproducible, silently dropping the exception for the four-verdict flip-test case story that the repo itself labels unrerunnable private work.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-lito-m1-loss-figure",
+      "subsystem": "story",
+      "find": "The honest part: on tiny corpora it loses, at 1.27x against the same baseline.",
+      "replace": "The honest part: on tiny corpora it loses, at 0.61x against the same baseline.",
+      "breaks": "LITO MODULE 1's published losing case is overwritten with the neighbouring winning figure, so the card says the technique 'loses' at a cost ratio that actually means it won - and it no longer matches the 1.27x figure printed on the wiki-memory-lab artifact chest.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-lito-m4-placebo-arm",
+      "subsystem": "story",
+      "find": "And the sugar-pill arm, where we only pretended to repair, stayed flat.",
+      "replace": "And the sugar-pill arm, where we only pretended to repair, rose the same.",
+      "breaks": "LITO MODULE 4 now reports that the placebo arm improved as much as the treated arm while still concluding 'That's how you know the fix was the fix' - the sealed-envelope result is asserted from evidence that refutes it.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-deploy-court-flip-swapped",
+      "subsystem": "story",
+      "find": "the evidence-led one flipped none of eight verdicts, the deferential one flipped three of eight",
+      "replace": "the evidence-led one flipped three of eight verdicts, the deferential one flipped none of eight",
+      "breaks": "THE COURT engagement reverses the flip-test result, so the evidence-led judge is reported as the instruction-sensitive one and the deferential judge as stable - the exact opposite of what adversarial-chambers published.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-deploy-context-upper-bound",
+      "subsystem": "story",
+      "find": "at 0.95 - an upper bound, because the same author wrote the tasks, the hooks and the labels",
+      "replace": "at 0.95",
+      "breaks": "THE CONTEXT VAULT now quotes a bare 0.95 retrieval figure with the self-authorship caveat removed, turning a stated upper bound into an unqualified benchmark claim.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-deploy-fieldcert-some",
+      "subsystem": "story",
+      "find": "if(DEPLOY.every(x=>deployDone(x.id)) && !S.fieldCert){",
+      "replace": "if(DEPLOY.some(x=>deployDone(x.id)) && !S.fieldCert){",
+      "breaks": "FIELD CERTIFIED fires after the first engagement instead of all five, so the game says 'Five engagements, five teams' and stamps the share card with a badge the player has not earned.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-retro-arc-need-gate",
+      "subsystem": "story",
+      "find": "{ need:3, lines:[",
+      "replace": "{ need:2, lines:[",
+      "breaks": "RETROLISTIC's fourth beat - putting the mask down - unlocks at bond level 2 instead of 3, so the arc's payoff arrives before the friendship that is supposed to earn it.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-retro-pm-wip-inverted",
+      "subsystem": "story",
+      "find": "Finish something before you start something.",
+      "replace": "Start something before you finish something.",
+      "breaks": "The LIMIT THE WORK IN PROGRESS card now teaches the opposite of limiting WIP, contradicting the same paragraph's point that unfinished work is inventory that rots.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-sharon-note-day-count",
+      "subsystem": "story",
+      "find": "Day 19. Cage runs on my own uptime spells",
+      "replace": "Day 29. Cage runs on my own uptime spells",
+      "breaks": "Sharonduh's Wire note (the first zone of the road in) now says day 29 while her later Bastion note says she has been in there nineteen days, so her correspondence counts backwards as the player advances.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-frontier-done-drops-noc",
+      "subsystem": "story",
+      "find": "return !!(S.cleared[\"9:5,6\"] && S.cleared[\"10:6,6\"] && S.cleared[\"11:5,5\"]);",
+      "replace": "return !!(S.cleared[\"9:5,6\"] && S.cleared[\"10:6,6\"]);",
+      "breaks": "The frontier ending fires after two of the three AI incidents, rolling the credits while THE MISALIGNED is still alive in the NOC.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-interstitial-note-splice",
+      "subsystem": "story",
+      "find": "beats.splice(5, 0,",
+      "replace": "beats.splice(2, 0,",
+      "breaks": "The rescue-night reply-note beats are inserted in the middle of the inn scene instead of after it, so her 'never scared of the cage, only of being unread' answer lands before the note is shown and before the crew shot it is supposed to close on.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-duet-speaker-misattributed",
+      "subsystem": "story",
+      "find": "RETROLISTIC: 'I don't grade on a ten scale.",
+      "replace": "PAPAFOXX: 'I don't grade on a ten scale.",
+      "breaks": "In the third RETROLISTIC/PAPAFOXX duet the Slayer's signature grading line is attributed to the comedian, so PapaFoxx asks how his own set was and then answers himself with the analyst's vocabulary.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-nullbyte-tile-clears-early",
+      "subsystem": "story",
+      "find": "if(b.key && b.id!==\"nullbyte\") S.cleared[S.z+\":\"+b.key]=true;",
+      "replace": "if(b.key) S.cleared[S.z+\":\"+b.key]=true;",
+      "breaks": "Beating NULLBYTE's first form marks the NOC tile cleared before KERNEL MODE is fought, so a player who loses form two can never re-enter the fight: finishRescue() never runs, haxWon stays false, Sharonduh is never rescued and the frontier arc becomes unreachable.",
+      "origin": "independent"
+    },
+    {
+      "id": "story-sharon-finale-unreachable",
+      "subsystem": "story",
+      "find": "(S.sharonTalk||0)%(SHARON_TALKS.length+1)===SHARON_TALKS.length",
+      "replace": "(S.sharonTalk||0)%SHARON_TALKS.length===SHARON_TALKS.length",
+      "breaks": "The modulus can never equal SHARON_TALKS.length, so SHARON_TALKS_FINALE - the line that closes her curriculum once all three AI incidents are resolved - becomes dead content the player can never hear.",
+      "origin": "independent"
+    }
   ]
 }
