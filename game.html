@@ -7935,6 +7935,518 @@ const TESTS = [
     if(!ok) console.log("scan order is now", JSON.stringify(IACT));
     return ok; }],
 
+ // ================= FAMILY GUARDS =================
+ // The mutation lab named 94 coverage gaps. Writing 94 point tests would raise the score
+ // while teaching to the test - the exact thing tools/MUTATION-LEDGER.md warns about. These
+ // assert the RULE each family of defects violates, so they also catch the defects nobody
+ // has thought of yet. Each one is checked against the clean file first, then against the
+ // defects it is meant to kill.
+
+ ["the zone map is a coherent world: exits pair up, doors come home, edges land opposite", ()=>{
+    const sb=S; S=NEWS();
+    const st=window.setTimeout, sy=window.say, sp=window.panelSay, sg=window.saveGame, sf=window.sfx;
+    try{
+      window.setTimeout=()=>0; window.say=(l,cb)=>{ if(cb) cb(); };
+      window.panelSay=(b,cb)=>{ if(cb) cb(); }; window.saveGame=()=>{}; window.sfx=()=>{};
+      const bad=[];
+      const OPP={ left:"right", right:"left", up:"down", down:"up" };
+
+      // 1. Every exit has a matching exit coming back. A one-way link means a zone can be
+      //    skipped, or entered from a neighbour that does not think it is a neighbour.
+      Z.forEach((z,zi)=>Object.keys(z.exits||{}).forEach(dir=>{
+        const to=z.exits[dir], back=Z[to] && Z[to].exits && Z[to].exits[OPP[dir]];
+        if(back!==zi) bad.push(z.name+" goes "+dir+" to "+(Z[to]?Z[to].name:to)+", which does not come back"); }));
+
+      // 2. Walking off an edge puts you on the OPPOSITE edge of the next zone, not the one
+      //    you just left.
+      const DIRS={ left:[-1,0,"x",11], right:[1,0,"x",0], up:[0,-1,"y",8], down:[0,1,"y",0] };
+      Z.forEach((z,zi)=>Object.keys(z.exits||{}).forEach(dir=>{
+        const d=DIRS[dir]; S.z=zi; S.stage=2; S.x=5; S.y=4; M.state="explore";
+        if(dir==="left") S.x=0; if(dir==="right") S.x=11;
+        if(dir==="up") S.y=0; if(dir==="down") S.y=8;
+        tryMove(d[0], d[1]);
+        if(S.z!==z.exits[dir]) bad.push(z.name+" "+dir+" did not arrive");
+        else if(S[d[2]]!==d[3]) bad.push(z.name+" "+dir+" landed at "+d[2]+"="+S[d[2]]+", wanted "+d[3]); }));
+
+      // 3. An interior's door comes home: back to the zone holding its entrance, onto a
+      //    square next to that entrance - not into some other building.
+      const DOORS={ 6:"inn", 7:"shop", 8:"armory" };
+      Object.keys(DOORS).forEach(k=>{ const zi=+k, z=Z[zi], t=z&&z.doorTo;
+        if(!z||!t){ bad.push("interior "+zi+" has no way out"); return; }
+        const home=Z[t.z], ent=home && home[DOORS[k]];
+        if(!ent || t.z!==0){ bad.push(z.name+" opens into "+(home?home.name:t.z)+", not the village"); return; }
+        const p=ent.split(",").map(Number);
+        if(Math.abs(p[0]-t.x)+Math.abs(p[1]-t.y)!==1)
+          bad.push(z.name+" puts you down at "+t.x+","+t.y+", not beside its own door at "+ent); });
+
+      // 4. Every interior's landing square is walkable and unoccupied - the same rule the
+      //    door guard applies to tryMove, now covering enterInterior's own hard-coded spot.
+      // Swept across party compositions, because npcsFor HIDES companion NPCs until they
+      // join: a landing square that is empty for a lone hero can be occupied later. Checking
+      // this with an empty party is how the first version of this guard passed while the
+      // landing sat squarely on WIKI.
+      { const m=/S\.z=zi; S\.x=(\d+); S\.y=(\d+);/.exec(enterInterior.toString());
+        if(!m) bad.push("enterInterior no longer lands anywhere this guard can read");
+        else [[], ["sentinel","wiki"], ["sentinel","wiki","retro","refuter","papafoxx","lito","sharon"]]
+          .forEach(p=>{ S.party=p.slice();
+            Object.keys(DOORS).forEach(k=>{ const zi=+k; S.z=zi;
+              const x=+m[1], y=+m[2], c=tileAt(Z[zi],x,y);
+              if(solid(c)) bad.push(Z[zi].name+" drops you on a solid '"+c+"'");
+              const n=npcsFor(Z[zi]).find(q=>q.x===x&&q.y===y);
+              if(n) bad.push(Z[zi].name+" drops you on top of "+n.name+" once they have joined"); }); });
+        S.party=[]; }
+
+      // 5. Wandering foes spawn somewhere a foe could actually stand.
+      Z.forEach((z,zi)=>{ if(!z.roam) return; S.z=zi;
+        if(!roamWalkable(z, z.roam.x, z.roam.y))
+          bad.push(z.name+" spawns its prowler at "+z.roam.x+","+z.roam.y+", which is not walkable"); });
+
+      // 6. Ambushes happen in the undergrowth, not on the road everyone must walk, and at a
+      //    rate inside the band every published balance campaign measured.
+      Z.forEach(z=>{ if(!z.enc) return;
+        if("g,f".indexOf(z.enc.tile)<0) bad.push(z.name+" ambushes on '"+z.enc.tile+"', which is not undergrowth");
+        if(!z.maps.some(r=>r.indexOf(z.enc.tile)>=0)) bad.push(z.name+" ambushes on a tile it does not have");
+        if(!(z.enc.rate>=0.05 && z.enc.rate<=0.15)) bad.push(z.name+" ambush rate "+z.enc.rate+" is outside the measured band"); });
+
+      if(bad.length) console.log("world:", Array.from(new Set(bad)).slice(0,8).join(" | "));
+      return bad.length===0;
+    } finally { window.setTimeout=st; window.say=sy; window.panelSay=sp; window.saveGame=sg;
+      window.sfx=sf; M.state="test"; S=sb; } }],
+
+ ["every skill moves exactly the number its own description promises", ()=>{
+    // The promise is PARSED out of the shipped description and never restated here, so this
+    // fails in BOTH directions: text edited without the code, or code edited without the text.
+    const sb=S, rb=rng; S=NEWS(); const st=window.setTimeout; window.setTimeout=()=>0;
+    try{
+      const bad=[];
+      const arena=(id, foes)=>{ S=NEWS(); S.party=[id]; S.actors[id]=mkActor(id,10);
+        startBattle("golem","test",null,{count:foes||1});      // golem's weakness is CONTEXA,
+        const b=M.b;                                           // which none of these skills is
+        b.revealed=true; b.focused=true; b.verified=2;
+        (b.foes||[]).forEach(f=>{ f.revealed=true; f.focused=true; f.verified=2; f.hp=9999; f.maxhp=9999; });
+        S.actors[id].mp=99; rng=()=>0.99;                      // above the crit chance
+        return b; };
+
+      { const want=+(/\+(\d+) HP/.exec(SP.rollback.d)||[0,0])[1];
+        arena("hero",1); const a=S.actors.hero; a.hp=1;
+        castSkill(a,"rollback");
+        if(a.hp-1!==want) bad.push("ROLLBACK says +"+want+" HP, gave +"+(a.hp-1)); }
+
+      { const want=+(/×(\d+)/.exec(SP.mutagen.d)||[0,0])[1];
+        const b=arena("sentinel",1); castSkill(S.actors.sentinel,"mutagen");
+        if(b.dot!==want) bad.push("MUTAGEN says x"+want+" turns, set "+b.dot); }
+
+      { const want=+(/for (\d+) turns/.exec(SP.objection.d)||[0,0])[1];
+        const b=arena("refuter",1); castSkill(S.actors.refuter,"objection");
+        if(b.taunt!==want) bad.push("OBJECTION says "+want+" turns, set "+b.taunt); }
+
+      { const want=+(/\+(\d+) MP/.exec(LIMITS.wiki.d)||[0,0])[1];
+        arena("wiki",1); const a=S.actors.wiki; a.lb=LB_MAX; a.mp=0;
+        castLimit(a);
+        if(a.mp!==want) bad.push("TOTAL RECALL says +"+want+" MP, gave +"+a.mp); }
+
+      // INDEX STORM names two numbers: one for a lone foe, a smaller one for a room. Compare
+      // the DIFFERENCE rather than either figure, so any constant the damage pipeline adds
+      // cancels out - and so that a crowd threshold set one body too high (two foes standing
+      // still counted as "lone") shows up as the difference collapsing to zero.
+      { const m=/(\d+)\+LV damage to a lone foe, or (\d+)\+LV to EVERY/.exec(SP.indexstorm.d);
+        if(!m) bad.push("INDEX STORM no longer states its two numbers");
+        else {
+          let b=arena("wiki",1); let before=b.foes[0].hp;
+          castSkill(S.actors.wiki,"indexstorm");
+          const lone=before-b.foes[0].hp;
+          b=arena("wiki",2); before=b.foes[1].hp;
+          castSkill(S.actors.wiki,"indexstorm");
+          const room=before-b.foes[1].hp;
+          const promised=(+m[1])-(+m[2]);
+          if(lone-room!==promised)
+            bad.push("INDEX STORM promises "+promised+" less per body in a crowd, delivered "+(lone-room)+
+                     " (lone "+lone+", two foes "+room+")"); } }
+
+      if(bad.length) console.log("skills that lie about themselves:", bad.join(" | "));
+      return bad.length===0;
+    } finally { window.setTimeout=st; rng=rb; M.b=null; M.state="test"; S=sb; } }],
+
+ ["putting things in a pile adds to it - it never replaces it", ()=>{
+    // Three separate places assign where they should add: the bank, the shop counter and the
+    // grave. Each is a silent theft of whatever the player was already carrying.
+    const sb=S; S=NEWS(); const sf=window.sfx; window.sfx=()=>{};
+    try{
+      const bad=[];
+      S.items={coffee:2}; S.bank={coffee:3};
+      bankWithdrawAll();
+      if((S.items.coffee|0)!==5) bad.push("the bank returned "+S.items.coffee+" of an expected 5");
+
+      S=NEWS(); S.items={coffee:2}; S.tokens=999; M.state="explore";
+      openShop();
+      const buy=document.querySelector('#box button[data-buy="coffee"]');
+      if(!buy) bad.push("the shop no longer sells coffee by that name");
+      else { buy.click();
+        if((S.items.coffee|0)!==3) bad.push("buying a third coffee left "+S.items.coffee); }
+      ov.hidden=true; M.state="test";
+
+      S=NEWS(); S.items={coffee:2};
+      S.grave={z:0,x:1,y:1,t:Date.now(),items:{coffee:3},tokens:0};
+      graveReclaim();
+      if((S.items.coffee|0)!==5) bad.push("the grave returned "+S.items.coffee+" of an expected 5");
+
+      if(bad.length) console.log("piles that were replaced:", bad.join(" | "));
+      return bad.length===0;
+    } finally { window.sfx=sf; ov.hidden=true; M.state="test"; S=sb; } }],
+
+ ["one copy, one pair of hands - and nothing points at a thing you no longer own", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      const bad=[];
+      // A weapon two characters could both hold is a duplicate the shop never sold.
+      const both=Object.keys(IT).filter(k=>Array.isArray(IT[k].fits) && IT[k].fits.length>1);
+      const pick=both[0] || "mic1";
+      const fits=IT[pick] && IT[pick].fits;
+      if(fits && fits.length>1){
+        S.items[pick]=1; S.gear={};
+        equipGear(fits[0], pick); equipGear(fits[1], pick);
+        const holders=Object.keys(S.gear).filter(o=>S.gear[o]===pick);
+        if(holders.length>1) bad.push(pick+" is held by "+holders.join(" and ")+" at once"); }
+      // Transmuting CONSUMES the base piece, so nothing may still be wearing or wielding it
+      // afterwards - an equip slot pointing at an item the player no longer owns is a ghost.
+      let exercised=0;
+      const fd=window.frontierDone;
+      try{
+        window.frontierDone=()=>true;                     // satisfy every unlock in one go
+        Object.keys(TRANSMUTES||{}).forEach(id=>{ const t=TRANSMUTES[id];
+          Object.keys(t.consumes||{}).forEach(k=>{
+            const slot=IT[k] && (IT[k].type==="weapon"?"weapon":IT[k].type);
+            if(!slot) return;                             // a resource, not a wearable
+            S=NEWS(); S.won=true; S.haxWon=true; S.haxKnown=true;
+            S.res={logs:99,metrics:99,traces:99,sigils:99};
+            Object.keys(t.consumes).forEach(c=>{ if(!(c in S.res)) S.items[c]=1; });
+            S.equip[slot]=k; S.gear={};
+            if(!canTransmute(id)) return;                 // unlock still shut: nothing to prove
+            exercised++;
+            transmute(id);
+            if(!(S.items[k]>0)){
+              if(S.equip[slot]===k) bad.push(id+" consumed "+k+" and left it equipped in "+slot);
+              if(Object.keys(S.gear||{}).some(o=>S.gear[o]===k)) bad.push(id+" consumed "+k+" and left a companion holding it"); } }); });
+      } finally { window.frontierDone=fd; }
+      if(!exercised) bad.push("no transmute was actually exercised - this check proved nothing");
+      if(bad.length) console.log("ghost gear:", bad.join(" | "));
+      return bad.length===0;
+    } finally { S=sb; } }],
+
+ ["exactly enough is enough: the last log you needed forges the thing", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      const bad=[];
+      const ids=Object.keys(RECIPES).slice(0,6);
+      ids.forEach(id=>{ S=NEWS(); const r=craftCost(id); if(!r) return;
+        S.res={logs:0,metrics:0,traces:0,sigils:0};
+        Object.keys(r).forEach(k=>{ S.res[k]=r[k]; });          // exactly the cost, not a scrap more
+        Object.keys(RECIPES[id]).forEach(k=>{ if(!(k in S.res)) S.items[k]=(S.items[k]||0)+9; });
+        if(!craft(id)) bad.push(id+" refused a forge the player could exactly afford"); });
+      if(bad.length) console.log("forge boundary:", bad.join(" | "));
+      return bad.length===0;
+    } finally { S=sb; } }],
+
+ ["the shelves hold no duplicates, and no node leaks a currency bosses guard", ()=>{
+    const bad=[];
+    const dupes=(list,nm)=>{ const seen={}; list.forEach(k=>{ if(seen[k]) bad.push(nm+" lists "+k+" twice"); seen[k]=1; }); };
+    dupes(SHOP_STOCK,"the shop"); dupes(ARMOR_STOCK,"the armory");
+    SHOP_STOCK.concat(ARMOR_STOCK).forEach(k=>{ if(!IT[k]) bad.push("the shelves list "+k+", which is not an item"); });
+    // Sigils come off bosses. A field node that pays them would quietly break the gate on
+    // every transmute, and there is no icon for it either.
+    const FIELD=["logs","metrics","traces"];
+    Z.forEach(z=>(z.nodes||[]).forEach(n=>{ if(FIELD.indexOf(n.t)<0)
+      bad.push(z.name+" has a node paying "+n.t+", which is not gathered in the field"); }));
+    if(bad.length) console.log("shelves and nodes:", bad.join(" | "));
+    return bad.length===0; }],
+
+ ["loading a save is lossless and idempotent, wherever the Cleric was sitting", ()=>{
+    const key=saveKey(3), bak=localStorage.getItem(key);
+    try{
+      const bad=[];
+      // The merge must fire wherever "mender" sits in the party array, including first.
+      [0,1,3].forEach(pos=>{
+        const party=["sentinel","wiki","retro","refuter"];
+        party.splice(Math.min(pos,party.length), 0, "mender");
+        const old=Object.assign(NEWS(), {party:party});
+        old.actors.hero=mkActor("hero",14);
+        party.forEach(id=>{ old.actors[id]=mkActor(id==="mender"?"sentinel":id, 9); });
+        // The Slayer is deliberately the DEEPEST investment of the three, so dropping any one
+        // of hero/mender/retro out of the max shows up. An earlier version made the hero the
+        // deepest, which left two of the three interchangeable and proved nothing.
+        old.actors.mender.id="mender"; old.actors.retro.lv=18;
+        localStorage.setItem(key, JSON.stringify(old));
+        const l=loadSlot(3);
+        if(!l){ bad.push("mender at "+pos+": the save would not load at all"); return; }
+        if(l.party.indexOf("mender")>=0) bad.push("mender at "+pos+": still seated after the merge");
+        const seats=l.party.filter(id=>id==="retro").length;
+        if(seats!==1) bad.push("mender at "+pos+": the Slayer is seated "+seats+" times");
+        if(l.actors.retro.lv!==18) bad.push("mender at "+pos+": merged at LV "+l.actors.retro.lv+", not the deepest of the three (18)"); });
+
+      // The clock adds up. Assigning where it should accumulate throws away every hour
+      // played before the current sitting.
+      { const sb2=S; S=NEWS(); S.playMs=0; M.resumeAt=Date.now()-1000;
+        tickClock(); const first=S.playMs;
+        M.resumeAt=Date.now()-1000; tickClock(); const second=S.playMs;
+        if(!(second>first)) bad.push("the play clock does not accumulate: "+first+" then "+second);
+        S=sb2; }
+
+      // A row the player chose survives the trip, in BOTH directions.
+      { const old=Object.assign(NEWS(), {party:["sentinel","wiki"]});
+        old.actors.sentinel=mkActor("sentinel",5); old.actors.sentinel.row="back";
+        old.actors.wiki=mkActor("wiki",5); old.actors.wiki.row="front";
+        localStorage.setItem(key, JSON.stringify(old));
+        const l=loadSlot(3);
+        if(!l || l.actors.sentinel.row!=="back") bad.push("a Ranger sent to the back line came home to the front");
+        if(!l || l.actors.wiki.row!=="front") bad.push("a caster brought to the front line came home to the back"); }
+
+      // Loading twice is loading once. Anything that drifts on a second load is a rule the
+      // load path applies to its own output.
+      { const old=Object.assign(NEWS(), {party:["sentinel","wiki","retro"]});
+        old.actors.hero=mkActor("hero",12); old.tokens=321;
+        localStorage.setItem(key, JSON.stringify(old));
+        const once=loadSlot(3);
+        localStorage.setItem(key, JSON.stringify(once));
+        const twice=loadSlot(3);
+        if(JSON.stringify(once)!==JSON.stringify(twice)) bad.push("loading a save twice does not equal loading it once"); }
+
+      // A migration copies the flag it names, not the one beside it.
+      { const v8=migrateV8({ v:8, party:["sentinel"], actors:{hero:mkActor("hero",5)},
+              haxKnown:true, haxWon:false, items:{}, equip:{}, tokens:0 });
+        if(v8 && v8.haxWon) bad.push("a v8 save that only HEARD about the rescue came back with it already won"); }
+
+      if(bad.length) console.log("saves:", bad.join(" | "));
+      return bad.length===0;
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["a sheet earned by fighting equals a sheet built at that level", ()=>{
+    // The strongest invariant available for growth: there are two independent paths to a
+    // level-N character - mkActor builds one directly, gainXP walks one up - and they must
+    // agree. Any drift in the level-up maths shows up here without naming a single stat.
+    const sb=S; S=NEWS(); const st=window.setTimeout, sf=window.sfx, sy=window.say;
+    window.setTimeout=()=>0; window.sfx=()=>{}; window.say=(l,cb)=>{ if(cb) cb(); };
+    try{
+      const bad=[];
+      ["hero","sentinel","wiki","retro"].forEach(id=>{
+        S=NEWS(); S.party=[id]; const walked=mkActor(id,1); S.actors[id]=walked;
+        let spins=0;
+        while(walked.lv<8 && spins++<400) gainXP(XPCURVE[walked.lv]-walked.xp);
+        const built=mkActor(id,walked.lv);
+        ["lv","maxhp","maxmp","atk"].forEach(f=>{ if(walked[f]!==built[f])
+          bad.push(id+" levelled to "+walked.lv+" has "+f+" "+walked[f]+", built has "+built[f]); });
+        if(walked.sk.length!==built.sk.length) bad.push(id+" learned a different set of skills on the way up"); });
+
+      // Fallen allies do not collect the pay.
+      { S=NEWS(); S.party=["sentinel","wiki"];
+        S.actors.sentinel=mkActor("sentinel",3); S.actors.wiki=mkActor("wiki",3);
+        S.actors.wiki.ko=true; const before=S.actors.wiki.xp;
+        gainXP(40);
+        if(S.actors.wiki.xp!==before) bad.push("a fallen ally was paid XP for a fight it did not finish"); }
+
+      // The Trial's gift lands on the stat its own card names - checked on BOTH paths that
+      // grant it, because they are written out separately: finishTrial when it is earned,
+      // and reconcileActor when the save is reloaded. An earlier version tested only the
+      // reload path and never noticed the granting one.
+      { const GIFT={ VIT:[3,0], INT:[0,2], SPR:[1,1] };
+        Object.keys(GIFT).forEach(pk=>{ const want=GIFT[pk];
+          // path 1: earning it
+          S=NEWS(); const h=S.actors.hero, bh=h.maxhp, bm=h.maxmp;
+          const ht=window.heroTrial, sy2=window.say, sf2=window.sfx;
+          window.heroTrial=()=>({perk:pk}); window.say=(l,cb)=>{ if(cb) cb(); }; window.sfx=()=>{};
+          try{ finishTrial([], ()=>{}); } catch(e){}
+          finally { window.heroTrial=ht; window.say=sy2; window.sfx=sf2; }
+          if(h.maxhp-bh!==want[0] || h.maxmp-bm!==want[1])
+            bad.push("the "+pk+" trial granted HP+"+(h.maxhp-bh)+" MP+"+(h.maxmp-bm)+", card says HP+"+want[0]+" MP+"+want[1]);
+          // path 2: reloading with it
+          S=NEWS(); const base=mkActor("hero",6); S.core={perk:pk};
+          const back=reconcileActor(mkActor("hero",6), S);
+          if(back.maxhp-base.maxhp!==want[0] || back.maxmp-base.maxmp!==want[1])
+            bad.push("reloading the "+pk+" gift gave HP+"+(back.maxhp-base.maxhp)+" MP+"+(back.maxmp-base.maxmp)); }); }
+
+      // A max-level sheet is still max level after a reload.
+      { S=NEWS(); const top=mkActor("hero",XPCURVE.length);
+        const back=reconcileActor(top, S);
+        if(back.lv!==top.lv) bad.push("a LV "+top.lv+" character was demoted to "+back.lv+" by loading"); }
+
+      // Reawakening pays MORE each time. The second rebirth is worth two points of attack,
+      // not one - otherwise the treadmill flattens and the sheet stops matching what
+      // reconcileActor rebuilds from the same awakening count.
+      { S=NEWS(); S.party=["hero"]; S.actors.hero=mkActor("hero",12);
+        const base=mkActor("hero",1).atk;
+        reawaken("hero"); const first=S.actors.hero.atk-base;
+        S.actors.hero.lv=12; reawaken("hero"); const second=S.actors.hero.atk-base;
+        if(first!==1 || second!==2) bad.push("awakening attack went +"+first+" then +"+second+", wanted +1 then +2");
+        const rebuilt=reconcileActor(mkActor("hero",S.actors.hero.lv), S);
+        if(rebuilt.atk!==S.actors.hero.atk) bad.push("a reloaded awakened sheet has atk "+rebuilt.atk+" against the live "+S.actors.hero.atk); }
+
+      // The XP ramp is pinned, and here is why: tools/BALANCE-LEDGER.md accounts for
+      // 7,313,561 battles fought against this pacing. Flatten the ramp and every published
+      // campaign stops describing the game that ships. Both paths to the curve must agree
+      // on the step, so this reads the shipped curve rather than a copy of the formula.
+      { const step=(n)=>XPCURVE[n]-XPCURVE[n-1];
+        const growth=step(10)-step(9);
+        if(growth!==12) bad.push("the XP ramp grows by "+growth+" a level past LV 8, the ledger assumed 12"); }
+
+      // A growth road opens one tier at a time: holding tier 1 does not unlock tier 3.
+      { S=NEWS(); treeInit(); S.tree.banked=99; S.tree.taken={};
+        const lanes={}; Object.keys(TREE).forEach(k=>{ const n=TREE[k];
+          (lanes[n.lane]=lanes[n.lane]||{})[n.tier]=(lanes[n.lane][n.tier]||[]).concat(k); });
+        Object.keys(lanes).forEach(lane=>{ const t1=(lanes[lane][1]||[])[0], t3=(lanes[lane][3]||[])[0];
+          if(!t1||!t3) return;
+          S.tree.taken={}; S.tree.taken[t1]=true;
+          if(treeCan(t3)) bad.push(lane+": tier 3 opened while only tier 1 was held"); }); }
+
+      if(bad.length) console.log("growth:", bad.join(" | "));
+      return bad.length===0;
+    } finally { window.setTimeout=st; window.sfx=sf; window.say=sy; M.b=null; M.state="test"; S=sb; } }],
+
+ ["every number this game repeats is still the number its repo published", ()=>{
+    // The whole argument of this project is that a figure you can check beats a figure you
+    // are asked to believe. That makes the prose a load-bearing surface: a number quietly
+    // edited here is the same defect class as a number quietly edited in the ledger.
+    const prod=prodSource();
+    const strings=(prod.match(/"(?:[^"\\]|\\.)*"/g)||[]);
+    const bad=[];
+
+    // 1. Each published figure still appears, exactly as its repo records it. The LOSING
+    //    numbers matter most - a repo that only publishes its wins is a sales pitch, and
+    //    overwriting the loss with the neighbouring win is the easiest edit in the file.
+    const PUBLISHED=[
+      [/0\.61/, "the selective-recall token ratio"],
+      [/1\.27/, "the crossover where the simple approach WINS - the published loss"],
+      [/0\.95/, "the one-line-hook retrieval figure"],
+      [/9\/10|9 of 10/, "planted defects caught"],
+      [/8\/10/, "the memory score before repair"],
+      [/10\/10/, "the memory score after repair"]];
+    PUBLISHED.forEach(p=>{ if(!p[0].test(prod)) bad.push("the game no longer quotes "+p[1]); });
+
+    // 2. A claim about EVERY number has to name its exception, or it is not a claim, it is
+    //    an advertisement.
+    strings.forEach(s=>{ if(/every[^"]*number[^"]*(in CI|regenerat)/i.test(s) && !/except/i.test(s))
+      bad.push("a universal claim with no exception named: "+s.slice(0,70)); });
+
+    // 3. The placebo arm is the reason the repair result means anything. It stayed flat.
+    //    Scoped to PROSE: "PLACEBO ARM" is also a glossary headword with no room for a
+    //    finding in it, and a rule that fires on a label is a rule that will be deleted.
+    strings.forEach(s=>{ if(s.length>40 && /sugar-pill|placebo arm/i.test(s) && !/flat|unchanged|did not|no better/i.test(s))
+      bad.push("the placebo arm stopped staying flat: "+s.slice(0,70)); });
+
+    // 4. The retrieval figure travels with the reason it is an upper bound.
+    strings.forEach(s=>{ if(/0\.95/.test(s) && !/upper bound/i.test(s))
+      bad.push("0.95 quoted without its upper-bound caveat: "+s.slice(0,70)); });
+
+    // 5. The flip test only says anything because the EVIDENCE-LED judge is the steady one.
+    //    Reverse the two and the result argues the opposite of what the lesson teaches.
+    const WORD={ none:0, zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8 };
+    strings.forEach(s=>{ if(!/evidence-led/i.test(s) || !/deferential/i.test(s)) return;
+      const m=/evidence-led[^.]*?flipped\s+(\w+)[^.]*?deferential[^.]*?flipped\s+(\w+)/i.exec(s);
+      if(!m){ bad.push("the flip-test sentence no longer reads in a shape this can check"); return; }
+      const led=(m[1] in WORD)? WORD[m[1]] : parseInt(m[1],10);
+      const def=(m[2] in WORD)? WORD[m[2]] : parseInt(m[2],10);
+      if(!(led<def)) bad.push("the evidence-led judge is reported flipping "+led+" against the deferential judge's "+def); });
+
+    // (A sixth rule was written here and removed: her notes were to be checked for dates
+    //  running forward along the road. Exactly ONE note carries a date, so an ordering check
+    //  over a single item cannot fail for the right reason. The mutation that edits that
+    //  date therefore stays a published survivor in tools/mutations.json rather than being
+    //  answered with a check that only looks like one.)
+
+    if(bad.length) console.log("published numbers:", Array.from(new Set(bad)).slice(0,6).join(" | "));
+    return bad.length===0; }],
+
+ ["each combat modifier moves what it says it moves, by the amount it says", ()=>{
+    // Measured as DELTAS with one thing changed at a time, so every constant the pipeline
+    // adds cancels and the test states the rule rather than the arithmetic.
+    const sb=S, rb=rng; S=NEWS(); const st=window.setTimeout; window.setTimeout=()=>0;
+    try{
+      const bad=[];
+      const hit=(setup)=>{ S=NEWS(); S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",10);
+        startBattle("golem","test",null,{count:1});
+        const b=M.b; b.revealed=true; b.focused=true; b.verified=2;
+        b.foes.forEach(f=>{ f.revealed=true; f.focused=true; f.verified=2; f.hp=9999; f.maxhp=9999; });
+        rng=()=>0.99; if(setup) setup(b, S.actors.sentinel);
+        const before=b.foes[0].hp; M.forceCrit=(M.forceCrit===true);
+        dealt(S.actors.sentinel, 10, "t");
+        return before-b.foes[0].hp; };
+
+      // A critical hit doubles. The CALIBRATION keystone makes it 2.25, which is the whole
+      // trade that node sells - swap the two and the keystone quietly becomes a downgrade.
+      { const plain=hit((b,a)=>{ M.forceCrit=false; });
+        const crit=hit((b,a)=>{ M.forceCrit=true; });
+        if(crit!==plain*2) bad.push("a crit dealt "+crit+" against a plain "+plain+", wanted double");
+        const keyed=hit((b,a)=>{ treeInit(); S.tree.taken={s5:true}; M.forceCrit=true; });
+        const keyedPlain=hit((b,a)=>{ treeInit(); S.tree.taken={s5:true}; M.forceCrit=false; });
+        if(!(keyed/keyedPlain > crit/plain))
+          bad.push("the CALIBRATION keystone made crits weaker, not stronger ("+(keyed/keyedPlain)+" vs "+(crit/plain)+")"); }
+
+      // Being heckled costs exactly one point a swing, for as long as it lasts.
+      { const clear=hit((b,a)=>{ M.forceCrit=false; b.heckled=0; });
+        const heckled=hit((b,a)=>{ M.forceCrit=false; b.heckled=2; });
+        if(clear-heckled!==1) bad.push("a heckle cost "+(clear-heckled)+" damage a swing, not 1"); }
+
+      // The Compass helps while OUTNUMBERED. An even room is not outnumbered.
+      { S=NEWS(); S.party=["sentinel","wiki","retro"];
+        ["sentinel","wiki","retro"].forEach(id=>{ S.actors[id]=mkActor(id,8); });
+        S.items.ch10=1; S.equip.charm="ch10";             // without the charm it returns 0 for
+        startBattle("golem","test",null,{count:4});       // every case and proves nothing
+        const even=outnumberedGuard();                    // four foes, four living allies
+        M.b.foes[0].hp=0;
+        const over=outnumberedGuard();                    // three foes, four allies
+        M.b.foes.forEach(f=>{ f.hp=9; }); S.party=["sentinel"];
+        const under=outnumberedGuard();                   // four foes, two allies
+        if(under!==1) bad.push("the Compass stayed quiet while the party was outnumbered");
+        if(even!==0) bad.push("the Compass fired on an even room (4 foes, 4 allies)");
+        if(over!==0) bad.push("the Compass fired while the party had the numbers"); }
+
+      // The limit gauge fills FROM the damage taken, so a heavy blow fills it faster.
+      { const charge=(dmg)=>{ const a=mkActor("hero",8); a.lb=0; chargeLB(a,dmg); return a.lb; };
+        const light=charge(2), heavy=charge(10);
+        if(!(heavy>light)) bad.push("a 10-point blow charged the limit "+heavy+" against a 2-point blow's "+light); }
+
+      // The initiative queue seats allies by their EFFECTIVE speed, so every point bought
+      // with a node, a relic or the Trial actually buys a turn.
+      { S=NEWS(); S.party=["hero"]; S.actors.hero=mkActor("hero",8);
+        treeInit(); S.tree.taken={v1:true};
+        const eff=spdOf(S.actors.hero), raw=S.actors.hero.spd;
+        if(eff===raw) bad.push("the speed node bought nothing, so this check proves nothing");
+        startBattle("golem","test",null,{count:1});
+        buildQueue(M.b);
+        const seat=(M.b.queue||[]).find(u=>u.t==="a" && u.id==="hero");
+        if(!seat) bad.push("the hero has no seat in the initiative queue");
+        else if(seat.spd!==eff) bad.push("the queue seated the hero at speed "+seat.spd+", their effective speed is "+eff); }
+
+      if(bad.length) console.log("combat modifiers:", bad.join(" | "));
+      return bad.length===0;
+    } finally { window.setTimeout=st; rng=rb; delete M.forceCrit; M.b=null; M.state="test"; S=sb; } }],
+
+ ["the bestiary agrees with itself, and with what it says about itself", ()=>{
+    const bad=[];
+    // 1. Prose promises, the flag delivers - and only in that direction. An enemy whose own
+    //    NAME or text tells the player it fights through fog must actually carry fog, or the
+    //    counterplay the text is teaching does not exist.
+    //    The reverse ("carries a flag its prose never names") was tried and removed: it is a
+    //    content opinion, not an invariant. THE HALLUCINATION is fogged and its tip teaches
+    //    the answer by naming CONTEXA rather than by saying the word. The same went for
+    //    `twice`, which announces itself in the battle log at the moment it happens.
+    Object.keys(EN).forEach(k=>{ const e=EN[k];
+      const prose=((e.name||"")+" "+(e.intro||"")+" "+(e.tip||"")+" "+
+                   (e.moves||[]).map(m=>m[0]).join(" ")).toLowerCase();
+      if(/\bfog\b|fogged/.test(prose) && !e.foggy)
+        bad.push(k+": its own text promises fog and the flag is gone"); });
+    // 2. Escalation flags are ordered: three targets implies two.
+    Object.keys(EN).forEach(k=>{ if(EN[k].multi3 && !EN[k].multi) bad.push(k+": escalates to three targets without ever reaching two"); });
+    // 3. Every speed in the table belongs to an enemy that exists, and every enemy that can
+    //    take a turn has a speed of its own rather than falling through to the default.
+    Object.keys(ENSPD).forEach(k=>{ if(!EN[k]) bad.push("ENSPD names "+k+", which is not an enemy"); });
+    Object.keys(EN).forEach(k=>{ if(typeof EN[k].spd!=="number") bad.push(k+" has no speed of its own"); });
+    if(!Object.keys(EN).some(k=>EN[k].superboss)) bad.push("no superboss in the table at all");
+    // 4. A boss chain escalates: every later form is at least as dangerous as the one before.
+    Object.keys(EN).forEach(k=>{ const e=EN[k]; if(!Array.isArray(e.chain)) return;
+      e.chain.forEach(s2=>{ const n=EN[s2&&s2.id]; if(n && (n.hp<e.hp || n.atk<e.atk))
+        bad.push(k+" escalates to a weaker "+s2.id); }); });
+    if(bad.length) console.log("bestiary:", Array.from(new Set(bad)).slice(0,8).join(" | "));
+    return bad.length===0; }],
+
  // ---- round 2: the critical gaps an INDEPENDENT catalogue found ----
  // 111 defects designed by readers who had not written these tests. The suite caught 9.
  // These seven are the ones rated critical: a defect that ends a run, eats a save, or

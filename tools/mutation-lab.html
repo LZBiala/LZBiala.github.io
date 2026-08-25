@@ -53,8 +53,13 @@ them the game's own suite catches.</p>
 
 <p>Every mutation is an exact string replacement listed in
 <code>tools/mutations.json</code>. For each one, this page rebuilds the whole file in
-memory, runs all of its tests in a sandboxed iframe, and records whether any test failed.
+memory, runs all of its tests in an offscreen iframe, and records whether any test failed.
 A defect that no test notices is a hole, and it is named below.</p>
+
+<p class="note">The iframe runs <b>same-origin</b>, not sandboxed - the game's tests need real
+<code>localStorage</code> to exercise saving. So this page takes every <code>aiquest*</code>
+key out of storage before each mutant and puts it back afterwards. Without that, one mutant's
+boot could change the next one's result, and a save-subsystem defect could eat a real save.</p>
 
 <p class="note">This page needs to be served over http so it can fetch the game file.
 From the repository root: <code>python -m http.server 8000</code>, then open
@@ -75,48 +80,103 @@ will fail at the first fetch.</p>
 </div>
 
 <h2>How to read this</h2>
-<p><b>KILLED</b> means at least one test failed when the defect was present - the suite was
-watching. <b>SURVIVED</b> means all tests passed with a real defect in the code. Survivors
-are the interesting rows: each one is a statement about something this project believes and
-does not check.</p>
+<p><b>KILLED</b> means at least one test failed when the defect was present, or the defect
+crashed the page before any test could run - a crash is the most visible failure there is,
+so it counts. <b>SURVIVED</b> means every test passed with a real defect in the code. Those
+are the interesting rows: each is something this project believes and does not check.
+<b>NOT APPLIED</b> means the search string did not match exactly once, which is a fact about
+the catalogue rather than the suite, so those rows leave the denominator.</p>
+<p><b>What a kill does not prove.</b> Many of this suite's tests are greps over the file's
+own source text, so some kills mean "a check noticed the source changed" rather than "a
+behavioural assertion failed". A textual kill gives no assurance against the same defect
+spelled a different way.</p>
+<p><b>What a survivor does not prove either.</b> No attempt is made here to exclude
+equivalent mutants - defects that change the source without changing observable behaviour -
+or defects sitting on states a real playthrough cannot reach. Both inflate the survivor
+count, so treat the kill rate as a floor.</p>
 <p>The kill rate is not a score to maximise by deleting hard mutations. The catalogue is
 committed, so it can only grow, and every survivor stays in the file after it is fixed - a
-fixed hole that quietly left the catalogue would make the next number a lie.</p>
+fixed hole that quietly left the catalogue would make the next number a lie. And a rate
+measured against a catalogue the suite was patched against is training-set performance, not
+a detection rate; see the ledger's correction on exactly that mistake.</p>
 
-<iframe id="pen" title="sandbox" aria-hidden="true"></iframe>
+<iframe id="pen" title="mutant runner" aria-hidden="true"></iframe>
 </div>
 
 <script>
 var TRIG = 'if(new URLSearchParams(location.search).get("test")==="1") runTests();';
 var SRC = null;
 
+// The mutant runs SAME-ORIGIN, because its tests need real localStorage. That means it can
+// see and write the operator's actual save keys, and it boots tryMigrate() before the
+// suite's own snapshot/restore begins. So the harness takes the save state away and gives it
+// back around every run: without this, one mutant's boot could change the next mutant's
+// result, and a save-subsystem mutant could eat a real save.
+// The snapshot is also written to a key the sweep cannot reach, so closing this tab in the
+// middle of a run cannot cost anybody a save. Anything left behind is restored on next load.
+var STASH = "mutationlab_saved_state";
+function saveKeysAway(){
+  var held = [], i, k;
+  for(i = localStorage.length - 1; i >= 0; i--){
+    k = localStorage.key(i);
+    if(k && k.indexOf("aiquest") === 0){ held.push([k, localStorage.getItem(k)]); }
+  }
+  if(held.length){ try { localStorage.setItem(STASH, JSON.stringify(held)); } catch(e){} }
+  held.forEach(function(kv){ localStorage.removeItem(kv[0]); });
+  return held;
+}
+function saveKeysBack(held){
+  for(var i = localStorage.length - 1; i >= 0; i--){
+    var k = localStorage.key(i);
+    if(k && k.indexOf("aiquest") === 0) localStorage.removeItem(k);
+  }
+  held.forEach(function(kv){ try { localStorage.setItem(kv[0], kv[1]); } catch(e){} });
+  try { localStorage.removeItem(STASH); } catch(e){}
+}
+// A run that was interrupted (tab closed, navigation) left the snapshot behind. Put it back.
+(function recoverInterruptedRun(){
+  var raw = null;
+  try { raw = localStorage.getItem(STASH); } catch(e){ return; }
+  if(!raw) return;
+  try { saveKeysBack(JSON.parse(raw)); } catch(e){}
+})();
+
 function runOne(find, replace){
   var s = SRC;
   if(find !== null){
     var n = s.split(find).length - 1;
-    if(n !== 1) return Promise.resolve({err:"the search string occurs " + n + " times, expected exactly 1"});
+    if(n !== 1) return Promise.resolve({apply:false, err:"the search string occurs " + n + " times, expected exactly 1"});
     s = s.replace(find, replace);
   }
-  // The suite is triggered by a query string, and a blob URL cannot carry one. This same
-  // rewrite is applied to the unmutated baseline, so it cannot bias the result: if it broke
-  // anything, the baseline would not be clean.
-  if(s.indexOf(TRIG) < 0) return Promise.resolve({err:"the test trigger was not found in game.html"});
+  // The suite is triggered by a query string and a blob URL cannot carry one, so that one
+  // line is rewritten in every mutant. Two honest caveats about that: a clean baseline proves
+  // the rewrite does not break an UNMUTATED file, which is not the same as proving it cannot
+  // interact with a mutation; and the rewrite must not be applied to text a mutation itself
+  // introduced, so the trigger is required to be unique AFTER the mutation, not before.
+  var t = s.split(TRIG).length - 1;
+  if(t !== 1) return Promise.resolve({apply:false, err:"the test trigger appears " + t + " times after mutating, expected exactly 1"});
   s = s.replace(TRIG, "if(true) runTests();");
   var url = URL.createObjectURL(new Blob([s], {type:"text/html"}));
+  var held = saveKeysAway();
   return new Promise(function(res){
     var f = document.getElementById("pen"), done = false;
-    var finish = function(o){ if(done) return; done = true; URL.revokeObjectURL(url); res(o); };
-    var to = setTimeout(function(){ finish({err:"timed out after 120s"}); }, 120000);
+    var finish = function(o){ if(done) return; done = true;
+      URL.revokeObjectURL(url); saveKeysBack(held); res(o); };
+    var to = setTimeout(function(){ finish({apply:true, crashed:true, err:"timed out after 120s"}); }, 120000);
     f.onload = function(){
       setTimeout(function(){
         clearTimeout(to);
         var R = null;
         try { R = f.contentWindow && f.contentWindow.TESTRESULTS; }
-        catch(e){ return finish({err:"could not read results: " + e.message}); }
-        finish(R ? {pass:R.pass, total:R.total, failed:R.failed} : {err:"the suite produced no results"});
+        catch(e){ return finish({apply:false, err:"could not read results: " + e.message}); }
+        // The mutation applied and the page loaded, but no results exist: the defect threw
+        // during boot, before the suite could run. In mutation testing that is a KILL - the
+        // defect could not be more visible - not a row to drop from the denominator.
+        finish(R ? {apply:true, pass:R.pass, total:R.total, failed:R.failed}
+                 : {apply:true, crashed:true, err:"the defect crashed the page before any test ran"});
       }, 60);
     };
-    f.onerror = function(){ clearTimeout(to); finish({err:"the sandbox failed to load"}); };
+    f.onerror = function(){ clearTimeout(to); finish({apply:true, crashed:true, err:"the page failed to load at all"}); };
     f.src = url;
   });
 }
@@ -124,7 +184,8 @@ function runOne(find, replace){
 function row(m, r){
   var tb = document.querySelector("#out tbody"), tr = document.createElement("tr");
   var outcome, who;
-  if(r.err){ outcome = '<span class="err">ERROR</span>'; who = r.err; }
+  if(r.crashed){ outcome = '<span class="killed">KILLED</span>'; who = '<span class="note">' + r.err + "</span>"; }
+  else if(r.err){ outcome = '<span class="err">NOT APPLIED</span>'; who = r.err; }
   else if(r.failed && r.failed.length){
     outcome = '<span class="killed">KILLED</span>';
     who = r.failed.slice(0,3).join("<br>") + (r.failed.length>3 ? "<br>(+" + (r.failed.length-3) + " more)" : "");
@@ -179,9 +240,10 @@ document.getElementById("run").onclick = function(){
         };
         sum.innerHTML =
           '<div class="big">' + killed + " of " + real + " seeded defects caught &nbsp;(" + pct + "%)</div>" +
-          line("designed by the author of the tests", "author") +
-          line("designed independently", "independent") +
-          "<div>" + survived + " survived" + (errored ? ", " + errored + " could not be applied" : "") +
+          line("designed by the author of the tests (guards fitted to these)", "author") +
+          line("designed independently (guards fitted to these)", "independent") +
+          line("HELD OUT - sealed before the guards were written", "held-out") +
+          "<div>" + survived + " survived" + (errored ? ", " + errored + " could not be applied (excluded)" : "") +
           " &middot; baseline " + base.pass + "/" + base.total +
           " &middot; " + Math.round((Date.now()-t0)/1000) + "s in this browser</div>" +
           '<div class="note">Survivors are listed in red below. Each is a defect this suite does not notice.</div>';
@@ -192,7 +254,10 @@ document.getElementById("run").onclick = function(){
       var m = MUTS[i++];
       prog.textContent = " " + i + " / " + MUTS.length + "  (" + m.id + ")";
       runOne(m.find, m.replace).then(function(r){
-        if(r.err) errored++;
+        // A crash counts as a kill. Only a mutation that could not be APPLIED leaves the
+        // denominator, because that is a fact about the catalogue, not about the suite.
+        if(r.crashed){ killed++; by.push({origin: m.origin || "author", killed: true}); }
+        else if(r.err){ errored++; }
         else {
           if(r.failed.length) killed++; else survived++;
           by.push({origin: m.origin || "author", killed: r.failed.length > 0});

@@ -368,12 +368,13 @@
   shows which numbers are checkable from this repo and which are only asserted.</p>
   <p class="lead">The game ships 446 of its own tests, which only tells you they passed. So I
   broke it on purpose: 143 real defects, seeded one at a time, to find out whether the tests
-  would notice. Against the 32 defects I wrote myself the suite scored 100%. Against 111
-  written by readers who had never seen the tests, it scored <b>8.1%</b> - and that gap,
-  not the flattering number, is the result worth publishing. What survived, what it would
-  have broken, and the guards written since are in
-  <a href="tools/MUTATION-LEDGER.md">the mutation ledger</a>; you can re-derive the whole
-  thing in your own browser from <a href="tools/mutation-lab.html">the mutation lab</a>.</p>
+  would notice. On defects I designed myself it caught 53%; on defects designed by readers
+  who had never seen the tests, <b>8.1%</b>. My first write-up of this headlined a 12x gap
+  by comparing a held-out score against one measured after patching for those exact defects -
+  training-set performance dressed up as a result. The honest, matched number is 6.5x, and
+  <a href="tools/MUTATION-LEDGER.md">the ledger</a> carries the correction, the confounds I
+  can name, and every defect still uncaught. You can re-derive all of it in your own browser
+  from <a href="tools/mutation-lab.html">the mutation lab</a>.</p>
   <div class="gamecard">
     <div class="gc-left">
       <div>&gt; THE SEV-1 HYDRA rises!</div>

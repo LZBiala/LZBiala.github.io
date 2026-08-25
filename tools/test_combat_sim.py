@@ -172,20 +172,33 @@ check("every foe the game calls solo is solo in the sim too", not (js_solo - py_
 # re-run, or the simulator drifted away from the game it claims to model. Both are serious,
 # and neither was detectable before this block existed.
 def one(pattern, text, label, cast=str):
-    m = re.search(pattern, text)
-    if not m:
+    """The single match for a pattern, or an error. AMBIGUITY IS AN ERROR.
+
+    An earlier version used re.search and took the first hit. One of its patterns,
+    `dmg = max(0, dmg-1)`, occurs seven times in combat_sim.py, so it silently policed the
+    materia reduction while claiming to police the incoming-damage floor. They agreed by
+    coincidence, and reordering those seven lines would have changed which constant was
+    guarded without changing the result. A comparison against an arbitrary one of N matches
+    is not a check.
+    """
+    ms = list(re.finditer(pattern, text, re.M))
+    if not ms:
         return None, "%s: pattern found nothing" % label
-    return cast(m.group(1)), None
+    if len(ms) > 1:
+        return None, "%s: pattern matches %d places, so it guards none of them" % (label, len(ms))
+    return cast(ms[0].group(1)), None
 
 
 PAIRS = [
     # label,               game.html pattern,                                        combat_sim.py pattern
     ("base crit rate",     r"function critOf\(a\)\{ return ([\d.]+)",                r"^CRIT = ([\d.]+)"),
     ("minimum damage out", r"dmg=Math\.max\((\d+), dmg\+pre\+stanceOut\(\)",         r"v = max\((\d+), x \+ pre"),
-    ("minimum damage in",  r"function incoming\(raw, a, extraRed\)\{ let d=Math\.max\((-?\d+), raw",
-                                                                                     r"dmg = max\((\d+), dmg-1\)"),
     ("defend divisor",     r"if\(a\.defending\) d=Math\.ceil\(d/(\d+)\);",           r'if tgt\["defending"\]: dmg = \(dmg\+1\)//(\d+)'),
-    ("default foe speed",  r"function unitSpd\(def\)\{ return def\.spd\|\|(\d+); \}", r"MSPD\.get\(mid,(\d+)\)"),
+    # unitSpd is the FOE helper (game.html calls it with f.def||b.def), so its counterpart is
+    # the simulator's ENEMY speed default. The previous pairing read MSPD, the ALLY default -
+    # a value MSPD can never fall through to, because it holds an entry for all eight members.
+    # A guard pinned to an unreachable literal can only ever produce a false failure.
+    ("default foe speed",  r"function unitSpd\(def\)\{ return def\.spd\|\|(\d+); \}", r"ESPD\.get\(enemy_key, ?(\d+)\)"),
 ]
 
 const_bad, const_seen = [], 0
@@ -203,6 +216,24 @@ for label, jsre, pyre in PAIRS:
         const_bad.append("%s: game says %s, sim says %s" % (label, jv, pv))
 check("both instruments agree on every core combat constant",
       const_seen == len(PAIRS) and not const_bad, " | ".join(const_bad))
+
+# The no-negative-damage floor cannot be paired constant-to-constant, because the game
+# clamps ONCE inside incoming() while the simulator clamps at each reduction in turn. So the
+# RULE is asserted on both sides instead: neither instrument may ever let a reduction take
+# damage below zero, which is what stops being hit from healing you.
+js_in = re.search(r"function incoming\(raw, a, extraRed\)\{ let d=Math\.max\((-?\d+), raw", GAME)
+py_clamps = re.findall(r"dmg = max\((-?\d+), dmg-\d+\)", SIM)
+floor_bad = []
+if not js_in:
+    floor_bad.append("the game's incoming floor is no longer where this can read it")
+elif int(js_in.group(1)) != 0:
+    floor_bad.append("the game clamps incoming damage at %s, not 0" % js_in.group(1))
+if len(py_clamps) < 5:
+    floor_bad.append("only %d damage reductions found in the simulator, expected the full ladder" % len(py_clamps))
+neg = [c for c in py_clamps if int(c) != 0]
+if neg:
+    floor_bad.append("the simulator lets a reduction go to %s" % ", ".join(sorted(set(neg))))
+check("neither instrument lets a hit heal the target", not floor_bad, " | ".join(floor_bad))
 
 # Which characters fight from the back is written in THREE places: mkActor's default, the
 # rowOf fallback, and the simulator's BACK tuple. Three copies of one rule is how a caster

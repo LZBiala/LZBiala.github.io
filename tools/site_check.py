@@ -85,13 +85,20 @@ for pname, body in pages.items():
 # it carried six em dashes while the log claimed zero remained. A rule enforced on a subset
 # is a rule that drifts everywhere else.
 DASHES = ("\u2014", "\u2013")
+# If git is missing or fails, `tracked` used to fall back to [] - and an empty scan produced
+# an empty `dashed`, which printed PASS. The rule then silently stopped being enforced at all.
+# Scanning nothing is now a failure, not a pass.
+scan_errors: list[str] = []
 try:
-    tracked = subprocess.run(["git", "-C", str(ROOT), "ls-files"],
-                             capture_output=True, text=True, timeout=30).stdout.split("\n")
-except Exception:
+    _ls = subprocess.run(["git", "-C", str(ROOT), "ls-files"],
+                         capture_output=True, text=True, timeout=30, check=True)
+    tracked = _ls.stdout.split("\n")
+except Exception as exc:                      # noqa: BLE001 - reported, never swallowed
     tracked = []
+    scan_errors.append(f"could not list tracked files: {exc}")
 TEXT_SUFFIXES = {".md", ".html", ".py", ".txt", ".yml", ".yaml", ".json", ".css", ".js", ".cfg", ".toml"}
-dashed = []
+dashed: list[str] = []
+scanned = 0
 for rel in tracked:
     rel = rel.strip()
     if not rel:
@@ -103,12 +110,18 @@ for rel in tracked:
         continue
     try:
         body = f.read_text(encoding="utf-8")
-    except (UnicodeDecodeError, OSError):
+    except UnicodeDecodeError:
+        continue                                  # genuinely binary, not our business
+    except OSError as exc:
+        scan_errors.append(f"{rel}: {exc}")       # a file we MEANT to read and could not
         continue
+    scanned += 1
     n = sum(body.count(d) for d in DASHES)
     if n:
         dashed.append(f"{rel} ({n})")
-check("hyphens only across every tracked text file", not dashed, ", ".join(dashed))
+check("hyphens only across every tracked text file",
+      scanned >= 10 and not scan_errors and not dashed,
+      "; ".join(dashed + scan_errors) or f"only {scanned} files were scanned at all")
 
 # 9. Career surface: resume + certificates visible
 check("resume link present", "Lito-Biala-Resume.pdf" in index)
@@ -125,14 +138,20 @@ BOUNDED = (
      ("true by construction", "not a benchmark", "case study"),
      "flip-test numbers carry their limits"),
 )
+# `continue` used to DELETE this check when a page stopped quoting the figures - reword the
+# claim and the caveat requirement silently disappeared along with it. The check is now
+# always emitted, and at least one page has to still be carrying the figures, so the rule
+# cannot evaporate by attrition.
+carried = 0
 for pname, body in (("index.html", index), ("walkthrough.html", walk)):
     for claims, caveats, label in BOUNDED:
         quoted = [c for c in claims if c in body]
-        if not quoted:
-            continue
         has = any(c.lower() in body.lower() for c in caveats)
-        check(f"{label} in {pname}", has,
+        carried += len(quoted)
+        check(f"{label} in {pname}", (not quoted) or has,
               f"quotes {', '.join(quoted)} with no limiting phrase")
+check("the flip-test figures are still quoted somewhere a reader will meet them", carried > 0,
+      "no page quotes them, so the rule above guards nothing")
 
 # 10b. game.html needs a sharper version of the same rule, for two reasons.
 # It is one file holding both the game and its test suite, and the first version of this
@@ -188,8 +207,59 @@ if stated:
     quoted = set(re.findall(r"([\d][\d,]{6,})\s*\+?\s*(?:Monte Carlo|simulated|balance simulations|simulations)",
                             (ROOT / "game.html").read_text(encoding="utf-8")))
     wrong = sorted(q for q in quoted if int(q.replace(",", "")) != table_sum)
-    check("every battle count in the game matches the ledger's arithmetic", not wrong,
-          f"game says {', '.join(wrong)}; the table sums to {table_sum:,}")
+    # `not wrong` alone was true when `quoted` was EMPTY - reword the title screen to
+    # "7.3M battles" and the headline stops being checked while this still prints PASS.
+    check("every battle count in the game matches the ledger's arithmetic",
+          bool(quoted) and not wrong,
+          f"game says {', '.join(wrong)}; the table sums to {table_sum:,}"
+          if wrong else "the game no longer quotes the figure in a form this can read")
+
+# 13. The mutation catalogue has to stay runnable.
+# tools/mutation-lab.html publishes a kill rate against tools/mutations.json, and that number
+# is only meaningful if every seeded defect still applies to the file it targets. A mutation
+# whose search string has drifted does not fail loudly in the lab - it drops out of the
+# denominator, quietly flattering the score. So the build checks the catalogue the same way
+# the lab does, and refuses to let it rot.
+cat_path = ROOT / "tools" / "mutations.json"
+check("the mutation catalogue exists", cat_path.exists())
+if cat_path.exists():
+    import json
+
+    cat = json.loads(cat_path.read_text(encoding="utf-8"))
+    muts = cat.get("mutations", [])
+    split = game_txt.index("const TESTS = [")
+    stale, misplaced, noop, dupes = [], [], [], []
+    seen_ids, seen_pairs = set(), set()
+    for m in muts:
+        f, r, mid = m.get("find", ""), m.get("replace", ""), m.get("id", "?")
+        n = game_txt.count(f) if f else 0
+        if n != 1:
+            stale.append(f"{mid} matches {n}x")
+        elif game_txt.index(f) > split:
+            misplaced.append(mid)
+        if f == r:
+            noop.append(mid)
+        if mid in seen_ids or (f, r) in seen_pairs:
+            dupes.append(mid)
+        seen_ids.add(mid)
+        seen_pairs.add((f, r))
+    check("every seeded defect still applies to game.html", not stale,
+          "; ".join(stale[:4]) + (f" (+{len(stale)-4} more)" if len(stale) > 4 else ""))
+    check("no seeded defect targets the test suite instead of the game", not misplaced,
+          ", ".join(misplaced[:4]))
+    check("no seeded defect is a no-op or a duplicate", not noop and not dupes,
+          ", ".join((noop + dupes)[:4]))
+    # The catalogue only grows. A survivor deleted to raise the score would make every later
+    # number a lie, so the floor is asserted rather than trusted.
+    check("the catalogue has not shrunk below its published size", len(muts) >= 250,
+          f"{len(muts)} mutations, expected at least 250")
+    origins = {m.get("origin", "author") for m in muts}
+    # Three populations, and the distinction is load-bearing: guards were fitted to the first
+    # two, and the third was sealed before any of them was written. Lose the tag and the
+    # held-out number silently becomes an in-sample one.
+    check("the catalogue still records who designed each defect",
+          {"author", "independent", "held-out"} <= origins,
+          f"origins present: {sorted(origins)}")
 
 print()
 if FAILS:

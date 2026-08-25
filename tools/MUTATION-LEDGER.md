@@ -18,15 +18,61 @@ iframe, and reports how many defects at least one test noticed.
 | round 2, before | 2026-08-24 | 439 | 143 | 41 | **28.7%** |
 | round 2, after  | 2026-08-24 | 446 | 143 | 49 | **34.3%** |
 
-Round 2 is the honest one, and it is worth reading the split rather than the total:
+### The only comparison that is actually matched
 
-| who designed the defect | seeded | caught (before) | caught (after) | kill rate |
-|---|---:|---:|---:|---:|
-| me, the author of the tests | 32 | 32 | 32 | **100%** |
-| designed independently | 111 | 9 | 17 | **8.1% -> 15.3%** |
+An earlier version of this file headlined "100% against my own defects, 8.1% against
+independent ones" and called the gap a measure of authorship. **That was wrong, and the
+correction matters more than the original claim.**
 
-The "after" column is seven guards closing the eight defects rated critical. The overall rate
-is still low and is meant to be: the remaining 94 are published, not hidden.
+The 100% is *training-set* performance. The suite was patched until those exact 32 defects
+died, then scored against the catalogue it had been fitted to. The 8.1% is a held-out score.
+Comparing them attributes to authorship a gap that is partly plain overfitting.
+
+The matched pair was already in the table above - both measured **before** any targeted
+fixing:
+
+| who designed the defect | seeded | caught | blind kill rate |
+|---|---:|---:|---:|
+| me, the author of the tests | 32 | 17 | **53.1%** |
+| designed independently | 111 | 9 | **8.1%** |
+
+**6.5x, not 12x.** Still the finding; just the honest size of it.
+
+The same correction applies to the round-2 "after" row. Seven guards were written against
+eight specifically named critical mutants and iterated until they killed, so the 17 of 111
+is not a detection rate either. Excluding the eight that were targeted, the suite's blind
+rate on independent defects went from 9 of 111 to **9 of 103 (8.7%)** - which is to say it
+did not move. What moved was the number of holes repaired. Those are different quantities
+and this file previously reported them as one.
+
+**The rule this earns: never publish a kill rate against a catalogue the suite was patched
+against.** "Before" numbers are the measurement. "After" numbers are repair progress, and
+are labelled as such from here on.
+
+### Known confounds in the 6.5x, stated rather than defended
+
+- **Subsystem stratification.** The independent catalogue was drawn one pass per subsystem,
+  deliberately covering areas this file admits are barely probed - dual techs, limit breaks,
+  crafting, the growth tree. My own 32 cluster where my attention already was, which is also
+  where the tests already were. Part of the gap therefore measures how unevenly the suite
+  covers the file, not who wrote the defect.
+- **Screening was not symmetric.** "Screened" for the independent set meant: the find string
+  occurs exactly once, lands in production code, keeps the file parsing, and is not a no-op -
+  plus a dedup against the existing catalogue on the (find, replace) pair, which removed
+  exactly one candidate. My own 32 had no such screen.
+- **Equivalent and unreachable mutants are not excluded.** The standard first objection to
+  any low kill rate, and it applies here: some survivors may be semantically equivalent or
+  sit on states a real playthrough cannot reach. That deflates the independent rate only.
+- **111 draws are not 111 independent samples.** Agents working from the same instructions
+  have correlated taste in defects. The effective n is smaller than it looks.
+
+### What "killed" does and does not mean here
+
+A mutant counts as killed if ANY test fails. Many tests in this suite are source greps over
+the file's own text, so some kills mean "a check noticed the source changed", not "a
+behavioural assertion failed". A textual kill gives no assurance against the same defect
+spelled differently. The construct being measured is *would some test notice this exact
+edit*, which is weaker than "the suite covers this behaviour".
 
 **That gap is the finding.** Round 1's ledger warned that a kill rate measured against
 defects chosen by the person who wrote the tests is optimistic. Round 2 measured how
@@ -127,6 +173,56 @@ nothing else. Review did not catch it. Measurement did.
 `mutations.json` with their ids, so anyone can re-run the lab and watch them survive. Fixing
 them by deleting them was available and was not taken.
 
+## Round 3: closing gaps by family, not by mutation
+
+94 named survivors invites the obvious move - write 94 tests, one per mutation, and watch
+the number go up. That is teaching to the test at scale, and this file already argues
+against it.
+
+So the survivors were grouped by the RULE each violates, and seven guards were written to
+assert those rules:
+
+| family | what it asserts |
+|---|---|
+| world | exits pair up both ways, doors come home beside their own entrance, walking off an edge lands you on the opposite edge, spawns are walkable, ambushes happen in undergrowth and not on the road |
+| bestiary | prose that promises fog gets a foe that has it, escalation flags are ordered, every speed belongs to a real enemy, chains never escalate to something weaker |
+| skills | every skill moves exactly the number ITS OWN description promises, parsed from the shipped text rather than restated in the test |
+| stacks | putting things in a pile adds to it - bank, shop counter and grave all checked, because all three had assign-where-it-should-add defects |
+| gear | one copy, one pair of hands; and a transmute leaves no slot pointing at an item the player no longer owns |
+| saves | loading is lossless and idempotent, the Cleric merge fires wherever she sat, rows survive the trip, the clock accumulates |
+| growth | a sheet earned by fighting equals a sheet built at that level - two independent paths to the same character, which must agree |
+
+The last one is the shape worth stealing. `mkActor(id, 8)` builds a level-8 character
+directly; `gainXP` walks one up from level 1. Neither knows about the other. Asserting they
+agree catches drift anywhere in the level-up maths without naming a single stat, and it
+would have caught the seeded defect that grew max MP by the HP growth figure.
+
+### Seven guards, and what writing them cost
+
+Five of the seven were wrong on the first attempt. Every one of those five was the same
+mistake in a different costume: **a fixture too weak to make the guard fail.**
+
+- the ward check built a battle object by hand, without the `foes` array the whole combat
+  path reads through - a shape production never has
+- the interior-landing check ran with an empty party, and `npcsFor` HIDES companion NPCs
+  until they join, so the square it was meant to catch looked empty
+- the Compass check never equipped the Compass, so the function returned 0 for every case
+  and all three of its assertions passed for the same wrong reason
+- the merge check made the hero the deepest investment, which left two of the three
+  candidates interchangeable
+- the Trial check exercised the reload path and never the path that grants the gift
+
+None of these were caught by reading them. All five were caught by running the guard against
+the defect it was written for and watching it pass. **A guard is not finished when it goes
+green on a clean file; it is finished when it goes red on a broken one.**
+
+Two rules were also written, run, and then DELETED for being untrue rather than kept and
+weakened: a "superboss is the fastest thing in the game" rule that this game simply does not
+obey, and a "her notes run forward in time" rule that cannot fail, because exactly one note
+carries a date. The mutations they were aimed at stay in the catalogue as survivors. Keeping
+a check that cannot fail would have been the worse trade, and this file has already paid for
+that lesson once.
+
 ## How the guards were written
 
 **Assert the invariant, not the mutant.** A test written to notice one specific edit is
@@ -169,6 +265,23 @@ away from the game it claims to model.
   found", not "the suite is 100% effective".
 - **A 100% kill rate is not a finish line.** It means the catalogue no longer contains a
   defect this suite misses. The next round's job is to find defects that are not in it yet.
+
+## What would turn this from a number into a measurement
+
+An adversarial review of this methodology (2026-08-24) named one change worth more than
+every other correction on this page combined:
+
+> Freeze the suite. Generate one fresh author batch and one fresh independent batch under
+> the **identical** protocol - same quotas, same screening, neither seen while writing
+> guards - run both once, and let that pair be the headline.
+
+That isolates authorship, which is the thing being claimed. Everything else adjusts the
+number; this is what makes it an experiment. The independent half is already sealed. The
+matching author batch is not yet drawn, so the 6.5x above still carries the stratification
+confound named earlier, and should be read as indicative rather than measured.
+
+Recorded here rather than quietly fixed, because the gap between "we know what would make
+this rigorous" and "we did it" is exactly the kind of thing this file exists to keep honest.
 
 ## Calibration
 
