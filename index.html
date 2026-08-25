@@ -366,15 +366,17 @@
   down one of three growth roads, and run the incident bridge that takes down the five-headed
   Hydra. The balance came out of a simulator you can run yourself: <a href="tools/BALANCE-LEDGER.md">the ledger</a>
   shows which numbers are checkable from this repo and which are only asserted.</p>
-  <p class="lead">The game ships 446 of its own tests, which only tells you they passed. So I
-  broke it on purpose: 143 real defects, seeded one at a time, to find out whether the tests
-  would notice. On defects I designed myself it caught 53%; on defects designed by readers
-  who had never seen the tests, <b>8.1%</b>. My first write-up of this headlined a 12x gap
-  by comparing a held-out score against one measured after patching for those exact defects -
-  training-set performance dressed up as a result. The honest, matched number is 6.5x, and
-  <a href="tools/MUTATION-LEDGER.md">the ledger</a> carries the correction, the confounds I
-  can name, and every defect still uncaught. You can re-derive all of it in your own browser
-  from <a href="tools/mutation-lab.html">the mutation lab</a>.</p>
+  <p class="lead">The game ships 457 of its own tests, which only tells you they passed. So I
+  broke it on purpose: 250 real defects, seeded one at a time, to find out whether the tests
+  would notice. Then I wrote seven guards to close the gaps that found - and measured them
+  against a second batch of 107 defects sealed before those guards existed. On the gaps they
+  were pointed at they scored 55%. On the sealed batch, <b>5.6%</b>. The hardening did not
+  generalise, and the sealed envelope is the only reason I know it.
+  <a href="tools/MUTATION-LEDGER.md">The ledger</a> carries that result, a correction to an
+  earlier version of this number that compared training-set performance against a held-out
+  score, the confounds I can name, and all 151 defects still uncaught. You can re-derive
+  every figure in your own browser from
+  <a href="tools/mutation-lab.html">the mutation lab</a>.</p>
   <div class="gamecard">
     <div class="gc-left">
       <div>&gt; THE SEV-1 HYDRA rises!</div>

@@ -63,6 +63,35 @@ fails if the table, this file's stated total, and every figure quoted inside the
 not agree. The one check nobody had run was a reader with a calculator, and that reader is
 now part of the build.
 
+## OPEN: two more fidelity defects in the instrument, found 2026-08-24, NOT yet fixed
+
+An adversarial code review of the tooling found two ways `combat_sim.py` models a game that
+is not the one `game.html` ships. Both are disclosed here before they are fixed, because
+fixing them changes the numbers in the table above and that requires a fresh pre-registered
+re-run, not a quiet edit.
+
+**1. A character can act twice in one round.** The simulator resets `acted` for everyone at
+the top of each round and sets it on the PARTNER of a dual tech - but never on the ally who
+led it. So a fast ally takes its own turn, and a slower ally's dual tech can then pick that
+same ally up as a partner and swing it again. The game forbids this explicitly: it marks the
+acting ally `acted` as its turn resolves, and ships a test asserting either partner may lead
+only while both are unacted. The effect is a systematic OVERESTIMATE of party output in
+every campaign that uses dual techs.
+
+**2. Rounding goes the other way on the commonest hit in the game.** The damage roll ends in
+`round(base*sm)` with `sm` of 1.5 about 80% of the time. Python's `round` is banker's
+rounding - `round(4.5)` is 4 - while the game uses `Math.round`, where 4.5 is 5. Any odd
+attack value diverges on the mainline damage path.
+
+Neither is a rounding error in the colloquial sense: they are the same defect class as the
+pack bug retracted below - the instrument quietly not being the thing it claims to model.
+They were found by pointing a reviewer at the tooling and asking what could not fail, which
+is now the third time that has been worth more than reading the code again.
+
+**Until the re-run happens, every pack-era number in the table above should be read as
+carrying an unquantified bias in the party's favour.** The fix for (1) is one line; the cost
+is re-running the campaigns and re-registering the gates, which is a session of its own.
+
 ## Why the headline number went DOWN
 
 It used to say 25,000,000+. That figure was true and it was mostly uncheckable: about

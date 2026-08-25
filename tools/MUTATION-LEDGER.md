@@ -173,6 +173,48 @@ nothing else. Review did not catch it. Measurement did.
 `mutations.json` with their ids, so anyone can re-run the lab and watch them survive. Fixing
 them by deleting them was available and was not taken.
 
+## The held-out result, and it is the one that matters
+
+A second catalogue of 107 defects was sealed BEFORE any of the round-3 guards were written,
+drawn by a different sampling protocol (by defect TYPE - off-by-one, inverted comparison,
+wrong variable, dropped guard, wrong constant, copy-paste, missing clamp, lifecycle - rather
+than by subsystem). Nothing in it was visible while the guards were being built.
+
+| population | seeded | caught | rate |
+|---|---:|---:|---:|
+| mine - guards were fitted to these | 32 | 32 | 100% |
+| independent - guards were fitted to these | 111 | 61 | 55% |
+| **HELD OUT - sealed before the guards existed** | **107** | **6** | **5.6%** |
+
+**Seven guards written as general rules took the fitted rate from 15.3% to 55% and the
+held-out rate to 5.6%.** They closed the holes they were pointed at and almost nothing else.
+
+That is the finding, and it is worth more than the improvement it disproves. The guards were
+deliberately written as invariants rather than as answers to specific mutations - a sheet
+earned by fighting must equal a sheet built at that level; exits must pair up both ways;
+every skill must move the number its own description promises. They FELT general. Measured
+against defects nobody had pointed at, they were not.
+
+The agents who designed the held-out catalogue predicted that **none** of their 117 defects
+would be caught. Six were. They were slightly pessimistic and essentially right.
+
+### What this does not prove
+
+- The two catalogues were drawn by different protocols, so part of the 55-to-5.6 drop is
+  sampling difference rather than held-out effect. The clean version of this experiment
+  draws both sets the same way, and that has not been done.
+- 6 of 107 is a small numerator; the interval around 5.6% is wide.
+- No equivalent-mutant screening was applied to the held-out set either, so it is a floor.
+
+### What it does suggest, and what it changes
+
+Hardening a suite against a list of known gaps buys you that list. If the goal is a suite
+that notices what nobody predicted, the gaps have to keep coming from outside - which makes
+"get the next catalogue from somewhere else" a standing practice rather than a one-off, and
+makes any kill rate quoted without saying which population it came from close to meaningless.
+
+The 151 survivors stay in `mutations.json`, ids and all.
+
 ## Round 3: closing gaps by family, not by mutation
 
 94 named survivors invites the obvious move - write 94 tests, one per mutation, and watch
