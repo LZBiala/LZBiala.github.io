@@ -4320,7 +4320,12 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
       if(npc.name==="THE GUIDE" && deployOpen()){
         const rows=DEPLOY.map(d=>(deployDone(d.id)?(S.deploy[d.id]===1?"✅ ":"◑ "):"▸ ")+d.title+" - "+d.client);
         ask("📟 THE PAGER, powered back on. <span class='mut'>Five teams, none of them on fire. This part is optional - the story ended at the credits.</span>",
-          rows.concat(["(not today)"]), i=>{ if(i>=DEPLOY.length) return; runDeploy(DEPLOY[i].id); }); return; }
+          rows.concat(["(not today - just talk)"]),
+          // backing out gives him his own lines back. Without this the board returns early
+          // and guideLines() is unreachable forever after the credits - the man who spends
+          // the whole game telling you to go and look would have been silenced by a menu.
+          i=>{ if(i>=DEPLOY.length){ say(guideLines(S.stage)); return; }
+               runDeploy(DEPLOY[i].id); }); return; }
       if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; chapterCard(1); saveGame(0); render(); }); return; }
       if(npc.name==="THE GUIDE"){ say(guideLines(S.stage)); return; }
       say(npc.lines); return; }
@@ -7941,6 +7946,44 @@ const TESTS = [
     const unreachable=notes.filter(n=>!n.ok);
     if(unreachable.length) console.log("letters nobody can read:", unreachable.map(n=>n.z+" "+n.k).join(", "));
     return notes.length>=9 && unreachable.length===0; }],
+
+ ["the pager did not take the Guide's voice", ()=>{ const sb=S, sa=window.ask, sy=window.say;
+    S=NEWS();
+    try{
+      let spoke=null, options=null;
+      window.ask=(t,o,cb)=>{ options=o; cb(o.length-1); };     // pick the last option
+      window.say=(l)=>{ spoke=Array.isArray(l)?l.join(" "):String(l); };
+      // haxKnown as well as haxWon: the Guide has an earlier branch for a player who has
+      // won but never been told about the GATEWAY, and no real save can be past the
+      // credits without having passed through it
+      S.won=true; S.haxKnown=true; S.haxWon=true; S.frontierSeen=1; S.stage=4; S.z=0;
+      const guide=Z[0].npcs.find(n=>n.name==="THE GUIDE");
+      S.x=guide.x; S.y=guide.y+1;                              // stand next to him
+      M.state="explore"; ov.hidden=true;
+      interact();
+      // the board offered itself, and backing out of it still lets the man talk
+      const board=!!(options && options.length===DEPLOY.length+1);
+      const heard=!!spoke && spoke.length>20;
+      if(!(board&&heard)) console.log("guide after the credits:", {board, heard, spoke:(spoke||"").slice(0,60)});
+      return board && heard;
+    } finally { window.ask=sa; window.say=sy; S=sb; } }],
+
+ ["and picking an engagement still runs it", ()=>{ const sb=S, sa=window.ask, sy=window.say;
+    S=NEWS();
+    try{
+      let asked=0;
+      window.say=(l,cb)=>{ if(cb) cb(); };
+      window.ask=(t,o,cb)=>{ asked++; cb(asked===1 ? 0 : o.length-1); };   // first the board, then the answer
+      // haxKnown as well as haxWon: the Guide has an earlier branch for a player who has
+      // won but never been told about the GATEWAY, and no real save can be past the
+      // credits without having passed through it
+      S.won=true; S.haxKnown=true; S.haxWon=true; S.frontierSeen=1; S.stage=4; S.z=0;
+      const guide=Z[0].npcs.find(n=>n.name==="THE GUIDE");
+      S.x=guide.x; S.y=guide.y+1;
+      M.state="explore"; ov.hidden=true;
+      interact();
+      return !!(S.deploy && S.deploy[DEPLOY[0].id]);
+    } finally { window.ask=sa; window.say=sy; S=sb; } }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
