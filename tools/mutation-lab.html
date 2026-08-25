@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mutation lab - does the test suite actually catch anything?</title>
+<meta name="description" content="Seeds real defects into game.html one at a time and reports how many of them the game's own 425-test suite notices. The number is regenerated in your browser, not quoted at you.">
+<style>
+:root{
+  --ink:#e8f0f2; --mut:#8ba3ad; --bg:#0e1519; --panel:#141d23; --line:#22303a;
+  --teal:#2dd4bf; --gold:#fbbf24; --red:#f87171; --green:#34d399;
+}
+@media (prefers-color-scheme: light){
+  :root{ --ink:#16242b; --mut:#54707c; --bg:#f4f7f8; --panel:#ffffff; --line:#dbe5e9; }
+}
+*{ box-sizing:border-box; }
+body{ margin:0; padding:28px 20px 60px; background:var(--bg); color:var(--ink);
+  font:15px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+.wrap{ max-width:1000px; margin:0 auto; }
+h1{ font-size:1.4rem; margin:0 0 6px; letter-spacing:-.01em; }
+h2{ font-size:1rem; margin:30px 0 8px; color:var(--teal); }
+p{ margin:8px 0; color:var(--mut); max-width:74ch; }
+b,strong{ color:var(--ink); }
+code{ background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:1px 5px; }
+button{ font:inherit; cursor:pointer; background:var(--teal); color:#062024; border:0;
+  border-radius:5px; padding:9px 18px; font-weight:700; }
+button:disabled{ opacity:.45; cursor:default; }
+button:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+#summary{ margin:18px 0; padding:16px 18px; background:var(--panel);
+  border:1px solid var(--line); border-left:3px solid var(--teal); border-radius:5px; }
+.big{ font-size:2rem; font-weight:700; letter-spacing:-.02em; }
+.scroller{ overflow-x:auto; border:1px solid var(--line); border-radius:5px; }
+table{ border-collapse:collapse; width:100%; font-size:13px; min-width:760px; }
+th,td{ text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+th{ color:var(--mut); font-weight:600; position:sticky; top:0; background:var(--panel); }
+tr:last-child td{ border-bottom:0; }
+.killed{ color:var(--green); }
+.survived{ color:var(--red); font-weight:700; }
+.err{ color:var(--gold); }
+.id{ white-space:nowrap; color:var(--ink); }
+.note{ color:var(--mut); font-size:12px; }
+iframe#pen{ position:absolute; left:-10000px; top:0; width:900px; height:700px; border:0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Mutation lab</h1>
+<p><b>The question:</b> a green test suite tells you the tests passed. It does not tell you
+the tests would have noticed if the code were wrong. This page finds out, by breaking
+<code>game.html</code> on purpose - one seeded defect at a time - and reporting how many of
+them the game's own suite catches.</p>
+
+<p>Every mutation is an exact string replacement listed in
+<code>tools/mutations.json</code>. For each one, this page rebuilds the whole file in
+memory, runs all of its tests in a sandboxed iframe, and records whether any test failed.
+A defect that no test notices is a hole, and it is named below.</p>
+
+<p class="note">This page needs to be served over http so it can fetch the game file.
+From the repository root: <code>python -m http.server 8000</code>, then open
+<code>http://localhost:8000/tools/mutation-lab.html</code>. Opening it straight off disk
+will fail at the first fetch.</p>
+
+<p><button id="run">Run the mutation suite</button>
+<span id="progress" class="note"></span></p>
+
+<div id="summary">Not run yet.</div>
+
+<h2>Results</h2>
+<div class="scroller">
+<table id="out">
+<thead><tr><th>id</th><th>outcome</th><th>what it breaks</th><th>which test noticed</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+
+<h2>How to read this</h2>
+<p><b>KILLED</b> means at least one test failed when the defect was present - the suite was
+watching. <b>SURVIVED</b> means all tests passed with a real defect in the code. Survivors
+are the interesting rows: each one is a statement about something this project believes and
+does not check.</p>
+<p>The kill rate is not a score to maximise by deleting hard mutations. The catalogue is
+committed, so it can only grow, and every survivor stays in the file after it is fixed - a
+fixed hole that quietly left the catalogue would make the next number a lie.</p>
+
+<iframe id="pen" title="sandbox" aria-hidden="true"></iframe>
+</div>
+
+<script>
+var TRIG = 'if(new URLSearchParams(location.search).get("test")==="1") runTests();';
+var SRC = null;
+
+function runOne(find, replace){
+  var s = SRC;
+  if(find !== null){
+    var n = s.split(find).length - 1;
+    if(n !== 1) return Promise.resolve({err:"the search string occurs " + n + " times, expected exactly 1"});
+    s = s.replace(find, replace);
+  }
+  // The suite is triggered by a query string, and a blob URL cannot carry one. This same
+  // rewrite is applied to the unmutated baseline, so it cannot bias the result: if it broke
+  // anything, the baseline would not be clean.
+  if(s.indexOf(TRIG) < 0) return Promise.resolve({err:"the test trigger was not found in game.html"});
+  s = s.replace(TRIG, "if(true) runTests();");
+  var url = URL.createObjectURL(new Blob([s], {type:"text/html"}));
+  return new Promise(function(res){
+    var f = document.getElementById("pen"), done = false;
+    var finish = function(o){ if(done) return; done = true; URL.revokeObjectURL(url); res(o); };
+    var to = setTimeout(function(){ finish({err:"timed out after 120s"}); }, 120000);
+    f.onload = function(){
+      setTimeout(function(){
+        clearTimeout(to);
+        var R = null;
+        try { R = f.contentWindow && f.contentWindow.TESTRESULTS; }
+        catch(e){ return finish({err:"could not read results: " + e.message}); }
+        finish(R ? {pass:R.pass, total:R.total, failed:R.failed} : {err:"the suite produced no results"});
+      }, 60);
+    };
+    f.onerror = function(){ clearTimeout(to); finish({err:"the sandbox failed to load"}); };
+    f.src = url;
+  });
+}
+
+function row(m, r){
+  var tb = document.querySelector("#out tbody"), tr = document.createElement("tr");
+  var outcome, who;
+  if(r.err){ outcome = '<span class="err">ERROR</span>'; who = r.err; }
+  else if(r.failed && r.failed.length){
+    outcome = '<span class="killed">KILLED</span>';
+    who = r.failed.slice(0,3).join("<br>") + (r.failed.length>3 ? "<br>(+" + (r.failed.length-3) + " more)" : "");
+  } else {
+    outcome = '<span class="survived">SURVIVED</span>';
+    who = '<span class="note">nothing failed - ' + r.pass + "/" + r.total + " passed with the defect present</span>";
+  }
+  tr.innerHTML = '<td class="id">' + m.id + "</td><td>" + outcome +
+    '</td><td class="note">' + (m.breaks || "") + "</td><td>" + who + "</td>";
+  tb.appendChild(tr);
+}
+
+document.getElementById("run").onclick = function(){
+  var btn = this; btn.disabled = true;
+  var prog = document.getElementById("progress"), sum = document.getElementById("summary");
+  document.querySelector("#out tbody").innerHTML = "";
+  sum.textContent = "Loading the game file and the catalogue...";
+  var MUTS = [], killed = 0, survived = 0, errored = 0, t0 = Date.now();
+
+  Promise.all([
+    fetch("../game.html?t=" + Date.now()).then(function(r){ return r.text(); }),
+    fetch("mutations.json?t=" + Date.now()).then(function(r){ return r.json(); })
+  ]).then(function(both){
+    SRC = both[0];
+    MUTS = both[1].mutations || [];
+    sum.textContent = "Running the unmutated baseline...";
+    return runOne(null, null);
+  }).then(function(base){
+    // If the baseline is not clean, every number after it is meaningless. Say so and stop.
+    if(base.err || base.failed.length){
+      sum.innerHTML = '<span class="survived">The baseline is not clean, so this run is void.</span>' +
+        '<div class="note">' + (base.err || (base.pass + "/" + base.total + " - failing: " + base.failed.join(", "))) + "</div>";
+      btn.disabled = false;
+      throw new Error("baseline");
+    }
+    sum.innerHTML = "Baseline clean: <b>" + base.pass + "/" + base.total +
+      "</b>. Seeding " + MUTS.length + " defects...";
+    var i = 0;
+    function step(){
+      if(i >= MUTS.length){
+        var real = killed + survived;
+        var pct = real ? Math.round(killed / real * 1000) / 10 : 0;
+        sum.innerHTML =
+          '<div class="big">' + killed + " of " + real + " seeded defects caught &nbsp;(" + pct + "%)</div>" +
+          "<div>" + survived + " survived" + (errored ? ", " + errored + " could not be applied" : "") +
+          " &middot; baseline " + base.pass + "/" + base.total +
+          " &middot; " + Math.round((Date.now()-t0)/1000) + "s in this browser</div>" +
+          '<div class="note">Survivors are listed in red below. Each is a defect this suite does not notice.</div>';
+        prog.textContent = "";
+        btn.disabled = false;
+        return;
+      }
+      var m = MUTS[i++];
+      prog.textContent = " " + i + " / " + MUTS.length + "  (" + m.id + ")";
+      runOne(m.find, m.replace).then(function(r){
+        if(r.err) errored++;
+        else if(r.failed.length) killed++;
+        else survived++;
+        row(m, r);
+        step();
+      });
+    }
+    step();
+  }).catch(function(e){
+    if(String(e.message) !== "baseline"){
+      sum.innerHTML = '<span class="err">Could not run: ' + e.message +
+        '</span><div class="note">Serve this folder over http rather than opening the file directly.</div>';
+      btn.disabled = false;
+    }
+  });
+};
+</script>
+</body>
+</html>

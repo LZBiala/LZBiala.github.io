@@ -162,6 +162,66 @@ check("no wandering foe is solo in one and packable in the other", not disagree,
 check("every foe the game calls solo is solo in the sim too", not (js_solo - py_solo),
       ", ".join(sorted(js_solo - py_solo)))
 
+# --- the core combat constants, held by BOTH instruments -----------------------
+# Found by mutation testing on 2026-08-24: six seeded combat defects survived the game's
+# entire 425-test suite - the base crit rate, the minimum-1-damage floor, the no-negative-
+# damage floor, the defend halving, the default enemy speed, and which characters stand in
+# the back row. Every one of those numbers ALSO exists in combat_sim.py, because the
+# simulator reimplements the same maths; that makes the two files independent witnesses.
+# If they ever disagree, either the game changed without the published balance numbers being
+# re-run, or the simulator drifted away from the game it claims to model. Both are serious,
+# and neither was detectable before this block existed.
+def one(pattern, text, label, cast=str):
+    m = re.search(pattern, text)
+    if not m:
+        return None, "%s: pattern found nothing" % label
+    return cast(m.group(1)), None
+
+
+PAIRS = [
+    # label,               game.html pattern,                                        combat_sim.py pattern
+    ("base crit rate",     r"function critOf\(a\)\{ return ([\d.]+)",                r"^CRIT = ([\d.]+)"),
+    ("minimum damage out", r"dmg=Math\.max\((\d+), dmg\+pre\+stanceOut\(\)",         r"v = max\((\d+), x \+ pre"),
+    ("minimum damage in",  r"function incoming\(raw, a, extraRed\)\{ let d=Math\.max\((-?\d+), raw",
+                                                                                     r"dmg = max\((\d+), dmg-1\)"),
+    ("defend divisor",     r"if\(a\.defending\) d=Math\.ceil\(d/(\d+)\);",           r'if tgt\["defending"\]: dmg = \(dmg\+1\)//(\d+)'),
+    ("default foe speed",  r"function unitSpd\(def\)\{ return def\.spd\|\|(\d+); \}", r"MSPD\.get\(mid,(\d+)\)"),
+]
+
+const_bad, const_seen = [], 0
+for label, jsre, pyre in PAIRS:
+    jv, jerr = one(jsre, GAME, "game " + label)
+    pv, perr = one(pyre, SIM if "^" not in pyre else SIM, "sim " + label)
+    if "^" in pyre:                      # anchored patterns need multiline
+        m = re.search(pyre, SIM, re.M)
+        pv, perr = (m.group(1), None) if m else (None, "sim %s: pattern found nothing" % label)
+    if jerr or perr:
+        const_bad.append(jerr or perr)
+        continue
+    const_seen += 1
+    if float(jv) != float(pv):
+        const_bad.append("%s: game says %s, sim says %s" % (label, jv, pv))
+check("both instruments agree on every core combat constant",
+      const_seen == len(PAIRS) and not const_bad, " | ".join(const_bad))
+
+# Which characters fight from the back is written in THREE places: mkActor's default, the
+# rowOf fallback, and the simulator's BACK tuple. Three copies of one rule is how a caster
+# quietly ends up in the melee line, so all three are compared against each other.
+js_rows = [set(re.findall(r'"(\w+)"', m)) for m in re.findall(
+    r'row:\(id===("?\w+"?(?:\|\|id===\"\w+\")*)\)\?"back":"front"', GAME)]
+js_fallback = re.search(r'function rowOf\(a\)\{ return a\.row \|\| \((.*?)\)\?"back":"front"', GAME)
+py_back = re.search(r"^BACK = \(([^)]*)\)", SIM, re.M)
+rowsets = []
+if js_rows:
+    rowsets.append(("mkActor", js_rows[0]))
+if js_fallback:
+    rowsets.append(("rowOf", set(re.findall(r'"(\w+)"', js_fallback.group(1)))))
+if py_back:
+    rowsets.append(("combat_sim BACK", set(re.findall(r'"(\w+)"', py_back.group(1)))))
+agree = len(rowsets) == 3 and rowsets[0][1] == rowsets[1][1] == rowsets[2][1] and len(rowsets[0][1]) >= 2
+check("all three copies of the back-row rule name the same characters", agree,
+      "; ".join("%s=%s" % (n, sorted(s)) for n, s in rowsets) or "nothing parsed")
+
 # the party-outnumbers rule, checked as behaviour rather than as text
 capbad = []
 for bodies in range(1, 8):

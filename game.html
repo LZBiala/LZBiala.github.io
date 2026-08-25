@@ -7750,6 +7750,191 @@ const TESTS = [
     if(missed.length) console.log("interact() answers to tiles the guard ignores:", missed.join(", "));
     return found.length>=5 && missed.length===0; }],
 
+ // ================= WHAT MUTATION TESTING FOUND (2026-08-24) =================
+ // tools/mutation-lab.html seeds one real defect at a time into this file and runs this
+ // whole suite against it. The first run caught 17 of 32. The fifteen that SURVIVED are the
+ // reason this block exists - each one is a defect that was live, in production code, with
+ // every one of these tests green.
+ //
+ // The rule followed here: assert the INVARIANT, not the mutant. A test written to notice
+ // one specific edit is teaching to the test; a test that exercises the rule catches the
+ // whole family. Where a bare constant genuinely IS the contract - the crit rate that every
+ // published balance campaign assumed - it is pinned, and the reason is written down.
+
+ ["every flip-test figure a player reads carries its limit in the same breath", ()=>{
+    // site_check.py enforces this over the file on disk, and caught it. Nothing in the
+    // browser did: stripping the caveat out of a battle tip passed all 425 tests. A writer
+    // editing this file and running the in-page suite would have shipped it.
+    const prod=prodSource();
+    const FLIP=/(0\s*(?:of|\/)\s*8|3\s*(?:of|\/)\s*8|3\s*(?:of|\/)\s*4|none of eight|three of eight|three of four)/i;
+    const CAV=/(true by construction|not a benchmark|case study|case story|four verdicts is four verdicts|you cannot rerun)/i;
+    const quoting=(prod.match(/"(?:[^"\\]|\\.)*"/g)||[]).filter(s=>FLIP.test(s));
+    const bare=quoting.filter(s=>!CAV.test(s));
+    if(bare.length) console.log("unbounded flip-test quotes:", bare.map(s=>s.slice(0,90)).join(" | "));
+    return quoting.length>=3 && bare.length===0; }],
+
+ ["a save from another schema version is refused, not loaded", ()=>{
+    const key=saveKey(3), bak=localStorage.getItem(key);
+    try{
+      const old=Object.assign(NEWS(), {tokens:777});
+      const at=(v)=>{ old.v=v; localStorage.setItem(key, JSON.stringify(old)); return loadSlot(3); };
+      const older=at(SAVE_VERSION-1), newer=at(SAVE_VERSION+1), right=at(SAVE_VERSION);
+      if(older||newer||!right) console.log("version gate:", {older:!!older, newer:!!newer, right:!!right});
+      return older===null && newer===null && !!right && right.tokens===777;
+    } finally { if(bak===null) localStorage.removeItem(key); else localStorage.setItem(key,bak); } }],
+
+ ["the list of deleted souls is not empty, and nothing on it is still a member", ()=>{
+    // GHOST_IDS is what the "never seats a soul the roster deleted" guard iterates over.
+    // Empty the array and that guard checks nothing at all, silently - the same vacuous
+    // shape this project has now shipped five times.
+    if(!Array.isArray(GHOST_IDS) || GHOST_IDS.length<1) return false;
+    if(GHOST_IDS.indexOf("mender")<0) return false;
+    return GHOST_IDS.every(id=>!MEMBERS[id]); }],
+
+ ["no strike ever lands for nothing, however debuffed the striker", ()=>{
+    const sb=S; S=NEWS(); const st=window.setTimeout; window.setTimeout=()=>0;
+    try{
+      S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",5);
+      const worst=[];
+      [-9,-3,0,1].forEach(raw=>{
+        M.b={ id:"golem", def:EN.golem, hp:999, maxhp:999, revealed:true, focused:true,
+              verified:2, dot:0, taunt:0, heckled:2, softened:0, sprint:0, combo:0,
+              rounds:5, menu:"main", turn:0 };
+        const a=S.actors.sentinel; const before=M.b.hp;
+        M.forceCrit=false; dealt(a, raw, "t");
+        worst.push(before-M.b.hp); });
+      if(worst.some(d=>d<1)) console.log("damage dealt for each raw value:", worst.join(", "));
+      return worst.every(d=>d>=1);
+    } finally { window.setTimeout=st; M.b=null; M.state="test"; S=sb; } }],
+
+ ["the casters stand in the back, whether the sheet says so or not", ()=>{
+    // The rule is written twice - mkActor's default and rowOf's fallback - so a mutation to
+    // either copy alone leaves the other one telling the truth and nothing notices.
+    const bad=[];
+    ["wiki","papafoxx"].forEach(id=>{
+      if(mkActor(id,5).row!=="back") bad.push(id+": mkActor seats him in front");
+      if(rowOf({id:id})!=="back") bad.push(id+": the fallback seats him in front"); });
+    ["hero","sentinel","refuter","retro"].forEach(id=>{
+      if(rowOf({id:id})!=="front") bad.push(id+": the fallback seats him in back"); });
+    if(bad.length) console.log("rows:", bad.join(", "));
+    return bad.length===0; }],
+
+ ["the base crit rate is the one every published balance number assumed", ()=>{
+    // A pinned constant, deliberately. tools/BALANCE-LEDGER.md accounts for 7,313,561
+    // simulated battles, and every one of them was fought at 0.15. Move this number and the
+    // published campaigns stop describing the shipped game - so the number IS the contract.
+    // tools/test_combat_sim.py holds the simulator to the same value from the other side.
+    const sb=S; S=NEWS();
+    try{
+      S.equip={weapon:null,badge:null,charm:null,armor:null}; S.materia=[null,null]; S.core={};
+      treeInit(); S.tree.taken={};
+      const c=critOf(S.actors.hero);
+      if(Math.abs(c-0.15)>1e-9) console.log("bare crit rate is", c, "- the ledger assumed 0.15");
+      return Math.abs(c-0.15)<1e-9;
+    } finally { S=sb; } }],
+
+ ["being hit never heals you, however much cover you pile on", ()=>{
+    const sb=S; S=NEWS();
+    try{
+      const a=mkActor("wiki",5);                       // back row, so it stacks reduction
+      S.items.ar5=1; S.equip.armor="ar5";
+      treeInit(); S.tree.taken={r1:1,r2:1,r5:1};
+      const seen=[];
+      for(let raw=0; raw<=6; raw++) seen.push(incoming(raw, a, 5));
+      a.defending=true; seen.push(incoming(0, a, 9));
+      if(seen.some(d=>d<0)) console.log("incoming damage by raw value:", seen.join(", "));
+      return seen.every(d=>d>=0);
+    } finally { S=sb; } }],
+
+ ["an enemy with no speed of its own does not outrun the party", ()=>{
+    const d=unitSpd({});
+    const missing=Object.keys(EN).filter(k=>typeof EN[k].spd!=="number");
+    if(d!==4 || missing.length) console.log("default foe speed", d, "- enemies with no speed:", missing.join(", ")||"none");
+    return d===4 && missing.length===0; }],
+
+ ["no heal in the game can push an ally past their own maximum", ()=>{
+    // Structural, because the clamp lives at every call site rather than in one function.
+    // Any `x.hp = <something>.hp + ...` that is not wrapped in Math.min is an unclamped heal.
+    const prod=prodSource();
+    const loose=(prod.match(/\.hp\s*=\s*(?!Math\.min)[^;\n]{0,30}\.hp\s*\+/g)||[]);
+    if(loose.length) console.log("unclamped heals:", loose.join(" | "));
+    return loose.length===0; }],
+
+ ["a consumable moves exactly the numbers its own description promises", ()=>{
+    // Named rather than swept: most consumables do something a description cannot be parsed
+    // into - revive at half, heal the room, scrub a status. These three are the plain
+    // single-target restores, and their printed numbers are what a player budgets around.
+    // The invariant is that the text and the code agree; either one drifting is the defect.
+    const sb=S; S=NEWS(); const st=window.setTimeout; window.setTimeout=()=>0;
+    try{
+      const bad=[];
+      [["coffee",5,2],["patch",4,0],["cache",0,4]].forEach(row=>{
+        const k=row[0], wantHP=row[1], wantMP=row[2];
+        const mh=/\+(\d+) HP/.exec(IT[k].d), mm=/\+(\d+) MP/.exec(IT[k].d);
+        if(wantHP && (!mh || +mh[1]!==wantHP)) bad.push(k+": its text no longer promises +"+wantHP+" HP");
+        if(wantMP && (!mm || +mm[1]!==wantMP)) bad.push(k+": its text no longer promises +"+wantMP+" MP");
+        try{
+          S.party=["sentinel"]; S.actors.sentinel=mkActor("sentinel",6);
+          const a=mkActor("hero",8); S.actors.hero=a; a.hp=1; a.mp=0; S.items[k]=1;
+          M.b={ id:"golem", def:EN.golem, hp:99, maxhp:99, menu:"main", turn:0 };
+          useItem(a,k);
+          if(a.hp-1!==wantHP) bad.push(k+": text promises +"+wantHP+" HP, code gave +"+(a.hp-1));
+          if(a.mp!==wantMP) bad.push(k+": text promises +"+wantMP+" MP, code gave +"+a.mp);
+        }catch(e){ bad.push(k+": threw "+e.message); } });
+      if(bad.length) console.log("consumables:", bad.join(" | "));
+      return bad.length===0;
+    } finally { window.setTimeout=st; M.b=null; M.state="test"; S=sb; } }],
+
+ ["the XP bar cannot render past its own ends", ()=>{
+    const a=mkActor("hero",5);
+    const seen=[];
+    [0, -500, 99999999, XPCURVE[4], XPCURVE[5]].forEach(v=>{ a.xp=v; seen.push(xpPct(a)); });
+    if(seen.some(p=>p<0||p>1||!isFinite(p))) console.log("xpPct across the range:", seen.join(", "));
+    return seen.every(p=>p>=0 && p<=1 && isFinite(p)); }],
+
+ ["a resource node pays one, or two when observability doubles it", ()=>{
+    const sb=S, rb=rng; S=NEWS();
+    try{
+      S.z=9; M.gathered={}; S.res={logs:0,metrics:0,traces:0,sigils:0};
+      rng=()=>0.999; gatherNode({x:2,y:5,t:"logs"});      // above the double chance
+      const single=S.res.logs;
+      M.gathered={}; S.res.logs=0;
+      rng=()=>0; gatherNode({x:2,y:5,t:"logs"});          // below it
+      const doubled=S.res.logs;
+      if(single!==1 || doubled!==2) console.log("node paid", single, "and", doubled);
+      return single===1 && doubled===2;
+    } finally { rng=rb; S=sb; } }],
+
+ ["you cannot walk into the scenery that holds things", ()=>{
+    // Derived from the map data rather than pinned: every square that carries something must
+    // be one the player cannot stand on. 'b' fell out of the solid list under mutation and
+    // every barrel in the game became walkable with all 425 tests green.
+    // Note the shape of the real rule - tryMove blocks on `solid(chr)||chr==="c"`, so a
+    // chest is blocked by a clause of its own rather than by the solid list. This states the
+    // same condition rather than a tidier one that would be false.
+    const blocks=(c)=>solid(c)||c==="c";
+    const bad=[]; let checked=0;
+    Z.forEach(z=>{
+      Object.keys(z.loot||{}).forEach(k=>{ const p=k.split(",").map(Number); checked++;
+        const c=z.maps[p[1]][p[0]]; if(!blocks(c)) bad.push(z.name+" loot stands on walkable '"+c+"'"); });
+      if(z.chest){ const p=z.chest.key.split(",").map(Number); checked++;
+        const c=z.maps[p[1]][p[0]]; if(!blocks(c)) bad.push(z.name+" chest stands on walkable '"+c+"'"); }
+      if(z.inn){ const p=z.inn.split(",").map(Number); checked++;
+        if(!blocks(z.maps[p[1]][p[0]])) bad.push(z.name+" inn is not a building"); } });
+    if(bad.length) console.log("walkable scenery:", bad.join(" | "));
+    return checked>=20 && bad.length===0; }],
+
+ ["the interact scan order is the one the reachability guards assume", ()=>{
+    // Those guards READ Iact to walk it, so they cannot notice it changing - a guard that
+    // derives its expectation from the thing it checks is blind by construction. This is the
+    // one place the order is stated rather than read. Standing-square-LAST is what stops a
+    // chest under your feet from shadowing the person standing in front of you.
+    const want=[[0,-1],[0,1],[-1,0],[1,0],[0,0]];
+    const ok=Array.isArray(IACT) && IACT.length===want.length &&
+      IACT.every((p,i)=>p[0]===want[i][0] && p[1]===want[i][1]);
+    if(!ok) console.log("scan order is now", JSON.stringify(IACT));
+    return ok; }],
+
  ["the Slayer still talks like himself", ()=>{
     // He contracts in ordinary speech and stops at the grief peaks. That contrast is the
     // character; a writer who flattens it turns him into a generic measured mentor, and
