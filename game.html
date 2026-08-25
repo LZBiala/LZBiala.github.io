@@ -2012,7 +2012,6 @@ function foxxVictoryLine(){ const b=M.b;
 function windmillFreeze(b, isCrit){ if(isCrit){ b.snoozed=true; } }
 function joinSharon(){ if(!S.party.includes("sharon")){ S.party.push("sharon"); S.actors.sharon=mkActor("sharon", hero().lv); } }
 function finishRescue(){ joinSharon(); S.haxWon=true; S.cleared["11:5,1"]=true; }
-function recruitSharon(){ finishRescue(); }
 // ---- TRANSMUTATION: rares forged from the story's own spoils (unlocks follow the arc) ----
 const TRANSMUTES={
  rw1:{ consumes:{kb5:1, sigils:4}, when:()=>!!S.haxWon },
@@ -2160,7 +2159,6 @@ function frontierEnding(){
   panelSay(FRONTIER_BEATS, ()=>{
     say(CREDITS, ()=>{ playMusic("overworld"); saveGame(0); render(); }); });
   return true; }
-// winBattle clears the tile it just won; this is the line that notices the story ended.
 // ================= ACT VI: FORWARD DEPLOYED =================
 // The Guide hands you his pager, powered off, when the SEV-1 closes. After the credits it
 // powers back on. The work changes shape: you stop being the person who fixes the system
@@ -2273,9 +2271,6 @@ function runDeploy(id){
       S.deploy[id]=right?1:2;                       // 2 means learned the hard way
       say([right ? ("✅ "+d.q.good) : ("⚠ "+d.q.bad)], lesson); }); });
   return true; }
-function frontierWatch(key){
-  if(key) S.cleared[S.z+":"+key]=true;
-  return frontierEnding(); }
 const CONDS={ preWon:()=>!S.won, mentorEra:()=>S.stage>=2 && !S.won };
 function coreFourIn(){ return ["sentinel","wiki","retro","refuter"].every(id=>S.party.includes(id)); }
 function npcsFor(zone){ return (zone.npcs||[]).filter(n=>(!n.when || S[n.when]) && (!n.inParty || S.party.includes(n.inParty)) && (!n.cond || (CONDS[n.cond] && CONDS[n.cond]()))); }
@@ -3731,7 +3726,6 @@ function pickMove(b){ const mv=b.def.moves;
   if(b.def.ai==="smart"){ if(b.hp<b.maxhp/2 || b.taunt>0) return mv[mv.length-1];
     return mv[Math.floor(rng()*mv.length)]; }
   return mv[Math.floor(rng()*mv.length)]; }
-function enemyTurn(){ foeAct(true); }
 // Every legacy line in here reads b.snoozed / b.roasted / b.growN / b.def, and each of
 // those addresses "the foe the cursor is on". So the honest way to let a second body act
 // is to move the cursor onto it for the length of its turn and put it back afterwards -
@@ -4663,7 +4657,7 @@ const TESTS = [
     partyActors().forEach(a=>{ a.ko=true; a.hp=0; });
     M.b={ def:EN.vague, hp:14, maxhp:14, dot:0, verified:0, taunt:0, ducked:{}, revealed:true, focused:true, menu:"main", turn:0, growN:0, doubled:false, snoozed:false };
     const st=window.setTimeout; window.setTimeout=()=>0;
-    enemyTurn(); window.setTimeout=st;
+    foeAct(true); window.setTimeout=st;
     const ok=M.b.menu==="dead"; M.b=null; M.state="test"; S=sb; return ok; }],
  ["fleeing a prowler battle clears the roam flag", ()=>{ const sb=S; S=NEWS(); M.roamBattle=true;
     M.b={ def:EN.vague, hp:14, maxhp:14, revealed:true, focused:true, verified:0, menu:"main", turn:0, growN:0, doubled:false };
@@ -5296,7 +5290,7 @@ const TESTS = [
     return Z[11].chains && Array.isArray(Z[11].chains["5,1"]) && Z[11].chains["5,1"][0].en==="nullroot"; }],
  ["the rescue: Sharonduh joins at the hero's level and the AI arc opens", ()=>{ const sb=S; S=NEWS();
     S.actors.hero=mkActor("hero",7);
-    recruitSharon();
+    finishRescue();
     const ok=S.party.includes("sharon") && S.actors.sharon && S.actors.sharon.lv===7 && S.haxWon===true && S.cleared["11:5,1"]===true;
     S=sb; return ok; }],
  ["love, versioned: her commit notes mark the road in", ()=>{
@@ -7643,19 +7637,6 @@ const TESTS = [
       return early===false && fired===true && once===false && credits===1 && scene===1;
     } finally { window.say=sy; window.panelSay=sp; window.playMusic=pm; S=sb; } }],
 
- ["beating the last AI incident is what fires it", ()=>{ const sb=S, sy=window.say, sp=window.panelSay, pm=window.playMusic;
-    S=NEWS();
-    try{
-      let fired=0;
-      window.say=(l,cb)=>{ if(cb) cb(); };
-      window.panelSay=(b,cb)=>{ fired++; if(cb) cb(); };
-      window.playMusic=()=>{};
-      S.won=true; S.haxWon=true;
-      S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true;
-      // the production path: winBattle clears the tile, and the ending notices
-      S.z=11; frontierWatch("5,5");
-      return fired===1 && !!S.frontierSeen;
-    } finally { window.say=sy; window.panelSay=sp; window.playMusic=pm; S=sb; } }],
 
  ["the closing scene is written, and it names what the player just became", ()=>{
     const txt=FRONTIER_BEATS.map(b=>b.t).join(" ");
@@ -7984,6 +7965,27 @@ const TESTS = [
       interact();
       return !!(S.deploy && S.deploy[DEPLOY[0].id]);
     } finally { window.ask=sa; window.say=sy; S=sb; } }],
+
+ ["no function in this game exists only to be tested", ()=>{
+    // A helper called by nothing but its own test makes that test a lie: it goes green
+    // while describing a path production never takes. frontierWatch() was exactly that.
+    const src=document.documentElement.innerHTML;
+    const ti=src.indexOf("const TESTS"), tj=src.lastIndexOf("function runTests(){");
+    if(!(ti>0 && tj>ti)) return false;
+    const prod=src.slice(0,ti)+src.slice(tj);
+    const tests=src.slice(ti,tj);
+    const orphan=[];
+    (prod.match(/\bfunction ([a-zA-Z_$][\w$]*)\s*\(/g)||[]).forEach(m=>{
+      const name=m.replace(/^function\s+/,"").replace(/\s*\($/,"");
+      const inProd=prod.split(new RegExp("\\b"+name+"\\s*\\(","g")).length-1;
+      const inTests=tests.split(new RegExp("\\b"+name+"\\s*\\(","g")).length-1;
+      // A name can also be dispatched from data rather than called - MARA's NPC entry
+      // carries talkFn:"titleGreeting". Quoted anywhere in production counts as used.
+      const dispatched=prod.indexOf('"'+name+'"')>=0 || prod.indexOf("'"+name+"'")>=0;
+      // defined once in production, never dispatched, and called only from the suite
+      if(inProd===1 && inTests>0 && !dispatched) orphan.push(name); });
+    if(orphan.length) console.log("called only by their own tests:", orphan.join(", "));
+    return orphan.length===0; }],
 ];
 function runTests(){ document.getElementById("objline").hidden=true;
   ov.hidden=false; ov.classList.add("center"); M.state="test";
@@ -8025,9 +8027,9 @@ window.G={ get S(){return S;}, set S(v){S=v;}, M, Z, EN, SP, IT, MEMBERS, DUAL, 
   buildQueue, nextUnit, foeAct, unitSpd, rowOf, fightBase, labelsFor, isEnraged,
   comboBonus, xpPct, spdOf, statsOf, ARMOR_STOCK, AVIS, drawArmorOverlay, openArmory,
   FOXX_JOKES, FOXX_LINES, foxxJokeLine, foxxBedState, LB_MAX,
-  reawaken, awakOf, recruitSharon, fmtTime, migrateV8, XPCURVE,
+  reawaken, awakOf, fmtTime, migrateV8, XPCURVE,
   SHARON_TALKS, SHARON_TALKS_FINALE, sharonTalkLine, frontierDone, npcsFor,
-  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, RETRO_ARC, retroBeat, sprFor, FRONTIER_BEATS, frontierEnding, frontierWatch, DEPLOY, deployOpen, deployDone, runDeploy, RETRO_PM, retroCard, DUETS, retroFoxxDuet, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
+  bondOf, bondLvl, bondUp, bondDualBonus, hangoutTalk, RETRO_ARC, retroBeat, sprFor, FRONTIER_BEATS, frontierEnding, DEPLOY, deployOpen, deployDone, runDeploy, RETRO_PM, retroCard, DUETS, retroFoxxDuet, INTERSTITIALS, panelSay, seedFromQuery, armAutoNext,
   heldBy, resolveTarget, castSkill,
   TREE, treeInit, treeHas, treeEarned, treeSpent, treePts, treeCan, treeTake, treeHolds, TREE_SCENE, keystoneBeats, migrateV9, skillCost, itThreshold, incoming, buildQueue, tryMigrate, dealt, reawaken, gainXP, XPCURVE, REP_LEVEL_CAP,
   buildCageBeats, buildRescueNightBeats, buildFinaleBeats, buildInterstitialBeats, buildMentorMeetBeats, TRANSMUTES, canTransmute, transmute, coreFourIn, speakerOf, SPEAKERS, castPulse, tileHash, lungeScale, overworldThemeFor, battleThemeFor,
