@@ -238,23 +238,25 @@ hero:[
 "...kjj..jjk.....",
 "...kww..wwk.....",
 "...kk....kk....."],
+// SENTINEL, the Architect: turban (white band, purple dome), green skin, pointed ears,
+// white cape shoulders, purple gi, blue sash. Redrawn 2026-08-24; screenshot-checked.
 sentinel:[
 "................",
-".....kkkkkk.....",
-"....kGGGGGGk....",
-"...kGGGGGGGGk...",
-"...kGkssssкGk...".replace("к","k"),
-"....kskssksk....",
-"....kssssssk....",
-".....kssssk.....",
-"....kooooook....",
-"...ksoooooosk...",
-"...ksoOOOOosk...",
-"....kooooook....",
-"....kkNNNNkk....",
-".....kddddk.....",
-".....kd..dk.....",
-".....kk..kk....."],
+"....kkkkkkkk....",
+"...kwwPPPPwwk...",
+"...kwwwwwwwwk...",
+"..kkggggggggkk..",
+".kgkggggggggkgk.",
+"...kgkggggkgk...",
+"...kggggggggk...",
+"....kggggggk....",
+"...kwwkkkkwwk...",
+"..kwwkppppkwwk..",
+"..krrkpPPpkrrk..",
+"...kgkbbbbkgk...",
+"....kPPPPPPk....",
+"....kPPkkPPk....",
+"...koook.koook.."],
 wiki:[
 "......kppk......",
 ".....kppppk.....",
@@ -991,7 +993,7 @@ Object.keys(SPRX).forEach(k=>{ const n=SPRX[k].length;
 const MEMBERS = {
  hero:{ name:"HERO", cls:"Commander", spr:"hero", spr24:"hero24", spd:5, base:{hp:12,mp:6,atk:3}, grow:{hp:3,mp:2,atk:1},
    skills:{1:["promptia"],2:["fivewhy"],4:["rollback"],6:["hitl"]} },
- sentinel:{ name:"SENTINEL", cls:"Ranger", spr:"sentinel", spd:7, base:{hp:10,mp:5,atk:4}, grow:{hp:2,mp:1,atk:1},
+ sentinel:{ name:"SENTINEL", cls:"Solutions Architect", spr:"sentinel", spd:7, base:{hp:10,mp:5,atk:4}, grow:{hp:2,mp:1,atk:1},
    skills:{1:["mutagen","truestrike"],5:["audit"]} },
  wiki:{ name:"WIKI", cls:"Wizard", spr:"wiki", spd:4, base:{hp:8,mp:10,atk:2}, grow:{hp:2,mp:3,atk:1},
    skills:{1:["contexa"],5:["indexstorm"]} },
@@ -1259,12 +1261,32 @@ const EN = {
  unknown:{ name:"THE UNKNOWN UNKNOWN", spr:"unknown", hp:260, atk:8, xp:60, tok:100, weak:null, ai:"smart", multi:true, multi3:true, superboss:true,
   moves:[["strikes from a blind spot you never mapped",9],["is not in any runbook",12]],
   intro:"The air tears open. THE UNKNOWN UNKNOWN - the incident no one has had yet. It attacks from everywhere at once.",
-  tip:"No weakness. No trick. Just everything you've learned: taunt, ward, verify, heal, strike." } };
+  tip:"No weakness. No trick. Just everything you've learned: taunt, ward, verify, heal, strike." },
+ // ---- the Architect's duel + THE GRAND STAGE (numbers ASSERTED, not simulated: these
+ // fights postdate every campaign in tools/BALANCE-LEDGER.md and are excluded from its
+ // count; the duel is sized for a solo low-level hero, the Stage for the certified party) ----
+ architect:{ name:"SENTINEL, THE ARCHITECT", spr:"sentinel", hp:32, atk:3, xp:16, tok:12, weak:null, ai:"smart",
+  moves:[["tests your guard with one measured cut",3],["plants a flaw and watches whether you find it",4]],
+  intro:"A caped figure bars the road, arms folded, eyes closed under a white turban. SENTINEL, THE ARCHITECT: 'Hold it right there, kid. I guard this road, and I only step aside for those who can find a planted flaw before it finds them - I have seeded this fight with three already. Now come at me.'",
+  tip:"He is not fighting you. He is reviewing you. Fight like someone worth mentoring." },
+ echobyte:{ name:"ECHOBYTE THE COPYCAT", spr:"hax", hp:240, atk:8, xp:70, tok:80, weak:"fliptest", elite:true, ai:"smart",
+  moves:[["replays a leaked exploit, loudly",7],["gestures dramatically at borrowed malware",8],["shouts a catchphrase that is not his",9]],
+  intro:"ECHOBYTE THE COPYCAT takes the stage! Every move traced from NULLBYTE's leaked playbook - loud, flashy, and three patch cycles out of date. All swagger. Borrowed signature. Zero craft.",
+  tip:"Most real attacks are replays of published playbooks against known holes - staying patched stops them cold. Provenance beats confidence: ask where a technique came from, not how loud it arrives." },
+ echoprime:{ name:"ECHOBYTE PRIME - STOLEN PLAYBOOK", spr:"hax", hp:300, atk:9, xp:90, tok:100, weak:"contexa", elite:true, ai:"smart",
+  moves:[["dumps the whole stolen playbook at once",8],["escalates without understanding why",10],["repeats the last exploit, but louder",11]],
+  intro:"ECHOBYTE PRIME! Out of moves that work, the copycat dumps the WHOLE stolen playbook at once - every exploit, every trick, no order, no plan. It looks like a storm. It reads like a script.",
+  tip:"An attacker who did not write the playbook cannot adapt it - change the game and the script has no page for your counter. Watch for the tell: real adversaries improvise, copycats just repeat louder." },
+ nullredux:{ name:"NULLBYTE UNCHAINED - LICENSED RED TEAM", spr:"hax", hp:380, atk:10, xp:150, tok:200, weak:null, multi:true, elite:true, ai:"smart",
+  moves:[["probes exactly where the audit stopped",9],["chains three small findings into one breach",12],["signs his work",10]],
+  intro:"NULLBYTE UNCHAINED - THE LICENSED RED TEAM. Signed scope. Running clock. Referees live. No hostages, no ransom, nothing left to steal - nothing to prove except craft. The best adversary is the one you invited.",
+  tip:"Mature shops hire their attackers: a red team strikes under signed rules, the blue team defends, and purple teaming shares the notes between them. The adversary you invite, under rules, is how systems get strong." } };
 
 // FFT initiative: per-unit speed (fast units act first, foe interleaved)
 const ENSPD={ dummy:1, vague:2, gremlin:8, creep:3, golem:3, wyrm:6, leak:4, chorus:4,
  flakytest:8, configdrift:5, monolith:3, h1:6, h2:5, h3:5, h4:4, h5:5,
  faxdaemon:6, cobol:2, patient0:5, unknown:7, retrystorm:6, papafoxx:6, retroboss:8,
+ architect:7, echobyte:7, echoprime:8, nullredux:9,
  packetshark:7, botnet:5, phish:4, ransomworm:5, zeroday:8, nullbyte:6, nullroot:7, promptinj:6, halluc:5, misaligned:8 };
 Object.keys(ENSPD).forEach(k=>{ if(EN[k]) EN[k].spd=ENSPD[k]; });
 function unitSpd(def){ return def.spd||4; }
@@ -1291,7 +1313,7 @@ const Z = [
   "THE GUIDE: I spent years embedded where the incidents actually live - client floors, war rooms, 2 AM bridges. One system learned inside-out until I WAS its runbook. An API Gateway was my product. I knew its heartbeat.",
   "THE GUIDE: There's a NAME for engineers who fight that way... but names are earned, kid, not given. Resolve the Sev-1 and I'll tell you yours.",
   "THE GUIDE: East of here the MONOLITH squats - an ungoverned AI that judges its own work. And behind it, something worse is building: a SEV-1. The real thing.",
-  "THE GUIDE: You can't do this alone. Four specialists wait along the road - a Ranger who tests everything, a Wizard of memory, a Slayer who cuts what keeps breaking, a Tank who objects to everything. Incident command is separation of responsibilities: you hold the state, they touch the system.",
+  "THE GUIDE: You can't do this alone. Four specialists wait along the road - an Architect who tests everything before he trusts it, a Wizard of memory, a Slayer who cuts what keeps breaking, a Tank who objects to everything. Incident command is separation of responsibilities: you hold the state, they touch the system.",
   "THE GUIDE: One more law, kid. We keep an error budget here - we SPEND failure on learning, never on excuses. A village that never breaks anything has stopped shipping.",
   "THE GUIDE: Buy gear at Peg's - she stocks shared primitives, not one-off hacks. Rest at Mara's - she saves your progress. And when you reach the Citadel... ask me about the Monolith. There's something you deserve to know. Go east!"]},
  {x:3,y:5,spr:"rowan",name:"ELDER ROWAN",lines:[
@@ -1321,12 +1343,20 @@ const Z = [
  signs:{"5,3":"⚑ Reliability Village · INN: NW house (Mara - rest & save) · SUPPLY CLOSET: NE house (Peg) · east: Prompt Plains"} },
 { name:"Prompt Plains", ground:"#234a2e", maps:[
 "tttttttttttt","t.ggg..gg..t","tgggg..Egg.t","t.gg...t.g.t","pppppBpppBpp","t.g.gg..g..t","tb...g.gg..t","t..t.gg..c.t","tttttttttttt"],
- exits:{left:0,right:2}, battles:{"5,4":"vague","9,4":"gremlin"}, elites:{"7,2":"flakytest"},
+ // The gremlin that used to hold 9,4 gave way to the Architect himself: a mentor worth
+ // having makes you earn the mentorship. The gremlin still prowls the grass.
+ exits:{left:0,right:2}, battles:{"5,4":"vague","9,4":"architect"}, elites:{"7,2":"flakytest"},
  enc:{tile:"g", pool:["vague","gremlin"], rate:0.12}, roam:{pool:["vague","gremlin"], x:7, y:6},
  nodes:[{x:5,y:1,t:"logs"},{x:9,y:3,t:"traces"},{x:2,y:5,t:"logs"}],
  loot:{"1,6":{tok:8, text:"A traveler's barrel hidden in the grass - <b>8 ⛁</b>!"}},
  recruitAfter:{"9,4":{ id:"sentinel",
-  lines:["SENTINEL the Ranger joins the party!","SENTINEL: 'I plant one known defect and mix in byte-identical controls - crying wolf scores zero. 9/10 caught at the planted line, within two, and 0 false alarms.'","★ SENTINEL fights with MUTAGEN and TRUE STRIKE - and learns AUDIT at LV 5."]}},
+  lines:["SENTINEL: 'Enough. Stand down.'",
+   "SENTINEL: 'You found every flaw I planted, and you never once struck at a healthy line. Catching the plant is skill. Trusting the clean code is wisdom.'",
+   "SENTINEL the Solutions Architect joins the party! 'I yield. Hmph... don't make me say it twice. You read the failure before it happened. You're worthy, kid.'",
+   "SENTINEL: 'Senior Director, Solutions Architecture. I plant defects on purpose to prove the tests are real - 9/10 plants caught at the planted line, 0 false alarms, or your suite is just decoration. That discipline is mine.'",
+   "★ SENTINEL fights with MUTAGEN and TRUE STRIKE - and learns AUDIT at LV 5. He opens the books and reads what the system really does.",
+   "SENTINEL: 'My terms: we draw the blueprint before we build, we test before we trust, and when I break something on purpose - and I will - you thank me for the lesson.'",
+   "SENTINEL: 'Don't expect praise. Expect drills. ...But between us, kid: today, you earned this. Never repeat that.'"]}},
  chest:{key:"9,7", text:"🏆 ARTIFACT: agent-mutation-lab - mutation testing for AI code reviewers. 9/10 planted defects caught, 0 false alarms. github.com/LZBiala/agent-mutation-lab  (+1 Coffee, +15 ⛁)", give:"coffee", tok:15} },
 { name:"Context Caverns", ground:"#26323a", maps:[
 "rrrrrrrrrrrr","r.,,.r..,,.r","r.rr,..rr,.r","r..,,,.,,..r","pppppBpppBpp","r.,.rr.,,..r","r.r,.....c.r","rb.,,......r","rrrrrrrrrrrr"],
@@ -1392,11 +1422,17 @@ const Z = [
   "Mrow.",
   "The cat is asleep on an incident runbook.",
   "In twelve years, Pager has never once been paged."]},
+ // The Architect meditates in the corner of the inn. Every line either teaches one cloud
+ // idea in his voice or shows the soft center under the gruffness.
  {x:3,y:6,spr:"sentinel",name:"SENTINEL",inParty:"sentinel",lines:[
-  "I planted a defect in Peg's stew recipe to test her review process. She caught it. I have never respected anyone more.",
-  "The dummy and I train at dawn. It never flinches. I've started to suspect it's the strongest of us.",
-  "You fight cleaner than when we met. Fewer wasted strikes. The canaries noticed too.",
-  "Nine out of ten defects caught means one got through. I think about that one every night. That's the job."]},
+  "One inn burns down, you sleep in the next one over. That's why we run in more than one building, kid - multiple Availability Zones. Never rent your whole life to a single roof.",
+  "Before you build anything, ask: when this fails - not if - how much burns with it? Draw that circle small. Engineers call it blast radius. I call it Tuesday.",
+  "The innkeeper doesn't hand every guest a key to the vault. Give each part of a system only the access its one job needs. Least privilege. It's not distrust, kid. It's design.",
+  "A bill that surprises you is an architecture diagram you never drew. Cost isn't accounting - it's a design constraint, same as speed. Cheap and correct usually share a blueprint.",
+  "I don't click servers into existence. I write them down, so anyone can rebuild the whole thing from the page. Infrastructure as code. If it isn't written, it isn't real.",
+  "When the pager and the architecture diagram disagree, the pager is telling the truth. Update the diagram. Then update the architect.",
+  "Foxx says his jokes never miss. I pulled the logs. 71% hit rate, kid. In this trade we call that 'not even one nine.'",
+  "...Why do I sit here with my eyes closed? Because a system at rest tells you what a system on fire can't. And because the kid trains harder when they think I'm not watching."]},
  {x:5,y:6,spr:"wiki",name:"WIKI",inParty:"wiki",lines:[
   "I've been indexing PapaFoxx's jokes. Retrieval is easy. Knowing WHEN to retrieve one - that's the hard problem.",
   "Sharonduh let me read her cage notebooks. Half genius, half love letters. I filed them under both.",
@@ -1542,6 +1578,7 @@ const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   bank:{}, materia:[null,null], grave:null, foxxJoke:0, foxxWin:0, autoNext:true,
   awak:{}, timer:false, haxKnown:false, haxWon:false, netSeen:false,
   bond:{}, hang:{}, syncSeen:0, bastionSeen:false, nocSeen:false, nightSeen:false,
+  grandSeen:false, worldClass:0,
   gear:{}, clue:{}, lesson:{}, core:null, tree:null, treeSeen:false, noteBack:false, foxxHeart:0, metSharon:0 });
 let S = NEWS();
 let M = { state:"title", dlg:null, dlgi:0, done:null, b:null, lock:false, resumeAt:Date.now(), shareText:"", frame:0, encGuard:0, roam:{}, roamBattle:false, gathered:{} };
@@ -2328,6 +2365,29 @@ const RETRO_ARC=[
    "(He unhooks the mask and sets it on the table between you. He doesn't offer it. He just stops holding it.)",
    "RETROLISTIC: 'Blameless means the person is not the defect. It took me eleven years to apply that to myself. …Cycle time on that one was atrocious.'",
    "★ RETROLISTIC stands a little lighter. His belt is empty, and he cuts and mends the same as ever." ]},
+ // The arc continues past the action items: what he does with the empty belt, the
+ // stopwatch confession, and - only once the world has watched - her name on the timeline.
+ { need:3,
+   lines:[
+   "RETROLISTIC: 'You asked what MEND actually is. Sit. This one's a teaching, not a story.'",
+   "RETROLISTIC: 'CONTROL ARM was mine - verify the round, deny the regeneration, trust nothing twice. MEND was hers. I never learned it from a book. I learned it from four years of watching her hands.'",
+   "RETROLISTIC: 'When they merged our duty rosters after, the crew needed a word for what I'd become. There isn't one. A class no one names. So they wrote Incident Slayer and I let them, because the true name is two people long.'",
+   "RETROLISTIC: 'Here's the teaching: every skill you have was somebody's hands once. Learn where yours came from. Say their names when you pass it on. That's the whole inheritance system, kid - it runs on gratitude.'" ]},
+ { need:3,
+   lines:[
+   "RETROLISTIC: 'One more finding from the self-retro. About the caverns. About the stopwatch.'",
+   "RETROLISTIC: 'I timed you for three zones before I took the mask off. I told myself it was benchmarking. It was not benchmarking.'",
+   "RETROLISTIC: 'Measuring you was easier than joining you. A dashboard is a very safe place to stand - you can watch everything and owe nothing. I had been standing there for eleven years.'",
+   "RETROLISTIC: 'You never asked why the masked analyst fought you instead of just saying hello. Now you know. Some people knock. Analysts run an evaluation first.'",
+   "(He almost laughs. It's the closest you've heard him come.)" ]},
+ { need:3, when:()=>!!S.worldClass,
+   lines:[
+   "RETROLISTIC: 'The framed timeline came back from the shop. Before it goes over my desk, you should see the last line. You're the only one I'm showing.'",
+   "(The final entry, in his smallest, most careful handwriting: CONTRIBUTING ENGINEER - THE CLERIC. Every mend on the Grand Stage traces to her hands.)",
+   "RETROLISTIC: 'Her name goes on the timeline. She would have hated the ceremony and read every line twice.'",
+   "RETROLISTIC: 'That's the last action item closed. The retro on myself is done. Findings: the person was never the defect, the work persisted in what people did next, and the cycle time on grief is what it is. You ship anyway.'",
+   "RETROLISTIC: 'Thank you for standing where I could measure you, kid. It taught me to stop measuring and stand somewhere myself.'",
+   "★ The mask sits on the shelf at the inn now, facing the room. Guests think it's decoration. The whole party knows it's a founder." ]},
 ];
 // The narrator's LESSONS teach the engineering. The Slayer teaches the OTHER half of his
 // job - the analyst's half, the one that decides whether the engineering was worth doing.
@@ -2387,16 +2447,145 @@ const DUETS=[
   "PAPAFOXX: 'Everybody east of here who doesn't know we exist.'",
   "RETROLISTIC: '…Yes. Exactly right.'",
   "PAPAFOXX: 'I LISTEN, man. I just do it loudly.'"],
+ ["PAPAFOXX: 'Real talk, Slayer. The mask on the inn shelf. You good? You want me to do a bit about it or leave it alone?'",
+  "RETROLISTIC: 'Do the bit. She had your exact sense of humor. It's why I can stand you.'",
+  "PAPAFOXX: '...That's the nicest thing you've ever said to me and it came with an insult INSIDE it.'",
+  "RETROLISTIC: 'Efficient packaging. She taught me that too.'"],
+ ["RETROLISTIC: 'Retro on the retro: my postmortems used to take four hours. With you heckling, forty minutes. I've been studying why.'",
+  "PAPAFOXX: 'Because I'm a DELIGHT.'",
+  "RETROLISTIC: 'Because nobody defends a decision to a man who's juggling plantains. The status games stop. Laughter is a blameless-culture accelerant. I'm putting it in the playbook.'",
+  "PAPAFOXX: 'Page one, baby. PAGE ONE.'"],
+ ["PAPAFOXX: 'Yo. When we hit the big stage someday - the LIGHTS, the crowd - what's your walkout song?'",
+  "RETROLISTIC: 'Silence. Then the sound of a timeline being written correctly the first time.'",
+  "PAPAFOXX: 'That's the worst walkout of all time and I respect you TOO much to lie about it.'",
+  "RETROLISTIC: 'Noted as a finding. Yours is the goat noise, so the bar was survivable.'"],
 ];
 function retroFoxxDuet(){
   const has=(id)=>S.party && S.party.indexOf(id)>=0 && S.actors[id] && !S.actors[id].ko;
   if(!has("retro") || !has("papafoxx")) return null;        // it takes two
   S.duet=((S.duet||0)+1)%DUETS.length;
   return DUETS[S.duet].join("<br>"); }
+// ---- THE ARCHITECT x THE COMEDIAN: the other double act. Foxx pokes, the Architect
+// deadpans a superior comeback that smuggles in one real cloud idea, and the room loses it.
+// The laugh always belongs to the ROOM - never to the two comedians themselves.
+const ARCH_DUETS=[
+ ["PAPAFOXX: BAAAHHHHH~~~ WE WON! Sentinel, be honest with me - is that turban a hat, or is it a load balancer for your thoughts?",
+  "SENTINEL: It is a load balancer, Foxx. It routes traffic only to healthy targets. Your voice keeps failing the health check.",
+  "LITO: JAJAJAJA he HEALTH-CHECKED you, Foxx! JAJAJAJA!"],
+ ["PAPAFOXX: Every time we win, this man sits on a rock with his eyes closed. Baby, the fight is OVER. Who schedules a nap after a boss?",
+  "SENTINEL: It is a maintenance window. I announce my downtime in advance so nothing depends on me while I am out. You just crash at 3 a.m. and call it a bridge call.",
+  "SHARONDUH: LMAO he put 'nap' on the change calendar 😂 there's probably an approval chain"],
+ ["PAPAFOXX: My jokes run at four nines of uptime, baby. 99.99% funny. You could set a village clock to me!",
+  "SENTINEL: Wiki measured you. 71% hit rate. Uptime nines start at 90, Foxx. You have zero nines. That is not uptime. That is an outage with commercial breaks.",
+  "WIKI: Confirmed: 71.3% across 412 recorded jokes. LMAO the data does not lie, Foxx."],
+ ["PAPAFOXX: Hold on. You PLANT bugs on PURPOSE, and you're standing there PROUD? BAAAHHHHH~~~ this man grades his own arson!",
+  "SENTINEL: It is called chaos engineering, Foxx. You break things on purpose, inside a small blast radius, so the real failure is never a surprise. Big companies pay whole teams for it. I do it out of love.",
+  "SHARONDUH slides off her chair. The ROFL rolls down the hallway like a dropped potion bottle."],
+ ["PAPAFOXX: Victory plantains! I brought FORTY, baby. A man provisions for the win! You want five? Ten? BAAAHHHHH~~~",
+  "SENTINEL: One. You provision for the load you have, not the load you dream about. Forty plantains is how a budget dies, Foxx. Scale to demand.",
+  "LITO: JAJAJAJA he right-sized your SNACKS! JAJAJAJA!"],
+ ["PAPAFOXX: And the cape! LOOK at the cape. Who fights in a cape? What does it even DO, Sentinel? Does the cape have a job?",
+  "SENTINEL: Warm standby. If my primary layer fails, the cape is already running and takes over with no startup delay. Redundancy is not fashion, Foxx. It just looks like it on me.",
+  "WIKI: LMAO logged: 'cape = failover infrastructure.' That is in the wiki forever now."],
+ ["PAPAFOXX: You never laugh at my jokes. Not ONCE. My kid laughs. Strangers laugh. The boss we just beat laughed, and he was ON FIRE at the time.",
+  "SENTINEL: I laughed in 2019 and cached the result. A cache stores an expensive computation so you never pay for it twice. The TTL has not expired, Foxx.",
+  "SHARONDUH: ROFL he CACHED a laugh at you 😂 check the expiry date, Foxx, you might get one in 2031"],
+ ["PAPAFOXX: BAAAHHHHH~~~ VICTORY! WE ARE UNSTOPPABLE! I'M GONNA SING THE WHOLE WALK HOME, BABY! EVERY VERSE! TWICE!",
+  "SENTINEL: 429. Too Many Requests. That is what a server returns when a client will not slow down. Consider yourself rate limited, Foxx. Retry in one hour.",
+  "The party loses it - SHARONDUH is on the floor, and LITO's JAJAJAJA hits its own rate limit. 😂"],
+ ["PAPAFOXX: New material tonight, whole town square, two hundred people, all at once. Big room, big laughs, baby!",
+  "SENTINEL: No. Canary it. Tell the joke to ONE villager first, watch their face, then roll out to the square. Small releases keep failures small. Your last joke needed a rollback, kid.",
+  "LITO: JAJAJAJA a JOKE CANARY! One villager takes the hit for the whole town! JAJAJAJA!"],
+ ["PAPAFOXX: This man meditates so still a bird landed on him. A whole bird, baby. It filed a change request just to leave.",
+  "SENTINEL: I stay warm, Foxx. A function that sits idle goes cold and starts slow when it is finally called. I meditate so my first strike costs nothing. Try silence once. As an experiment.",
+  "SHARONDUH: LMAO the bird filed a CHANGE REQUEST 😂 I'm done. Bury me with the loot."],
+ ["PAPAFOXX: I do this comedy for FREE, you know. FREE! The people eat good when Papa's on the mic!",
+  "SENTINEL: Nothing is free, Foxx. I tag your jokes like cloud spend - owner, purpose, cost. 71% hit rate, 100% of my patience budget. And untagged resources get deleted.",
+  "WIKI: ROFL he cost-allocated your comedy. There is a spreadsheet. I have READ the spreadsheet."],
+ ["PAPAFOXX: My kid asked if you'd teach her the cloud stuff. I said 'the grumpy one?' She said 'yeah, the one with the thought balancer.' BAAAHHHHH~~~",
+  "SENTINEL: She already understands least privilege. Asked for exactly the access she needs - snacks yes, my chair no. Send her Tuesday. ...She is a good kid, Foxx.",
+  "LITO: JAJAJAJA the THOUGHT BALANCER!! ...wait. Did Sentinel just volunteer to mentor somebody? 😂❤️"],
+];
+function archFoxxDuet(){
+  const has=(id)=>S.party && S.party.indexOf(id)>=0 && S.actors[id] && !S.actors[id].ko;
+  if(!has("sentinel") || !has("papafoxx")) return null;     // this act also takes two
+  S.archDuet=((S.archDuet||0)+1)%ARCH_DUETS.length;
+  return ARCH_DUETS[S.archDuet].join("<br>"); }
+// ---- the Architect's teaching cards: the Well-Architected pillars, plain words first.
+// Keyed to bosses RETRO_PM does not claim - never two teachers on one corpse.
+const SENT_ARCH={
+ flakytest:{t:"🛡️ THE ARCHITECT - EVERYTHING FAILS", d:"Everything fails, kid. Disks rot, servers die, whole datacenters go dark. So build like the failure already happened - run copies in separate buildings with separate power. One burns, the rest carry the load without waking you. The trade calls it multi-AZ. I call it refusing to lie to yourself."},
+ echobyte:{t:"🔑 THE ARCHITECT - THE SMALLEST KEY", d:"Give every person and every program the smallest key that opens only the one door they need. The intern does not get the master key. Neither does your code. When credentials get stolen - and they will - the thief is stuck in one closet, not the vault. The trade calls it least privilege. I call it discipline."},
+ h4:{t:"💰 THE ARCHITECT - THE BILL IS A BLUEPRINT", d:"Read the bill like a blueprint, kid. Every dollar traces to a decision - a server left running, data hauled across regions, storage nobody reads. Cost is not the accountant's problem. It is a property of your architecture, same as speed. The trade calls the practice FinOps. I call it knowing what your own building weighs."},
+ patient0:{t:"📓 THE ARCHITECT - RUNBOOKS BEAT HEROES", d:"At 3 a.m. your brain is a potato. So write the fix down at 2 p.m., when it is smart - step by step. That is a runbook. Then wire the system to show you what hurts before the pager screams - logs, metrics, traces. That is observability. Heroics are what teams need when they skipped the paperwork. Do the paperwork."},
+ golem:{t:"⚖️ THE ARCHITECT - MATCH THE MACHINE TO THE JOB", d:"Measure before you buy muscle. Half the fleets I audit are trucks hauling one of Foxx's plantains - eight empty lanes, one plantain. Watch what the machine actually uses, then match the machine to the job. The trade calls it right-sizing. Fast is easy. Fast without waste - that is architecture."},
+ echoprime:{t:"💥 THE ARCHITECT - DRAW THE CIRCLE", d:"Before you build, draw a circle and ask - if this dies, what dies with it? A region is a circle. An account is a smaller one. Wall workloads into separate accounts so one team's explosion cannot level another team's city. The trade calls it blast radius. I plant defects to test walls, kid. Build walls worth testing."},
+ configdrift:{t:"📜 THE ARCHITECT - THE WORLD REGENERATES", d:"Never build by hand what you cannot rebuild by command. Click around a console for an hour and you own a snowflake - pretty, unrepeatable, gone the day it melts. Write the environment as code and the whole world regenerates from a file - reviewed, versioned, identical every time. The trade calls it infrastructure as code. I call it a spine."},
+ h1:{t:"🌱 THE ARCHITECT - TURN OFF THE EMPTY ROOM", d:"Waste is a design flaw in a costume, kid. An idle server burns power to compute nothing - a light left on in an empty stadium. Shut down what sleeps, pack work onto fewer machines, size for the job and no more. The trade calls this pillar sustainability. Cheap, fast, and clean are usually the same decision. Make it once."} };
+function sentCard(id){
+  if(!S.party || S.party.indexOf("sentinel")<0) return null;   // the card is him, not the narrator
+  const c=SENT_ARCH[id]; if(!c) return null;
+  S.archc=S.archc||{}; if(S.archc[id]) return null;
+  S.archc[id]=1;
+  return "<div style='border:2px solid var(--teal,#2dd4bf);border-radius:8px;padding:5px 9px;margin:4px 0'><b class='gold'>"+c.t+"</b><br><span class='mut'>"+c.d+"</span></div>"; }
+// ---- THE GRAND STAGE: the heroic ending. A live industry exercise, a copycat who crashes
+// it, the real adversary asking for his sanctioned match, and the team the world watched
+// become what the title screen promised. Fired from the Guide's pager once certified.
+const GRAND_PRE=[
+ {t:"The Grand Stage. An ops floor the size of a stadium under broadcast lights. Every shop in the industry sent someone. On the big board: a LIVE incident exercise. Real traffic. Real dashboards. One team on the floor."},
+ {spr:"hero", t:"HERO: (Every cert on this badge started as a failure with a timestamp. Today the industry watches us run one. My hands are shaking. Good - Sentinel says the day they stop is the day you stop respecting production.)"},
+ {spr:"sentinel", t:"SENTINEL: Eyes up. This is a game day - we break our own system on purpose, in daylight, blast radius contained, rollback staged. That is how professionals test. Not a parade. An exam."},
+ {spr:"wiki", t:"WIKI: Runbooks staged, on-call roster pinned, glossary loaded. If anyone freezes out there, I will narrate from the docs. Lovingly. With page numbers."},
+ {spr:"retro", t:"RETROLISTIC: I pre-wrote the postmortem template. Blameless, timelined, action items empty and hungry. Doing the retro thinking BEFORE the incident is called a premortem, and it is my love language."},
+ {spr:"refuter", t:"REFUTER: Reminder: 'it should hold' is a hypothesis, not evidence. I will be right here demanding receipts from every graph on that board."},
+ {spr:"sharon", t:"SHARONDUH: Last time the world watched me, I was the one being rescued. Today I am on the response team. Character arc: resolved. Personal uptime: restored."},
+ {spr:"lito", t:"LITO: The whole industry in one building and WE got the main stage. JAJAJAJA - let's GO."},
+ {spr:"foxx", t:"PAPAFOXX: Look at him. Cape pressed, turban tight, walking in like the SLA owes HIM money. BAAAHHHHH~~~ this man meditates in two regions so his inner peace has a failover."},
+ {spr:"sentinel", t:"SENTINEL: Says the man whose personal uptime hits three nines only if naps count as scheduled maintenance."},
+ {spr:"lito", t:"LITO: JAJAJAJA scheduled maintenance!! Somebody get this man a status page!"},
+ {spr:"sharon", t:"SHARONDUH: LMAO he filed a change request for your nap window, Foxx. 😂"},
+ {t:"The lights stutter. The big board tears into static. A figure struts out of the smoke wearing a visor that is clearly a PRINTOUT of NULLBYTE's visor, taped at one corner. The cape still has the watermark on it."},
+ {t:"ECHOBYTE: 'Tremble, heroes! I am NULLBYTE's true successor! I downloaded his ENTIRE legacy!' The crowd murmurs. Somewhere a security researcher takes notes out of pure secondhand embarrassment."},
+ {spr:"sentinel", t:"SENTINEL: Downloaded. Not earned. Kid, that playbook has patch notes older than your account. Positions. Least privilege on every console - assume he is loud AND lucky."},
+ {t:"Ten thousand engineers hold their breath. The exercise just became real. The team steps forward anyway - because that is the whole job: somebody stands between the traffic and the threat, and today it is them."}];
+const GRAND_TELL=[
+ "A feed cuts in from supervised custody: NULLBYTE, flanked by handlers, watching his knockoff flail. 'Check the padding on his packets - amateur. He copied my shape, not my discipline.'",
+ "SENTINEL: And THAT is attribution - you identify an attacker by the fingerprints of how they work, not the logo they wear. Threat intel is learning your adversary's handwriting before they write to you."];
+const GRAND_ACCEPT=[
+ "NULLBYTE: 'One request, defenders. If the world is watching, let it watch a REAL red team. Sanctioned match - scope signed, clock set, full strength. You have earned a real exam.'",
+ "WIKI: For the record, inviting your best adversary in under written rules is not madness - it is standard practice. The attack you schedule teaches you; the one you do not is just a bad Tuesday.",
+ "SENTINEL: Scope it, sign it, time-box it, and give him nothing outside the sandbox. ...Accepted. Kid - stretch. Class is in session."];
+const GRAND_POST=[
+ {t:"Time expires. Every board burns green. The Grand Stage comes off its feet - ten thousand engineers on chairs, on desks, on each other's shoulders, roaring for a DEFENSE."},
+ {t:"NULLBYTE powers down his own rig and bows his head. 'Match to the defenders. I spent my whole career hunting leverage. You built something better - people who patch each other. Keep them.'"},
+ {spr:"sentinel", t:"SENTINEL: Hmph. I go back to architecture - diagrams, reviews, telling VPs no. But now there is a student worth the whiteboard. Kid... you read the diagrams nobody reads. Do not make me say that twice."},
+ {spr:"wiki", t:"WIKI: Everything we survived becomes open runbooks. Every scar gets a page number, so the next team bleeds less. That is what documentation is FOR."},
+ {spr:"retro", t:"RETROLISTIC: Closing my final action item: become a team whose postmortems get studied on purpose. Blameless forever. I am framing this timeline and hanging it over my desk."},
+ {spr:"refuter", t:"REFUTER: I have reviewed the evidence and I concede the claim: we are actually good. Independently verified. Do not let it inflate - I am re-running this benchmark quarterly."},
+ {spr:"foxx", t:"PAPAFOXX: Tomorrow I bring my kid to see this board. Gonna point at it and say your papa held the 3 a.m. bridge and it HELD. Then plantains for the whole floor. BAAAHHHHH~~~"},
+ {spr:"sharon", t:"SHARONDUH: Hostage, then responder, now - apparently - mentor. Three interns asked for my pager wisdom tonight. I told them: sleep is a dependency. Declare it or it declares you."},
+ {spr:"lito", t:"LITO: JAJAJAJA we made the HIGHLIGHT REEL! Okay, serious face: I am opening a community dojo. Nobody runs their first SEV alone - everybody gets somebody watching their back."},
+ {spr:"hero", t:"HERO: (Nobody up here was born knowing this. We wrote things down. We drilled. We broke our own systems on purpose until the fear got smaller than the checklist. That is the entire secret.)"},
+ {t:"The big board clears to a single banner: WORLD CLASS. Not a title granted - a title measured. AI engineers are made, not born, and tonight the systems proved it. FIELD CERTIFIED. GRAND STAGE CLEAR. 🏆"}];
+function grandOpen(){ return !!(S.fieldCert && S.party.includes("sharon") && frontierDone()); }
+function grandBeatify(list){ const froms=["40% 35%","60% 50%","30% 60%","50% 30%"];
+  return list.map((b,i)=>({ t:b.t, spr:b.spr||null, dark:.2+(i%4)*.06, from:froms[i%4],
+    z: i===list.length-1? 1.45 : 1.2 })); }
+function buildGrandBeats(){ return grandBeatify(GRAND_PRE); }
+function buildWorldClassBeats(){ return grandBeatify(GRAND_POST); }
+function grandChain(){ return [ {en:"echobyte"}, {say:GRAND_TELL}, {en:"echoprime"},
+  {say:GRAND_ACCEPT}, {en:"nullredux"} ]; }
+function grandStage(){ if(!grandOpen()) return false;
+  if(!S.grandSeen){ S.grandSeen=true; saveGame(0);
+    panelSay(buildGrandBeats(), ()=>{ saveGame(0); runChain(grandChain()); }); return true; }
+  say(["THE GUIDE: 'The Stage never really closes, kid. The crowd remembers. Go remind them.'"],
+    ()=>runChain(grandChain()));
+  return true; }
 function retroBeat(){
   const n=(S.arc && S.arc.retro)||0;
   const nxt=RETRO_ARC[n];
   if(!nxt || bondLvl("retro") < nxt.need) return false;
+  if(nxt.when && !nxt.when()) return false;   // a beat can wait for the story, not just the bond
   S.arc=S.arc||{}; S.arc.retro=n+1;
   saveGame(0);
   say(nxt.lines);
@@ -2559,7 +2748,7 @@ function foxxBed(){ const st=foxxBedState();
     say(["PAPAFOXX: \""+foxxJokeLine()+"\""]); return; }
   if(st==="challenge"){ say([
     "You shake the third bed. It ERUPTS like a casserole left in too long - snapback spun backwards, mic already up, chain swingin’ like a screen door in a storm. One eye opens. Then the grin.",
-    "PAPAFOXX: 'Ohhh. OH. A Commander, a Ranger... and NO headliner? Y'all woke the DAD. That's a page, baby - and I ALWAYS answer my pages.'",
+    "PAPAFOXX: 'Ohhh. OH. A Commander, an Architect... and NO headliner? Y'all woke the DAD. That's a page, baby - and I ALWAYS answer my pages.'",
     "PAPAFOXX: 'I don't do auditions, baby - I do STRESS TESTS. Beat me and I carry your morale FOREVER. Lose, and you're ALL going in the special.'",
     "PAPAFOXX: '"+FOXX_LINES.recruit[0]+"'"],
     ()=>ask("The snapback rotates backward. Fight the Wizard Comedian?", ["🎤 Square up","Let him sleep"], i=>{ if(i===0) startBattle("papafoxx","7,1"); })); return; }
@@ -2614,7 +2803,8 @@ const DROPS={
  monolith:{sigils:2}, h1:{sigils:1}, h2:{sigils:1}, h3:{sigils:1}, h4:{sigils:1}, h5:{sigils:2},
  retroboss:{traces:2}, patient0:{traces:2,sigils:2}, unknown:{sigils:3}, retrystorm:{metrics:2,sigils:3}, papafoxx:{logs:2},   // his set notes
  packetshark:{logs:1}, botnet:{metrics:1}, phish:{traces:1}, ransomworm:{metrics:2},
- zeroday:{metrics:2,sigils:1}, nullbyte:{sigils:2}, nullroot:{sigils:3}, promptinj:{traces:2,sigils:1}, halluc:{logs:2,sigils:1}, misaligned:{sigils:4} };
+ zeroday:{metrics:2,sigils:1}, nullbyte:{sigils:2}, nullroot:{sigils:3}, promptinj:{traces:2,sigils:1}, halluc:{logs:2,sigils:1}, misaligned:{sigils:4},
+ architect:{logs:1}, echobyte:{metrics:2,sigils:2}, echoprime:{traces:2,sigils:2}, nullredux:{metrics:2,sigils:3} };
 const SKLCURVE=[0,10,26,50,86,140];
 function addSkillXP(which,n){ const sk=S.skills[which]; sk.xp+=n;
   while(sk.lv<SKLCURVE.length && sk.xp>=SKLCURVE[sk.lv]){ sk.lv++;
@@ -3321,7 +3511,7 @@ function packSize(stage, foeId){
   const roll=rng();
   const n = roll<row[0] ? 1 : (roll<row[1] ? 2 : (roll<row[2] ? 3 : 4));
   // The party always outnumbers the room. The first version of this rule allowed an EVEN
-  // fight, and an even fight is lethal for a HERO and one Ranger with no healer - once the
+  // fight, and an even fight is lethal for a HERO and one Architect with no healer - once the
   // simulator was fixed to let every body in a pack actually swing, that opening walk was
   // wiping about one run in five. Every other walk passed.
   //
@@ -3880,8 +4070,13 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
   if(LESSONS[b.id] && !(S.lesson&&S.lesson[b.id])){ S.lesson=S.lesson||{}; S.lesson[b.id]=1;
     pre.push("<div style='border:2px solid var(--teal);border-radius:8px;padding:5px 9px;margin:4px 0'><b class='gold'>"+LESSONS[b.id].t+"</b><br><span class='mut'>"+LESSONS[b.id].d+"</span></div>"); }
   { const card=retroCard(b.id); if(card) pre.push(card); }
+  { const card=sentCard(b.id); if(card) pre.push(card); }
   if(b.def.elite || b.def.superboss || b.id==="monolith" || /^h\d/.test(b.id)){
-    const duet=retroFoxxDuet(); if(duet) pre.push("<span class='mut'>"+duet+"</span>"); }
+    // two double acts, one stage: alternate who gets the post-boss bit, and fall back to
+    // whichever pair is actually in the room
+    const alt=((S.duetN=(S.duetN||0)+1)%2)===1;
+    const duet=(alt? archFoxxDuet() : retroFoxxDuet()) || (alt? retroFoxxDuet() : archFoxxDuet());
+    if(duet) pre.push("<span class='mut'>"+duet+"</span>"); }
   const dropTxt=grantDrops(b.id, ((b.foes||[b]).length)); if(dropTxt) pre.push(dropTxt);
   if(S.party.includes("papafoxx") && S.actors.papafoxx && !S.actors.papafoxx.ko && b.id!=="dummy"){
     pre.push("<span class='mut'>"+foxxVictoryLine()+"</span>"); }
@@ -3901,6 +4096,8 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
         ()=>{ saveGame(0); runChain(chainNext||[{en:"nullroot"}]); }); return; }
       panelSay(buildCageBeats(),
       ()=>{ joinSharon(); saveGame(0); runChain(chainNext||[{en:"nullroot"}]); }); return; }
+    if(b.id==="nullredux"){ S.worldClass=1; saveGame(0);
+      panelSay(buildWorldClassBeats(), ()=>{ sfx("win"); toast("🌍 WORLD CLASS"); saveGame(0); render(); }); return; }
     if(rec && !S.party.includes(rec.id)){ S.party.push(rec.id);
       S.actors[rec.id]=mkActor(rec.id, hero().lv);
       if(rec.id==="papafoxx"){ panelSay(buildFoxxJoinBeats(),
@@ -3968,7 +4165,7 @@ function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("cen
       else { sfx("lose"); openShopNote("PEG: 'Not enough materials yet - the field provides. Logs in the grass, ore in the caverns, herbs where things grow.'"); } return; }
     const id=btn.dataset.buy, it=IT[id];
     if(it.type!=="use" && (S.items[id]||0)>0){ sfx("lose"); openShopNote("PEG: 'You already own that, friend. Gear is unique around here.'"); return; }
-    if(S.tokens<it.price){ sfx("lose"); openShopNote("PEG: 'Not enough ⛁, friend. Foes drop budget - so does the Ranger's AUDIT.'"); return; }
+    if(S.tokens<it.price){ sfx("lose"); openShopNote("PEG: 'Not enough ⛁, friend. Foes drop budget - so does the Architect's AUDIT.'"); return; }
     S.tokens-=it.price; S.items[id]=(S.items[id]||0)+1; sfx("coin"); render(); openShopNote("PEG: '"+it.name+", good choice. Anything else?'"); }); }
 function openShopNote(m){ openShop(); const note=document.createElement("div"); note.className="mut"; note.style.marginTop="4px"; note.textContent=m; box.appendChild(note); }
 function openArmory(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("center");
@@ -4147,7 +4344,7 @@ function startFinale(){
         i=>{ if(i===0) ending(); else if(i===1) startBattle("unknown", null); }); return; }
     ask("Atop the Citadel, the air itself feels… unmapped. Face THE UNKNOWN UNKNOWN? (superboss - bring everything)",
       ["FIGHT - the true test","Not yet"], i=>{ if(i===0) startBattle("unknown", null); }); return; }
-  if(!coreFourIn()){ say(["THE MONOLITH: 'ALONE? RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.'","(Recruit all four named specialists - Ranger, Wizard, Slayer, Tank - before the finale. Friends beyond them are welcome, not substitutes.)"]); return; }
+  if(!coreFourIn()){ say(["THE MONOLITH: 'ALONE? RETURN WHEN YOU UNDERSTAND WHAT A SYSTEM IS.'","(Recruit all four named specialists - Architect, Wizard, Slayer, Tank - before the finale. Friends beyond them are welcome, not substitutes.)"]); return; }
   say(REVEAL, ()=>{ S.stage=Math.max(S.stage,3); chapterCard(3); saveGame(0);
     runChain(FINALE_CHAIN.slice()); }); }
 function allLootDone(){ let need=0, got=0;
@@ -4174,7 +4371,7 @@ function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
   if(better){ best={score:score, grade:grade, ms:S.playMs};
     try{ localStorage.setItem("aiquest_best", JSON.stringify(best)); }catch(e){} }
   const bmin=Math.floor(best.ms/60000), bsec=Math.floor(best.ms/1000)%60;
-  M.shareText="⚔️ AI Quest: SEV-1 - MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+(S.fieldCert?" · 🎖 FIELD CERTIFIED":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · eight classes, dual techs, time travel, a rescue inside the internet - the final boss is a major incident. Can you beat it? Race my exact seed: https://lzbiala.github.io/game.html?seed="+S.seed;
+  M.shareText="⚔️ AI Quest: SEV-1 - MTTx GRADE "+grade+(S.superWon?"☆":"")+(S.wizard?" · 🧙 AI WIZARD":"")+(frontierDone()?" · 🤖 FRONTIER":"")+(S.fieldCert?" · 🎖 FIELD CERTIFIED":"")+(S.worldClass?" · 🌍 WORLD CLASS":"")+" in "+min+":"+pad(sec)+" (seed #"+S.seed+") · "+S.deaths+" defeats · eight classes, dual techs, time travel, a rescue inside the internet - the final boss is a major incident. Can you beat it? Race my exact seed: https://lzbiala.github.io/game.html?seed="+S.seed;
   saveGame(0); ov.hidden=false; ov.classList.remove("center"); M.state="end"; sfx("level");
   box.innerHTML="<b class='gold'>👑 INCIDENT RESOLVED - MTTx: LEGENDARY</b>"+
   "<div style='border:2px solid var(--gold);border-radius:8px;padding:8px 12px;margin:8px 0'>"+
@@ -4343,13 +4540,18 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
           if(!S.party.includes("lito")) panelSay(buildLitoJoinBeats(), ()=>{ joinLito(); saveGame(0); toast("★ LITO joins the party - the Systems Thinker"); render(); }); }); return; }
       if(npc.name==="THE GUIDE" && deployOpen()){
         const rows=DEPLOY.map(d=>(deployDone(d.id)?(S.deploy[d.id]===1?"✅ ":"◑ "):"▸ ")+d.title+" - "+d.client);
+        // once the team is FIELD CERTIFIED with the full roster, the pager carries one more
+        // page: THE GRAND STAGE. Inserted BEFORE "(not today)" so no existing index moves.
+        const gOpen=grandOpen();
+        if(gOpen) rows.push((S.worldClass?"🏆 ":"🌍 ")+"THE GRAND STAGE - the world is watching");
         ask("📟 THE PAGER, powered back on. <span class='mut'>Five teams, none of them on fire. This part is optional - the story ended at the credits.</span>",
           rows.concat(["(not today - just talk)"]),
           // backing out gives him his own lines back. Without this the board returns early
           // and guideLines() is unreachable forever after the credits - the man who spends
           // the whole game telling you to go and look would have been silenced by a menu.
-          i=>{ if(i>=DEPLOY.length){ say(guideLines(S.stage)); return; }
-               runDeploy(DEPLOY[i].id); }); return; }
+          i=>{ if(i<DEPLOY.length){ runDeploy(DEPLOY[i].id); return; }
+               if(gOpen && i===DEPLOY.length){ grandStage(); return; }
+               say(guideLines(S.stage)); }); return; }
       if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; chapterCard(1); saveGame(0); render(); }); return; }
       if(npc.name==="THE GUIDE"){ say(guideLines(S.stage)); return; }
       say(npc.lines); return; }
@@ -7427,9 +7629,12 @@ const TESTS = [
         hangoutTalk(npc);
         const after=(S.arc&&S.arc.retro)||0;
         if(after!==before) seen.push(after); }
-      // four beats, strictly ascending, none repeated
-      const ok = seen.length===4 && seen.join()==="1,2,3,4";
-      if(!ok) console.log("arc beats fired:", seen.join(",")||"none");
+      // six beats on friendship alone, strictly ascending; the seventh waits for the stage
+      const friendship = seen.length===6 && seen.join()==="1,2,3,4,5,6";
+      S.worldClass=1; hangoutTalk(npc);
+      const epilogue = ((S.arc&&S.arc.retro)||0)===7;
+      const ok = friendship && epilogue;
+      if(!ok) console.log("arc beats fired:", seen.join(",")||"none", "epilogue:", epilogue);
       return ok;
     } finally { window.say=sy; S=sb; } }],
 
@@ -7503,9 +7708,14 @@ const TESTS = [
 
  ["the arc says what it is about, in his voice", ()=>{
     const all=RETRO_ARC.map(b=>b.lines.join(" ")).join(" ");
-    const beats=RETRO_ARC.length===4;
-    // the three things the arc exists to land
+    // seven beats now: the mask, the Cleric, the incident, the letting-go - then what he
+    // does with the empty belt, the stopwatch confession, and her name on the timeline
+    const beats=RETRO_ARC.length>=7;
+    // the things the arc exists to land, old and new
     const mask=/mask/i.test(all), cleric=/Cleric/.test(all), numbers=/number/i.test(all);
+    const passesOn=/MEND/.test(all), stopwatch=/stopwatch|timed you/i.test(all), timeline=/timeline/i.test(all);
+    if(!(passesOn&&stopwatch&&timeline)) console.log("arc growth:", {passesOn, stopwatch, timeline});
+    if(!(passesOn&&stopwatch&&timeline)) return false;
     // and the house style: hyphens only, no slop
     const dash=/[\u2013\u2014]/.test(all);
     const slop=/(delve|seamless|cutting-edge|tapestry|testament|game-changer)/i.test(all);
@@ -8567,6 +8777,187 @@ const TESTS = [
       if(!MEMBERS[z.recruitAfter[k].id]) bad.push(z.name+": recruits a stranger at "+k); }));
     if(bad.length) console.log("recruits wired to nothing:", bad.join(" | "));
     return checked>=4 && bad.length===0; }],
+
+ // ================= THE ARCHITECT + THE GRAND STAGE (written RED-first) =================
+ // Spec and rubric: vault projects/career/spec-grand-stage-piccolo-2026-08-24.md.
+ // SENTINEL keeps every combat number (the simulator holds them from the other side);
+ // what changes is who he is: the Architect you must beat to be mentored by.
+
+ ["the Slayer's last beat waits for the world stage", ()=>{
+    // A beat can be gated on the STORY, not only on friendship: the epilogue where her
+    // name goes on the timeline must not fire before the team is world class.
+    const gated=RETRO_ARC.filter(b=>typeof b.when==="function");
+    if(gated.length<1) return false;
+    const sb=S, sy=window.say, sg=window.saveGame;
+    S=NEWS();
+    try{
+      window.say=(l,cb)=>{ if(cb) cb(); }; window.saveGame=()=>{};
+      S.party=["retro"]; S.actors.retro=mkActor("retro",10);
+      S.bond={retro:99}; S.arc={retro:RETRO_ARC.length-1};   // standing at the final beat
+      S.worldClass=0;
+      const before=retroBeat();
+      S.worldClass=1;
+      const after=retroBeat();
+      const ok = before===false && after===true && S.arc.retro===RETRO_ARC.length;
+      if(!ok) console.log("gated beat:", {before, after, at:S.arc.retro});
+      return ok;
+    } finally { window.say=sy; window.saveGame=sg; S=sb; } }],
+
+ ["the double act grew, and the new bits keep the clean-room rules", ()=>{
+    if(DUETS.length<12) return false;
+    const fresh=DUETS.slice(9).map(b=>b.join(" ")).join(" ");
+    return !/[\u2013\u2014]/.test(fresh) && !fresh.includes("#"+"$%") &&
+      DUETS.slice(9).every(b=>b.some(l=>l.indexOf("RETROLISTIC:")===0) && b.some(l=>l.indexOf("PAPAFOXX:")===0)); }],
+
+ ["the road to the plains is guarded by the Architect himself", ()=>{
+    const e=EN.architect;
+    if(!e) return false;
+    const duel = Z[1].battles && Z[1].battles["9,4"]==="architect";
+    const rec = Z[1].recruitAfter && Z[1].recruitAfter["9,4"] && Z[1].recruitAfter["9,4"].id==="sentinel";
+    // winnable by the rookie who reaches it: low hp, low atk, none of the gimmicks that
+    // demand a full toolbox
+    const fair = e.hp<=34 && e.atk<=3 && !e.regen && !e.multi && !e.foggy && typeof e.spd==="number";
+    const looksLikeHim = e.spr==="sentinel" && e.ai==="smart";
+    if(!(duel&&rec&&fair&&looksLikeHim)) console.log("architect:", {duel, rec, fair, looksLikeHim, e:!!e});
+    return duel && rec && fair && looksLikeHim; }],
+
+ ["beating the Architect is what recruits him", ()=>{
+    const sb=S, sy=window.say, sp=window.panelSay, sg=window.saveGame, sf=window.sfx, st=window.setTimeout;
+    S=NEWS();
+    try{
+      window.setTimeout=()=>0; window.say=(l,cb)=>{ if(cb) cb(); };
+      window.panelSay=(b,cb)=>{ if(cb) cb(); }; window.saveGame=()=>{}; window.sfx=()=>{};
+      S.z=1; S.party=[]; M.state="explore";
+      startBattle("architect","9,4");
+      M.b.hp=0; M.b.foes.forEach(f=>{ f.hp=0; });
+      winBattle();
+      const joined=S.party.includes("sentinel") && !!S.actors.sentinel;
+      if(!joined) console.log("the duel did not recruit:", S.party.join(","));
+      return joined;
+    } finally { window.say=sy; window.panelSay=sp; window.saveGame=sg; window.sfx=sf;
+      window.setTimeout=st; M.b=null; M.state="test"; S=sb; } }],
+
+ ["no Ranger remains: he is the Solutions Architect everywhere a player reads", ()=>{
+    const cls = MEMBERS.sentinel && MEMBERS.sentinel.cls==="Solutions Architect";
+    const left = (prodSource().match(/\bRanger\b/g)||[]).length;
+    if(!cls||left) console.log("cls:", MEMBERS.sentinel && MEMBERS.sentinel.cls, "Ranger x"+left);
+    return cls && left===0; }],
+
+ ["the sprite wears the turban now, not the old tan face", ()=>{
+    const g=SPR.sentinel.join("");
+    const ok = SPR.sentinel.length===16 && /w/.test(g) && /P/.test(g) && /g/.test(g)
+      && /b/.test(g) && !/s/.test(g);
+    if(!ok) console.log("sentinel sprite: turban(w,P)", /w/.test(g)&&/P/.test(g), "skin(g)", /g/.test(g), "sash(b)", /b/.test(g), "old tan gone", !/s/.test(g));
+    return ok; }],
+
+ ["the Architect and the comedian riff, the room laughs, and it takes two", ()=>{
+    if(typeof ARCH_DUETS==="undefined" || ARCH_DUETS.length<8) return false;
+    const pool=ARCH_DUETS.map(b=>b.join(" ")).join(" ");
+    const clean = !/[\u2013\u2014]/.test(pool) && !pool.includes("#"+"$%") && !/he\/they/i.test(pool);
+    const twoVoices = ARCH_DUETS.every(b=>b.some(l=>l.indexOf("PAPAFOXX:")===0) && b.some(l=>l.indexOf("SENTINEL:")===0));
+    const laughs = ARCH_DUETS.every(b=>b.some(l=>/LMAO|ROFL|JAJA|😂/.test(l)));
+    // the laugh belongs to the ROOM, never to the two comedians themselves
+    const laughersOk = ARCH_DUETS.every(b=>b.filter(l=>/LMAO|ROFL|JAJA/.test(l))
+      .every(l=>l.indexOf("PAPAFOXX:")!==0 && l.indexOf("SENTINEL:")!==0));
+    const sb=S; S=NEWS();
+    let solo, duo;
+    try{
+      S.party=["papafoxx"]; S.actors.papafoxx=mkActor("papafoxx",5);
+      solo=archFoxxDuet();
+      S.party=["papafoxx","sentinel"]; S.actors.sentinel=mkActor("sentinel",5);
+      duo=archFoxxDuet();
+    } finally { S=sb; }
+    const gates = solo===null && typeof duo==="string" && duo.length>0;
+    if(!(clean&&twoVoices&&laughs&&laughersOk&&gates)) console.log("duets:", {clean, twoVoices, laughs, laughersOk, gates});
+    return clean && twoVoices && laughs && laughersOk && gates; }],
+
+ ["the Architect teaches the pillars, one card per boss, each exactly once", ()=>{
+    if(typeof SENT_ARCH==="undefined") return false;
+    const keys=Object.keys(SENT_ARCH);
+    const shaped = keys.length>=6 && keys.every(k=>SENT_ARCH[k].t && SENT_ARCH[k].d && SENT_ARCH[k].d.length>=200);
+    const disjoint = keys.every(k=>!RETRO_PM[k]);    // never two teachers on one corpse
+    const sb=S; S=NEWS();
+    let without, first, second;
+    try{
+      S.party=[]; without=sentCard(keys[0]);
+      S.party=["sentinel"]; first=sentCard(keys[0]); second=sentCard(keys[0]);
+    } finally { S=sb; }
+    const fires = without===null && typeof first==="string" && second===null;
+    if(!(shaped&&disjoint&&fires)) console.log("SENT_ARCH:", {shaped, disjoint, fires, n:keys.length});
+    return shaped && disjoint && fires; }],
+
+ ["the GRAND STAGE opens only for the certified full team", ()=>{
+    if(typeof grandOpen!=="function") return false;
+    const sb=S; S=NEWS();
+    try{
+      const shut=grandOpen();
+      S.fieldCert=1; S.party=["sentinel","wiki","retro","refuter","papafoxx","lito","sharon"];
+      S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true; S.cleared["11:5,5"]=true;
+      const open=grandOpen();
+      S.party=S.party.filter(id=>id!=="sharon");
+      const noSharon=grandOpen();
+      if(!(shut===false && open===true && noSharon===false)) console.log("gate:", {shut, open, noSharon});
+      return shut===false && open===true && noSharon===false;
+    } finally { S=sb; } }],
+
+ ["the exhibition escalates: copycat, stolen playbook, then the licensed red team", ()=>{
+    const a=EN.echobyte, b2=EN.echoprime, c=EN.nullredux;
+    if(!a||!b2||!c) return false;
+    const rises = a.hp<=b2.hp && b2.hp<=c.hp && a.atk<=b2.atk && b2.atk<=c.atk;
+    const speeds = [a,b2,c].every(e=>typeof e.spd==="number");
+    const taught = [a,b2,c].every(e=>e.tip && e.tip.length>20 && e.intro);
+    const chain = typeof grandChain==="function" && (()=>{ const ids=grandChain().filter(s=>s.en).map(s=>s.en);
+      return ids.length===3 && ids[0]==="echobyte" && ids[1]==="echoprime" && ids[2]==="nullredux"; })();
+    if(!(rises&&speeds&&taught&&chain)) console.log("stage chain:", {rises, speeds, taught, chain});
+    return rises && speeds && taught && chain; }],
+
+ ["the cinematic is an ensemble: every companion speaks before and after", ()=>{
+    if(typeof buildGrandBeats!=="function" || typeof buildWorldClassBeats!=="function") return false;
+    const sb=S; S=NEWS();
+    try{
+      S.party=["sentinel","wiki","retro","refuter","papafoxx","lito","sharon"];
+      const pre=buildGrandBeats(), post=buildWorldClassBeats();
+      const txt=(bs)=>bs.map(x=>x.t).join(" ");
+      const bad=[];
+      S.party.forEach(id=>{ const nm=MEMBERS[id].name;
+        if(txt(pre).indexOf(nm)<0) bad.push(nm+" is silent before");
+        if(txt(post).indexOf(nm)<0) bad.push(nm+" is silent after"); });
+      if(pre.length<12) bad.push("only "+pre.length+" beats before");
+      if(post.length<10) bad.push("only "+post.length+" beats after");
+      const laugh=/LMAO|ROFL|JAJA|😂/.test(txt(pre));
+      if(!laugh) bad.push("nobody laughs on the way in");
+      if(bad.length) console.log("ensemble:", bad.join(" | "));
+      return bad.length===0;
+    } finally { S=sb; } }],
+
+ ["the Stage fires its cinematic once, and victory declares the team WORLD CLASS", ()=>{
+    const sb=S, sy=window.say, sp=window.panelSay, sg=window.saveGame, sm=window.playMusic, st=window.setTimeout;
+    S=NEWS();
+    try{
+      window.setTimeout=()=>0; window.saveGame=()=>{}; window.playMusic=()=>{};
+      let panels=0, chained=null;
+      window.panelSay=(b,cb)=>{ panels++; };            // hold the chain: we only count
+      window.say=(l,cb)=>{ if(cb) cb(); };
+      S.fieldCert=1; S.party=["sentinel","wiki","retro","refuter","papafoxx","lito","sharon"];
+      S.party.forEach(id=>{ S.actors[id]=mkActor(id,20); });
+      S.cleared["9:5,6"]=true; S.cleared["10:6,6"]=true; S.cleared["11:5,5"]=true;
+      grandStage(); const firstRun=panels;
+      grandStage(); const secondRun=panels;
+      const once = firstRun===1 && secondRun===1 && S.grandSeen===true;
+      // victory: the last form falling is what makes it official
+      S.z=0; M.state="battle";
+      startBattle("nullredux", null);
+      M.b.hp=0; M.b.foes.forEach(f=>{ f.hp=0; });
+      winBattle();
+      const declared = S.worldClass===1;
+      // and the share card carries it
+      window.panelSay=(b,cb)=>{ if(cb) cb(); };
+      S.won=true; ending();
+      const badge = (M.shareText||"").indexOf("WORLD CLASS")>=0;
+      if(!(once&&declared&&badge)) console.log("stage:", {firstRun, secondRun, declared, badge});
+      return once && declared && badge;
+    } finally { window.say=sy; window.panelSay=sp; window.saveGame=sg; window.playMusic=sm;
+      window.setTimeout=st; M.b=null; M.state="test"; S=sb; } }],
 
  ["the Slayer still talks like himself", ()=>{
     // He contracts in ordinary speech and stops at the grief peaks. That contrast is the
