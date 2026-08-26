@@ -214,6 +214,28 @@ if stated:
           f"game says {', '.join(wrong)}; the table sums to {table_sum:,}"
           if wrong else "the game no longer quotes the figure in a form this can read")
 
+# 12b. The landing page's roster claim tracks the shipped roster.
+# It said "a roster of nine" for weeks after the Cleric was merged away and the roster
+# became eight - the exact number the game's own menu shows anyone who recruits everyone.
+# The claim is now derived: count the members table, require the page to state that number.
+WORDS = {7: "seven", 8: "eight", 9: "nine", 10: "ten"}
+mem_block = game_txt[game_txt.index("const MEMBERS = {"):game_txt.index("// ================= DATA: skills")]
+roster_n = len(re.findall(r"^ (\w+):\{ name:\"", mem_block, re.M))
+check("the members table still parses", 6 <= roster_n <= 12, f"counted {roster_n}")
+if roster_n in WORDS:
+    check(f"the landing page says the roster is {WORDS[roster_n]}",
+          f"roster of {WORDS[roster_n]}" in index,
+          f"the game ships {roster_n} members; index.html says otherwise")
+    stale_words = [w for n, w in WORDS.items() if n != roster_n and f"roster of {w}" in index]
+    check("no stale roster count survives anywhere on the page", not stale_words,
+          f"still says roster of {', '.join(stale_words)}")
+# And the page may not pin the in-game test count: the suite partly GENERATES its entries
+# at load, so no static count can verify a pinned number - the title screen shows it live
+# instead. A pinned "ships NNN of its own tests" is a number nobody can regenerate.
+check("the page does not pin the live test count",
+      not re.search(r"ships \d+ of its own tests", index),
+      "quote the live screen, not a number that rots")
+
 # 13. The mutation catalogue has to stay runnable.
 # tools/mutation-lab.html publishes a kill rate against tools/mutations.json, and that number
 # is only meaningful if every seeded defect still applies to the file it targets. A mutation
