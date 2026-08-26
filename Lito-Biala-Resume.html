@@ -88,12 +88,13 @@
 
 <h2>Public AI Evaluation &amp; Reliability Portfolio &nbsp;·&nbsp; github.com/LZBiala &nbsp;·&nbsp; lzbiala.github.io</h2>
 <ul>
-  <li><b>wiki-memory-lab:</b> agent-memory evaluation framework; selective recall at 0.61× the tokens of the full-context baseline, with the loss trade-off (1.27×) measured and published rather than hidden.</li>
-  <li><b>agent-mutation-lab:</b> behavioral defect-detection harness; caught 9/10 planted defects at the planted line (within two lines), with 0 false alarms on byte-identical clean controls; a separate best-of-k study shows nine independently-noised copies climb exactly as the jury arithmetic predicts while a copycat control stays flat.</li>
+  <li><b>oncall-router-mcp:</b> MCP server for incident routing; five tools, every one fails closed; the fifth, mttx_review, measures where an incident's minutes went (Detect, React, Mitigate) and routes to the tool that shrinks the dominant phase - no grade, by design; zero dependencies, no network, no keys; CI regenerates the docs transcript so docs cannot drift from code.</li>
+  <li><b>wiki-memory-lab:</b> agent-memory evaluation framework; selective recall at 0.61× the tokens of the full-context baseline; the 1.27× losing case measured and published.</li>
+  <li><b>agent-mutation-lab:</b> behavioral defect-detection harness; caught 9/10 planted defects at the planted line (within two lines), with 0 false alarms on byte-identical clean controls; best-of-k: nine independently-noised copies climb as the jury arithmetic predicts, a copycat control stays flat.</li>
   <li><b>adversarial-chambers:</b> proposer, skeptic, and judge with no role played twice; instruction-flip test on two scripted judges, true by construction: an evidence-led judge flips 0/8 verdicts, a deferential judge flips 3/8, exactly the ambiguous items. Proves the instrument detects instruction sensitivity, not that any live judge passes.</li>
   <li><b>memory-repair-lab:</b> placebo-controlled self-repair evaluation; 8/10 to 10/10 on a held-out split sealed before generation zero.</li>
 </ul>
-<p class="stack">All four are CI-verified on Windows and Linux: the build fails if a measured claim drifts from regenerated data. Each ships a walkthrough a stakeholder can click through.</p>
+<p class="stack">All five are CI-verified on Windows and Linux: the build fails if a measured claim drifts from regenerated data. Each ships a walkthrough a stakeholder can click through.</p>
 
 <h2>Professional Experience</h2>
 
@@ -136,16 +137,7 @@
   <p class="rline">Incident and problem management for production applications under SRE, ITIL, and ITSM practice.</p>
 </div>
 
-<div class="role compact">
-  <div class="rhead">
-    <span class="rtitle">Software Product Analyst</span>
-    <span class="rdate">Mar 2021 - Jan 2022</span>
-  </div>
-  <div class="rsub">Wells Fargo, Strategy, Digital &amp; Innovation</div>
-  <p class="rline">Monitored internal API health through dashboards and data solutions; surfaced persistent performance issues from historical trends.</p>
-</div>
-
-<p class="stack">Earlier people-leadership and operations roles - full history on LinkedIn.</p>
+<p class="stack">Earlier roles, including API-health analytics (Software Product Analyst, 2021) and people leadership - full history on LinkedIn.</p>
 
 <h2>Selected Enterprise AI Initiatives (2026)</h2>
 
