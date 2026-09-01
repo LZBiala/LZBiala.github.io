@@ -1562,6 +1562,7 @@ const CREDITS = [
  "⚔️ AI QUEST: SEV-1 - SRE Edition",
  "A game about the discipline of trustworthy AI.",
  "Design, writing, code, pixel art, chiptunes & 7,313,561 balance simulations: Lito Zarate Biala - with Claude Code as pair programmer.",
+ "Every one of those battles is checkable: tools/BALANCE-LEDGER.md in the site repo holds the ledger, tools/combat_sim.py re-runs it - a claim nobody can check is just a number in a nice font.",
  "The skills are real practices. The companions are real projects - github.com/LZBiala.",
  "The bosses are real Tuesdays.",
  "No frameworks. No trackers. No API keys. Every real-world number quoted regenerates in CI - except the four-verdict case story, which its own repo labels private work you cannot rerun.",
@@ -2817,6 +2818,56 @@ const ITICON={ coffee:"☕", runbook:"📖", patch:"🩹", cache:"♨️", snooz
  blastmap:"🗺️", freeze:"🧊", rollcall:"📣", wd3:"🪟", bw3:"🔭", sw3:"🚪", lt2:"🔁",
  mic3:"🗒️", gl2:"🧤", rt3:"🪨", bd4:"📯", ch10:"🧿", ar5:"🎒",
  mvigor:"🟢", mfocus:"🟡", mdrain:"🟣", maegis:"🔵" };
+// ---- THE GEAR LADDER (RuneScape metals, real career rungs) ----
+// Seven metals, and each one is a rung of the actual AI-engineering ladder - the climb
+// up the gear tree IS the career, lesson included. Generated from two tables so adding
+// a tier or a member is a data edit, never fourteen new literals.
+const TIERS=[
+ {n:1, metal:"Bronze",  rung:"your first scripts",   lv:1,  atk:1, def:1, spd:0, price:10,
+  d:"everyone's first tool is humble - what matters is that it runs"},
+ {n:2, metal:"Iron",    rung:"junior engineer",      lv:4,  atk:2, def:1, spd:0, price:25,
+  d:"you ship real work now - tests are what make it trustworthy"},
+ {n:3, metal:"Steel",   rung:"mid-level engineer",   lv:8,  atk:3, def:2, spd:0, price:45,
+  d:"you own a service end to end - and the pager that comes with it"},
+ {n:4, metal:"Mithril", rung:"senior engineer",      lv:12, atk:4, def:2, spd:0, price:70,
+  d:"you design for failure before it strikes - lighter, stronger, measured"},
+ {n:5, metal:"Adamant", rung:"staff engineer",       lv:16, atk:5, def:3, spd:0, price:100,
+  d:"your leverage is other engineers - standards, reviews, paved roads"},
+ {n:6, metal:"Rune",    rung:"principal engineer",   lv:20, atk:6, def:3, spd:1, price:140,
+  d:"you set direction across whole systems - the craft is what you say no to"},
+ {n:7, metal:"Dragon",  rung:"world-class engineer", lv:24, atk:7, def:4, spd:1, price:200,
+  d:"you make the field itself better - publish the evals, misses included"}];
+const GEARSETS={
+ hero:    {w:"Keyboard",    wi:"🪓", wv:"kb"},
+ sentinel:{w:"Longbow",     wi:"🪃", wv:"bow"},
+ wiki:    {w:"Index Staff", wi:"📚", wv:"staff"},
+ refuter: {w:"Gavel",       wi:"🔨", wv:"sword"},
+ papafoxx:{w:"Mic",         wi:"📢", wv:"mic"},
+ sharon:  {w:"Gauntlets",   wi:"👊", wv:"glove"},
+ retro:   {w:"Twinblades",  wi:"✂️", wv:"sword"},
+ lito:    {w:"Compass",     wi:"🌀", wv:"staff"} };
+Object.keys(GEARSETS).forEach(id=>{ const g=GEARSETS[id];
+  TIERS.forEach(T=>{ const k="tw"+T.n+id;
+    IT[k]={ name:T.metal+" "+g.w, type:"weapon", price:T.price, atk:T.atk, fits:[id], tier:T.n, tlv:T.lv,
+      d:T.metal.toUpperCase()+" (LV "+T.lv+"+) - "+T.rung+": +"+T.atk+" ATK. "+T.d+"." };
+    ITICON[k]=g.wi; WVIS[k]=g.wv; }); });
+TIERS.forEach(T=>{ const k="ta"+T.n;
+  IT[k]={ name:T.metal+" Plate", type:"armor", price:T.price, def:T.def, spd:T.spd, fits:["hero"], tier:T.n, tlv:T.lv,
+    d:T.metal.toUpperCase()+" (LV "+T.lv+"+) - "+T.rung+": -"+T.def+" damage taken"+(T.spd?", +1 SPEED":"")+". "+T.d+"." };
+  ITICON[k]="⛑️"; AVIS[k]=T.n<=2?"vest":(T.n<=5?"plate":"aegis"); });
+// The gate: a rung is bought by the one who will wear it, at the level that earned it.
+function tierGate(id){ const it=IT[id]; if(!it || !it.tlv) return {ok:false, why:"not a ladder piece"};
+  const holder=it.fits[0], a=S.actors && S.actors[holder];
+  if(!a) return {ok:false, why:"not in the party yet"};
+  if(a.lv<it.tlv) return {ok:false, why:"needs LV "+it.tlv+" - now LV "+a.lv};
+  return {ok:true, why:""}; }
+function tierKey(id, kind, t){ return kind==="armor" ? ("ta"+t) : ("tw"+t+id); }
+function tierOwnedTop(id, kind){ for(let t=7;t>=1;t--){ if(S.items[tierKey(id,kind,t)]>0) return t; } return 0; }
+function tierBest(id, kind){ let best=null;
+  for(let t=tierOwnedTop(id,kind)+1;t<=7;t++){ const k=tierKey(id,kind,t); if(tierGate(k).ok) best=k; }
+  return best; }
+function tierTease(id, kind){ for(let t=tierOwnedTop(id,kind)+1;t<=7;t++){ const k=tierKey(id,kind,t); if(!tierGate(k).ok) return k; }
+  return null; }
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
 function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){
     S.bank[k]=(S.bank[k]||0)+S.items[k]; delete S.items[k]; } }); saveGame(0); }
@@ -4189,6 +4240,15 @@ function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("cen
   let h="<span class='gold'>QUARTERMASTER PEG:</span> 'Budget's tight everywhere - spend yours wisely.'  <b>⛁ "+S.tokens+"</b><div class='choices'>";
   SHOP_STOCK.forEach(id=>{ const it=IT[id]; const own=(it.type!=="use" && (S.items[id]||0)>0)?" <span class='mut'>(owned)</span>":"";
     h+="<button data-buy='"+id+"'><span class='shoprow'><span>"+it.name+own+"</span><span>"+it.price+" ⛁</span></span><span class='mut' style='font-size:.72rem'>"+it.d+"</span></button>"; });
+  h+="<div class='gold' style='margin-top:8px;font-size:.8rem'>🪜 THE GEAR LADDER - Bronze to Dragon, one career rung at a time</div>";
+  ["hero"].concat(S.party||[]).forEach(cid=>{ if(!MEMBERS[cid] || !GEARSETS[cid]) return;
+    ["weapon"].concat(cid==="hero"?["armor"]:[]).forEach(kind=>{
+      const best=tierBest(cid,kind);
+      if(best){ const it=IT[best];
+        h+="<button data-buy='"+best+"'><span class='shoprow'><span>"+(ITICON[best]||"")+" "+it.name+" <span class='mut'>· "+MEMBERS[cid].name+" · tier "+it.tier+"/7</span></span><span>"+it.price+" ⛁</span></span><span class='mut' style='font-size:.72rem'>"+it.d+"</span></button>"; }
+      else { const tease=tierTease(cid,kind);
+        if(tease){ const it=IT[tease];
+          h+="<button disabled><span class='shoprow'><span>🔒 "+it.name+" <span class='mut'>· "+MEMBERS[cid].name+"</span></span><span class='mut'>"+tierGate(tease).why+"</span></span></button>"; } } }); });
   h+="<div class='gold' style='margin-top:8px;font-size:.8rem'>⚒ THE FORGE - 🪵"+S.res.logs+" · ⛏"+S.res.metrics+" · 🌿"+S.res.traces+" · 🔮"+(S.res.sigils||0)+
     " <span class='mut'>· 📡 Observability Lv "+S.skills.obs.lv+" · ⚒ Toolsmithing Lv "+S.skills.forge.lv+(S.skills.forge.lv>=3?" (−1 costs!)":"")+"</span></div>";
   Object.keys(RECIPES).forEach(id=>{ const r=craftCost(id);
@@ -4211,6 +4271,7 @@ function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("cen
     if(btn.dataset.forge){ if(craft(btn.dataset.forge)){ render(); openShopNote("PEG: '"+IT[btn.dataset.forge].name+", forged true. Equip it from the menu!'"); }
       else { sfx("lose"); openShopNote("PEG: 'Not enough materials yet - the field provides. Logs in the grass, ore in the caverns, herbs where things grow.'"); } return; }
     const id=btn.dataset.buy, it=IT[id];
+    if(it.tlv){ const g=tierGate(id); if(!g.ok){ sfx("lose"); openShopNote("PEG: 'The ladder is earned rung by rung, friend - "+g.why+".'"); return; } }
     if(it.type!=="use" && (S.items[id]||0)>0){ sfx("lose"); openShopNote("PEG: 'You already own that, friend. Gear is unique around here.'"); return; }
     if(S.tokens<it.price){ sfx("lose"); openShopNote("PEG: 'Not enough ⛁, friend. Foes drop budget - so does the Architect's AUDIT.'"); return; }
     S.tokens-=it.price; S.items[id]=(S.items[id]||0)+1; sfx("coin"); render(); openShopNote("PEG: '"+it.name+", good choice. Anything else?'"); }); }
@@ -4439,13 +4500,13 @@ function ending(){ S.won=true; S.stage=4; tickClock(); playMusic("ending");
    (S.haxWon? "<span class='mut'>🤖 The frontier stirs: PROMPT INJECTION, THE HALLUCINATION, and THE MISALIGNED wait in the internet. Resolve all three for the FRONTIER ending.</span><br>" : ""))+
   (S.wizard? "<div style='border:2px solid var(--teal);border-radius:8px;padding:6px 10px;margin:6px 0'><b class='gold'>🧙 TRUE ENDING - THE AI WIZARD.</b> Every incident resolved, every era understood, every artifact recovered ("+loot.got+"/"+loot.need+"). The kid who grabbed a keyboard at 2 AM is gone; the engineer who commands the room, cites the evidence, and teaches the next one - that's who's holding the pager now. Ippo would bow.</div>" :
    "<span class='mut'>Completion: artifacts "+loot.got+"/"+loot.need+" · era "+(era?"✔":"✘")+" · superboss "+(S.superWon?"✔":"✘")+" - all three = the TRUE ENDING.</span><br>")+"<br>"+
-  "Your party was a real portfolio: <a href='https://github.com/LZBiala/agent-mutation-lab' style='color:var(--teal)'>agent-mutation-lab</a> · "+
+  "Your party was a real portfolio: <a href='https://github.com/LZBiala/skill-tripwire' style='color:var(--teal)'>skill-tripwire</a> <span class='mut'>(newest - AI safety: a tripwire for poisoned skill files)</span> · "+
+  "<a href='https://github.com/LZBiala/agent-mutation-lab' style='color:var(--teal)'>agent-mutation-lab</a> · "+
   "<a href='https://github.com/LZBiala/wiki-memory-lab' style='color:var(--teal)'>wiki-memory-lab</a> · "+
   "<a href='https://github.com/LZBiala/memory-repair-lab' style='color:var(--teal)'>memory-repair-lab</a> · "+
   "<a href='https://github.com/LZBiala/adversarial-chambers' style='color:var(--teal)'>adversarial-chambers</a> · "+
-  "<a href='https://github.com/LZBiala/oncall-router-mcp' style='color:var(--teal)'>oncall-router-mcp</a> · "+
-  "<a href='https://github.com/LZBiala/skill-tripwire' style='color:var(--teal)'>skill-tripwire</a><br>"+
-  "And the Guide is real: <a href='index.html' style='color:var(--teal)'>lzbiala.github.io</a> · <a href='Lito-Biala-Resume.pdf' style='color:var(--teal)'>resume</a> · <a href='https://www.linkedin.com/in/lzbiala/' style='color:var(--teal)'>LinkedIn</a>"+
+  "<a href='https://github.com/LZBiala/oncall-router-mcp' style='color:var(--teal)'>oncall-router-mcp</a><br>"+
+  "And the Guide is real: <a href='index.html' style='color:var(--teal)'>lzbiala.github.io</a> · <a href='Lito-Biala-Resume.pdf' style='color:var(--teal)'>resume</a> · <a href='https://www.linkedin.com/in/lzbiala/' style='color:var(--teal)'>LinkedIn</a> · <a href='https://github.com/LZBiala/lzbiala.github.io/blob/master/tools/BALANCE-LEDGER.md' style='color:var(--teal)'>every battle's ledger</a>"+
   "<div class='choices'><button data-cr='1'>🎬 CREDITS</button><button data-ng='1'>↻ NEW GAME+</button><button data-ct='1'>▶ KEEP EXPLORING</button></div>";
   const sb=document.getElementById("sharebtn");
   sb.onclick=()=>{ const t=M.shareText;
@@ -5158,6 +5219,35 @@ const TESTS = [
     newGame(true); const skips=M.state!=="intro";
     ov.hidden=true; M.state="test"; M.dlg=null; S=sb; return hasBeats && opens && flows && skips; }],
  ["every item has an inventory icon", ()=>Object.keys(IT).every(id=>ITICON[id])],
+ // ---- THE GEAR LADDER (seven metals, seven rungs of the real AI-engineering career) ----
+ ["the gear ladder is complete: every member has 7 weapon tiers, the hero 7 armor tiers", ()=>{
+    const chars=Object.keys(MEMBERS);
+    return chars.every(id=>TIERS.every(T=>IT["tw"+T.n+id] && IT["tw"+T.n+id].type==="weapon"
+        && IT["tw"+T.n+id].fits.length===1 && IT["tw"+T.n+id].fits[0]===id))
+      && TIERS.every(T=>IT["ta"+T.n] && IT["ta"+T.n].type==="armor"); }],
+ ["every ladder rung teaches: metal, career rung, and lesson in every description", ()=>{
+    return TIERS.every(T=>{ const d=IT["tw"+T.n+"hero"].d, ad=IT["ta"+T.n].d;
+      return d.indexOf(T.metal.toUpperCase())>=0 && d.indexOf(T.rung)>=0 && d.indexOf(T.d)>=0
+        && ad.indexOf(T.rung)>=0 && ad.indexOf(T.d)>=0; }); }],
+ ["the ladder only climbs: weapon atk and armor def never decrease tier to tier", ()=>{
+    const chars=Object.keys(MEMBERS);
+    const wOk=chars.every(id=>{ for(let t=2;t<=7;t++){ if(IT["tw"+t+id].atk<IT["tw"+(t-1)+id].atk) return false; } return true; });
+    let aOk=true; for(let t=2;t<=7;t++){ if(IT["ta"+t].def<IT["ta"+(t-1)].def) aOk=false; }
+    return wOk && aOk; }],
+ ["the level gate holds at the boundary: denied below, allowed at, denied outside the party", ()=>{
+    const sb=S; S=NEWS(); S.actors={ sentinel: mkActor("sentinel",3) }; S.party=["sentinel"]; S.items={};
+    const below=tierGate("tw2sentinel").ok;
+    S.actors.sentinel=mkActor("sentinel",4);
+    const at=tierGate("tw2sentinel").ok;
+    const stranger=tierGate("tw1wiki").ok;
+    S=sb; return !below && at && !stranger; }],
+ ["ladder stats resolve through the real paths: hero S.equip, companion S.gear", ()=>{
+    const sb=S; S=NEWS(); S.actors={ hero: mkActor("hero",24), lito: mkActor("lito",24) }; S.party=["lito"];
+    S.items={ tw7hero:1, tw7lito:1, ta7:1 }; S.equip.weapon="tw7hero"; S.equip.armor="ta7"; S.gear={ lito:"tw7lito" };
+    const h=S.actors.hero, c=S.actors.lito;
+    const ok = atkOf(h)===h.atk+IT.tw7hero.atk && atkOf(c)===c.atk+IT.tw7lito.atk
+      && defOf(h)===IT.ta7.def && spdOf(h)===h.spd+(IT.ta7.spd||0);
+    S=sb; return ok; }],
  ["v7→v8 migration adds bank, materia slots, and grave", ()=>{ const old={v:7,tokens:9,party:[],actors:{hero:mkActor("hero",2)},res:{logs:0,metrics:0,traces:0,sigils:0},stance:"balanced",skills:{obs:{lv:1,xp:0},forge:{lv:1,xp:0}}};
     const s=migrateV7(old);
     return s.v===SAVE_VERSION && s.bank && Object.keys(s.bank).length===0 && Array.isArray(s.materia) && s.materia.length===2 && s.grave===null && s.tokens===9; }],
@@ -5363,8 +5453,16 @@ const TESTS = [
     menuSub("stats");
     const dom=/ATK/.test(document.getElementById("box").textContent) && !!document.getElementById("statdoll");
     M.state="test"; ov.hidden=true; S=sb; return nums && dom; }],
- ["every item icon is unique - a real inventory reads at a glance", ()=>{ const vals=Object.values(ITICON);
-    return new Set(vals).size===vals.length; }],
+ ["every item icon is unique - a ladder line shares one on purpose, and collides with nothing else", ()=>{
+    const lines={}, base=[];
+    Object.keys(ITICON).forEach(id=>{ const m=id.match(/^t([wa])\d(.*)$/);
+      if(m){ const line=m[1]+m[2]; (lines[line]=lines[line]||[]).push(ITICON[id]); }
+      else base.push(ITICON[id]); });
+    if(new Set(base).size!==base.length) return false;
+    const lineIcons=[];
+    for(const k in lines){ const u=new Set(lines[k]); if(u.size!==1) return false; lineIcons.push([...u][0]); }
+    const all=base.concat(lineIcons);
+    return new Set(all).size===all.length; }],
  ["a bag button on the HUD opens the inventory", ()=>{ const sb=S; S=NEWS();
     const btn=document.getElementById("invbtn");
     M.state="explore"; btn.click();
@@ -6630,7 +6728,9 @@ const TESTS = [
     // here rather than being given a hook they do not need.
     const GENERIC=["kb1","kb2","kb3","kb5","rw1","mic1","gl1","sw1","bd1","bd2",
                    "ar1","ar2","ar3","ar5","rar1"];
-    const dead=Object.keys(IT).filter(k=>GENERIC.indexOf(k)<0 && prod.split('"'+k+'"').length-1 < 1);
+    // Ladder pieces are GENERIC by construction: the generator writes atk/def/spd/tlv
+    // and tierGate/tierBest/atkOf read them - same reason the named list exists.
+    const dead=Object.keys(IT).filter(k=>GENERIC.indexOf(k)<0 && !/^t[wa]\d/.test(k) && prod.split('"'+k+'"').length-1 < 1);
     if(dead.length) console.log("items whose effect nothing reads:", dead.join(", "));
     return dead.length===0; }], ["only a speaker tag gets the speaker colour", ()=>{
     const src=String(panelSay);
