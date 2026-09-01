@@ -283,6 +283,16 @@ if cat_path.exists():
           {"author", "independent", "held-out"} <= origins,
           f"origins present: {sorted(origins)}")
 
+# The project count in the prose must match the shipped cards - the four-vs-five drift
+# of 2026-08-31 showed a count with no gate quietly forks across meta/og/thesis/about.
+_cards = index.count('<div class="card"')
+_words = {"four": 4, "five": 5, "six": 6, "seven": 7}
+_claims = re.findall(r"\b(Four|Five|Six|Seven|four|five|six|seven) open-source projects", index)
+check("the copy states the project count somewhere", bool(_claims))
+check("every project-count word matches the shipped cards",
+      all(_words[w.lower()] == _cards for w in _claims),
+      f"copy says {sorted(set(_claims))}, cards: {_cards}")
+
 print()
 if FAILS:
     print(f"{len(FAILS)} FAILED")

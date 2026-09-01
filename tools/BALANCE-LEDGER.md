@@ -26,7 +26,7 @@ sends the design back, not the gate.
 | lab9 round 1 | 256,000 | do the 18 shipped growth-tree nodes hold up, node by node | 3 gates FAILED | `sim-runs/lab9_run.log` |
 | lab9 round 2 | 256,000 | after halving two keystones | 3 gates FAILED | `sim-runs/lab9_run2.log` |
 | lab9 round 3 | 256,000 | after redesigning the observability fork | 2 gates FAILED | `sim-runs/lab9_run3.log` |
-| lab9 round 4 | 256,000 | after the breaker stopped erasing death | **all 7 PASS** | `sim-runs/lab9_run4.log` |
+| lab9 round 4 | 256,000 | after the breaker stopped erasing death | **all 7 PASS** (verdict is sample-size-dependent - see OPEN 2026-08-31) | `sim-runs/lab9_run4.log` |
 | lab10 round 1 | 102,400 | is the incident-response kit worth carrying | K1 FAILED | `sim-runs/lab10_run.log` |
 | lab10 round 2 | 102,400 | after the kit's real lifetimes and numbers | K1 fails by design, K2-K5 pass | `sim-runs/lab10_run2.log` |
 | lab11 baseline | 480,000 | what does a crowded room do to the rooms players walk into | D1 and D3 FAILED | `sim-runs/lab11-lab12-baseline-2026-08-23.log` |
@@ -91,6 +91,17 @@ is now the third time that has been worth more than reading the code again.
 **Until the re-run happens, every pack-era number in the table above should be read as
 carrying an unquantified bias in the party's favour.** The fix for (1) is one line; the cost
 is re-running the campaigns and re-registering the gates, which is a session of its own.
+
+## OPEN: lab9's verdict depends on the sample size, found 2026-08-31
+
+Re-running the ledger's own documented command at different N flips the lab9 verdict on
+Monte-Carlo noise alone: at N=400 (256,000 battles) gate G6 "drama survives" FAILS; at N=800
+(512,000) G6 passes but G7 "forks are real" FAILS; at N=1500 (960,000) both pass. The cause is
+real but small - the two variants differ by about 0.02 turns on the optimal-play axis, so a
+strict-dominance gate sits inside the noise band at small N. The row above keeps its recorded
+verdict because that is what the logged run returned, and it now carries the annotation. The
+fix belongs to the same pre-registered re-run as the two defects above: pin each gate to a
+declared N or a confidence interval, so a verdict names its own resolution.
 
 ## Why the headline number went DOWN
 
