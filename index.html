@@ -288,12 +288,26 @@
 </div>
 
 <section id="work"><div class="wrap">
-  <h2>Four projects, one question</h2>
-  <p class="lead">These four projects aren't a pile of demos - they're a stack. Each layer
-  answers a different form of one question: <em>how do we know it works?</em> Every one
-  runs in seconds with zero API keys (nothing to sign up for or pay for), and every one
-  ships a click-through tour you can hand to any stakeholder.</p>
+  <h2>Five projects, one question</h2>
+  <p class="lead">These five projects aren't a pile of demos - they're a stack. Each layer
+  answers a different form of one question: <em>how do we know it works - and that it's safe
+  to run?</em> Every one runs in seconds with zero API keys (nothing to sign up for or pay
+  for), and every one ships a click-through tour you can hand to any stakeholder.</p>
   <div class="cards">
+    <div class="card">
+      <div class="layer">Safety</div>
+      <h3><a href="https://github.com/LZBiala/skill-tripwire">skill-tripwire</a></h3>
+      <p class="pitch">A tripwire for poisoned skill files. Agents now load skills, tool
+      descriptions, and config files shared online - and a poisoned one carries hidden
+      instructions the model obeys. This scans for the shapes with no honest place in a config
+      file: invisible characters, download-and-run one-liners, over-broad shell grants,
+      read-and-exfiltrate lines. It fails closed, ships as a CLI and an MCP server, and states
+      its own limits in numbers.</p>
+      <div class="num">A million randomized inputs: 0 crashes, 0 hangs, 0 false alarms on 450,346 benign files (reproducible from a fixed seed)</div>
+      <div class="loss">Static detection is a triage floor, not a boundary - it publishes its own misses and says so</div>
+      <div class="go"><a href="https://github.com/LZBiala/skill-tripwire#readme">walkthrough</a>
+        <a href="https://github.com/LZBiala/skill-tripwire">source</a></div>
+    </div>
     <div class="card">
       <div class="layer">Memory</div>
       <h3><a href="https://github.com/LZBiala/wiki-memory-lab">wiki-memory-lab</a></h3>
@@ -346,8 +360,10 @@
   </div>
   <p class="cardnote">Every number above regenerates from scratch on each repo's automated
   build, on Windows and Linux - if a fresh run disagrees with the published claim, the
-  build fails. The bundled agents are deliberately simple scripts, so these numbers prove
-  the measuring instruments, never any AI model's intelligence.</p>
+  build fails. (skill-tripwire's million-input figure is fixed-seed reproducible rather than
+  run on every build - a million scans is too slow for CI - but a smaller run of it is gated
+  there.) The bundled agents are deliberately simple scripts, so these numbers prove the
+  measuring instruments, never any AI model's intelligence.</p>
 
   <div class="tour">
     <p><b>Want the guided tour?</b> Every project explained the way I'd brief a
@@ -362,7 +378,7 @@
   <h2>⚔️ Play the portfolio - AI Quest: SEV-1</h2>
   <p class="lead">An 8-bit adventure where AI engineering is the magic and the final boss
   is a major outage. Recruit a roster of eight and field every one of them at once - four of the
-  companions are the projects above, the rest are their own people - spend the reps you earn
+  companions are projects from above, the rest are their own people - spend the reps you earn
   down one of three growth roads, and run the incident bridge that takes down the five-headed
   Hydra. Clear everything and a post-credits finale opens: THE GRAND STAGE, a live industry
   exercise where the team is measured, not crowned, WORLD CLASS. The balance came out of a

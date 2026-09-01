@@ -88,13 +88,13 @@
 
 <h2>Public AI Evaluation &amp; Reliability Portfolio &nbsp;·&nbsp; github.com/LZBiala &nbsp;·&nbsp; lzbiala.github.io</h2>
 <ul>
-  <li><b>oncall-router-mcp:</b> MCP server for incident routing; five tools, every one fails closed; the fifth, mttx_review, measures where an incident's minutes went (Detect, React, Mitigate) and routes to the tool that shrinks the dominant phase - no grade, by design; zero dependencies, no network, no keys; CI regenerates the docs transcript so docs cannot drift from code.</li>
-  <li><b>wiki-memory-lab:</b> agent-memory evaluation framework; selective recall at 0.61× the tokens of the full-context baseline; the 1.27× losing case measured and published.</li>
+  <li><b>skill-tripwire:</b> a fail-closed scanner for poisoned agent skill and config files (SKILL.md, MCP tool descriptions, CLAUDE.md); catches hidden codepoints, download-and-execute, over-broad shell grants, and exfiltration; CLI and MCP server; a million-input seeded simulation ran 0 crashes and 0 false alarms on 450,346 random benign files; publishes its own false-positive rate and its misses.</li>
+  <li><b>oncall-router-mcp:</b> MCP server for incident routing; five tools, every one fails closed; mttx_review measures where an incident's minutes went (Detect/React/Mitigate) and routes to the tool that shrinks the dominant phase, no grade by design; zero dependencies, no keys; CI-regenerated docs.</li>
   <li><b>agent-mutation-lab:</b> behavioral defect-detection harness; caught 9/10 planted defects at the planted line (within two lines), with 0 false alarms on byte-identical clean controls; best-of-k: nine independently-noised copies climb as the jury arithmetic predicts, a copycat control stays flat.</li>
   <li><b>adversarial-chambers:</b> proposer, skeptic, and judge with no role played twice; instruction-flip test on two scripted judges, true by construction: an evidence-led judge flips 0/8 verdicts, a deferential judge flips 3/8, exactly the ambiguous items. Proves the instrument detects instruction sensitivity, not that any live judge passes.</li>
-  <li><b>memory-repair-lab:</b> placebo-controlled self-repair evaluation; 8/10 to 10/10 on a held-out split sealed before generation zero.</li>
+  <li><b>wiki-memory-lab:</b> agent-memory evaluation; selective recall at 0.61× the tokens of full context, the 1.27× losing case published. <b>memory-repair-lab:</b> placebo-controlled self-repair, 8/10 to 10/10 on a split sealed before generation zero.</li>
 </ul>
-<p class="stack">All five are CI-verified on Windows and Linux: the build fails if a measured claim drifts from regenerated data. Each ships a walkthrough a stakeholder can click through.</p>
+<p class="stack">All six are CI-verified on Windows and Linux: the build fails if a measured claim drifts from regenerated data. Each ships a walkthrough a stakeholder can click through.</p>
 
 <h2>Professional Experience</h2>
 
@@ -150,17 +150,6 @@
   <ul>
     <li><b>Scoring model:</b> defined the delivery plan and the scoring model: versioned rubrics, a standing rule that every root-cause claim cites its supporting evidence, quality checks on preventive actions, and acceptance tests. Outputs ship as advisory, pending human review.</li>
     <li><b>Evidence-aware scoring:</b> designed the model so incomplete or non-evaluable material is never reported as a pass or a fail, which is what made the scores trustworthy enough for people to act on.</li>
-  </ul>
-</div>
-
-<div class="role">
-  <div class="rhead">
-    <span class="rtitle">AI Enablement &amp; Architecture Intelligence</span>
-    <span class="rdate">Wells Fargo</span>
-  </div>
-  <div class="rsub">Enterprise enablement and solution design</div>
-  <ul>
-    <li><b>Enablement:</b> wrote reusable prompt-engineering guidance and coached engineers on responsible human-in-the-loop delivery through pair programming and executive communication.</li>
   </ul>
 </div>
 
