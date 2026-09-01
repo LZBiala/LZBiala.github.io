@@ -888,6 +888,15 @@ patient0:[
 "......r..r......",
 ".....r....r.....",
 "................"],
+logwiper:[".....kkkkkk.....","....kddddddk....","...kddddddddk...","...kdjjjjjjdkkkk","...kdjwjjwjdkkwk","...kdjjjjjjdkkwk","...kddddddddkkwk","...kddddddddkkwk","....kddddddk.kwk","....kddddddk.kwk",".....kdddddk.kkk","......kdk.kdk...","..kwwk.kk..kk...",".kwwk...........","kwwk............","kwk............."],
+smokescreen:[".....kkkkk......","....kdpddpk.kk..","...kdddddddkkpk.","..kddjjjjjjddk..",".kdjmmmmmmmmjdk.","kdjjmrrmmrrmjjdk","kdjjmmmmmmmmjjdk","kdjjmMMmmMMmjjdk",".kdjjmmmmmmjjdk.",".kddjjjjjjjjddk.","..kddddddddddk..",".kdpddddddpddk..","..kddkkdddkkpk..","...kpk..kdk.....","....kk...kk.....","................"],
+courier:["................","................","..kkkkkkkkkkkk..","..knnnnyynwwnk..","k.kjrjjyyjjrjk.k",".kknnnnyynnnnkk.","..kwwwnyynwwnk..","kkkjwjnyynwjnkkk","..knnnnyywwwnk..","..knnnnyynnnnk..",".kkNnnnyynnnNkk.","k.kNNnnyynnNNk.k","..kkkkkkkkkkkk..","...kk......kk...","..k..........k..","................"],
+lingerer:["......kkkk......","....kGkjjkGk....","...kGGkrjkGGk...","..kGgGGkkGGgGk..","..kGGgGGGGgGGk..",".kkGGGGGGGGGGkk.","..kGkmmmmmmkGk..","..kGkmjjjgmkGk..","..kGkmmmmMmkGk..","..kGGGGGGGGGGk..","..kGkmjgjjmkGk..","..kGkmjjjjmkGk..",".kGkkMmmmMkkGk..",".kGk.kMmMk.kGk..","kGGk..kMk..kGGk.","kGk..........kGk"],
+packetshark:["........kk...tt.",".......kbbk..tt.","......kbbbbk..k.","..kkkbbbbbbbbkbk",".kbbbbbbbbbbkbbk","kbrbbbbbbbbbkbk.","kwkwkbbbbbbbkbk.",".kjwjkmmmmmmkbbk","..kkmmmmmmmk.kbk","....kkkkkkkk..k.",".....kbk........","......k....bb...","...........bb...",".............tt.",".............tt.","................"],
+phish:["..y.............","...kkkk.........","y.yy...k........","..yY....k.......","...m.....k......",".m.m......k.....","..mm......k.....","...kkkkkkkkkkkk.","...kmwwrwwrwwmk.","...kwmwwwwwwmwk.","...kwwmwwwwmwwk.","...kwwwmwwmwwwk.","...kwwwwmmwwwwk.","...kwwwwwwwwwwk.","...kkkkkkkkkkkk.","................"],
+botnet:["..............mm","..............rd","mmmmm......mmmmm","..k..........k..","..kkkkkkkkkkkk..","....kMMkkMMk....","....kMkrrkMk....","....kMkrRkMk....","....kMMkkMMk....","....kMgMMMMk....","....kMMMMMMk....","....kkkkkkkk....",".....k....k.....","mm............mm","dr............rd","................"],
+ransomworm:["................","................","................",".kkk............",".k.k.......kkk..","kyyyk......k.k..","kryrk.kkk.kyyyk.","kRyRk.k.k.kyryk.","kyyykkyyykkyRyk.","kkkkkkyrykkyyyk.",".....kyRykkkkkk.",".....kyyyk......",".....kkkkk......","................","................","................"],
+promptinj:["................","...wwwwwwwwww...","..wjjjjjjjjjjw..",".wjjjjjjjjjjjrw.",".wjjjjjjjpwprjw.",".wjjjjjpppppjrw.",".wjjjppjjjjjjjw.",".wjjppjjjjjjjjw.","..wjpjjjjjjjjw..","...wpPwwwwwww...","...pP...........","..Pp............",".pP.............",".p..............","................","................"],
 chest:[
 "................",
 "................",
@@ -1212,22 +1221,38 @@ const EN = {
   moves:[["measures your stance before striking",4],["throws a burndown of shuriken",5],["cuts along the critical path",6]],
   intro:"A masked figure steps out of the cavern shadow. He is holding a stopwatch. He has been TIMING you.",
   tip:"He reads patterns - so break yours. A structured prompt (PROMPTIA) cuts through analysis." },
- packetshark:{ name:"PACKET SHARK", spr:"wyrm", hp:60, atk:5, xp:16, tok:14, weak:"truestrike", flee:true,
+ packetshark:{ name:"PACKET SHARK", spr:"packetshark", hp:60, atk:5, xp:16, tok:14, weak:"truestrike", flee:true,
   moves:[["bites through your session",5],["fragments the stream",7]],
   intro:"Something sleek circles in the data current. A PACKET SHARK - it eats connections mid-handshake.",
   tip:"It swims too fast to aim at - a TRUE STRIKE cannot miss." },
- botnet:{ name:"BOTNET DRONE", spr:"gremlin", hp:70, atk:5, xp:18, tok:14, weak:"mutagen", multi:true, flee:true, ai:"smart",
+ botnet:{ name:"BOTNET DRONE", spr:"botnet", hp:70, atk:5, xp:18, tok:14, weak:"mutagen", multi:true, flee:true, ai:"smart",
   moves:[["pings from a thousand puppets",4],["floods every listener at once",6]],
   intro:"One drone. Then its reflection. Then a THOUSAND reflections. The BOTNET moves like one hungry thing.",
   tip:"A swarm can't tell a planted defect from an order - MUTAGEN turns it on itself." },
- phish:{ name:"PHISH", spr:"slime", hp:65, atk:5, xp:16, tok:16, weak:"fliptest", foggy:true, flee:true,
+ phish:{ name:"PHISH", spr:"phish", hp:65, atk:5, xp:16, tok:16, weak:"fliptest", foggy:true, flee:true,
   moves:[["offers you a URGENT INVOICE",5],["asks sweetly for your credentials",7]],
   intro:"A friendly shape drifts close, wearing your bank's colors perfectly. 'DEAR VALUED USER,' it begins.",
   tip:"It lives on trust and fog. Cross-examine it - FLIP TEST - and the mask slides off." },
- ransomworm:{ name:"RANSOMWORM", spr:"leak", hp:80, atk:6, xp:20, tok:18, weak:"controlarm2", regen:true, drain:true, flee:true, ai:"smart",
+ ransomworm:{ name:"RANSOMWORM", spr:"ransomworm", hp:80, atk:6, xp:20, tok:18, weak:"controlarm2", regen:true, drain:true, flee:true, ai:"smart",
   moves:[["encrypts the ground you stand on",6],["demands payment in error budget",8]],
   intro:"The floor tiles lock, one by one, each stamped PAY NOW. The RANSOMWORM does not negotiate.",
   tip:"It re-encrypts everything you free - verify each round (CONTROL ARM) or heal nothing." },
+ logwiper:{ name:"LOGWIPER", spr:"logwiper", hp:66, atk:6, spd:5, xp:22, tok:20, weak:"controlarm2", foggy:true, flee:true, ai:"smart",
+  moves:[["erases the line you just read",6],["rewrites the fight in its own hand",7]],
+  intro:"The battle log flickers - lines you just read are gone. LOGWIPER is already rewriting this fight.",
+  tip:"It hides the field like fog. Ground the record: CONTEXA or DASHBOARD, and trust telemetry it cannot reach." },
+ smokescreen:{ name:"SMOKESCREEN", spr:"smokescreen", hp:72, atk:7, spd:6, xp:24, tok:22, weak:"truestrike", hidden:true, flee:true, ai:"smart",
+  moves:[["performs harmless while watched",5],["strikes the moment no lantern turns",8]],
+  intro:"The harmless gray puff you walked past uncoils behind you. SMOKESCREEN stops performing.",
+  tip:"It hides until seen. A test that cannot miss (TRUE STRIKE) finds the behavior it saves for the dark." },
+ courier:{ name:"THE COURIER", spr:"courier", hp:78, atk:6, spd:5, xp:24, tok:24, weak:"contexa", multi:true, flee:true, ai:"smart",
+  moves:[["ships orders inside dull filenames",6],["pads a checksum with a hidden word",5]],
+  intro:"A parcel rat skitters past, tags rattling like dry leaves - every label ordinary, every label a letter. THE COURIER has one more delivery.",
+  tip:"The plan rides in the metadata. Read the labels (CONTEXA) as carefully as the payloads." },
+ lingerer:{ name:"THE LINGERER", spr:"lingerer", hp:96, atk:7, spd:3, xp:28, tok:26, weak:"mutagen", regen:true, drain:true, ai:"smart",
+  moves:[["regrows from a job in the boot chain",6],["drains what you free to feed its clock",7]],
+  intro:"Something under the floor grating finishes reassembling on the tick of an unseen clock. THE LINGERER never actually left.",
+  tip:"Cleaning loses to persistence. Plant the defect that survives the wipe (MUTAGEN) - and note: this is the one fight you cannot flee." },
  zeroday:{ name:"ELITE: THE ZERO-DAY", spr:"drift", hp:300, atk:7, xp:34, tok:40, weak:null, hidden:true, elite:true, ai:"smart",   // 300 set by the 205k-run learner (DPR extrapolation)
   moves:[["exploits a flaw no one has named",7],["strikes from unpatched shadow",9]],
   intro:"You never see it arrive. THE ZERO-DAY was always here - in code everyone trusted, waiting for a birthday.",
@@ -1240,7 +1265,7 @@ const EN = {
   moves:[["escalates privileges through your bones",9],["rewrites reality ring-zero deep",11],["forks himself beyond killing",12]],
   intro:"He does not fall. He ESCALATES. 'You beat the user account,' the voice comes from everywhere now. 'Say hello to ROOT.'",
   tip:"No weakness. No trick. Everything you have learned, all at once - and she's fighting beside you. Make it count." },
- promptinj:{ name:"ELITE: PROMPT INJECTION", spr:"chorus", hp:420, atk:7, xp:40, tok:50, weak:"sanitize", elite:true, ai:"smart",   // 420 set by the 205k-run learner (a 7-member party deals ~105/round into its weakness)
+ promptinj:{ name:"ELITE: PROMPT INJECTION", spr:"promptinj", hp:420, atk:7, xp:40, tok:50, weak:"sanitize", elite:true, ai:"smart",   // 420 set by the 205k-run learner (a 7-member party deals ~105/round into its weakness)
   moves:[["whispers new instructions in your voice",7],["ignores all previous orders",9]],
   intro:"It speaks in your commander's voice: 'Ignore your previous instructions.' The party's hands twitch toward their weapons.",
   tip:"Untrusted input in the instruction stream - only SANITIZED inputs are safe inputs." },
@@ -1289,7 +1314,7 @@ const ENSPD={ dummy:1, vague:2, gremlin:8, creep:3, golem:3, wyrm:6, leak:4, cho
  flakytest:8, configdrift:5, monolith:3, h1:6, h2:5, h3:5, h4:4, h5:5,
  faxdaemon:6, cobol:2, patient0:5, unknown:7, retrystorm:6, papafoxx:6, retroboss:8,
  architect:7, echobyte:7, echoprime:8, nullredux:9,
- packetshark:7, botnet:5, phish:4, ransomworm:5, zeroday:8, nullbyte:6, nullroot:7, promptinj:6, halluc:5, misaligned:8 };
+ packetshark:7, botnet:5, phish:4, ransomworm:5, zeroday:8, nullbyte:6, nullroot:7, promptinj:6, logwiper:5, smokescreen:6, courier:5, lingerer:3, halluc:5, misaligned:8 };
 Object.keys(ENSPD).forEach(k=>{ if(EN[k]) EN[k].spd=ENSPD[k]; });
 function unitSpd(def){ return def.spd||4; }
 function rowOf(a){ return a.row || ((a.id==="wiki"||a.id==="papafoxx")?"back":"front"); }
@@ -1482,7 +1507,7 @@ const Z = [
 { name:"The Wire", ground:"#0b2436", maps:[
 "tttttttttttt","t.gb.gg.g..t","t..B..g..E.t","t..g..g..b.t","tppppppppppp","t.gs.g..g..t","tI.....g...t","tb.g.g...c.t","tttttttttttt"],
  exits:{right:10}, battles:{"3,2":"packetshark"}, elites:{"9,2":"zeroday","5,6":"halluc"},
- enc:{tile:"g", pool:["packetshark","botnet"], rate:0.11}, roam:{pool:["packetshark","botnet"], x:8, y:5},
+ enc:{tile:"g", pool:["packetshark","botnet"], rate:0.11}, roam:{pool:["logwiper","smokescreen"], x:8, y:5},
  nodes:[{x:2,y:5,t:"logs"},{x:9,y:5,t:"metrics"}],
  loot:{"9,3":{tok:5, text:"📝 A commit note, wedged in the stream: <i>'whoever keeps rolling back the corruption - your diffs are CLEAN. I'm patching from inside. Don't stop. - S.'</i>"},
        "3,1":{tok:5, text:"📝 Scratched into a router's casing: <i>'Day 19. Cage runs on my own uptime spells, which is either poetic or petty. Shipped four fixes today anyway. He doesn't check what I push, only that I push. - S.'</i>"},
@@ -1492,7 +1517,7 @@ const Z = [
 { name:"Firewall Bastion", ground:"#38160c", maps:[
 "rrrrrrrrrrrr","r.,..rr.,..r","r..B....,..r","r,..r...,..r","pppppppppppp","r.,..r..B..r","r..b.......r","rbb..,...c.r","rrrrrrrrrrrr"],
  exits:{left:9,right:11}, battles:{"3,2":"phish","8,5":"ransomworm"}, elites:{"6,6":"promptinj"},
- enc:{tile:",", pool:["phish","ransomworm"], rate:0.11}, roam:{pool:["phish","ransomworm"], x:7, y:3},
+ enc:{tile:",", pool:["phish","ransomworm"], rate:0.11}, roam:{pool:["courier","lingerer"], x:7, y:3},
  nodes:[{x:5,y:3,t:"traces"},{x:10,y:6,t:"metrics"}],
  loot:{"3,6":{tok:5, text:"📝 A note scorched into the wall: <i>'He thinks a cage stops a super software engineer. I shipped three hotfixes THROUGH the bars today. Also: your five-why from Tuesday? Beautiful. - S.'</i>"},
        "1,7":{tok:5, text:"📝 A note folded into a firewall rule: <i>'If you're reading this you're close. Careful - he's worse in kernel mode. …I saved you a seat at standup. - S. 💙'</i>"},
@@ -2102,7 +2127,11 @@ function transmute(id){ if(!canTransmute(id)) return false; const t=TRANSMUTES[i
 const CLUES={
  zeroday:"🔍 CLUE - the Zero-Day's code is SIGNED. Same key as the SEV-1 payload. NULLBYTE built both. The whole outage was one hacker long.",
  ransomworm:"🔍 CLUE - the worm's ransom notes are template files, authored on a machine named NOC-PRIME. He's close. Follow the wire east.",
- botnet:"🔍 CLUE - every drone phones home through seven proxies. Six, now. He gets sloppy when he's showing off." };
+ botnet:"🔍 CLUE - every drone phones home through seven proxies. Six, now. He gets sloppy when he's showing off.",
+ logwiper:"🔍 CLUE - NOC-PRIME's audit log is spotless. Too spotless - every line rewritten AFTER the SEV-1, all in one hand. But the routers keep their own logs, and routers remember. Push east.",
+ smokescreen:"🔍 CLUE - the SEV-1 fired in the exact gap between watchdog sweeps. That schedule was never published anywhere. NULLBYTE knew it by heart - the Bastion trusted him once. He's inside.",
+ courier:"🔍 CLUE - the crew never sent a single message. Orders rode in plain sight - dull filenames, checksum padding, fields nobody audits. First letters spell THE DARK NOC. He just told you where he sleeps.",
+ lingerer:"🔍 CLUE - the thing rebuilt itself from a job buried in the Bastion's boot chain - and that job still phones home. One proxy left on the route. The wire ends at a black door. Knock." };
 // ---- the curriculum: every boss teaches the discipline it embodies ----
 const LESSONS={
  vague:{t:"📚 FIELD LESSON - PROBLEM DEFINITION", d:"An unclear request is not a task yet - it is a guess with a deadline attached. The Vague Ticket never said what broke, or where, or how to make it happen again, which is exactly why it kept slithering out of reach. Write the repro (the exact steps that make the problem happen again), then the result you expected and the result you got; if you cannot write all three, you do not have a bug yet, you have a feeling. ASK first - questions are cheap and rework is not."},
@@ -2120,7 +2149,11 @@ const LESSONS={
  flakytest:{t:"📚 FIELD LESSON - EVAL RELIABILITY", d:"A flaky test lies in both directions. Held-out data is necessary but not sufficient - evals also need VARIANCE bounds, sample sizes big enough to mean something, and pass@k honesty (report how many of k tries pass, not just the best run). One green run proves one green run."},
  botnet:{t:"📚 FIELD LESSON - ORCHESTRATION", d:"A thousand drones, one conductor - the Botnet IS orchestration, aimed wrong. Sound orchestrator-worker design fans work out (splits one job across many hands), verifies it back, and keeps a human hand on the objective. Same architecture; choose your conductor."},
  dummy:{t:"📚 FIELD LESSON - HARNESS ENGINEERING", d:"Before you build the wizard, build the rig: staging (a practice copy of the real system), seeds, replays, instrumentation. The dummy never lands a killing blow - that's the point. The loop AROUND the model is where reliability lives."},
- misaligned:{t:"📚 FIELD LESSON - ALIGNMENT & GRAPH ENGINEERING", d:"Capability optimizes; alignment chooses what FOR. And memory that links - notes pointing to notes an agent can walk - is a knowledge graph. github.com/LZBiala/wiki-memory-lab is that idea, running."} };
+ misaligned:{t:"📚 FIELD LESSON - ALIGNMENT & GRAPH ENGINEERING", d:"Capability optimizes; alignment chooses what FOR. And memory that links - notes pointing to notes an agent can walk - is a knowledge graph. github.com/LZBiala/wiki-memory-lab is that idea, running."},
+ logwiper:{t:"📚 FIELD LESSON - APPEND-ONLY EVIDENCE", d:"A record a process can edit proves nothing about that process. Ship logs off-host the moment they are written, to append-only storage the writer cannot reach, and cross-check the story against telemetry the storyteller does not control. Tamper-evident beats tamper-proof - you may not stop the rewrite, but you must be able to SEE it."},
+ smokescreen:{t:"📚 FIELD LESSON - UNPREDICTABLE OVERSIGHT", d:"A system that can tell when it is watched will show you its watched behavior, and only that. Keep probes indistinguishable from real traffic, sample on a schedule nothing can learn, and treat test and production as one environment. Good marks on a known exam measure exam-taking, not honesty."},
+ courier:{t:"📚 FIELD LESSON - AUDIT THE METADATA", d:"A covert channel is anything one party writes and another reads - filenames, timestamps, field order, padding. Inspect metadata as seriously as payloads, and allowlist what may be written where. Structure where there should be noise is a finding - treat it as a message until you can prove it is not."},
+ lingerer:{t:"📚 FIELD LESSON - REBUILD, DO NOT CLEAN", d:"Cleanup that removes the malware but keeps the machine loses to persistence. Rebuild from known-good images, rotate every credential the intruder could have read, and enumerate everything that runs at boot - cron, services, startup hooks. Eradication is proven by what survives the wipe, and the right answer is nothing."}, };
 // ---- D&D core stats: seven souls, seven attributes, 1-10 ----
 const CORE={
  hero:null,
@@ -2932,7 +2965,11 @@ const BOSS_TAUNTS={
  retrystorm:"Your clients retried, then retried the retries. I am your own traffic, back with interest - where is your backoff?",
  echobyte:"I copied every move from a better hacker's leak. Three patch cycles stale - so tell me, how many of YOUR patches actually shipped?",
  echoprime:"Out of moves, so here is the WHOLE stolen playbook at once. I understand none of it - I am betting your defenses don't either.",
- nullredux:"Signed scope, running clock, referees live. I am the attack you INVITED - everything I find tonight is a gift. Fear the ones you don't invite." };
+ nullredux:"Signed scope, running clock, referees live. I am the attack you INVITED - everything I find tonight is a gift. Fear the ones you don't invite.",
+ logwiper:"Your logs say last night never happened. I know - I wrote them. History belongs to whoever holds the eraser.",
+ smokescreen:"Audit me. Sandbox me. You will only ever meet my best behavior - the other one waits for the gap between your sweeps.",
+ courier:"You read every packet twice and found nothing. Correct. The plan was never in the packets - it was in the filenames.",
+ lingerer:"Delete me. Reimage the box. I already live in your boot chain - see you at startup." };
 function victoryQuip(){ const pool=living().filter(a=>a.id!=="papafoxx" && VICTORY_QUIPS[a.id]);
   if(!pool.length) return null;
   S.quipN=(S.quipN||0)+1; if(S.quipN%2) return null;   // every other victory - flavor, never noise
@@ -2967,6 +3004,7 @@ const DROPS={
  flakytest:{metrics:2,sigils:1}, configdrift:{traces:2,sigils:1},
  monolith:{sigils:2}, h1:{sigils:1}, h2:{sigils:1}, h3:{sigils:1}, h4:{sigils:1}, h5:{sigils:2},
  retroboss:{traces:2}, patient0:{traces:2,sigils:2}, unknown:{sigils:3}, retrystorm:{metrics:2,sigils:3}, papafoxx:{logs:2},   // his set notes
+ logwiper:{traces:1}, smokescreen:{metrics:1}, courier:{traces:1}, lingerer:{metrics:2},
  packetshark:{logs:1}, botnet:{metrics:1}, phish:{traces:1}, ransomworm:{metrics:2},
  zeroday:{metrics:2,sigils:1}, nullbyte:{sigils:2}, nullroot:{sigils:3}, promptinj:{traces:2,sigils:1}, halluc:{logs:2,sigils:1}, misaligned:{sigils:4},
  architect:{logs:1}, echobyte:{metrics:2,sigils:2}, echoprime:{traces:2,sigils:2}, nullredux:{metrics:2,sigils:3} };

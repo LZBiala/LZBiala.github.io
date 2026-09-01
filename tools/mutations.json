@@ -972,8 +972,8 @@
   {
    "id": "world-roam-spawns-in-signpost",
    "subsystem": "world",
-   "find": "roam:{pool:[\"packetshark\",\"botnet\"], x:8, y:5}",
-   "replace": "roam:{pool:[\"packetshark\",\"botnet\"], x:3, y:5}",
+   "find": "roam:{pool:[\"logwiper\",\"smokescreen\"], x:8, y:5}",
+   "replace": "roam:{pool:[\"logwiper\",\"smokescreen\"], x:3, y:5}",
    "breaks": "The Wire's prowler spawns on 3,5 - the signpost tile, a solid square - so it is drawn inside the scenery, and because interact() checks the roamer before signs, the zone's only sign starts a fight instead of being read.",
    "origin": "independent"
   },
