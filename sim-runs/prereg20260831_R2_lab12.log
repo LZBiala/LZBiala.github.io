@@ -1,0 +1,24 @@
+LAB12 - the walk between inns: six fights, no rest
+walk      st  | one foe per room             | packs as shipped            
+c_early    0  | left 45.5% broke 59.5% wipe 1.8% | left 46.1% broke 59.0% wipe 1.9%
+c_mid1     1  | left 69.1% broke  0.0% wipe 0.0% | left 54.8% broke 27.2% wipe 0.0%
+c_mid2     2  | left 44.1% broke 93.0% wipe 0.0% | left 33.7% broke 98.9% wipe 5.0%
+c_1999     4  | left 70.9% broke  0.0% wipe 0.0% | left 44.9% broke 83.1% wipe 0.2%
+c_net1     4  | left 67.9% broke  0.0% wipe 0.0% | left 43.8% broke 84.6% wipe 0.0%
+c_net2     4  | left 60.6% broke  0.1% wipe 0.0% | left 36.9% broke 97.7% wipe 7.1%
+c_net3     4  | left 70.9% broke  0.0% wipe 0.0% | left 49.1% broke 61.9% wipe 0.0%
+
+  E1 attrition is real           PASS
+  E2 walk is completable         PASS
+  E3 it actually bites           PASS
+  E4 not a death march           PASS
+  E5 late game bites hardest     PASS
+
+  resources left  one -> shipped : 61.3% -> 44.2%  (-17.1 pp)
+  walks ending under half         : 21.8% -> 73.2%
+  walks that wiped                : 0.2% -> 2.0%
+  drop stage 0-1 : +6.9 pp   |   stage 3-4 : +23.9 pp
+  hardest walk as shipped : c_mid2, 33.7% left, 5.0% wipe
+
+LAB12 VERDICT: ALL GATES PASS
+lab12 simulated battles: 134,299

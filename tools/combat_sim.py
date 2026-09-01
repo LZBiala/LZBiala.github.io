@@ -13,6 +13,13 @@ Usage: python combat_sim_v9.py [wave]   wave=1 learn, wave=2 validate
 """
 import random, sys, json
 from multiprocessing import Pool
+import math
+
+
+def js_round(x):
+    """Math.round: half rounds UP. Python's round() is banker's - it sent 4.5 to 4 while the
+    game sent it to 5, a disclosed fidelity defect until the pre-registered 2026-08-31 fix."""
+    return int(math.floor(x + 0.5))
 
 MSPD = { "hero":5, "sentinel":7, "wiki":4, "refuter":3, "papafoxx":6, "sharon":7, "retro":7, "lito":7 }   # sharon reworked: fighter-medic
 BOND = 3   # worst-case bond bonus on dual techs (maxed hearts) - bosses must survive best friends
@@ -82,6 +89,8 @@ def mk_actor(mid, lv, relic=False, crafted=False, build=None):
     m = MEMBERS[mid]
     atk = m["base"]["atk"] + m["grow"]["atk"]*(lv-1)
     if crafted and mid != "hero": atk += 1   # wave 5: worst case, every companion armed (mic/gloves/bow/wand/sword)
+    # Shipped 2026-08-31: the GEAR LADDER's Dragon ceiling, as a flat worst-case uplift.
+    atk += KNOBS.get("LADDER_ATK_HERO", 0) if mid == "hero" else KNOBS.get("LADDER_ATK", 0)
     if mid == "hero":
         if relic: atk += 1
         if crafted: atk += 6          # Kernel Blade (transmuted) + STR trial perk (worst case)
@@ -141,7 +150,7 @@ def crit(dmg, rng, extra=0.0, T=None):
     sig = "s5" in T                                  # s5 CALIBRATION: the whole party crits more, and pays for it
     extra = extra + (0.03 if "s3b" in T else 0.0)    # s3b: a focused foe is easier to read
     if rng.random() < (CRIT + extra + (0.05 if sig else 0.0)):
-        return int(round(dmg * (2.25 if sig else 2)))
+        return int(js_round(dmg * (2.25 if sig else 2)))
     return max(1, dmg-1) if sig else dmg
 
 def partner_of(actors, pid):
@@ -228,12 +237,12 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
                 hero_a["hp"] = min(hero_a["maxhp"], hero_a["hp"] + v//4)
             return v
         def strike(base):
-            if "v3b" in T: return round(base*1.35)        # v3b: no bar, no fumble, no ceiling either
+            if "v3b" in T: return js_round(base*1.35)        # v3b: no bar, no fumble, no ceiling either
             wide = "v3a" in T                              # v3a: both windows widen (0.16->0.28 and 0.50->0.60)
             r = rng.random()
             if noise: sm = 1.5 if r < (0.42 if wide else 0.30) else (1.2 if r < (0.78 if wide else 0.70) else 1.0)
             else:     sm = 1.5 if r < (0.88 if wide else 0.80) else 1.2
-            return round(base*sm)
+            return js_round(base*sm)
         for a in actors: a["acted"] = False
         espd = ESPD.get(enemy_key, 4)
         def foe_strike():
@@ -316,6 +325,7 @@ def battle(party_ids, lv, enemy_key, items, rng, relic=False, crafted=False, noi
             acted_n += 1
             a = actors[_ai]
             if a["ko"] or a["acted"] or e["hp"] <= 0: continue
+            a["acted"] = True   # the game marks the leader acted as its turn resolves - 2026-08-31 fix
             aid = a["id"]
             if noise and rng.random() < noise:
                 if e["revealed"] and e["focused"] and not (e.get("regen") and e["verified"] == 0):

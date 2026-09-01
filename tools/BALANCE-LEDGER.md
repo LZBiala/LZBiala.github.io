@@ -63,7 +63,7 @@ fails if the table, this file's stated total, and every figure quoted inside the
 not agree. The one check nobody had run was a reader with a calculator, and that reader is
 now part of the build.
 
-## OPEN: two more fidelity defects in the instrument, found 2026-08-24, NOT yet fixed
+## RESOLVED 2026-08-31: two more fidelity defects in the instrument, found 2026-08-24
 
 An adversarial code review of the tooling found two ways `combat_sim.py` models a game that
 is not the one `game.html` ships. Both are disclosed here before they are fixed, because
@@ -92,6 +92,11 @@ is now the third time that has been worth more than reading the code again.
 carrying an unquantified bias in the party's favour.** The fix for (1) is one line; the cost
 is re-running the campaigns and re-registering the gates, which is a session of its own.
 
+**Resolution (2026-08-31):** both fixes landed under the pre-registration below - the acted
+flag is now set as the leader's turn starts, and js_round mirrors Math.round on all three
+damage-path rounds - each seen RED in tools/test_combat_sim.py before the fix existed. The
+re-run followed the same day; results in "The re-run happened" below.
+
 ## OPEN: lab9's verdict depends on the sample size, found 2026-08-31
 
 Re-running the ledger's own documented command at different N flips the lab9 verdict on
@@ -102,6 +107,70 @@ strict-dominance gate sits inside the noise band at small N. The row above keeps
 verdict because that is what the logged run returned, and it now carries the annotation. The
 fix belongs to the same pre-registered re-run as the two defects above: pin each gate to a
 declared N or a confidence interval, so a verdict names its own resolution.
+
+**Update, same day, on the FIXED sim (R3 below):** at N=1500 (960,000 battles) G6 "drama
+survives" now FAILS - one cell, stress_mis x V-auto, KO 73.2% vs control 60.7%: +12.5pp
+against the 12pp ceiling. The exceedance is 0.5pp with ~0.85pp of Monte-Carlo noise on that
+cell (~0.6 sd), so the verdict still sits inside the noise band - one N higher than before.
+G6 has no rung on lab9's remedy ladder, so no node changes; the open remedy is unchanged
+(pin the gate to a declared N or a confidence interval) and needs its own pre-registration.
+
+## PRE-REGISTERED 2026-08-31: the fidelity fixes, and the re-run that judges them
+
+Written BEFORE the fixes were applied and before any battle of the re-run was rolled.
+
+**The fixes.** (1) `battle()` marks the acting ally `acted` at the start of its turn - one
+line; `partner_of` already refuses acted allies, which closes the double-swing. (2) A
+`js_round(x) = floor(x + 0.5)` mirrors `Math.round` on the three damage-path rounds
+(mainline `round(base*sm)`, the 2.25 crit path, v3b) - Python's banker's rounding diverged
+on odd attack values. (3) A fidelity catch-up, because the shipped game grew a GEAR LADDER
+on 2026-08-31: `LADDER_ATK` / `LADDER_ATK_HERO` knobs add flat atk in `mk_actor`, modeling
+the Dragon-tier ceiling (companions +6 over the crafted model, hero +2). A flat-uplift
+WORST CASE, not per-item modeling - read it as a bound.
+
+**The re-run, on the fixed sim, seeds unchanged (wave-2 base 90290827):**
+- R1 campaign validation: wave 2, RUNS_PER sized to the hardware, target on the order of
+  10 million battles total across this re-run. Band: a row whose win moves more than 2.0
+  points or KO more than 3.0 points against the published wave-2 row is FLAGGED for a
+  separate, logged re-tune decision - never silently adjusted.
+- R2: lab12, the five-gate shipped-model suite, defaults.
+- R3: lab9 at N=1500 - resolving the OPEN item above by pinning the gates at the N where
+  they resolve.
+- R4: the ladder worst case - wave 2 with {"LADDER_ATK":6,"LADDER_ATK_HERO":2},
+  measurement only. Expected: walkovers get more walkover; the question that matters is
+  whether unknown5's last drama survives a full-Dragon party.
+
+Totals and verdicts land in rows below when the run completes; the OPEN sections above
+resolve only then.
+
+## The re-run happened: results, same day (2026-08-31)
+
+| run | battles | verdict | log |
+|---|---|---|---|
+| R1 wave-2 validation | 6,104,000 | all 4 iterations VALIDATION PASS | `sim-runs/prereg20260831_R1_wave2.log` |
+| R2 (the lab12 five-gate suite) | 134,299 | ALL GATES PASS | `sim-runs/prereg20260831_R2_lab12.log` |
+| R3 (the lab9 suite, N=1500) | 960,000 | G6 FAIL by 0.5pp vs ~0.85pp noise - recorded above, no re-tune | `sim-runs/prereg20260831_R3_lab9.log` |
+| R4 ladder worst case | 2,616,000 | measurement below | `sim-runs/prereg20260831_R4_ladder.log` |
+
+**Validation battles this re-run: 9,814,299.** They are accounted here, separately, and are
+NOT added to the tuned-on total above: zero knobs and zero enemy stats changed, so the
+corpus the balance was TUNED on is exactly what it was. A validation pass that quietly
+inflated the headline would be the opposite of what this file is for.
+
+**R1 becomes the first logged wave-2 per-row baseline** (the original wave-2 rows lived in a
+private journal; the band check in the pre-registration could not execute against them, a
+gap this row closes). Sub-100% rows: unknown5 only - OPT 99.9%, NOISY 99.6%. Top KO rows
+(OPT): unknown5 41.8%, unknown6 16.2%, monolith5 3.4%. Full table in the R1 log; seed base
+90290827, knobs frozen. The next re-run's band check (win +/-2.0pp, KO +/-3.0pp) runs
+against THESE rows.
+
+**R4, the question that mattered - does the gear ladder break the game?** Under the flat
+worst case (every companion at Dragon, +6 atk; hero +2), across 2,616,000 battles: every
+walkover stays a walkover and nothing new drops below 2 turns; the hacker chain collapses
+the most (NOISY -1.0t); and the drama holds - unknown5 saturates to 100.0% win but keeps
+36.8% KO at optimal play and 46.8% under noise, unknown6 keeps 16.8%/26.1%. The drama
+survives; the loss risk does not. Zero re-tunes demanded, and the Stage 2 decision this
+run gates - companion armor - inherits these numbers as its baseline.
 
 ## Why the headline number went DOWN
 

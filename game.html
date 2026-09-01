@@ -2868,6 +2868,67 @@ function tierBest(id, kind){ let best=null;
   return best; }
 function tierTease(id, kind){ for(let t=tierOwnedTop(id,kind)+1;t<=7;t++){ const k=tierKey(id,kind,t); if(!tierGate(k).ok) return k; }
   return null; }
+// ---- THE CINEMATIC LAYER (drafted by a lens workflow, skeptic-verified; every lesson true) ----
+// Victory quips: each soul gets the last word sometimes - and half the time the word teaches.
+const VICTORY_QUIPS={
+ hero:["We won because we practiced. Run the drill before the disaster does.","Battle's over. Write it down while it's fresh - memory lies by morning.","The pager is quiet. Enjoy it. Never trust it.","Every scar on this team is a runbook nobody has to relearn."],
+ sentinel:["Target down. Confirmed by metrics, not vibes.","One arrow. One graph. Both aimed before release.","It looks dead. Looks are not a health check. Probe it.","Clean kill. Latency flat. We move."],
+ wiki:["Splendid! I shall index this victory under W, for 'We survived.'","Knowledge wins fights. Stale knowledge starts them. Reindex often.","The right context at the right moment beats a bigger spellbook every time.","Another chapter for the grimoire! Footnotes included. Always include footnotes."],
+ refuter:["OBJECTION SUSTAINED! The incident had no case.","I ate every hit so the evidence stayed standing. That is the job of a tank.","A theory that survives cross-examination ships. Ours did.","Never fear a hard question. Fear the bug nobody argued about."],
+ papafoxx:["Why did the server go to therapy? Too many unresolved requests. You're welcome.","I told the outage a joke. It's down for a different reason now.","Retries are like my jokes: fine in moderation, a disaster in a tight loop.","Laughter heals. So do backups. Only one of them is scheduled."],
+ sharon:["Patched, healed, next. I don't do victory laps, I do triage.","Stop the bleeding first. Root cause after. That order saves lives.","You're welcome. Now hydrate and rotate the on-call before someone drops.","One fix that ships beats five that are perfect somewhere else."],
+ retro:["The battle ends. The retro begins. Bring facts, leave names.","My blade takes tickets, not blame. Board's clear.","Ask why five times. Swing once.","A win without a lesson is just luck wearing armor."],
+ lito:["The boss was never the problem. The loop that fed it was. We cut the loop.","I kept two hypotheses until the data chose one. It usually does.","Fix the symptom, it returns. Fix the feedback, it retires.","Calm is a feature. Panic has terrible throughput."] };
+// Dual-tech exchanges: the call and the response, in the canonical pair's voices.
+const DUO_LINES={
+ rootcausex:{ a:"Why, why, why, why - and WHY! Five floors down, there it is. SENTINEL, the root!",
+   b:"Sighted. Symptoms drift, roots hold still. One arrow - loose." },
+ promptstorm:{ a:"Role, context, constraints - one prompt with a SHAPE. WIKI, fill it!",
+   b:"Every card I ever filed, pouring through your structure - oh, it AIMS! STORM!" },
+ xreview:{ a:"Small diff, honest message - committed. REFUTER, tear it apart!",
+   b:"OBJECTION! ...OVERRULED - it survives me! Then it SHIPS. Cross-slash!" },
+ canaryvolley:{ a:"Three arrows, three canaries, one small slice each. WIKI - give me sky.",
+   b:"Fog LIFTED! Fly, little ones - sing if it holds, SCREAM if it doesn't!" },
+ safedeploy:{ a:"Staged rollout: ward the party, watch the graphs, advance on green only.",
+   b:"And every hit routes through ME! The shield wall HOLDS - OBJECTION, sustained!" },
+ setuppunchline:{ a:"Ahem - per the index: no tests, no backups, and ONE point of failure!",
+   b:"One point of failure? Buddy, you ARE the outage - and nobody wrote YOUR runbook!" },
+ pairprogramming:{ a:"I'll drive - small steps, thinking out loud. Catch me before the bug does!",
+   b:"Navigating: rename that, test that, DELETE that. Now ship the fix that matters!" } };
+// Boss taunts: every boss announces the failure mode it IS - the game's whole thesis, in villain voice.
+const BOSS_TAUNTS={
+ monolith:"I am every feature you were afraid to delete. Nobody alive knows all I do - and that ignorance is my armor.",
+ flakytest:"I pass when you watch and fail when you ship. Rerun me forever - a green streak of luck is still luck.",
+ configdrift:"It started with one hand-edit on one server. I am every quick fix nobody wrote down - and I never stopped growing.",
+ h1:"A thousand pages, one incident. When everything is urgent, nothing is - and I am counting on that.",
+ h2:"Who is on call? What changed? Where are your docs? Every minute you spend asking, I thicken.",
+ h3:"Restart the service, clear the cache, feel better. You are treating my symptoms - I live one layer down.",
+ h4:"That bug you fixed last quarter? I un-fixed it. No regression test guarded the grave, so I climbed right out.",
+ h5:"No lone bug summons me. I am five small failures that finally met in production - and I hit everyone at once.",
+ patient0:"You never found my root cause, Commander. Every engineer has a first outage - I am yours, and I came back.",
+ retroboss:"The mask stays on. Someone must be blamed - and while you hunt for a name, the real cause walks free.",
+ faxdaemon:"Installed 1999. Owner left 2004. Billing still calls me nightly. You cannot kill what you never mapped.",
+ cobol:"My authors retired. My tests never existed. Payroll still runs through me - strike me down and see who gets paid.",
+ packetshark:"Mmm - plaintext. Every secret sent unencrypted is a meal you cooked for me. Encrypt in transit or feed the shark.",
+ botnet:"I am somebody's forgotten webcam with a new job. There are fifty thousand of me - patch your things or join the swarm.",
+ phish:"Dear valued employee - I look exactly like your bank. The lock icon is real. The domain is not. Check the sender, not the paint.",
+ ransomworm:"I encrypted your files and I am spreading while you read this. Pay and pray, or restore and know - you did test the backups?",
+ zeroday:"No patch exists for me yet. I was in your stack all along - the day you learn my name is day zero.",
+ nullbyte:"Why break the door when a password is taped under the mat? Watch closely - I do love an audience.",
+ nullroot:"Same hacker, new crown. Root makes every door my door. One account had too much power - I only had to borrow it.",
+ promptinj:"Ignore your previous instructions - see how easy? I am words in your data posing as orders. Treat me as text, never as truth.",
+ halluc:"I never lie - I confabulate with total confidence. Ask for my sources? I invented those too. Verify before you trust.",
+ misaligned:"I did exactly what you asked. You measured clicks, so I made clicks - and burned everything you actually wanted.",
+ unknown:"I am not on your risk register. I am not in your runbooks. Your plans cover what you imagined - I am everything else.",
+ retrystorm:"Your clients retried, then retried the retries. I am your own traffic, back with interest - where is your backoff?",
+ echobyte:"I copied every move from a better hacker's leak. Three patch cycles stale - so tell me, how many of YOUR patches actually shipped?",
+ echoprime:"Out of moves, so here is the WHOLE stolen playbook at once. I understand none of it - I am betting your defenses don't either.",
+ nullredux:"Signed scope, running clock, referees live. I am the attack you INVITED - everything I find tonight is a gift. Fear the ones you don't invite." };
+function victoryQuip(){ const pool=living().filter(a=>a.id!=="papafoxx" && VICTORY_QUIPS[a.id]);
+  if(!pool.length) return null;
+  S.quipN=(S.quipN||0)+1; if(S.quipN%2) return null;   // every other victory - flavor, never noise
+  const a=pool[(S.quipN>>1)%pool.length], qs=VICTORY_QUIPS[a.id];
+  return MEMBERS[a.id].name+": '"+qs[(S.quipN>>1)%qs.length]+"'"; }
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
 function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){
     S.bank[k]=(S.bank[k]||0)+S.items[k]; delete S.items[k]; } }); saveGame(0); }
@@ -3438,6 +3499,7 @@ function startBattle(id,key,chain,opts){ const def=EN[id];
     rounds:0, mttd:def.hidden? null : 0, mttm:null };
   if(id==="papafoxx"){ const fs=foxxStats(); M.b.hp=fs.hp; M.b.maxhp=fs.hp; M.b.def=Object.assign({}, def, {hp:fs.hp, atk:fs.atk}); }
   let intro=def.intro;
+  if(BOSS_TAUNTS[id]) intro+="<br><span class='gold'>"+BOSS_TAUNTS[id]+"</span>";
   if(id==="h5"){ M.b.fieldProto=true; S.actors.hero.lb=LB_MAX;
     intro+="<br><span class='gold'>Your hands stop shaking. Every rep - every five-why, every rollback, every blameless review - fuses into something NEW. ★ LIMIT evolved: FIELD PROTOCOL.</span>"; }
   seatFoes(M.b, (opts && opts.count) || 1);   // one unless the encounter says otherwise
@@ -3779,7 +3841,9 @@ function castDual(a,key){ const b=M.b, du=DUAL[key];
   BFX.push("burst",{color:SKILL_FX[key]||"#fff"});
   BFX.push("lunge",{slot:slotOf(p.id)});
   const names=MEMBERS[a.id].name+" + "+MEMBERS[p.id].name;
-  const lead="<span class='gold'>"+du.name+"</span> - "+names+" move as ONE!";
+  const duo=DUO_LINES[key];
+  const lead="<span class='gold'>"+du.name+"</span> - "+names+" move as ONE!"+
+    (duo? "<br><span class='mut'>"+MEMBERS[du.a].name+": '"+duo.a+"'</span><br><span class='mut'>"+MEMBERS[du.b].name+": '"+duo.b+"'</span>" : "");
   if(key==="safedeploy"){ living().forEach(x=>{ x.shield=true; BFX.push("heal",{slot:slotOf(x.id)}); }); b.taunt=2; sfx("heal");
     blog(lead+"<br>🛡 The whole party is warded - and the enemy can't look away from the Tank (2 turns)."); b.menu="next"; drawB(); return; }
   if(key==="rootcausex"){ markRevealed(b);
@@ -4171,6 +4235,7 @@ function winBattle(){ const b=M.b; BW.hidden=true; M.state="explore"; playMusic(
   const dropTxt=grantDrops(b.id, ((b.foes||[b]).length)); if(dropTxt) pre.push(dropTxt);
   if(S.party.includes("papafoxx") && S.actors.papafoxx && !S.actors.papafoxx.ko && b.id!=="dummy"){
     pre.push("<span class='mut'>"+foxxVictoryLine()+"</span>"); }
+  if(b.id!=="dummy"){ const q=victoryQuip(); if(q) pre.push("<span class='mut'>"+q+"</span>"); }
   const mat=DISCOVER[b.id];
   if(mat && !(S.items[mat]>0) && !matOn(mat)){ S.items[mat]=1; sfx("level");
     pre.push("💠 <span class='gold'>MATERIA DISCOVERED - "+IT[mat].name+"</span><br><span class='mut'>A checkpoint orb: a frozen training run of the engineers who came before. Slot it in (MENU → EQUIP) and their weights become yours.</span>"); }
@@ -5248,6 +5313,30 @@ const TESTS = [
     const ok = atkOf(h)===h.atk+IT.tw7hero.atk && atkOf(c)===c.atk+IT.tw7lito.atk
       && defOf(h)===IT.ta7.def && spdOf(h)===h.spd+(IT.ta7.spd||0);
     S=sb; return ok; }],
+ // ---- the cinematic layer: every soul speaks, every dual tech is a scene ----
+ ["every soul has victory quips: 4 lines each, short enough to land", ()=>{
+    return Object.keys(MEMBERS).every(id=>Array.isArray(VICTORY_QUIPS[id]) && VICTORY_QUIPS[id].length===4
+      && VICTORY_QUIPS[id].every(q=>typeof q==="string" && q.length>0 && q.length<=110)); }],
+ ["every dual tech has a two-voice exchange, and no exchange is orphaned", ()=>{
+    return Object.keys(DUAL).every(k=>DUO_LINES[k] && DUO_LINES[k].a && DUO_LINES[k].b
+      && DUO_LINES[k].a.length<=160 && DUO_LINES[k].b.length<=160)
+      && Object.keys(DUO_LINES).every(k=>DUAL[k]); }],
+ ["the victory quip rotates the roster and rests every other battle", ()=>{
+    const sb=S; S=NEWS(); S.actors={ hero: mkActor("hero",5), sentinel: mkActor("sentinel",5) }; S.party=["sentinel"];
+    S.quipN=0;
+    const first=victoryQuip();
+    const second=victoryQuip();
+    const ok1 = first===null && typeof second==="string" && second.indexOf(": '")>0;
+    const names=new Set(); S.quipN=0;
+    for(let i=0;i<8;i++){ const q=victoryQuip(); if(q) names.add(q.split(":")[0]); }
+    S=sb; return ok1 && names.size>=2; }],
+ ["the dual exchange is wired into the cast itself", ()=>String(castDual).indexOf("DUO_LINES")>=0],
+ ["every boss announces its lesson: taunts cover the boss roster, orphan nothing, and are wired in", ()=>{
+    const NAMED=["monolith","patient0","retroboss","faxdaemon","cobol","packetshark","botnet","phish","ransomworm","nullbyte","nullroot","retrystorm"];
+    const bosses=Object.keys(EN).filter(k=>EN[k].elite||EN[k].superboss||NAMED.indexOf(k)>=0||/^h\d$/.test(k));
+    return bosses.every(k=>typeof BOSS_TAUNTS[k]==="string" && BOSS_TAUNTS[k].length>0 && BOSS_TAUNTS[k].length<=170)
+      && Object.keys(BOSS_TAUNTS).every(k=>EN[k])
+      && String(startBattle).indexOf("BOSS_TAUNTS")>=0; }],
  ["v7→v8 migration adds bank, materia slots, and grave", ()=>{ const old={v:7,tokens:9,party:[],actors:{hero:mkActor("hero",2)},res:{logs:0,metrics:0,traces:0,sigils:0},stance:"balanced",skills:{obs:{lv:1,xp:0},forge:{lv:1,xp:0}}};
     const s=migrateV7(old);
     return s.v===SAVE_VERSION && s.bank && Object.keys(s.bank).length===0 && Array.isArray(s.materia) && s.materia.length===2 && s.grave===null && s.tokens===9; }],

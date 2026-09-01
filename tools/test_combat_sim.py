@@ -459,6 +459,31 @@ for n in (1, 2, 3, 4):
         seatbad.append("x%d: an invincible party lost" % n)
 check("an unkillable party always clears the room", not seatbad, " | ".join(seatbad))
 
+
+# ================================================= FIDELITY: the 2026-08-31 pre-registered fixes
+SIMSRC = io.open(os.path.join(HERE, "combat_sim.py"), encoding="utf-8").read()
+check("the acting ally is marked acted as its turn starts - nobody swings twice",
+      'a["acted"] or e["hp"] <= 0: continue' in SIMSRC and
+      'a["acted"] = True   # the game marks the leader' in SIMSRC)
+check("damage rounds like the game: js_round is Math.round, and the mainline uses it",
+      hasattr(C, "js_round") and C.js_round(4.5) == 5 and C.js_round(3.5) == 4
+      and C.js_round(2.4) == 2 and "js_round(base*sm)" in SIMSRC)
+check("crit and v3b round like the game too",
+      "js_round(dmg * (2.25" in SIMSRC and "js_round(base*1.35)" in SIMSRC)
+
+
+def _ladder_moves():
+    """SENSITIVITY: the shipped gear ladder must be measurable, or the sim is blind to it."""
+    C.KNOBS["LADDER_ATK"] = 0
+    base = C.mk_actor("sentinel", 24, crafted=True)["atk"]
+    C.KNOBS["LADDER_ATK"] = 6
+    up = C.mk_actor("sentinel", 24, crafted=True)["atk"]
+    C.KNOBS["LADDER_ATK"] = 0
+    return up == base + 6
+
+
+check("LADDER_ATK moves a companion's attack - the shipped gear ladder is measurable", _ladder_moves())
+
 print()
 print("%d passed, %d failed" % (len(PASS), len(FAIL)))
 if FAIL:
