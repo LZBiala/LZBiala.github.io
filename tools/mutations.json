@@ -772,8 +772,8 @@
   {
    "id": "skills-lb-wiki-total-recall-mp",
    "subsystem": "skills",
-   "find": "living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+(om?6:4))",
-   "replace": "living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+(om?6:2))",
+   "find": "const rec=(om?6:4)+((S.arc&&S.arc.wiki>=3)?1:0); living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+rec)",
+   "replace": "const rec=(om?3:2)+((S.arc&&S.arc.wiki>=3)?1:0); living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+rec)",
    "breaks": "TOTAL RECALL restores 2 MP per ally instead of 4, while LIMITS.wiki and the battle log line (which recomputes om?6:4 separately) both still announce +4 MP.",
    "origin": "independent"
   },
@@ -1724,8 +1724,8 @@
   {
    "id": "cp-lito-talk-bond",
    "subsystem": "copy-paste",
-   "find": "if(npc.talks===\"lito\"){ bondUp(\"lito\"); const li=(S.litoTalk||0); S.litoTalk=li+1;",
-   "replace": "if(npc.talks===\"lito\"){ bondUp(\"sharon\"); const li=(S.litoTalk||0); S.litoTalk=li+1;",
+   "find": "if(npc.talks===\"lito\"){ bondUp(\"lito\"); if(arcBeat(\"lito\",LITO_ARC)) return; const li=(S.litoTalk||0); S.litoTalk=li+1;",
+   "replace": "if(npc.talks===\"lito\"){ bondUp(\"sharon\"); if(arcBeat(\"lito\",LITO_ARC)) return; const li=(S.litoTalk||0); S.litoTalk=li+1;",
    "breaks": "Talking to LITO deepens the bond with SHARONDUH instead: LITO's hearts never rise no matter how often you visit him, and Sharonduh's dual-tech bonus inflates from conversations the player never had with her.",
    "origin": "held-out"
   },

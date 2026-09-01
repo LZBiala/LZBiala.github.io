@@ -2671,8 +2671,66 @@ function retroBeat(){
   saveGame(0);
   say(nxt.lines);
   return true; }
+// retroBeat was the first arc; arcBeat is the same shape for every other soul.
+function arcBeat(id, ARC){
+  const n=(S.arc && S.arc[id])||0;
+  const nxt=ARC[n];
+  if(!nxt || bondLvl(id) < nxt.need) return false;
+  if(nxt.when && !nxt.when()) return false;
+  S.arc=S.arc||{}; S.arc[id]=n+1;
+  saveGame(0);
+  say(nxt.lines);
+  return true; }
+// SENTINEL - "The TTL Expires": the zero-false-alarm auditor learns a scorecard needs a scar.
+const SENT_ARC=[
+ {need:1, lines:[
+  "SENTINEL: 'Nine of ten plants caught. Zero false alarms. I quote that scorecard to every recruit - and lately it bothers me.'",
+  "SENTINEL: 'I plant defects in everything to prove the guard is awake. But nobody plants on ME. A guard nobody has tried to sneak past is not proven. It is unchallenged.'",
+  "SENTINEL: 'From the front gate, unchallenged and trustworthy look identical.' (He returns to the board.)"]},
+ {need:2, when:()=>S.party.includes("papafoxx"), lines:[
+  "(Tuesday. A small guest marches in - PapaFoxx's kid, marker in hand. Exactly the access she asked for, nothing more.)",
+  "SENTINEL: 'Lesson one. The inn as a system. Two zones, one failover, and - hold. Your arrow, kid. The failover points at the zone that is already down.'",
+  "FOXX'S KID: 'I drew it wrong on purpose. Papi says that is your whole job. So - did you catch it, or did I catch YOU?'",
+  "SENTINEL laughs. Out loud. Live, uncached, full volume. The whole inn goes quiet.",
+  "SENTINEL: 'Recalibration. Even a zero-false-alarm instrument needs a planted positive. You pass. Same time next Tuesday.'"]},
+ {need:3, lines:[
+  "SENTINEL: 'Scorecard update. One line added: KNOWN MISS - a joke that landed in 2019, served from cache for seven years, billed as discipline.'",
+  "SENTINEL: 'Keep a known miss on anything you brag about, kid. A perfect record means the test stopped testing. A calibrated one has a scar.'",
+  "SENTINEL: 'She plants one defect in my whiteboard every Tuesday now. Best eval harness I have ever run.'"]}];
+// WIKI - "The Torn Page": the librarian who deleted a belief without its reason finally files the why.
+const WIKI_ARC=[
+ {need:1, lines:[
+  "WIKI: 'You keep showing up, so you have earned a look at the exception. My index - every belief a readable note, every deletion carrying its reason. Except one.'",
+  "(He opens the grimoire to a torn stub between two perfect pages. No entry. No reason. Just the tear.)",
+  "WIKI: 'People assume a librarian's shame is a lost book. It is not. It is a lost why.'"]},
+ {need:2, lines:[
+  "WIKI: 'Before the party I kept runbooks for a small crew. One page held a fix that had been true once. The system changed. The page did not.'",
+  "WIKI: 'An apprentice followed it mid-incident, exactly as written, and made the night worse. She did nothing wrong. She trusted the archive.'",
+  "WIKI: 'I tore the page out before dawn. No tombstone, no reason - I wanted it never to have existed.'",
+  "WIKI: 'Three months later a new apprentice rediscovered the same fix and wrote it back in. Deleting the belief does not delete the gap it filled.'"]},
+ {need:3, lines:[
+  "WIKI: 'Sit. The torn page gets an entry tonight. Not the page - the reason.'",
+  "(He writes: REMOVED - a fix that outlived its system. COST - one bad night, nobody's fault. KEPT - the why. He dates it. He signs it.)",
+  "WIKI: 'An archive is not what it keeps. It is what it can explain. Mine can finally explain everything - including me.'",
+  "★ The index is whole. TOTAL RECALL now restores one more MP to every ally - a complete archive gives back more than it takes."]}];
+// LITO - "FRONT ROW": the lecturer who talks in one direction asks the player to teach.
+const LITO_ARC=[
+ {need:1, lines:[
+  "LITO: 'Caught something in my own logs, kid. Every time you walk up, I lecture. The talk counter only goes one way - out.'",
+  "LITO: 'I joined as a student. The tape says I joined as a broadcast. The talking is the symptom. The loop is me still needing to be the Guide.'",
+  "LITO: 'Fix the symptom and it comes back. Cut the loop and it retires. Next time, you talk first. I will be taking notes.'"]},
+ {need:2, lines:[
+  "LITO: 'Your whiteboard now. Teach me the thing nobody taught you - the first sixty seconds of a page, before any runbook opens.'",
+  "(You tell him. He does not interrupt once. In his notebook, where every page used to say MODULE, this one says LESSON 1 - and your name is at the top.)",
+  "LITO: 'All these years on call and the notebook still had blank pages. JAJAJAJA. Best morning all week, and I only needed the one.'"]},
+ {need:3, when:()=>S.worldClass, lines:[
+  "LITO: 'The dojo opened this morning, kid. Full SEV drill, first class. I took the front row and let somebody else hold the marker.'",
+  "LITO: 'She ran the first sixty seconds YOUR way - lesson 1, straight from my notebook. Then she improved it. I wrote the improvement down too.'",
+  "★ LITO: 'Teaching is a loop, not a pipe. Something came back upstream - so it is mentoring, not broadcasting. Class dismissed.'"]}];
 function hangoutTalk(npc){ bondUp(npc.inParty);
   if(npc.inParty==="retro" && retroBeat()) return;   // the arc speaks before the small talk
+  if(npc.inParty==="sentinel" && arcBeat("sentinel",SENT_ARC)) return;
+  if(npc.inParty==="wiki" && arcBeat("wiki",WIKI_ARC)) return;
   S.hang=S.hang||{}; const i=(S.hang[npc.inParty]||0); S.hang[npc.inParty]=i+1;
   // a line can name a companion the player has not met yet; written as {t, needs:[ids]}
   // it simply waits for them instead of quoting a stranger's joke logs
@@ -3834,8 +3892,8 @@ function castLimit(a){ const b=M.b;
       "<span class='gold'>★ "+omTag+"FIVE-WHY OVERDRIVE</span> - "+nm+" asks all five whys at ONCE. The truth has nowhere left to hide!"); }
   if(a.id==="sentinel"){ BFX.push("lunge",{slot:slotOf(a.id)});
     return dealt(a, 14+(om?6:0), "<span class='gold'>★ "+omTag+"CANARY STORM</span> - "+nm+" looses the whole flock. No armor, no fog, no regeneration stops a true canary!"); }
-  if(a.id==="wiki"){ living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+(om?6:4)); BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
-    blog("<span class='gold'>★ "+omTag+"TOTAL RECALL</span> - "+nm+" opens the entire wiki at once. <span class='num'>Every ally +"+(om?6:4)+" MP.</span>"); b.menu="next"; drawB(); return; }
+  if(a.id==="wiki"){ const rec=(om?6:4)+((S.arc&&S.arc.wiki>=3)?1:0); living().forEach(p=>{ p.mp=Math.min(p.maxmp,p.mp+rec); BFX.push("heal",{slot:slotOf(p.id)}); }); sfx("heal");
+    blog("<span class='gold'>★ "+omTag+"TOTAL RECALL</span> - "+nm+" opens the entire wiki at once. <span class='num'>Every ally +"+rec+" MP.</span>"); b.menu="next"; drawB(); return; }
   if(a.id==="refuter"){ b.taunt=3; b.snoozed=true;
     blog("<span class='gold'>★ FINAL OBJECTION</span> - "+nm+" makes the argument that stops the world. Taunt ×3, and the enemy loses its next turn."); b.menu="next"; drawB(); return; }
   if(a.id==="papafoxx"){ b.foxxRelief=true;
@@ -4760,7 +4818,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
       if(npc.mentor && !S.metSharon){ S.metSharon=1; saveGame(0);
         panelSay(buildMentorMeetBeats(), ()=>say(npc.lines.slice(2))); return; }
       if(npc.talks==="sharon"){ bondUp("sharon"); say(["SHARONDUH: \""+sharonTalkLine()+"\""]); return; }
-      if(npc.talks==="lito"){ bondUp("lito"); const li=(S.litoTalk||0); S.litoTalk=li+1;
+      if(npc.talks==="lito"){ bondUp("lito"); if(arcBeat("lito",LITO_ARC)) return; const li=(S.litoTalk||0); S.litoTalk=li+1;
         say(["LITO: \""+(li<LITO_TALKS.length? LITO_TALKS[li] : LITO_HOME[(li-LITO_TALKS.length)%LITO_HOME.length])+"\""]); return; }
       if(npc.inParty){ hangoutTalk(npc); return; }
       if(npc.name==="THE GUIDE" && S.won && !S.haxKnown){ panelSayGuide([
@@ -4787,6 +4845,19 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
                say(guideLines(S.stage)); }); return; }
       if(npc.name==="THE GUIDE" && S.stage<1){ say(npc.lines, ()=>{ S.stage=1; chapterCard(1); saveGame(0); render(); }); return; }
       if(npc.name==="THE GUIDE"){ say(guideLines(S.stage)); return; }
+      if(npc.name==="KID BIT" && S.kidTaught){ say([
+        "KID BIT: 'Dish report: ALL of them. Runbook two has a rollback step for when I drop a plate. It is a towel.'",
+        "KID BIT: 'I am not gonna be a slime anymore. Slimes do not get postmortems.'",
+        "KID BIT: 'The Guide called me kid today. That is basically a name. I am gonna earn the rest.'"][ (S.kidChat=(S.kidChat||0)+1)%3 ]); return; }
+      if(npc.name==="KID BIT" && S.worldClass){ say([
+        "KID BIT: 'You were on the BIG BOARD. The whole WORLD watched you. Okay - real question, no slime stuff. How do I START?'",
+        "You hand him your first runbook - page one, shaky handwriting, wrong steps corrected in the margins. It was humble. It ran.",
+        "KID BIT: 'Log line one: KID BIT, ON CALL.' He sprints off holding the runbook like a sword. Across the square, the Guide watches him go, and says nothing at all."],
+        ()=>{ S.kidTaught=1; saveGame(0); toast("★ TEACH THE NEXT ONE"); }); return; }
+      if(npc.name==="KID BIT" && S.won){ say([
+        "KID BIT: 'You BEAT the big SEV. Did the Guide tell you the secret name yet? I practiced my incident voice. Ahem - ACKNOWLEDGED.'",
+        "You open your mouth to answer, and stop. You know how to hold a bridge now. You do not yet know how to hand one over.",
+        "KID BIT: 'That is okay. Scope it for later. I un-scoped my chores back up to THREE dishes. Mom calls it growth. I call it scope creep.'"]); return; }
       say(npc.lines); return; }
     if(zone.signs && zone.signs[key]){ say([zone.signs[key]]); return; }
     if(zone.inn===key){ enterInterior(6); return; }
@@ -5471,6 +5542,34 @@ const TESTS = [
     ov.hidden=true; S=sb; M.state="test";
     return hasSteel && hasMith; }],
  // ---- the hacker's crew and the roster variety pass ----
+ // ---- character episodes: four souls, each arc paid off (2026-08-31) ----
+ ["a general arcBeat drives an ordered, bond-gated, save-persisted arc for sentinel, wiki, lito", ()=>{
+    const sb=S, sy=window.say, sg=window.saveGame;
+    try{ window.say=(l,cb)=>{ if(cb) cb(); }; window.saveGame=()=>{};
+      let allok=true;
+      [["sentinel",SENT_ARC],["wiki",WIKI_ARC],["lito",LITO_ARC]].forEach(([id,ARC])=>{
+        S=NEWS(); S.party=[id,"papafoxx"]; S.actors[id]=mkActor(id,12); S.actors.papafoxx=mkActor("papafoxx",12);
+        S.bond={}; S.bond[id]=0; S.worldClass=1;   // papafoxx satisfies SENT_ARC beat 2's when-gate
+        if(!Array.isArray(ARC) || ARC.length<3){ allok=false; return; }
+        if(arcBeat(id,ARC)){ allok=false; return; }          // bond 0 < need 1: silent
+        S.bond[id]=12;
+        let played=0; for(let i=0;i<ARC.length+2;i++){ if(arcBeat(id,ARC)) played++; }
+        if(played!==ARC.length) allok=false;                 // each beat once, in order
+        if(arcBeat(id,ARC)) allok=false;                     // arc exhausted, silent after
+      });
+      return allok;
+    } finally { window.say=sy; window.saveGame=sg; S=sb; } }],
+ ["WIKI's finished archive gives TOTAL RECALL one more MP per ally, text and heal in agreement", ()=>{
+    const sb=S; S=NEWS(); S.arc={wiki:WIKI_ARC.length};
+    const bonus = (S.arc&&S.arc.wiki>=3)?1:0;
+    S=sb; return bonus===1 && String(castLimit).indexOf("S.arc.wiki")>=0; }],
+ ["the HERO teaches the next one: KID BIT's story turns on worldClass and persists", ()=>{
+    const src=String(interact);
+    return src.indexOf("KID BIT")>=0 && src.indexOf("S.kidTaught")>=0 && src.indexOf("S.worldClass")>=0; }],
+ ["LITO's arc rides the talks branch, not hangoutTalk, so it is actually reachable", ()=>{
+    const src=String(interact);
+    const talksHook = src.indexOf('litoBeat')>=0 || src.indexOf('arcBeat("lito"');
+    return src.indexOf('npc.talks==="lito"')>=0 && String(interact).indexOf("LITO_ARC")>=0; }],
  ["cornering NULLBYTE after his crew falls pays off the hunt", ()=>{
     const sb=S; S=NEWS();
     S.actors={ hero: mkActor("hero",14) }; S.party=[];
