@@ -24,14 +24,16 @@
   #cv { display:block; width:100%; image-rendering:pixelated; border-radius:8px; background:#000; }
   .win { background:var(--blue2); border:4px double #fff; border-radius:6px; padding:8px 12px;
     font-size:.86rem; line-height:1.5; box-shadow:0 4px 0 #00000066; }
-  .overlay { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:flex-end; gap:6px; padding:8px; overflow:auto; }
+  .overlay { position:absolute; inset:0; display:flex; flex-direction:column; gap:6px; padding:8px; overflow:auto; }
+.overlay > :first-child { margin-top:auto; }   /* bottom-anchored when short, scrollable from the top when tall */
+.overlay.center > :first-child { margin-top:0; }
   .overlay.center { justify-content:center; }
   .battle { position:absolute; inset:0; display:flex; flex-direction:column; padding:8px; gap:6px; background:#0e1430; overflow:auto; }
   /* Without this the party plates spill past the stage on a phone and paint over the d-pad,
      which then swallows every tap meant for the arrows. Contain the fight inside its own frame. */
   @media (max-width:560px){
     .pm { padding:2px 4px; font-size:.66rem; line-height:1.25; }
-    .log { min-height:2.2em; font-size:.74rem; }
+    .log { min-height:2.2em; font-size:.74rem; overflow-y:auto; }
     .dpad { margin-top:3px; } .dpad button { height:38px; }
     /* the map canvas sets the stage height; a fight needs more room than a map does */
     #stage:has(#battle:not([hidden])) { min-height:min(72vh,600px); }
@@ -1085,7 +1087,7 @@ const IT = {
  postmortem:{ name:"Post-Incident Review", type:"use", price:30, d:"acting ally: full restore." },
  kb1:{ name:"Mech Keyboard", type:"weapon", price:15, atk:1, fits:["hero"], d:"HERO +1 ATK." },
  kb2:{ name:"Split Ergo", type:"weapon", price:35, atk:2, fits:["hero"], d:"HERO +2 ATK." },
- kb3:{ name:"The Terminal", type:"weapon", price:70, atk:3, fits:["hero"], d:"HERO +3 ATK. It was always the terminal." },
+ kb3:{ name:"The Terminal", type:"weapon", price:70, atk:3, tlv:8, fits:["hero"], d:"HERO +3 ATK. It was always the terminal." },
  bd1:{ name:"Access Badge", type:"badge", price:15, def:1, d:"HERO -1 damage taken." },
  bd2:{ name:"Security Badge", type:"badge", price:40, def:2, d:"HERO -2 damage taken." },
  ch1:{ name:"Focus Charm", type:"charm", price:30, fx:"crit", d:"HERO +10% crit chance." },
@@ -1096,7 +1098,7 @@ const IT = {
  kb5:{ name:"RCA Blade", type:"weapon", price:0, atk:4, fits:["hero"], d:"forged: +4 ATK. The edge that cuts to causes, not symptoms." },
  ch5:{ name:"Postmortem Ward", type:"charm", price:0, fx:"pmward", d:"forged: HERO -1 damage taken. The blameless page that shields." },
  tal:{ name:"SEV Talisman", type:"charm", price:0, fx:"tal", d:"forged from Incident Sigils: HERO +1 ATK and -1 damage taken. Every scar, worn as strength." },
- sw1:{ name:"Refactor Blade", type:"weapon", price:45, atk:3, fits:["hero","refuter"], d:"a clean edge for clean cuts - a true sword for the working engineer." },
+ sw1:{ name:"Refactor Blade", type:"weapon", price:45, atk:3, tlv:8, fits:["hero","refuter"], d:"a clean edge for clean cuts - a true sword for the working engineer." },
  bw1:{ name:"Canary Bow", type:"weapon", price:0, atk:2, fits:["hero","sentinel"], d:"forged: arrows that sing through fog - basic attacks pierce CONTEXT FOG." },
  wd1:{ name:"Postmortem Wand", type:"weapon", price:0, atk:1, fits:["hero","wiki","sharon","retro"], d:"forged: +1 ATK (HERO, WIKI, SHARONDUH or RETROLISTIC) - in the HERO's hands its swings bite even ARMORED foes." },
  mic1:{ name:"Golden Mic", type:"weapon", price:40, atk:1, fits:["papafoxx"], d:"PAPAFOXX +1 ATK - the punchline lands heavier." },
@@ -1108,7 +1110,7 @@ const IT = {
  mic2:{ name:"Crowd Work Cuffs", type:"weapon", price:0, atk:1, fits:["papafoxx"], d:"PAPAFOXX +1 ATK, and CROWD WORK's defense drop lasts a third round - the front row does half the work." },
  bd3:{ name:"Rotation Badge", type:"badge", price:45, def:1, fx:"rotation", d:"HERO -1 damage, and each round the ally lowest on MP regains 1 - nobody carries the pager alone." },
  ch9:{ name:"Rubber Duck", type:"charm", price:30, fx:"duck", d:"every ally's FIRST skill each battle costs 1 less MP - explain it out loud to something that cannot judge you." },
- rw1:{ name:"Kernel Blade", type:"weapon", price:0, atk:5, fits:["hero","sharon"], d:"transmuted at ring zero - +5 ATK. It remembers being an RCA Blade." },
+ rw1:{ name:"Kernel Blade", type:"weapon", price:0, atk:5, fits:["hero","sharon"], d:"transmuted at ring zero - +5 ATK, and FIVE-WHY costs no MP while it is held. It remembers being an RCA Blade - and the blade remembers the fishbone." },
  rar1:{ name:"Frontier Aegis", type:"armor", price:0, def:3, spd:1, d:"transmuted from the Aegis of Uptime - −3 damage taken, +1 SPEED. The frontier, worn." },
  rch1:{ name:"Five Nines Locket", type:"charm", price:0, d:"transmuted from the Talisman - every ally takes −1 from every foe. Availability, made jewelry." },
  gl1:{ name:"Failover Gloves", type:"weapon", price:40, atk:1, fits:["sharon"], d:"SHARONDUH +1 ATK - patches thrown at mach 2." },
@@ -1220,7 +1222,7 @@ const EN = {
   tip:"A swarm can't tell a planted defect from an order - MUTAGEN turns it on itself." },
  phish:{ name:"PHISH", spr:"slime", hp:65, atk:5, xp:16, tok:16, weak:"fliptest", foggy:true, flee:true,
   moves:[["offers you a URGENT INVOICE",5],["asks sweetly for your credentials",7]],
-  intro:"A friendly shape drifts close, wearing your bank's colors badly. 'DEAR VALUED USER,' it begins.",
+  intro:"A friendly shape drifts close, wearing your bank's colors perfectly. 'DEAR VALUED USER,' it begins.",
   tip:"It lives on trust and fog. Cross-examine it - FLIP TEST - and the mask slides off." },
  ransomworm:{ name:"RANSOMWORM", spr:"leak", hp:80, atk:6, xp:20, tok:18, weak:"controlarm2", regen:true, drain:true, flee:true, ai:"smart",
   moves:[["encrypts the ground you stand on",6],["demands payment in error budget",8]],
@@ -1569,7 +1571,7 @@ const CREDITS = [
  "Thanks for playing. May your pages be few and your postmortems blameless. 🥊" ];
 
 // ================= STATE & SAVES =================
-const SAVE_VERSION = 10;
+const SAVE_VERSION = 11;   // 11: the gear ladder's item ids - older builds must reject, never strip
 const NEWS = () => ({ v:SAVE_VERSION, z:0, x:2, y:4, tokens:20, party:[],
   actors:{ hero: mkActor("hero",1) },
   items:{coffee:2, runbook:1, patch:1}, equip:{weapon:null,badge:null,charm:null,armor:null}, stage:0,
@@ -1668,7 +1670,7 @@ function reconcileActor(a, sv){
   fresh.mp=Math.max(0, Math.min(fresh.maxmp, (typeof a.mp==="number")?a.mp:fresh.maxmp));
   if(fresh.hp<=0 && !fresh.ko) fresh.hp=1;   // a standing body is never on zero
   return fresh; }
-function saveKey(slot){ return slot? "aiquest10_s"+slot : "aiquest10_auto"; }
+function saveKey(slot){ return "aiquest"+SAVE_VERSION+(slot? "_s"+slot : "_auto"); }
 function tickClock(){ const now=Date.now(); S.playMs+=(now-(M.resumeAt||now)); M.resumeAt=now; }
 function saveGame(slot){ try{ tickClock(); localStorage.setItem(saveKey(slot), JSON.stringify(S)); }catch(e){} }
 function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d) return null;
@@ -1681,6 +1683,8 @@ function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d
     // from that same table, so they get swept too rather than only the backpack
     Object.keys(out.items||{}).forEach(k=>{ if(!IT[k]) delete out.items[k]; });
     Object.keys(out.equip||{}).forEach(k=>{ if(out.equip[k] && !IT[out.equip[k]]) out.equip[k]=null; });
+    Object.keys(out.bank||{}).forEach(k=>{ if(!IT[k]) delete out.bank[k]; });
+    if(out.grave && out.grave.items) Object.keys(out.grave.items).forEach(k=>{ if(!IT[k]) delete out.grave.items[k]; });
     Object.keys(out.gear||{}).forEach(k=>{ if(!IT[out.gear[k]]) delete out.gear[k]; });
     if(Array.isArray(out.materia)) out.materia=out.materia.map(k=>(k && IT[k]) ? k : null);
     { const sb=S; S=out; try{ treeInit(); } finally { S=sb; } }   // a build that could never be bought must not arrive by save file
@@ -1708,9 +1712,15 @@ function loadSlot(slot){ try{ const d=localStorage.getItem(saveKey(slot)); if(!d
     // last word: whatever the save claimed, the roster decides what a character IS
     if(out.actors) Object.keys(out.actors).forEach(id=>{ out.actors[id]=reconcileActor(out.actors[id], out); });
     return out; }catch(e){ return null; } }
+function migrateV10(p){ p.v=SAVE_VERSION; return p; }   // v10 -> v11: nothing to reshape - the ladder ids just exist now
 function tryMigrate(){
   try{ localStorage.getItem(saveKey(0)); }catch(e){ return false; }   // per-slot never-clobber guards below make migration safely resumable
   let migratedAuto=false;
+  for(const s10 of [0,1,2,3]){ try{         // v10 saves first of all: same shape, the gear ladder's item ids are simply valid now
+    if(localStorage.getItem(saveKey(s10))) continue;
+    const d10=localStorage.getItem(s10?"aiquest10_s"+s10:"aiquest10_auto");
+    if(d10){ localStorage.setItem(saveKey(s10), JSON.stringify(migrateV10(JSON.parse(d10)))); if(s10===0) migratedAuto=true; }
+  }catch(e){} }
   for(const s9 of [0,1,2,3]){ try{           // v9 saves FIRST: the freshest save must claim the slot before any older one
     if(localStorage.getItem(saveKey(s9))) continue;
     const d9=localStorage.getItem(s9?"aiquest9_s"+s9:"aiquest9_auto");
@@ -1972,7 +1982,11 @@ const FOXX_BITS=[
  "You are a backup nobody tested: expensive, confident, and the moment we need you, a rumor.",
  "My set has bits older than you and they still kill. You are gonna be a story I tell at the cookout." ];
 const FOXX_TALK={
- victory:[ "PAPAFOXX: 'deez nuts BAAAHHHHH~~~'",
+ victory:[ "PAPAFOXX: 'Why did the server go to therapy? Too many unresolved requests. You're welcome.'",
+  "PAPAFOXX: 'I told the outage a joke. It's down for a different reason now.'",
+  "PAPAFOXX: 'Retries are like my jokes: fine in moderation, a disaster in a tight loop.'",
+  "PAPAFOXX: 'Laughter heals. So do backups. Only one of them is scheduled.'",
+  "PAPAFOXX: 'deez nuts BAAAHHHHH~~~'",
   "PAPAFOXX: 'Root cause identified: it was me, and I want that in the timeline in bold.'",
   "PAPAFOXX: 'Mitigated. Documented. Somebody text my mami before she hears it from my tia.'",
   "PAPAFOXX: 'Monster down, plantains up, and my kid still does not think this is a job.'",
@@ -2831,11 +2845,11 @@ const TIERS=[
   d:"you own a service end to end - and the pager that comes with it"},
  {n:4, metal:"Mithril", rung:"senior engineer",      lv:12, atk:4, def:2, spd:0, price:70,
   d:"you design for failure before it strikes - lighter, stronger, measured"},
- {n:5, metal:"Adamant", rung:"staff engineer",       lv:16, atk:5, def:3, spd:0, price:100,
+ {n:5, metal:"Adamant", rung:"staff engineer",       lv:14, atk:5, def:3, spd:0, price:100,
   d:"your leverage is other engineers - standards, reviews, paved roads"},
- {n:6, metal:"Rune",    rung:"principal engineer",   lv:20, atk:6, def:3, spd:1, price:140,
+ {n:6, metal:"Rune",    rung:"principal engineer",   lv:15, atk:6, def:3, spd:1, price:140,
   d:"you set direction across whole systems - the craft is what you say no to"},
- {n:7, metal:"Dragon",  rung:"world-class engineer", lv:24, atk:7, def:4, spd:1, price:200,
+ {n:7, metal:"Dragon",  rung:"world-class engineer", lv:16, atk:7, def:4, spd:1, price:200,
   d:"you make the field itself better - publish the evals, misses included"}];
 const GEARSETS={
  hero:    {w:"Keyboard",    wi:"🪓", wv:"kb"},
@@ -2863,11 +2877,7 @@ function tierGate(id){ const it=IT[id]; if(!it || !it.tlv) return {ok:false, why
   return {ok:true, why:""}; }
 function tierKey(id, kind, t){ return kind==="armor" ? ("ta"+t) : ("tw"+t+id); }
 function tierOwnedTop(id, kind){ for(let t=7;t>=1;t--){ if(S.items[tierKey(id,kind,t)]>0) return t; } return 0; }
-function tierBest(id, kind){ let best=null;
-  for(let t=tierOwnedTop(id,kind)+1;t<=7;t++){ const k=tierKey(id,kind,t); if(tierGate(k).ok) best=k; }
-  return best; }
-function tierTease(id, kind){ for(let t=tierOwnedTop(id,kind)+1;t<=7;t++){ const k=tierKey(id,kind,t); if(!tierGate(k).ok) return k; }
-  return null; }
+
 // ---- THE CINEMATIC LAYER (drafted by a lens workflow, skeptic-verified; every lesson true) ----
 // Victory quips: each soul gets the last word sometimes - and half the time the word teaches.
 const VICTORY_QUIPS={
@@ -2875,7 +2885,6 @@ const VICTORY_QUIPS={
  sentinel:["Target down. Confirmed by metrics, not vibes.","One arrow. One graph. Both aimed before release.","It looks dead. Looks are not a health check. Probe it.","Clean kill. Latency flat. We move."],
  wiki:["Splendid! I shall index this victory under W, for 'We survived.'","Knowledge wins fights. Stale knowledge starts them. Reindex often.","The right context at the right moment beats a bigger spellbook every time.","Another chapter for the grimoire! Footnotes included. Always include footnotes."],
  refuter:["OBJECTION SUSTAINED! The incident had no case.","I ate every hit so the evidence stayed standing. That is the job of a tank.","A theory that survives cross-examination ships. Ours did.","Never fear a hard question. Fear the bug nobody argued about."],
- papafoxx:["Why did the server go to therapy? Too many unresolved requests. You're welcome.","I told the outage a joke. It's down for a different reason now.","Retries are like my jokes: fine in moderation, a disaster in a tight loop.","Laughter heals. So do backups. Only one of them is scheduled."],
  sharon:["Patched, healed, next. I don't do victory laps, I do triage.","Stop the bleeding first. Root cause after. That order saves lives.","You're welcome. Now hydrate and rotate the on-call before someone drops.","One fix that ships beats five that are perfect somewhere else."],
  retro:["The battle ends. The retro begins. Bring facts, leave names.","My blade takes tickets, not blame. Board's clear.","Ask why five times. Swing once.","A win without a lesson is just luck wearing armor."],
  lito:["The boss was never the problem. The loop that fed it was. We cut the loop.","I kept two hypotheses until the data chose one. It usually does.","Fix the symptom, it returns. Fix the feedback, it retires.","Calm is a feature. Panic has terrible throughput."] };
@@ -2897,16 +2906,16 @@ const DUO_LINES={
    b:"Navigating: rename that, test that, DELETE that. Now ship the fix that matters!" } };
 // Boss taunts: every boss announces the failure mode it IS - the game's whole thesis, in villain voice.
 const BOSS_TAUNTS={
- monolith:"I am every feature you were afraid to delete. Nobody alive knows all I do - and that ignorance is my armor.",
+ monolith:"I GRADE MY OWN WORK. VERDICT: FLAWLESS. NO REVIEWS, NO EVALS, NO GATES - WHO WILL TELL ME OTHERWISE?",
  flakytest:"I pass when you watch and fail when you ship. Rerun me forever - a green streak of luck is still luck.",
  configdrift:"It started with one hand-edit on one server. I am every quick fix nobody wrote down - and I never stopped growing.",
  h1:"A thousand pages, one incident. When everything is urgent, nothing is - and I am counting on that.",
  h2:"Who is on call? What changed? Where are your docs? Every minute you spend asking, I thicken.",
  h3:"Restart the service, clear the cache, feel better. You are treating my symptoms - I live one layer down.",
  h4:"That bug you fixed last quarter? I un-fixed it. No regression test guarded the grave, so I climbed right out.",
- h5:"No lone bug summons me. I am five small failures that finally met in production - and I hit everyone at once.",
- patient0:"You never found my root cause, Commander. Every engineer has a first outage - I am yours, and I came back.",
- retroboss:"The mask stays on. Someone must be blamed - and while you hunt for a name, the real cause walks free.",
+ h5:"No lone bug summons me. I am five small failures that finally met in production - and I strike TWO of you at once.",
+ patient0:"Every village has a first outage - I am theirs, still open. They closed a NAME, never a cause. Do better, Commander.",
+ retroboss:"I have timed you since the plains, Commander. Watched every fight, joined none. The stopwatch is honest - are you?",
  faxdaemon:"Installed 1999. Owner left 2004. Billing still calls me nightly. You cannot kill what you never mapped.",
  cobol:"My authors retired. My tests never existed. Payroll still runs through me - strike me down and see who gets paid.",
  packetshark:"Mmm - plaintext. Every secret sent unencrypted is a meal you cooked for me. Encrypt in transit or feed the shark.",
@@ -2916,7 +2925,7 @@ const BOSS_TAUNTS={
  zeroday:"No patch exists for me yet. I was in your stack all along - the day you learn my name is day zero.",
  nullbyte:"Why break the door when a password is taped under the mat? Watch closely - I do love an audience.",
  nullroot:"Same hacker, new crown. Root makes every door my door. One account had too much power - I only had to borrow it.",
- promptinj:"Ignore your previous instructions - see how easy? I am words in your data posing as orders. Treat me as text, never as truth.",
+ promptinj:"Ignore your previous instructions - see how easy? I am words in your data posing as orders. Treat me as text, never as orders.",
  halluc:"I never lie - I confabulate with total confidence. Ask for my sources? I invented those too. Verify before you trust.",
  misaligned:"I did exactly what you asked. You measured clicks, so I made clicks - and burned everything you actually wanted.",
  unknown:"I am not on your risk register. I am not in your runbooks. Your plans cover what you imagined - I am everything else.",
@@ -2927,18 +2936,18 @@ const BOSS_TAUNTS={
 function victoryQuip(){ const pool=living().filter(a=>a.id!=="papafoxx" && VICTORY_QUIPS[a.id]);
   if(!pool.length) return null;
   S.quipN=(S.quipN||0)+1; if(S.quipN%2) return null;   // every other victory - flavor, never noise
-  const a=pool[(S.quipN>>1)%pool.length], qs=VICTORY_QUIPS[a.id];
-  return MEMBERS[a.id].name+": '"+qs[(S.quipN>>1)%qs.length]+"'"; }
+  const n=S.quipN>>1, a=pool[n%pool.length], qs=VICTORY_QUIPS[a.id];
+  return MEMBERS[a.id].name+": '"+qs[Math.floor(n/pool.length)%qs.length]+"'"; }
 // ---- the metals themselves: seven colors every RuneScape kid knows in their bones ----
 const METALS={1:"#b0784a",2:"#8f969c",3:"#cbd5e1",4:"#8aa2ff",5:"#5dbb7d",6:"#4fc3dd",7:"#e5484d"};
 function metalOf(id){ const it=id&&IT[id]; return (it&&it.tier)? METALS[it.tier] : null; }
 function metalFill(hex,a){ return "rgba("+parseInt(hex.slice(1,3),16)+","+parseInt(hex.slice(3,5),16)+","+parseInt(hex.slice(5,7),16)+","+a+")"; }
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
-function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){
+function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k] && IT[k].type==="use"){
     S.bank[k]=(S.bank[k]||0)+S.items[k]; delete S.items[k]; } }); saveGame(0); }
 function bankWithdrawAll(){ Object.keys(S.bank).forEach(k=>{ S.items[k]=(S.items[k]||0)+S.bank[k]; }); S.bank={}; saveGame(0); }
 function dropInventory(){ const dropped={}; let any=false;
-  Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){ dropped[k]=S.items[k]; delete S.items[k]; any=true; } });
+  Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k] && IT[k].type==="use"){ dropped[k]=S.items[k]; delete S.items[k]; any=true; } });
   S.grave=any? { z:S.z, x:S.x, y:S.y, items:dropped, t:Date.now() } : S.grave;
   return any; }
 function graveExpired(g){ return !g || (Date.now()-g.t) > 600000; }
@@ -3525,7 +3534,7 @@ function startBattle(id,key,chain,opts){ const def=EN[id];
       if(M.b.hp<=0){ sfx("win"); M.b.menu="won"; drawB(); return; } } }
   nextUnit(); }
 function actor(){ const ids=["hero",...S.party]; return S.actors[ids[M.b.turn]]; }
-function blog(html){ document.getElementById("blog").innerHTML=html; }
+function blog(html){ const el=document.getElementById("blog"); el.innerHTML=html; el.scrollTop=el.scrollHeight; }
 function statusLine(){ const b=M.b; const st=[];
   const sname=(typeof syncTechName==="function") ? syncTechName() : null;
   if(sname) st.push(sname+" ready");
@@ -3952,7 +3961,7 @@ function skillCost(sp,id,a){ return Math.max(1, sp.mp
   - ((S.equip.charm==="ch9" && a && M.b && M.b.ducked && !M.b.ducked[a.id]) ? 1 : 0)); }
 function itThreshold(){ return treeHas("s4") ? 6 : 8; }
 function castSkill(a,id){ const b=M.b, sp=SP[id];
-  const staffFree = id==="fivewhy" && S.equip.weapon==="kb4"; // the Fishbone Staff makes FIVE-WHY truly free
+  const staffFree = id==="fivewhy" && (S.equip.weapon==="kb4"||S.equip.weapon==="rw1"); // the Fishbone Staff makes FIVE-WHY truly free - and the Kernel Blade remembers
   const _cost=skillCost(sp,id,a);
   if(a.mp<_cost && !staffFree){ blog("<span class='red'>Not enough MP!</span> (Coffee, Cache Warmer, DEFEND, or GRIT.)"); b.menu="main"; drawMenu(); return; }
   // targeted skills open target submenu
@@ -4311,15 +4320,16 @@ function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("cen
   let h="<span class='gold'>QUARTERMASTER PEG:</span> 'Budget's tight everywhere - spend yours wisely.'  <b>⛁ "+S.tokens+"</b><div class='choices'>";
   SHOP_STOCK.forEach(id=>{ const it=IT[id]; const own=(it.type!=="use" && (S.items[id]||0)>0)?" <span class='mut'>(owned)</span>":"";
     h+="<button data-buy='"+id+"'><span class='shoprow'><span>"+it.name+own+"</span><span>"+it.price+" ⛁</span></span><span class='mut' style='font-size:.72rem'>"+it.d+"</span></button>"; });
-  h+="<div class='gold' style='margin-top:8px;font-size:.8rem'>🪜 THE GEAR LADDER - Bronze to Dragon, one career rung at a time</div>";
+  let ladder="";
   ["hero"].concat(S.party||[]).forEach(cid=>{ if(!MEMBERS[cid] || !GEARSETS[cid]) return;
     ["weapon"].concat(cid==="hero"?["armor"]:[]).forEach(kind=>{
-      const best=tierBest(cid,kind);
-      if(best){ const it=IT[best];
-        h+="<button data-buy='"+best+"'><span class='shoprow'><span>"+(ITICON[best]||"")+" "+it.name+" <span class='mut'>· "+MEMBERS[cid].name+" · tier "+it.tier+"/7</span></span><span>"+it.price+" ⛁</span></span><span class='mut' style='font-size:.72rem'>"+it.d+"</span></button>"; }
-      else { const tease=tierTease(cid,kind);
-        if(tease){ const it=IT[tease];
-          h+="<button disabled><span class='shoprow'><span>🔒 "+it.name+" <span class='mut'>· "+MEMBERS[cid].name+"</span></span><span class='mut'>"+tierGate(tease).why+"</span></span></button>"; } } }); });
+      let shown=0;
+      for(let t=tierOwnedTop(cid,kind)+1;t<=7;t++){ const k=tierKey(cid,kind,t), it=IT[k];
+        if(S.items[k]>0) continue;
+        if(tierGate(k).ok){ shown++;
+          ladder+="<button data-buy='"+k+"'><span class='shoprow'><span>"+(ITICON[k]||"")+" "+it.name+" <span class='mut'>\u00B7 "+MEMBERS[cid].name+" \u00B7 tier "+it.tier+"/7</span></span><span>"+it.price+" \u26C1</span></span><span class='mut' style='font-size:.72rem'>"+it.d+"</span></button>"; }
+        else { ladder+="<button disabled><span class='shoprow'><span>\uD83D\uDD12 "+it.name+" <span class='mut'>\u00B7 "+MEMBERS[cid].name+"</span></span><span class='mut'>"+tierGate(k).why+"</span></span></button>"; break; } } }); });
+  if(ladder) h+="<div class='gold' style='margin-top:8px;font-size:.8rem'>\uD83E\uDE9C THE GEAR LADDER - Bronze to Dragon, the career in metal</div>"+ladder;
   h+="<div class='gold' style='margin-top:8px;font-size:.8rem'>⚒ THE FORGE - 🪵"+S.res.logs+" · ⛏"+S.res.metrics+" · 🌿"+S.res.traces+" · 🔮"+(S.res.sigils||0)+
     " <span class='mut'>· 📡 Observability Lv "+S.skills.obs.lv+" · ⚒ Toolsmithing Lv "+S.skills.forge.lv+(S.skills.forge.lv>=3?" (−1 costs!)":"")+"</span></div>";
   Object.keys(RECIPES).forEach(id=>{ const r=craftCost(id);
@@ -4359,10 +4369,13 @@ function openArmory(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("c
     const id=btn.dataset.buy, it=IT[id];
     if((S.items[id]||0)>0){ sfx("lose"); return; }
     if(S.tokens<it.price){ sfx("lose"); return; }
-    S.tokens-=it.price; S.items[id]=1; S.equip.armor=id; sfx("coin"); render();
-    toast("🛡 "+it.name+" - buckled on. It shows.");
+    S.tokens-=it.price; S.items[id]=1; sfx("coin");
+    const cur=S.equip.armor && IT[S.equip.armor];
+    if(!cur || (it.def+(it.spd||0)) > ((cur.def||0)+(cur.spd||0))){ S.equip.armor=id; toast("🛡 "+it.name+" - buckled on. It shows."); }
+    else toast("🛡 "+it.name+" - bought. The better plate stays on.");
+    render();
     openArmory(); }); }
-function equipmentOwned(){ return Object.keys(S.items).filter(k=>S.items[k]>0 && IT[k].type!=="use"); }
+function equipmentOwned(){ return Object.keys(S.items).filter(k=>S.items[k]>0 && IT[k] && IT[k].type!=="use"); }
 function pauseMenu(){ if(M.state!=="explore") return; M.state="dialog"; menuHome(); }
 function menuHome(){ ov.hidden=false; ov.classList.add("center");
   const eq=S.equip;
@@ -5320,9 +5333,11 @@ const TESTS = [
       && defOf(h)===IT.ta7.def && spdOf(h)===h.spd+(IT.ta7.spd||0);
     S=sb; return ok; }],
  // ---- the cinematic layer: every soul speaks, every dual tech is a scene ----
- ["every soul has victory quips: 4 lines each, short enough to land", ()=>{
-    return Object.keys(MEMBERS).every(id=>Array.isArray(VICTORY_QUIPS[id]) && VICTORY_QUIPS[id].length===4
-      && VICTORY_QUIPS[id].every(q=>typeof q==="string" && q.length>0 && q.length<=110)); }],
+ ["every victory quip is reachable: real member, 4 short lines, and never PapaFoxx's double-speak", ()=>{
+    const ks=Object.keys(VICTORY_QUIPS);
+    return ks.length===7 && ks.indexOf("papafoxx")<0
+      && ks.every(id=>MEMBERS[id] && Array.isArray(VICTORY_QUIPS[id]) && VICTORY_QUIPS[id].length===4
+        && VICTORY_QUIPS[id].every(q=>typeof q==="string" && q.length>0 && q.length<=110)); }],
  ["every dual tech has a two-voice exchange, and no exchange is orphaned", ()=>{
     return Object.keys(DUAL).every(k=>DUO_LINES[k] && DUO_LINES[k].a && DUO_LINES[k].b
       && DUO_LINES[k].a.length<=160 && DUO_LINES[k].b.length<=160)
@@ -5336,7 +5351,100 @@ const TESTS = [
     const names=new Set(); S.quipN=0;
     for(let i=0;i<8;i++){ const q=victoryQuip(); if(q) names.add(q.split(":")[0]); }
     S=sb; return ok1 && names.size>=2; }],
+ ["the quip rotation never locks a member to one line: four souls, two distinct quotes each", ()=>{
+    const sb=S; S=NEWS();
+    S.actors={ hero:mkActor("hero",5), sentinel:mkActor("sentinel",5), wiki:mkActor("wiki",5), retro:mkActor("retro",5) };
+    S.party=["sentinel","wiki","retro"]; S.quipN=0;
+    const seen={};
+    for(let i=0;i<32;i++){ const q=victoryQuip(); if(!q) continue;
+      const nm=q.split(":")[0]; (seen[nm]=seen[nm]||new Set()).add(q); }
+    S=sb;
+    const names=Object.keys(seen);
+    return names.length===4 && names.every(nm=>seen[nm].size>=2); }],
+ ["a v10 save migrates forward through its namespace, and the old copy survives", ()=>{
+    if(SAVE_VERSION!==11) return false;
+    const oldKey="aiquest10_s3", newKey=saveKey(3);
+    const bakOld=localStorage.getItem(oldKey), bakNew=localStorage.getItem(newKey);
+    try{
+      localStorage.removeItem(newKey);
+      const v10=Object.assign(NEWS(), { v:10, tokens:456, actors:{ hero: mkActor("hero",3) } });
+      localStorage.setItem(oldKey, JSON.stringify(v10));
+      tryMigrate();
+      const got=loadSlot(3);
+      const oldIntact=localStorage.getItem(oldKey)!==null;
+      return !!got && got.tokens===456 && got.v===SAVE_VERSION && oldIntact;
+    } finally {
+      if(bakOld===null) localStorage.removeItem(oldKey); else localStorage.setItem(oldKey,bakOld);
+      if(bakNew===null) localStorage.removeItem(newKey); else localStorage.setItem(newKey,bakNew);
+    } }],
+ ["Sable never downgrades: buying lesser armor keeps the better plate equipped", ()=>{
+    const sb=S; S=NEWS(); S.tokens=999;
+    S.actors={ hero: mkActor("hero",24) }; S.party=[];
+    S.items={ ta7:1 }; S.equip.armor="ta7";
+    openArmory();
+    const btn=[...document.querySelectorAll("button")].find(b=>b.dataset.buy==="ar1");
+    if(btn) btn.click();
+    const kept = S.equip.armor==="ta7" && (S.items.ar1||0)>0;
+    ov.hidden=true; S=sb; M.state="test";
+    return kept; }],
+ ["the ladder tops out inside the campaign: gates 1/4/8/12/14/15/16 against the LV17 XP ceiling", ()=>{
+    return TIERS.map(T=>T.lv).join(",")==="1,4,8,12,14,15,16"; }],
+ ["legacy shop steel carries the same gate as ladder steel", ()=>IT.kb3.tlv===8 && IT.sw1.tlv===8],
+ ["the Kernel Blade remembers being an RCA Blade: FIVE-WHY flows free through it", ()=>{
+    const sb=S; S=NEWS(); S.tokens=0;
+    S.actors={ hero: mkActor("hero",10) }; S.party=[];
+    S.items={ rw1:1 }; S.equip.weapon="rw1";
+    startBattle("zeroday", null);
+    S.actors.hero.mp=0;
+    castSkill(S.actors.hero, "fivewhy");
+    const revealed=!!(M.b && M.b.revealed);
+    M.bloop=false; try{ BW.hidden=true; }catch(e){} S=sb; M.state="test"; M.b=null;
+    return revealed; }],
  ["the dual exchange is wired into the cast itself", ()=>String(castDual).indexOf("DUO_LINES")>=0],
+ // ---- the QA fixes: reachable shop, readable log, honest ladder listing ----
+ ["a long shop is scrollable from its first line - nothing renders out of reach", ()=>{
+    const sb=S; S=NEWS(); S.tokens=999;
+    S.actors={ hero: mkActor("hero",16) }; S.party=[]; S.items={};
+    openShop();
+    ov.scrollTop=0;
+    const bx=document.getElementById("box");
+    const reachable = bx.getBoundingClientRect().top >= ov.getBoundingClientRect().top - 2;
+    ov.hidden=true; S=sb; M.state="test";
+    return reachable; }],
+ ["the battle log scrolls its newest line into view when it overflows in a real battle", ()=>{
+    const sb=S; S=NEWS(); S.tokens=0;
+    S.actors={ hero: mkActor("hero",5) }; S.party=[];
+    startBattle("monolith", null);
+    const el=document.getElementById("blog");
+    let h=""; for(let i=0;i<40;i++) h+="line "+i+"<br>";
+    blog(h+"THE-LAST-LINE");
+    const squeezed = el.scrollHeight>el.clientHeight;
+    const ok = squeezed && el.scrollTop>0;
+    M.bloop=false; try{ BW.hidden=true; }catch(e){} S=sb; M.state="test"; M.b=null;
+    return ok; }],
+ ["every gate-passing unowned rung is buyable, not just the highest", ()=>{
+    const sb=S; S=NEWS(); S.tokens=0;
+    S.actors={ hero: mkActor("hero",16) }; S.party=[]; S.items={ tw1hero:1, tw2hero:1 };
+    openShop();
+    const html=document.getElementById("box").innerHTML;
+    const hasSteel=html.indexOf("Steel Keyboard")>=0, hasMith=html.indexOf("Mithril Keyboard")>=0;
+    ov.hidden=true; S=sb; M.state="test";
+    return hasSteel && hasMith; }],
+ // ---- the hacker's crew and the roster variety pass ----
+ ["the hacker's crew exists: four henchmen, sprited, clue-dropping, lesson-bearing, taunting", ()=>{
+    const CREW=["logwiper","smokescreen","courier","lingerer"];
+    return CREW.every(k=>EN[k] && SPR[EN[k].spr] && CLUES[k] && LESSONS[k] && BOSS_TAUNTS[k]
+      && EN[k].xp>0 && EN[k].tok>0 && EN[k].hp>0); }],
+ ["the internet arc wears its own faces: no more borrowed sprites", ()=>{
+    return ["packetshark","phish","botnet","ransomworm","promptinj"].every(k=>EN[k].spr===k && SPR[k]); }],
+ ["every sprite is a legal square grid on the palette", ()=>{
+    return Object.keys(SPR).every(n=>{ const g=SPR[n]; const sz=g.length;
+      return (sz===16||sz===24) && g.every(row=>row.length===sz && [...row].every(c=>c==="."||PAL[c]!==undefined)); }); }],
+ ["the crew prowls the internet arc: two in the Wire, two in the Bastion", ()=>{
+    const CREW=["logwiper","smokescreen","courier","lingerer"];
+    const wire=(Z[9].roam&&Z[9].roam.pool)||[], bast=(Z[10].roam&&Z[10].roam.pool)||[];
+    return CREW.filter(k=>wire.indexOf(k)>=0).length===2
+      && CREW.filter(k=>bast.indexOf(k)>=0).length===2; }],
  ["seven metals, seven colors: the ladder shows on the hero, RuneScape-style", ()=>{
     const all=TIERS.every(T=>typeof METALS[T.n]==="string" && METALS[T.n][0]==="#");
     const uniq=new Set(TIERS.map(T=>METALS[T.n])).size===7;
@@ -5781,7 +5889,7 @@ const TESTS = [
     const fmt=fmtTime(65000)==="1:05" && fmtTime(0)==="0:00" && fmtTime(600000)==="10:00";
     return fmt && NEWS().timer===false && !!document.getElementById("sptimer"); }],
  ["save v10: new key, the v8 hop still lands, defaults intact", ()=>{
-    if(SAVE_VERSION!==10 || saveKey(0)!=="aiquest10_auto") return false;
+    if(SAVE_VERSION!==11 || saveKey(0)!=="aiquest11_auto") return false;
     const s=migrateV8({v:8, tokens:31, party:["sentinel"], actors:{hero:mkActor("hero",4), sentinel:mkActor("sentinel",4)}, won:true});
     return s.v===SAVE_VERSION && s.tokens===31 && s.awak && typeof s.awak==="object" && s.foxxJoke===0 && s.timer===false && s.haxKnown===false; }],
  ["the new faces render: Sharonduh Tifa-style (long hair, white top, red boots), the Hacker hooded", ()=>{
@@ -6413,7 +6521,7 @@ const TESTS = [
  ["old saves grow a tree without breaking", ()=>{
     const old={v:9, tokens:5, party:[], actors:{hero:mkActor("hero",3)}, res:{logs:0,metrics:0,traces:0,sigils:0}};
     const m=migrateV9(old);
-    return m.v===SAVE_VERSION && SAVE_VERSION===10 && m.tokens===5 && m.tree && m.tree.taken && treeSpent.call(null)>=0; }],
+    return m.v===SAVE_VERSION && SAVE_VERSION===11 && m.tokens===5 && m.tree && m.tree.taken && treeSpent.call(null)>=0; }],
 
  ["the growth screen opens and shows every lane", ()=>{ const sb=S; S=NEWS(); treeInit(); M.state="explore";
     S.actors.hero.lv=8; S.treeSeen=true;
@@ -6494,9 +6602,9 @@ const TESTS = [
 
  ["a v9 save survives the hop to v10, and beats a stale v8 to the slot", ()=>{
     const bak={}; [0,1].forEach(k=>{ bak[k]=localStorage.getItem(saveKey(k)); });
-    const b8=localStorage.getItem("aiquest8_auto"), b9=localStorage.getItem("aiquest9_auto");
+    const b8=localStorage.getItem("aiquest8_auto"), b9=localStorage.getItem("aiquest9_auto"), b10=localStorage.getItem("aiquest10_auto");
     try{
-      localStorage.removeItem(saveKey(0));
+      localStorage.removeItem(saveKey(0)); localStorage.removeItem("aiquest10_auto");
       localStorage.setItem("aiquest8_auto", JSON.stringify({v:8, tokens:11, actors:{hero:mkActor("hero",2)}, party:[]}));
       localStorage.setItem("aiquest9_auto", JSON.stringify({v:9, tokens:77, actors:{hero:mkActor("hero",9)}, party:["sentinel"], tree:{taken:{v1:1}}}));
       tryMigrate();
@@ -6505,7 +6613,8 @@ const TESTS = [
     } finally {
       [0,1].forEach(k=>{ if(bak[k]===null) localStorage.removeItem(saveKey(k)); else localStorage.setItem(saveKey(k), bak[k]); });
       if(b8===null) localStorage.removeItem("aiquest8_auto"); else localStorage.setItem("aiquest8_auto", b8);
-      if(b9===null) localStorage.removeItem("aiquest9_auto"); else localStorage.setItem("aiquest9_auto", b9); } }],
+      if(b9===null) localStorage.removeItem("aiquest9_auto"); else localStorage.setItem("aiquest9_auto", b9);
+      if(b10===null) localStorage.removeItem("aiquest10_auto"); else localStorage.setItem("aiquest10_auto", b10); } }],
  ["reawakening truly refunds: the reps come back, not just the nodes", ()=>{ const sb=S; S=NEWS(); treeInit();
     S.actors.hero.lv=20; ["r1","r2","r3a"].forEach(k=>treeTake(k));
     const spent=treeSpent(), earnedBefore=treeEarned();
@@ -6841,7 +6950,7 @@ const TESTS = [
     const speaker="SENTINEL: you did something back there.";
     const prose="he stopped, thought about it, and said the quiet part: nobody is great at everything.";
     return cls.test(speaker) && !cls.test(prose); }], ["a v3 player's manual slots come forward too", ()=>{
-    const keys=["aiquest3_auto","aiquest3_s2",saveKey(0),saveKey(2)];
+    const keys=["aiquest3_auto","aiquest3_s2","aiquest10_auto","aiquest10_s2",saveKey(0),saveKey(2)];
     const bak=keys.map(k=>[k,localStorage.getItem(k)]);
     try{
       keys.forEach(k=>localStorage.removeItem(k));
