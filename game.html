@@ -2929,6 +2929,10 @@ function victoryQuip(){ const pool=living().filter(a=>a.id!=="papafoxx" && VICTO
   S.quipN=(S.quipN||0)+1; if(S.quipN%2) return null;   // every other victory - flavor, never noise
   const a=pool[(S.quipN>>1)%pool.length], qs=VICTORY_QUIPS[a.id];
   return MEMBERS[a.id].name+": '"+qs[(S.quipN>>1)%qs.length]+"'"; }
+// ---- the metals themselves: seven colors every RuneScape kid knows in their bones ----
+const METALS={1:"#b0784a",2:"#8f969c",3:"#cbd5e1",4:"#8aa2ff",5:"#5dbb7d",6:"#4fc3dd",7:"#e5484d"};
+function metalOf(id){ const it=id&&IT[id]; return (it&&it.tier)? METALS[it.tier] : null; }
+function metalFill(hex,a){ return "rgba("+parseInt(hex.slice(1,3),16)+","+parseInt(hex.slice(3,5),16)+","+parseInt(hex.slice(5,7),16)+","+a+")"; }
 // ---- bank & grave (RuneScape rules, SRE lessons) ----
 function bankDepositAll(){ Object.keys(S.items).forEach(k=>{ if(S.items[k]>0 && IT[k].type==="use"){
     S.bank[k]=(S.bank[k]||0)+S.items[k]; delete S.items[k]; } }); saveGame(0); }
@@ -3343,30 +3347,32 @@ function ensureRoam(){ const zone=Z[S.z];
     const id=zone.roam.pool[Math.floor(rng()*zone.roam.pool.length)];
     M.roam[S.z]={ id, x:zone.roam.x, y:zone.roam.y, alive:true }; }
   return M.roam[S.z]; }
-function drawWeaponOverlay(g,x,y,s,big){ const w=S.equip.weapon; const cat=w? WVIS[w] : null;
+function drawWeaponOverlay(g,x,y,s,big){ const w=S.equip.weapon; const cat=w? WVIS[w] : null; const mw=metalOf(w);
   const bx = big? 15*s : 1*s;   // battle hero24 frame: keep the bow clear of the face (right-hand side)
-  if(cat==="sword"){ g.fillStyle="#cbd5e1"; g.fillRect(x+13*s,y+3*s,s,7*s);
+  if(cat==="sword"){ g.fillStyle=mw||"#cbd5e1"; g.fillRect(x+13*s,y+3*s,s,7*s);
     g.fillStyle="#fbbf24"; g.fillRect(x+12*s,y+10*s,3*s,s); g.fillStyle="#8a6337"; g.fillRect(x+13*s,y+11*s,s,2*s); }
   else if(cat==="staff"){ g.fillStyle="#7c4a12"; g.fillRect(x+13*s,y+3*s,s,11*s);
-    g.fillStyle="#2dd4bf"; g.fillRect(x+12*s,y+2*s,3*s,2*s); }
+    g.fillStyle=mw||"#2dd4bf"; g.fillRect(x+12*s,y+2*s,3*s,2*s); }
   else if(cat==="bow"){ g.fillStyle="#8a5a2b"; g.fillRect(x+bx,y+4*s,s,8*s);
     g.fillRect(x+bx+s,y+3*s,s,s); g.fillRect(x+bx+s,y+12*s,s,s);
-    g.fillStyle="#e8f4ee"; g.fillRect(x+bx+s,y+5*s,1,6*s); }
+    g.fillStyle=mw||"#e8f4ee"; g.fillRect(x+bx+s,y+5*s,1,6*s); }
+  else if(cat==="kb" && mw){ g.fillStyle="#1f2937"; g.fillRect(x+11*s,y+8*s,4*s,3*s);
+    g.fillStyle=mw; g.fillRect(x+11*s,y+8*s,4*s,s); g.fillRect(x+12*s,y+10*s,2*s,s); }
   if(S.equip.badge){ g.fillStyle="#94a3b8"; g.fillRect(x+3*s,y+8*s,2*s,s); g.fillRect(x+11*s,y+8*s,2*s,s); } }
 function drawArmorOverlay(g,x,y,s,big){ const ar=S.equip.armor; if(!ar||!AVIS[ar]) return;
-  const kind=AVIS[ar];
+  const kind=AVIS[ar], ma=metalOf(ar);
   if(big){ // hero24 frame
-    if(kind==="vest"){ g.fillStyle="rgba(29,78,216,0.75)"; g.fillRect(x+4*s,y+13*s,12*s,5*s); }
-    if(kind==="plate"){ g.fillStyle="rgba(212,160,23,0.8)"; g.fillRect(x+4*s,y+13*s,12*s,5*s);
-      g.fillStyle="rgba(148,163,184,0.9)"; g.fillRect(x+4*s,y+2*s,13*s,4*s); }
-    if(kind==="aegis"){ g.fillStyle="rgba(15,118,110,0.8)"; g.fillRect(x+4*s,y+13*s,12*s,5*s);
-      g.strokeStyle="rgba(45,212,191,0.7)"; g.lineWidth=2; g.strokeRect(x+3*s,y+2*s,15*s,20*s); } }
+    if(kind==="vest"){ g.fillStyle=(ma? metalFill(ma,0.75) : "rgba(29,78,216,0.75)"); g.fillRect(x+4*s,y+13*s,12*s,5*s); }
+    if(kind==="plate"){ g.fillStyle=(ma? metalFill(ma,0.8) : "rgba(212,160,23,0.8)"); g.fillRect(x+4*s,y+13*s,12*s,5*s);
+      g.fillStyle=(ma? metalFill(ma,0.9) : "rgba(148,163,184,0.9)"); g.fillRect(x+4*s,y+2*s,13*s,4*s); }
+    if(kind==="aegis"){ g.fillStyle=(ma? metalFill(ma,0.8) : "rgba(15,118,110,0.8)"); g.fillRect(x+4*s,y+13*s,12*s,5*s);
+      g.strokeStyle=(ma? metalFill(ma,0.7) : "rgba(45,212,191,0.7)"); g.lineWidth=2; g.strokeRect(x+3*s,y+2*s,15*s,20*s); } }
   else { // 16-grid frames
-    if(kind==="vest"){ g.fillStyle="rgba(29,78,216,0.75)"; g.fillRect(x+2*s,y+9*s,11*s,4*s); }
-    if(kind==="plate"){ g.fillStyle="rgba(212,160,23,0.8)"; g.fillRect(x+2*s,y+9*s,11*s,4*s);
-      g.fillStyle="rgba(148,163,184,0.9)"; g.fillRect(x+3*s,y+1*s,9*s,3*s); }
-    if(kind==="aegis"){ g.fillStyle="rgba(15,118,110,0.8)"; g.fillRect(x+2*s,y+9*s,11*s,4*s);
-      g.strokeStyle="rgba(45,212,191,0.7)"; g.lineWidth=1; g.strokeRect(x+1*s,y+1*s,13*s,14*s); } } }
+    if(kind==="vest"){ g.fillStyle=(ma? metalFill(ma,0.75) : "rgba(29,78,216,0.75)"); g.fillRect(x+2*s,y+9*s,11*s,4*s); }
+    if(kind==="plate"){ g.fillStyle=(ma? metalFill(ma,0.8) : "rgba(212,160,23,0.8)"); g.fillRect(x+2*s,y+9*s,11*s,4*s);
+      g.fillStyle=(ma? metalFill(ma,0.9) : "rgba(148,163,184,0.9)"); g.fillRect(x+3*s,y+1*s,9*s,3*s); }
+    if(kind==="aegis"){ g.fillStyle=(ma? metalFill(ma,0.8) : "rgba(15,118,110,0.8)"); g.fillRect(x+2*s,y+9*s,11*s,4*s);
+      g.strokeStyle=(ma? metalFill(ma,0.7) : "rgba(45,212,191,0.7)"); g.lineWidth=1; g.strokeRect(x+1*s,y+1*s,13*s,14*s); } } }
 function drawActorSpr(name,x,y,lift,flip){
   ctx.fillStyle="#00000044"; ctx.beginPath(); ctx.ellipse(x*T+16,y*T+29,11,4,0,0,7); ctx.fill();
   if(flip){ ctx.save(); ctx.translate(x*T+32,0); ctx.scale(-1,1);
@@ -5331,6 +5337,12 @@ const TESTS = [
     for(let i=0;i<8;i++){ const q=victoryQuip(); if(q) names.add(q.split(":")[0]); }
     S=sb; return ok1 && names.size>=2; }],
  ["the dual exchange is wired into the cast itself", ()=>String(castDual).indexOf("DUO_LINES")>=0],
+ ["seven metals, seven colors: the ladder shows on the hero, RuneScape-style", ()=>{
+    const all=TIERS.every(T=>typeof METALS[T.n]==="string" && METALS[T.n][0]==="#");
+    const uniq=new Set(TIERS.map(T=>METALS[T.n])).size===7;
+    return all && uniq && String(drawWeaponOverlay).indexOf("metalOf")>=0
+      && String(drawArmorOverlay).indexOf("metalOf")>=0
+      && metalOf("tw7hero")===METALS[7] && metalOf("ta1")===METALS[1] && metalOf("kb1")===null; }],
  ["every boss announces its lesson: taunts cover the boss roster, orphan nothing, and are wired in", ()=>{
     const NAMED=["monolith","patient0","retroboss","faxdaemon","cobol","packetshark","botnet","phish","ransomworm","nullbyte","nullroot","retrystorm"];
     const bosses=Object.keys(EN).filter(k=>EN[k].elite||EN[k].superboss||NAMED.indexOf(k)>=0||/^h\d$/.test(k));
