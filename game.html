@@ -3553,6 +3553,8 @@ function startBattle(id,key,chain,opts){ const def=EN[id];
   if(id==="papafoxx"){ const fs=foxxStats(); M.b.hp=fs.hp; M.b.maxhp=fs.hp; M.b.def=Object.assign({}, def, {hp:fs.hp, atk:fs.atk}); }
   let intro=def.intro;
   if(BOSS_TAUNTS[id]) intro+="<br><span class='gold'>"+BOSS_TAUNTS[id]+"</span>";
+  if(id==="nullbyte" && S.clue && ["logwiper","smokescreen","courier","lingerer"].every(k=>S.clue[k]))
+    intro+="<br><span class='gold'>He finally looks up. 'So the eraser snapped, the smoke cleared, the rat squealed, the clock stopped. Four small wrong things on one schedule - and I wrote the schedule. You unmade my crew one rung at a time. Cute. Shall we?'</span>";
   if(id==="h5"){ M.b.fieldProto=true; S.actors.hero.lb=LB_MAX;
     intro+="<br><span class='gold'>Your hands stop shaking. Every rep - every five-why, every rollback, every blameless review - fuses into something NEW. ★ LIMIT evolved: FIELD PROTOCOL.</span>"; }
   seatFoes(M.b, (opts && opts.count) || 1);   // one unless the encounter says otherwise
@@ -5469,6 +5471,14 @@ const TESTS = [
     ov.hidden=true; S=sb; M.state="test";
     return hasSteel && hasMith; }],
  // ---- the hacker's crew and the roster variety pass ----
+ ["cornering NULLBYTE after his crew falls pays off the hunt", ()=>{
+    const sb=S; S=NEWS();
+    S.actors={ hero: mkActor("hero",14) }; S.party=[];
+    S.clue={ logwiper:1, smokescreen:1, courier:1, lingerer:1 };
+    startBattle("nullbyte", null);
+    const paid = document.getElementById("blog").innerHTML.indexOf("the eraser snapped")>=0;
+    M.bloop=false; try{ BW.hidden=true; }catch(e){} S=sb; M.state="test"; M.b=null;
+    return paid; }],
  ["the hacker's crew exists: four henchmen, sprited, clue-dropping, lesson-bearing, taunting", ()=>{
     const CREW=["logwiper","smokescreen","courier","lingerer"];
     return CREW.every(k=>EN[k] && SPR[EN[k].spr] && CLUES[k] && LESSONS[k] && BOSS_TAUNTS[k]
