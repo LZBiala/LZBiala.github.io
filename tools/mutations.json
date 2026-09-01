@@ -1130,11 +1130,11 @@
    "origin": "independent"
   },
   {
-   "id": "story-nullbyte-tile-clears-early",
+   "id": "story-cleared-key-loses-zone",
    "subsystem": "story",
    "find": "if(b.key && b.id!==\"nullbyte\") S.cleared[S.z+\":\"+b.key]=true;",
-   "replace": "if(b.key) S.cleared[S.z+\":\"+b.key]=true;",
-   "breaks": "Beating NULLBYTE's first form marks the NOC tile cleared before KERNEL MODE is fought, so a player who loses form two can never re-enter the fight: finishRescue() never runs, haxWon stays false, Sharonduh is never rescued and the frontier arc becomes unreachable.",
+   "replace": "if(b.key && b.id!==\"nullbyte\") S.cleared[b.key]=true;",
+   "breaks": "Cleared tiles are recorded without their zone prefix, so beating an encounter at one coordinate clears the same-named key in every zone - a plains victory silently opens citadel and internet-arc tiles that share the coordinate.",
    "origin": "independent"
   },
   {
@@ -1938,11 +1938,11 @@
    "origin": "held-out"
   },
   {
-   "id": "lifecycle-uptime-charm-never-spent",
+   "id": "wrong-constant-uptime-charm-saves-to-zero",
    "subsystem": "lifecycle",
    "find": "S.equip.charm===\"ch3\" && !b.uptimeUsed){ b.uptimeUsed=true; tgt.hp=1;",
-   "replace": "S.equip.charm===\"ch3\" && !b.uptimeUsed){ tgt.hp=1;",
-   "breaks": "The once-per-battle marker for the Uptime Charm is never written, so the charm catches EVERY lethal blow on the hero instead of the first one - a hero wearing ch3 simply cannot die.",
+   "replace": "S.equip.charm===\"ch3\" && !b.uptimeUsed){ b.uptimeUsed=true; tgt.hp=0;",
+   "breaks": "The survival charm spends itself but sets the ally to 0 HP instead of 1 - it burns its once-per-battle use and saves no one, and the death it promised to stop happens anyway.",
    "origin": "held-out"
   },
   {

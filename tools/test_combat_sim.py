@@ -461,15 +461,43 @@ check("an unkillable party always clears the room", not seatbad, " | ".join(seat
 
 
 # ================================================= FIDELITY: the 2026-08-31 pre-registered fixes
+# The first cut of these bound to exact source text; adversarial QA proved that fails both
+# ways (a behavior revert hidden in a comment stayed green; a whitespace edit went red).
+# Now: the rounding path is pinned by a seeded end-to-end fixture measured to DISCRIMINATE
+# (fixed sim 10.085 avg turns vs 10.18 with banker's rounding reverted, same seeds), the
+# acted rule is asserted as live code via a line-anchored regex plus partner_of behavior.
+# Known gap, kept honest: no direct-battle() fixture discriminated the acted revert (its
+# campaign-level divergence rides configs outside unit scope) - the regex carries that half.
 SIMSRC = io.open(os.path.join(HERE, "combat_sim.py"), encoding="utf-8").read()
-check("the acting ally is marked acted as its turn starts - nobody swings twice",
-      'a["acted"] or e["hp"] <= 0: continue' in SIMSRC and
-      'a["acted"] = True   # the game marks the leader' in SIMSRC)
-check("damage rounds like the game: js_round is Math.round, and the mainline uses it",
-      hasattr(C, "js_round") and C.js_round(4.5) == 5 and C.js_round(3.5) == 4
-      and C.js_round(2.4) == 2 and "js_round(base*sm)" in SIMSRC)
-check("crit and v3b round like the game too",
-      "js_round(dmg * (2.25" in SIMSRC and "js_round(base*1.35)" in SIMSRC)
+check("the acted rule is live code, and partner_of refuses an acted ally",
+      bool(re.search(r'^\s*a\["acted"\] = True', SIMSRC, re.M))
+      and C.partner_of([dict(id="wiki", ko=False, acted=True)], "wiki") is None
+      and C.partner_of([dict(id="wiki", ko=False, acted=False)], "wiki") is not None)
+check("js_round is Math.round, and all three damage rounds route through it",
+      hasattr(C, "js_round") and C.js_round(4.5) == 5 and C.js_round(3.5) == 4 and C.js_round(2.4) == 2
+      and bool(re.search(r'js_round\(\s*base\s*\*\s*sm\s*\)', SIMSRC))
+      and bool(re.search(r'js_round\(\s*dmg\s*\*\s*\(\s*2\.25', SIMSRC))
+      and bool(re.search(r'js_round\(\s*base\s*\*\s*1\.35\s*\)', SIMSRC)))
+
+
+def _rounding_fixture():
+    """Seeded end-to-end: measured 2026-08-31 to discriminate js_round from banker's round
+    (10.085 vs 10.18 avg turns). Knobs are frozen in source, so this moves only when balance
+    deliberately changes - update the pin in the same commit, drift-gate style."""
+    party = ["sentinel", "wiki", "retro", "refuter", "sharon", "lito"]
+    wins = 0
+    turns = 0.0
+    for i in range(400):
+        rng = random.Random(2 * 100003 + i)
+        w, t, _ = C.battle(party, 7, "misaligned", dict(coffee=2), rng, True, True, 0.0, "balanced", True, True)
+        wins += 1 if w else 0
+        turns += t
+    return wins, round(turns / 400, 3)
+
+
+_w, _t = _rounding_fixture()
+check("the seeded rounding fixture lands on the fixed sim's numbers",
+      _w == 398 and _t == 10.085, "got wins=%d turns=%s" % (_w, _t))
 
 
 def _ladder_moves():

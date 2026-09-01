@@ -1120,7 +1120,7 @@ const IT = {
  bd3:{ name:"Rotation Badge", type:"badge", price:45, def:1, fx:"rotation", d:"HERO -1 damage, and each round the ally lowest on MP regains 1 - nobody carries the pager alone." },
  ch9:{ name:"Rubber Duck", type:"charm", price:30, fx:"duck", d:"every ally's FIRST skill each battle costs 1 less MP - explain it out loud to something that cannot judge you." },
  rw1:{ name:"Kernel Blade", type:"weapon", price:0, atk:5, fits:["hero","sharon"], d:"transmuted at ring zero - +5 ATK, and FIVE-WHY costs no MP while it is held. It remembers being an RCA Blade - and the blade remembers the fishbone." },
- rar1:{ name:"Frontier Aegis", type:"armor", price:0, def:3, spd:1, d:"transmuted from the Aegis of Uptime - −3 damage taken, +1 SPEED. The frontier, worn." },
+ rar1:{ name:"Frontier Aegis", type:"armor", price:0, def:4, spd:1, d:"transmuted from the Aegis of Uptime - −4 damage taken, +1 SPEED. Equal to Dragon plate, and it cost sigils, not tokens. The frontier, worn." },
  rch1:{ name:"Five Nines Locket", type:"charm", price:0, d:"transmuted from the Talisman - every ally takes −1 from every foe. Availability, made jewelry." },
  gl1:{ name:"Failover Gloves", type:"weapon", price:40, atk:1, fits:["sharon"], d:"SHARONDUH +1 ATK - patches thrown at mach 2." },
  mvigor:{ name:"ERROR BUDGET Materia", type:"materia", price:0, d:"checkpoint orb: HERO +2 HP each round. Plan to fail a little every day, and you will never fail all at once." },
@@ -4387,7 +4387,7 @@ function openShop(){ M.state="dialog"; ov.hidden=false; ov.classList.remove("cen
   box.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{
     if(!btn.dataset.buy && !btn.dataset.forge && !btn.dataset.tm && !btn.dataset.x) return;   // ??? teasers and future rows are inert
     if(btn.dataset.x){ ov.hidden=true; M.state="explore"; return; }
-    if(btn.dataset.tm){ if(transmute(btn.dataset.tm)){ render(); openShopNote("PEG: 'By the sigils… "+IT[btn.dataset.tm].name+". I've never forged its equal. Wear it well.'"); }
+    if(btn.dataset.tm){ if(transmute(btn.dataset.tm)){ render(); openShopNote("PEG: 'By the sigils… "+IT[btn.dataset.tm].name+". The ladder sells its equal - never its story. Wear it well.'"); }
       else { sfx("lose"); openShopNote("PEG: 'The recipe wants what it wants - the base piece AND the sigils. Bosses bleed sigils.'"); } return; }
     if(btn.dataset.forge){ if(craft(btn.dataset.forge)){ render(); openShopNote("PEG: '"+IT[btn.dataset.forge].name+", forged true. Equip it from the menu!'"); }
       else { sfx("lose"); openShopNote("PEG: 'Not enough materials yet - the field provides. Logs in the grass, ore in the caverns, herbs where things grow.'"); } return; }
@@ -6175,9 +6175,9 @@ const TESTS = [
     const frontierLocked=!canTransmute("rch1");
     S=sb; return locked && unlocked && ok && consumed && frontierLocked; }],
  ["the rares are real: Kernel Blade cuts, Frontier Aegis hastens, the Locket shields everyone", ()=>{ const sb=S; S=NEWS();
-    if(!(IT.rw1 && IT.rw1.atk===5 && IT.rw1.fits.includes("hero") && IT.rar1 && IT.rar1.def===3 && IT.rch1)) return false;
+    if(!(IT.rw1 && IT.rw1.atk===5 && IT.rw1.fits.includes("hero") && IT.rar1 && IT.rar1.def===4 && IT.rch1)) return false;
     S.items.rar1=1; S.equip.armor="rar1";
-    const fast=spdOf(S.actors.hero)===S.actors.hero.spd+1 && defOf(S.actors.hero)===3;
+    const fast=spdOf(S.actors.hero)===S.actors.hero.spd+1 && defOf(S.actors.hero)===4;
     S.equip.armor=null; S.equip.charm="rch1"; S.items.rch1=1; S.party=[];
     const st=window.setTimeout; window.setTimeout=()=>0;
     S.actors.hero.hp=12;

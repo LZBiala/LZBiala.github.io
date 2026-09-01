@@ -164,6 +164,27 @@ gap this row closes). Sub-100% rows: unknown5 only - OPT 99.9%, NOISY 99.6%. Top
 90290827, knobs frozen. The next re-run's band check (win +/-2.0pp, KO +/-3.0pp) runs
 against THESE rows.
 
+## The ladder economy, measured (2026-08-31, adversarial-QA arithmetic)
+
+The gear ladder's throttle is now a measured fact, not a vibe. Reproduced by summation of
+the shipped tables (every number re-derivable from game.html):
+- Non-grind campaign income: **1,861 tokens** (scripted fights 1,565 + loot and chests 276 +
+  starting 20), plus an **AUDIT ceiling of 786** (max(3, round(tok/2)) once per battle).
+- Full ladder catalogue (every rung, all 9 lines): **5,310 tokens** - 2.9x non-grind income
+  by design; buying every rung is a completionist flex, not the intended path.
+- Skip-buy to Dragon on all 9 lines: **1,800 tokens** - inside income plus a modest AUDIT
+  habit, which is the intended endgame shape.
+- Repeatable postgame faucets: the grand chain (~380 first run, up to ~190 per rerun) and
+  the Unknown refight (~150 per loop) - grinding exists but nothing requires it.
+- Campaign XP ceiling: **1,191 XP (+48 bridge questions) = LV17** on a thorough run. The
+  gate taper of 2026-08-31 (Adamant 14, Rune 15, Dragon 16) follows from this number: the
+  original 16/20/24 gates put the top two rungs past the campaign entirely, the opposite
+  of the ladder's front-loaded intent. Dragon at LV16 (floor 1,112 XP) is reachable by a
+  thorough player with margin.
+- One coherence note: the transmuted Frontier Aegis was raised def 3 -> 4 the same day so
+  the story's sigil-forged capstone TIES Dragon Plate instead of losing to it - it costs
+  sigils and a story, never tokens, and Peg's fanfare now says exactly that.
+
 **R4, the question that mattered - does the gear ladder break the game?** Under the flat
 worst case (every companion at Dragon, +6 atk; hero +2), across 2,616,000 battles: every
 walkover stays a walkover and nothing new drops below 2 turns; the hacker chain collapses
