@@ -1464,7 +1464,8 @@ const Z = [
   "I've been indexing PapaFoxx's jokes. Retrieval is easy. Knowing WHEN to retrieve one - that's the hard problem.",
   "Sharonduh let me read her cage notebooks. Half genius, half love letters. I filed them under both.",
   "Every belief auditable, every deletion carrying its reason. People too, I think. That's what forgiveness is - a documented deletion.",
-  "Your five-why has gotten quieter. The loud ones are for the room. The quiet ones are for the truth."]},
+  "Your five-why has gotten quieter. The loud ones are for the room. The quiet ones are for the truth.",
+  {t:"WIKI: 'Re-ran the joke index, split by material age. Bankers land nine times in ten. New bits, one in three. Blended: 71.3. The number was never a failure - it was a portfolio. Correction filed, reason attached.'", needs:["papafoxx"]}]},
  // He stood INSIDE the stew pot at 10,3 - a solid tile, so he was drawn on top of the
  // scenery and nobody could ever share his square. One tile left puts him beside it, which
  // is where a man who times the breakfast queue belongs anyway.
@@ -2019,7 +2020,8 @@ const FOXX_TALK={
  home:[ "Free wisdom, no charge: in an incident, mitigate FIRST, root-cause LATER. You don't autopsy the possum while it's still bitin' the dog. Stop the bleedin', then get curious.",
   "Innkeeper asked what I do. I said I'm on call for morale. She said that ain't a job. Then I healed her bad knee with a knock-knock joke. Now I eat free, baby.",
   "The chain's sentimental. The snapback's structural. This hairline had an error budget, and honey, we burned through it in Q2.",
-  "Tried meditatin' with the monks. Cleared my mind, lasted nine seconds, then thought of a bit about a heron chairin' a change advisory board. Wrote it down. Meditation WITH observability, baby." ] };
+  "Tried meditatin' with the monks. Cleared my mind, lasted nine seconds, then thought of a bit about a heron chairin' a change advisory board. Wrote it down. Meditation WITH observability, baby.",
+  "Tonight's setlist: seven bankers, three experiments. If an experiment dies, it dies in front of family, not the town square. That's not cowardice, baby - that's a canary." ] };
 const FOXX_LINES={
  victory: FOXX_TALK.victory,
  lowhp:"Okay. Okay. This is where my kid would say 'Papi, just use the potion.' Somebody? Anybody?", idle:"uhhh",
@@ -2672,10 +2674,10 @@ function retroBeat(){
   say(nxt.lines);
   return true; }
 // retroBeat was the first arc; arcBeat is the same shape for every other soul.
-function arcBeat(id, ARC){
+function arcBeat(id, ARC, bondId){
   const n=(S.arc && S.arc[id])||0;
   const nxt=ARC[n];
-  if(!nxt || bondLvl(id) < nxt.need) return false;
+  if(!nxt || bondLvl(bondId||id) < nxt.need) return false;
   if(nxt.when && !nxt.when()) return false;
   S.arc=S.arc||{}; S.arc[id]=n+1;
   saveGame(0);
@@ -2727,10 +2729,57 @@ const LITO_ARC=[
   "LITO: 'The dojo opened this morning, kid. Full SEV drill, first class. I took the front row and let somebody else hold the marker.'",
   "LITO: 'She ran the first sixty seconds YOUR way - lesson 1, straight from my notebook. Then she improved it. I wrote the improvement down too.'",
   "★ LITO: 'Teaching is a loop, not a pipe. Something came back upstream - so it is mentoring, not broadcasting. Class dismissed.'"]}];
+// REFUTER - "The Overruled Ledger": a flawless record is the defect; an overruled objection means the idea was better.
+const REFUTER_ARC=[
+ {need:1, lines:[
+  "REFUTER: 'You caught me counting. This ledger holds every objection I have raised since I passed the bar. Two hundred and six. Sustained: two hundred and six.'",
+  "REFUTER: 'A flawless record. I used to open with that at parties. It explains the parties.'",
+  "REFUTER: 'Lately it reads less like a trophy and more like evidence. I have not decided of what. Court is in recess.'"]},
+ {need:2, lines:[
+  "REFUTER: 'I finished cross-examining my own ledger. Verdict: the flawless record is the defect.'",
+  "REFUTER: 'Two hundred and six objections, all sustained - because I only objected when I was already sure. The coin-flip calls, the ones actually worth arguing? I stayed quiet. A loss would have broken the streak.'",
+  "REFUTER: 'My own finding, and I hid from it: every win we ever reviewed had someone who said WAIT. Somewhere out there is a bug nobody said it about, because I was protecting a number.'",
+  "REFUTER: 'Correction filed. The ledger keeps two columns now: SUSTAINED and OVERRULED. An empty overruled column does not mean I am right. It means I am only objecting to the easy stuff.'"]},
+ {need:3, lines:[
+  "REFUTER: 'Before you rest - the ledger has a new entry. Read it.'",
+  "(In careful print: OBJECTION #207 - OVERRULED. The evidence was better than the argument. It shipped anyway. Signed with a full flourish.)",
+  "REFUTER: 'That one is from the field. X-REVIEW. I objected to your commit, you produced the data, and I lost. Best entry in the book - an overruled objection means the idea was actually tested, and stood.'",
+  "REFUTER: 'You may have noticed the cross-slash cuts deeper now. That is not the blade. That is me holding nothing back, because losing to you costs me nothing anymore.'",
+  "★ REFUTER's ledger keeps two columns now. In battle he shouts OVERRULED the way other people shout victory."]}];
+// SHARONDUH - "Read Receipts": teaching is a deploy; a lesson is done when someone runs it unwatched.
+const SHARON_ARC=[
+ {need:1, lines:[
+  "SHARONDUH: 'You saw me at the inn window. Yes, I'm building something. No, you can't see it - it fails three of its own tests, love, and I don't demo what I can't eval.'",
+  "SHARONDUH: 'That's the rule you marry: a demo is a first date. When it passes, you get the whole repo.'",
+  "(She snaps the laptop shut. The commit history stays private - for now.)"]},
+ {need:2, lines:[
+  "SHARONDUH: 'Fine. The window-seat project - it's the modules. All eleven, written down. A curriculum that lives in one mouth is a single point of failure, and I have BEEN a single point of failure. Never again.'",
+  "SHARONDUH: 'Here's where I'm stuck: how do you test a COURSE? Reading it isn't learning it. I don't want it read, love. I want it USED. Anything less is just... unread with extra steps.'",
+  "(She laughs at her own commit message and hides the screen. You catch the title: does_it_teach_v3.)"]},
+ {need:3, when:()=>frontierDone(), lines:[
+  "SHARONDUH: 'The course shipped last night. Want to know what the final eval was? You. Injection, hallucination, misalignment - three live incidents, zero hints from me. You passed with your hands.'",
+  "SHARONDUH: 'That's the whole discipline in one line: teaching is a deploy. A lesson isn't done when I say it. It's done when someone runs it without me watching.'",
+  "SHARONDUH: 'Commit's titled read_receipts_final. 💙 And love - full sync on PAIR PROGRAMMING now. My plus three rides every swing. Co-authored-by: both of us.'"]}];
+// RETROLISTIC sidecar - "The Review With No WHO Column": the player's own wipe, reviewed blamelessly.
+const RETRO_SEV=[
+ {need:0, when:()=>((S.deaths||0)>=1), lines:[
+  "RETROLISTIC: 'Mara logs every incident that walks back through her door. Yours is on my desk. Sit - this is the half of my job nobody ever volunteers for.'",
+  "RETROLISTIC: 'Three questions, in order. What happened - timeline, facts, no adjectives. What made it possible - conditions, not people. What changes - one item, one name, one date.'",
+  "RETROLISTIC: 'Notice the question that is not on the list. WHO. It never makes the list, because its answer has never once fixed anything.'",
+  "(He turns the report around. Under CAUSE, where you braced for your name, it reads: THE CONDITIONS. Under ACTION ITEM, one line in his careful hand: FIGHT IT AGAIN, DIFFERENTLY.)"]},
+ {need:1, lines:[
+  "RETROLISTIC: 'Follow-up on your review. One question, the only one that matters a week later: did the action item ship?'",
+  "RETROLISTIC: 'A retro that changes nothing is a meeting. Yours changed how you fight - I have the numbers. So it earns the next step.'",
+  "RETROLISTIC: 'I told Mara my reports ride with this party now. She honors them - half the toll on any incident from here. A reviewed failure should not cost what an unexamined one does.'",
+  "★ BLAMELESS REVIEW - Mara returns half the ⛁ toll on future incidents. The error budget still burns. A good retro makes failure cheaper, never free."]}];
+// The wipe toll as one pure function: a blameless review halves it; the error budget still burns.
+function wipeToll(){ return Math.ceil(S.tokens*(treeHas("r5")?0.2:0.1)*((S.arc&&S.arc.retroSev>=2)?0.5:1)); }
 function hangoutTalk(npc){ bondUp(npc.inParty);
+  if(npc.inParty==="retro" && arcBeat("retroSev",RETRO_SEV,"retro")) return;   // the sidecar: his review of YOUR wipe comes first
   if(npc.inParty==="retro" && retroBeat()) return;   // the arc speaks before the small talk
   if(npc.inParty==="sentinel" && arcBeat("sentinel",SENT_ARC)) return;
   if(npc.inParty==="wiki" && arcBeat("wiki",WIKI_ARC)) return;
+  if(npc.inParty==="refuter" && arcBeat("refuter",REFUTER_ARC)) return;
   S.hang=S.hang||{}; const i=(S.hang[npc.inParty]||0); S.hang[npc.inParty]=i+1;
   // a line can name a companion the player has not met yet; written as {t, needs:[ids]}
   // it simply waits for them instead of quoting a stranger's joke logs
@@ -2884,6 +2933,13 @@ function panelSay(beats, done){
   el.onclick=()=>show(); M.panelAdv=show; M.panelEnd=close; show(); }
 function foxxBed(){ const st=foxxBedState();
   if(st==="companion"){ bondUp("papafoxx");
+    if(bondLvl("papafoxx")>=2 && !S.foxxBudget && S.party.includes("wiki")){ S.foxxBudget=1; saveGame(0); say([
+  "(He pats the foot of the bed. The snapback stays ON - this one's a lesson, not a wound.)",
+  "PAPAFOXX: 'Seventy-one percent, baby. Your librarian keeps receipts and Sentinel frames 'em. Everybody thinks it's a roast.'",
+  "PAPAFOXX: 'Baby, I could hit 100 TONIGHT. Twelve greatest hits, same order, forever. You know what a perfect set means? It means I stopped writing.'",
+  "PAPAFOXX: 'The missing 29 is NEW bits. I spend a little of every room on a joke nobody's tested. Kid hears it first - small room, honest crowd, tiny blast radius. The survivors get the town square.'",
+  "PAPAFOXX: 'Same with your uptime, mijo. 100 percent means you're too scared to ship. The misses aren't the price of new stuff - they're the BUDGET for it. Spend it on purpose. BAAAHHHHH~~~'",
+  "★ Load-bearing, he said. WIKI's number was never a grade. It was an error budget - and he spends every point of it on purpose."]); return; }
     if(bondLvl("papafoxx")>=3 && !S.foxxHeart){ S.foxxHeart=1; saveGame(0); say([
       "He doesn't sit up. He just takes the snapback off. That's how you know.",
       "PAPAFOXX: 'Night my daughter was born, the monitors kept alarming. False positives - her heart was FINE - but I didn't know that yet. Three hours I watched a number instead of my kid.'",
@@ -4306,7 +4362,7 @@ function endOfRound(b,t){
     if(anyFell) retarget(); }
   partyActors().forEach(a=>{ a.defending=false; a.dualUsed=false; a.acted=false; });
   if(!living().length){ S.deaths=(S.deaths||0)+1; b.menu="dead"; sfx("lose"); M.roamBattle=false;
-    const toll=Math.ceil(S.tokens*(treeHas("r5")?0.2:0.1)); S.tokens-=toll;
+    const toll=wipeToll(); S.tokens-=toll;
     blog(t+"<br><span class='red'>The party falls…</span>"); drawB();
     setTimeout(()=>{ BW.hidden=true;
       const dropped=dropInventory(); const gz=S.grave? S.grave.z : 0;
@@ -4315,6 +4371,7 @@ function endOfRound(b,t){
       playMusic("overworld");
       const lines=["You wake at Mara's inn. MARA: 'Incidents don't end careers - hiding from them does.'",
         "(Party restored. The incident review docked "+toll+" ⛁ and burned <b>1 error budget</b> - the SLO remembers. Levels, recruits and gear kept.)"];
+      if(S.party.includes("retro") && S.arc && S.arc.retroSev>=1) lines.push("RETROLISTIC: 'Facts, conditions, one change. Bring the timeline to the inn - the review is the half of the job nobody volunteers for.'");
       if(dropped) lines.push("⚰ <span class='red'>PARTY DOWN - your carried consumables fell where you did ("+Z[gz].name+").</span> Ten minutes before the world garbage-collects. <b>Run.</b> <span class='mut'>(Banked items are safe - Mara's cellar. That's not magic; that's a backup.)</span>");
       say(lines); },900);
     return; }
@@ -4817,7 +4874,7 @@ function interact(){ if(M.state==="dialog"){ advDlg(); return; }
                     : ["The cage hangs open - she picked it the moment his first form fell.","SHARONDUH (beside you): 'Eyes forward, love. KERNEL MODE is still up there. We finish it TOGETHER.'"]); return; }
       if(npc.mentor && !S.metSharon){ S.metSharon=1; saveGame(0);
         panelSay(buildMentorMeetBeats(), ()=>say(npc.lines.slice(2))); return; }
-      if(npc.talks==="sharon"){ bondUp("sharon"); say(["SHARONDUH: \""+sharonTalkLine()+"\""]); return; }
+      if(npc.talks==="sharon"){ bondUp("sharon"); if(arcBeat("sharon",SHARON_ARC)) return; say(["SHARONDUH: \""+sharonTalkLine()+"\""]); return; }
       if(npc.talks==="lito"){ bondUp("lito"); if(arcBeat("lito",LITO_ARC)) return; const li=(S.litoTalk||0); S.litoTalk=li+1;
         say(["LITO: \""+(li<LITO_TALKS.length? LITO_TALKS[li] : LITO_HOME[(li-LITO_TALKS.length)%LITO_HOME.length])+"\""]); return; }
       if(npc.inParty){ hangoutTalk(npc); return; }
@@ -5566,6 +5623,34 @@ const TESTS = [
  ["the HERO teaches the next one: KID BIT's story turns on worldClass and persists", ()=>{
     const src=String(interact);
     return src.indexOf("KID BIT")>=0 && src.indexOf("S.kidTaught")>=0 && src.indexOf("S.worldClass")>=0; }],
+ ["REFUTER, SHARONDUH, and the retro sidecar are ordered, bond-gated arcs on the general engine", ()=>{
+    const sb=S, sy=window.say, sg=window.saveGame;
+    try{ window.say=(l,cb)=>{ if(cb) cb(); }; window.saveGame=()=>{};
+      let ok=true;
+      [["refuter",REFUTER_ARC,"refuter"],["sharon",SHARON_ARC,"sharon"],["retroSev",RETRO_SEV,"retro"]].forEach(([id,ARC,bond])=>{
+        S=NEWS(); S.party=[bond]; S.actors[bond]=mkActor(bond,12); S.bond={}; S.bond[bond]=12; S.worldClass=1; S.deaths=1;
+        S.cleared={"9:5,6":true,"10:6,6":true,"11:5,5":true};   // the three frontier bosses down - frontierDone() reads exactly these
+        let played=0; for(let i=0;i<ARC.length+2;i++){ if(arcBeat(id,ARC,bond)) played++; }
+        if(played!==ARC.length){ ok=false; console.log("arc short:", id, played, "of", ARC.length); } });
+      return ok;
+    } finally { window.say=sy; window.saveGame=sg; S=sb; } }],
+ ["a blameless review halves the wipe toll, never the error budget", ()=>{
+    const sb=S; S=NEWS(); S.tokens=100; S.tree={taken:{}}; S.arc={};
+    const base=wipeToll();
+    S.arc.retroSev=2; const halved=wipeToll();
+    const deathsUntouched = (S.deaths||0)===0;
+    S=sb; return base===10 && halved===5 && deathsUntouched; }],
+ ["PapaFoxx's error-budget lesson plays once at bond 2 with WIKI in the party, then his home set grows", ()=>{
+    const sb=S, sy=window.say, sg=window.saveGame; let shown=[];
+    try{ window.say=(l,cb)=>{ shown.push(l); if(cb) cb(); }; window.saveGame=()=>{};
+      S=NEWS(); S.party=["papafoxx","wiki"]; S.actors.papafoxx=mkActor("papafoxx",8); S.actors.wiki=mkActor("wiki",8);
+      S.bond={papafoxx:7}; S.foxxBudget=0;
+      foxxBed(); const first=!!S.foxxBudget && shown.length===1 && String(shown[0]).indexOf("BUDGET")>=0;
+      foxxBed(); const once=shown.length===2 && String(shown[1]).indexOf("BUDGET")<0;
+      const homeGrew=FOXX_TALK.home.some(l=>l.indexOf("seven bankers")>=0);
+      const wikiHas=Z[6].npcs.some(n=>n.inParty==="wiki" && n.lines.some(l=>typeof l==="object" && l.needs && l.needs.indexOf("papafoxx")>=0 && String(l.t).indexOf("71.3")>=0));
+      return first && once && homeGrew && wikiHas;
+    } finally { window.say=sy; window.saveGame=sg; S=sb; } }],
  ["LITO's arc rides the talks branch, not hangoutTalk, so it is actually reachable", ()=>{
     const src=String(interact);
     const talksHook = src.indexOf('litoBeat')>=0 || src.indexOf('arcBeat("lito"');
