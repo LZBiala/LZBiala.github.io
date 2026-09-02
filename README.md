@@ -46,7 +46,7 @@ The gate (tools/site_check.py) recomputes the numbers it can reach from disk - t
 - 7,313,561 simulated battles is the sum of 18 campaign rows in tools/BALANCE-LEDGER.md, re-added by the gate on every run, each row naming a log under tools/sim-runs/ and a seed in the script; the ledger says only the last two rows describe the shipped game, that everything above the "instrument fixed" pair "was measured by a simulator that could not see the thing it was measuring", and all 18 rows were logged before two further simulator defects were fixed on 2026-08-31, after which 9,814,299 validation battles on the fixed simulator were logged separately and deliberately not added to the headline.
 - After seven test guards were written to close gaps the lab found, the tests caught 32 of 32 defects the test author designed (100%), 61 of 111 designed independently (55%) and 6 of 107 sealed away before the guards were written (5.6%), per tools/MUTATION-LEDGER.md dated 2026-08-24; the ledger calls the first two "training-set" scores because the guards were fitted to those catalogues, which is like grading a student on the exact questions they practised, calls the 5.6% a floor with a wide interval ("6 of 107 is a small numerator"), and notes the sealed set was drawn by a different protocol, so part of the drop may be sampling rather than overfitting. The game's suite has grown since (the ledger's table last records 446 tests; 507 run today), so today's rates may differ; the lab re-derives them in your browser.
 
-Both are checkable here, one from the terminal and one in a browser. The five project cards on index.html quote numbers measured in those projects' own repos; this repo only asserts them.
+Both are checkable here, one from the terminal and one in a browser. The six project cards on index.html quote numbers measured in those projects' own repos; this repo only asserts them.
 
 ## Where it loses
 
@@ -65,12 +65,14 @@ Plant one defect: add an entry to tools/mutations.json with an id, a "find" stri
 Everything below is the original technical README: the design, the measurements, and how to reproduce them.
 
 One static file (`index.html`), no frameworks, no trackers, no external
-requests - built the same way as the five projects it presents:
+requests - built the same way as the six projects it presents:
 
 - [wiki-memory-lab](https://github.com/LZBiala/wiki-memory-lab) - the memory layer
 - [agent-mutation-lab](https://github.com/LZBiala/agent-mutation-lab) - the evaluation layer
 - [adversarial-chambers](https://github.com/LZBiala/adversarial-chambers) - decision calibration
 - [memory-repair-lab](https://github.com/LZBiala/memory-repair-lab) - the control loop
+- [skill-tripwire](https://github.com/LZBiala/skill-tripwire) - the safety layer: a fail-closed scanner for poisoned agent config files
+- [oncall-router-mcp](https://github.com/LZBiala/oncall-router-mcp) - the operations layer: incident routing as MCP tools over one local file
 
 Every measured number those repos publish regenerates in CI with zero API
 keys; the build fails if a claim drifts.

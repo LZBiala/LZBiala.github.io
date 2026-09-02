@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lito Zarate Biala - AI Reliability Engineering · Minneapolis</title>
-<meta name="description" content="Optimistic systems thinker, site reliability engineer, creative agentic builder. I get to the heart of an issue, find the bottleneck that needs a foundational fix, and build the solution that improves the core of the business. Five open-source projects testing AI judgment, memory, and safety, a playable portfolio, and a site reliability career behind it.">
+<meta name="description" content="Optimistic systems thinker, site reliability engineer, creative agentic builder. I get to the heart of an issue, find the bottleneck that needs a foundational fix, and build the solution that improves the core of the business. Six open-source projects testing AI judgment, memory, safety, and incident operations, a playable portfolio, and a site reliability career behind it.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌆</text></svg>">
 <meta property="og:title" content="Lito Zarate Biala - Optimistic Systems Thinker. Site Reliability Engineer and Creative Agentic Builder.">
-<meta property="og:description" content="Five open-source projects for AI judgment, memory, and safety. Every published number re-checks itself in CI - and every front page says where the design loses.">
+<meta property="og:description" content="Six open-source projects for AI judgment, memory, safety, and incident operations. Every published number re-checks itself in CI - and every front page says where the design loses.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-site.png">
 <meta property="og:url" content="https://lzbiala.github.io/">
 <meta name="twitter:card" content="summary_large_image">
@@ -154,7 +154,7 @@
       I bring AI into that world the only way it can be brought: governed, human-reviewed,
       and measured, with a sign-off before anything touches production. AI built to pass a
       bank's safety checks, not slip past them. My whole career asks one question: <em>how do we know this is actually working?</em> So I
-      built five open-source projects that test AI judgment, memory, and safety. <b>If a measured
+      built six open-source projects that test AI judgment, memory, safety, and incident operations. <b>If a measured
       number drifts, the build fails.</b> And every front page says where the design loses.</p>
       <div class="links">
         <a class="primary" href="Lito-Biala-Resume.pdf">Resume (PDF)</a>
@@ -288,8 +288,8 @@
 </div>
 
 <section id="work"><div class="wrap">
-  <h2>Five projects, one question</h2>
-  <p class="lead">These five projects aren't a pile of demos - they're a stack. Each layer
+  <h2>Six projects, one question</h2>
+  <p class="lead">These six projects aren't a pile of demos - they're a stack. Each layer
   answers a different form of one question: <em>how do we know it works - and that it's safe
   to run?</em> Every one runs in seconds with zero API keys (nothing to sign up for or pay
   for), and every one ships a click-through tour you can hand to any stakeholder.</p>
@@ -356,6 +356,19 @@
       <div class="loss">Published on purpose: an arm that teaches to the test - and pays for it in tokens</div>
       <div class="go"><a href="https://lzbiala.github.io/memory-repair-lab/docs/">walkthrough</a>
         <a href="https://github.com/LZBiala/memory-repair-lab">source</a></div>
+    </div>
+    <div class="card">
+      <div class="layer">Operations</div>
+      <h3><a href="https://github.com/LZBiala/oncall-router-mcp">oncall-router-mcp</a></h3>
+      <p class="pitch">The first ten minutes of an incident are eaten by three questions: who
+      owns this, who do I wake and by when, and what does the runbook say to try first. This
+      answers them to an AI assistant as MCP tools - plus the one most tools get wrong, where
+      we stand on the clock, measured from when impact started rather than from when somebody
+      opened a ticket. It reads one local file. No network, no keys.</p>
+      <div class="num">Five tools over one local file: owner, escalation path, first move, the impact clock, and a timeline review - zero runtime dependencies</div>
+      <div class="loss">No live integrations, by design: it does not read your incident tool, your rotation, or your monitoring - you feed it one file</div>
+      <div class="go"><a href="https://github.com/LZBiala/oncall-router-mcp#readme">walkthrough</a>
+        <a href="https://github.com/LZBiala/oncall-router-mcp">source</a></div>
     </div>
   </div>
   <p class="cardnote">Every number above regenerates from scratch on each repo's automated
@@ -448,7 +461,7 @@
       delivery for incident operations, built hands-on (Python, Streamlit, TypeScript, and
       agentic tooling: Claude Code, Codex, Devin) with evidence trails, fail-closed
       behavior, and human sign-off gates on the road to production. Then I took the same discipline
-      public: the five projects above, measured, auditable, and honest about where they
+      public: the six projects above, measured, auditable, and honest about where they
       break. I run my own knowledge system the same way - a markdown wiki my AI agents
       read and write as long-term memory, which is where the memory projects came from.</p>
       <p>Before engineering leadership: a psychology degree and years managing a busy
