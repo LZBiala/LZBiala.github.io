@@ -71,26 +71,25 @@
 <p class="printnote">This file is the source of record for Lito-Biala-Resume.pdf. Rebuild with: python tools/build_resume.py. This note does not print.</p>
 
 <h1>LITO ZARATE BIALA</h1>
-<div class="head2">HANDS-ON AI BUILDER &amp; SITE RELIABILITY ENGINEERING LEAD &nbsp;|&nbsp; AGENTIC SYSTEMS · MCP · INCIDENT MANAGEMENT · ITIL/ITSM · FORWARD DEPLOYED ENGINEERING</div>
+<div class="head2">HANDS-ON AI BUILDER &amp; SITE RELIABILITY ENGINEERING LEAD &nbsp;|&nbsp; AGENTIC SYSTEMS · MCP · INCIDENT MANAGEMENT · AI-SAFETY TOOLING · AGENT EVALUATION · PROMPT-INJECTION DETECTION</div>
 <div class="contact">Minneapolis-St. Paul, MN &nbsp;·&nbsp; lzbiala@gmail.com &nbsp;·&nbsp; linkedin.com/in/lzbiala &nbsp;·&nbsp; github.com/LZBiala &nbsp;·&nbsp; lzbiala.github.io</div>
 
 <h2>Summary</h2>
-<p>Hands-on AI builder and site reliability lead at Wells Fargo. I find the bottleneck that needs a foundational fix, build the AI that clears it, and make the system prove it worked. Day to day I run SRE and incident practice as the working link between Product, Platform, Development, and Infrastructure: I turn each group's constraints into decisions the others can act on, and I ship governed GenAI products end to end, backed by 12+ years of leadership across people management and technical delivery. The same approach took major incidents on the API gateway platform I own from 10 in 2024 to 1 year to date in 2026, and cut mean time to detect and react by 40%. Public, CI-verified evaluation portfolio at github.com/LZBiala - the build fails if a measured claim drifts.</p>
+<p>Hands-on AI builder and site reliability lead at Wells Fargo. I find the bottleneck that needs a foundational fix, build the AI that clears it, and make the system prove it worked. In public I build AI-safety and agent-evaluation tooling and publish the numbers with their misses: six CI-verified repos where the build fails if a measured claim drifts. Day to day I run SRE and incident practice as the working link between Product, Platform, Development, and Infrastructure: I turn each group's constraints into decisions the others can act on, and I ship governed GenAI products end to end, backed by 12+ years of leadership across people management and technical delivery. The same approach took major incidents on the API gateway platform I own from 10 in 2024 to 1 year to date in 2026, and cut mean time to detect and react by 40%. Public, CI-verified evaluation portfolio at github.com/LZBiala - the build fails if a measured claim drifts.</p>
 
 <h2>AI Leadership &amp; Technical Strengths</h2>
 <dl>
   <dt>AI Product</dt><dd>Use-case discovery with the teams who own the problem, requirements, acceptance criteria, roadmap sequencing, adoption, executive and non-engineer communication.</dd>
-  <dt>Agentic AI</dt><dd>RAG, LLM evaluation frameworks and evals, prompt and context engineering, MCP integration, agents, human-in-the-loop controls.</dd>
+  <dt>AI safety &amp; evals</dt><dd>Prompt-injection and skill-poisoning detection (skill-tripwire), judge instruction-flip audits (adversarial-chambers), defect-seeding harness with best-of-k jury arithmetic (agent-mutation-lab), placebo-controlled evals on sealed held-out splits (memory-repair-lab), MCP servers, RAG, prompt and context engineering, agents, human-in-the-loop controls.</dd>
   <dt>Delivery</dt><dd>Python, Streamlit, TypeScript, GitHub, CI/CD, automated tests, code review, iterative PR-based delivery.</dd>
   <dt>Reliability</dt><dd>SRE, DevOps, incident management, 5-Why/RCA, MTTx, observability, fail-closed behavior, AI risk and compliance readiness.</dd>
-  <dt>Tooling</dt><dd>Claude Code, Codex, Devin - daily hands-on agentic system delivery with human-in-the-loop controls.</dd>
 </dl>
 
 <h2>Public AI Evaluation &amp; Reliability Portfolio &nbsp;·&nbsp; github.com/LZBiala &nbsp;·&nbsp; lzbiala.github.io</h2>
 <ul>
-  <li><b>skill-tripwire:</b> a fail-closed scanner for poisoned agent skill and config files (SKILL.md, MCP tool descriptions, CLAUDE.md); catches hidden codepoints, download-and-execute, over-broad shell grants, and exfiltration; CLI and MCP server; a million-input seeded simulation ran 0 crashes and 0 false alarms on 450,000+ random benign files; publishes its own false-positive rate and its misses.</li>
+  <li><b>skill-tripwire:</b> fail-closed scanner for poisoned agent skill and config files (SKILL.md, MCP tool descriptions, CLAUDE.md); catches hidden codepoints, download-and-execute, over-broad shell grants, and exfiltration; seeded million-input run: 0 crashes, 0 hangs, 0 false alarms on 450,360 synthetic benign files (fixed-seed reproducible); recall published as a self-authored upper bound with every miss named.</li>
   <li><b>oncall-router-mcp:</b> MCP server for incident routing; five tools, every one fails closed; mttx_review measures where an incident's minutes went (Detect/React/Mitigate) and routes to the tool that shrinks the dominant phase, no grade by design; zero dependencies, no keys; CI-regenerated docs.</li>
-  <li><b>agent-mutation-lab:</b> behavioral defect-detection harness; caught 9/10 planted defects at the planted line (within two lines), with 0 false alarms on byte-identical clean controls; best-of-k: nine independently-noised copies climb as the jury arithmetic predicts, a copycat control stays flat.</li>
+  <li><b>agent-mutation-lab:</b> behavioral defect-detection harness; the bundled reviewer flags 9/10 planted defects at the planted line with 0 false alarms on byte-identical clean controls, published as harness conformance, not a catch rate; best-of-k jury study with a copycat control; every figure also derivable in SQL (stdlib SQLite, test-asserted).</li>
   <li><b>adversarial-chambers:</b> proposer, skeptic, and judge with no role played twice; instruction-flip test on two scripted judges, true by construction: an evidence-led judge flips 0/8 verdicts, a deferential judge flips 3/8, exactly the ambiguous items. Proves the instrument detects instruction sensitivity, not that any live judge passes.</li>
   <li><b>wiki-memory-lab:</b> agent-memory evaluation; selective recall at 0.61× the tokens of full context, the 1.27× losing case published. <b>memory-repair-lab:</b> placebo-controlled self-repair, 8/10 to 10/10 on a split sealed before generation zero.</li>
 </ul>
@@ -155,8 +154,8 @@
 
 <h2>Technology</h2>
 <dl>
-  <dt>AI/ML</dt><dd>Generative AI, RAG, agentic automation, LLM evaluation frameworks, prompt optimization, responsible AI, MCP, knowledge graphs, deep-wiki agent long-term memory</dd>
-  <dt>Engineering</dt><dd>Python, Streamlit, TypeScript, Git, GitHub, GitHub Actions, APIs, CI/CD, automated testing</dd>
+  <dt>AI/ML</dt><dd>Generative AI, RAG, agentic automation, LLM evaluation frameworks, prompt-injection detection, prompt optimization, responsible AI, MCP servers, knowledge graphs, deep-wiki agent long-term memory</dd>
+  <dt>Engineering</dt><dd>Python, SQL (SQLite), Streamlit, TypeScript, Git, GitHub, GitHub Actions, APIs, CI/CD, automated testing</dd>
   <dt>Operations</dt><dd>SRE, DevOps, Splunk, Grafana, AppDynamics, production triage, observability, incident and problem management, 5-Why RCA, MTTx, ITIL/ITSM</dd>
   <dt>Leadership</dt><dd>AI product strategy, distributed-team leadership, technical writing, executive communication, risk and compliance</dd>
   <dt>Agentic</dt><dd>Claude Code, Codex, Devin (Cognition)</dd>
