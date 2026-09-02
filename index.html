@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lito Zarate Biala - AI Reliability Engineering · Minneapolis</title>
-<meta name="description" content="Optimistic systems thinker, site reliability engineer, creative agentic builder. I get to the heart of an issue, find the bottleneck that needs a foundational fix, and build the solution that improves the core of the business. Six open-source projects testing AI judgment, memory, safety, and incident operations, a playable portfolio, and a site reliability career behind it.">
+<title>Lito Zarate Biala - AI safety and evaluation tooling, CI-verified · Minneapolis</title>
+<meta name="description" content="Site reliability lead who builds AI safety and evaluation tools that state their own limits in numbers. Six open-source projects: a fail-closed scanner for poisoned agent config files, four measurement labs, and an incident MCP server. Every published number re-checks itself in CI; if a measured claim drifts, the build fails.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌆</text></svg>">
-<meta property="og:title" content="Lito Zarate Biala - Optimistic Systems Thinker. Site Reliability Engineer and Creative Agentic Builder.">
+<meta property="og:title" content="Lito Zarate Biala - AI systems you can audit. Every published number re-checks itself in CI.">
 <meta property="og:description" content="Six open-source projects for AI judgment, memory, safety, and incident operations. Every published number re-checks itself in CI - and every front page says where the design loses.">
 <meta property="og:image" content="https://lzbiala.github.io/assets/og-site.png">
 <meta property="og:url" content="https://lzbiala.github.io/">
@@ -29,7 +29,12 @@
   html { scroll-behavior: smooth; }
   body { background: var(--paper); color: var(--ink); line-height: 1.65;
     font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
-  .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+  .mono, .ledger, .card .num, .card .loss, .card .layer { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .ledger { font-size: .86rem; color: var(--teal); margin: 6px 0 14px; }
+  .ledger::before { content: "\2713\00a0"; }
+  .startline { font-size: .9rem; color: var(--dusk-mut); margin-top: 14px; }
+  .cards .card.lead, .cards .card:last-child { grid-column: 1 / -1; }
+  h3.exhibit { margin-top: 26px; font-size: 1.05rem; }
   .wrap { max-width: 980px; margin: 0 auto; padding: 0 22px; }
   a { color: var(--teal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
   a:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
@@ -42,14 +47,17 @@
   .hero-grid { display: flex; gap: 34px; align-items: flex-start; }
   .hero-main { flex: 1; min-width: 0; }
   .hero img.face { width: 124px; height: 124px; border-radius: 16px; object-fit: cover;
-    border: 2px solid #f2a93b99; margin-top: 12px; box-shadow: 0 10px 34px #00000066; }
-  @media (max-width: 640px) { .hero img.face { display: none; } }
+    border: 1px solid var(--line); margin-top: 12px; box-shadow: 0 10px 34px #00000066; }
+  @media (max-width: 640px) {
+    .eyebrow { letter-spacing: .04em; }
+    .hero img.face { width: 56px; height: 56px; margin-top: 0; }
+    .links a, .go a { min-height: 44px; display: inline-flex; align-items: center; } }
   .heroname { font-size: 1.02rem; letter-spacing: 0.04em; color: var(--dusk-mut); }
   .eyebrow { font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase;
     color: var(--gold); margin-bottom: 10px; }
   h1 { font-size: clamp(2.3rem, 6vw, 3.5rem); line-height: 1.05; letter-spacing: -0.02em;
     text-wrap: balance; margin: 10px 0 6px; color: #ffffff; font-weight: 650;
-    text-shadow: 0 2px 30px #f2a93b26; }
+  }
   .tagline { font-size: 1.08rem; color: var(--dusk-mut); font-style: italic; margin-bottom: 2px; }
   .thesis { font-size: 1.05rem; max-width: 46em; color: var(--dusk-ink); margin: 20px 0 0; }
   .thesis b { color: var(--gold); }
@@ -69,8 +77,8 @@
   section { padding: 54px 0 18px; }
   section + section { border-top: 1px solid var(--line); }
   section h2 { font-size: 1.7rem; letter-spacing: -0.015em; margin-bottom: 8px; text-wrap: balance; }
-  section h2::after { content: ""; display: block; width: 48px; height: 3px;
-    background: linear-gradient(90deg, var(--teal), var(--gold)); border-radius: 2px; margin-top: 10px; }
+  section h2::after { content: ""; display: block; width: 48px; height: 2px;
+    background: var(--line); margin-top: 10px; }
   .lead { color: var(--muted); max-width: 52em; margin-bottom: 26px; font-size: 1.02rem; }
 
   .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
@@ -78,8 +86,6 @@
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
     padding: 24px 26px; display: flex; flex-direction: column; gap: 9px; position: relative;
     transition: transform .18s, box-shadow .18s, border-color .18s; }
-  .card::before { content: ""; position: absolute; inset: 0 auto auto 0; height: 3px; width: 46px;
-    background: var(--teal); border-radius: 16px 0 6px 0; }
   .card:hover { transform: translateY(-3px); border-color: var(--teal);
     box-shadow: 0 16px 36px -20px #1e2a4a55; }
   .card .layer { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--teal); }
@@ -144,26 +150,24 @@
 <header class="hero"><div class="wrap">
   <div class="hero-grid">
     <div class="hero-main">
-      <div class="eyebrow">AI engineering · site reliability · incident leadership · Minneapolis-St.&nbsp;Paul</div>
+      <div class="eyebrow">AI safety and evaluation tooling · site reliability · incident command · Minneapolis-St.&nbsp;Paul</div>
       <div class="heroname">Lito Zarate Biala</div>
-      <h1>Optimistic Systems Thinker. Site Reliability Engineer &amp; Creative Agentic Builder.</h1>
-      <p class="tagline">I get to the heart of an issue: find the bottleneck under the symptom, fix it at the foundation, and prove the core of the business runs better.</p>
-      <p class="thesis">The same fix has to land in every room: engineers, executives, and customers,
-      each in their own language. At Wells Fargo I lead site reliability and incident
-      management for the banking systems that cannot go down, and
-      I bring AI into that world the only way it can be brought: governed, human-reviewed,
-      and measured, with a sign-off before anything touches production. AI built to pass a
-      bank's safety checks, not slip past them. My whole career asks one question: <em>how do we know this is actually working?</em> So I
-      built six open-source projects that test AI judgment, memory, safety, and incident operations. <b>If a measured
-      number drifts, the build fails.</b> And every front page says where the design loses.</p>
+      <h1>AI tools that state their own limits in numbers.</h1>
+      <p class="tagline">Site reliability lead for banking systems that cannot go down. Six open-source projects, and if a measured number drifts, the build fails.</p>
+      <p class="thesis">Start with skill-tripwire, the flagship: a fail-closed scanner for the config files an AI agent
+      obeys, where a poisoned file is prompt injection delivered as configuration. It publishes its catch rate
+      as an upper bound (one person wrote both the rules and the samples), its false-alarm rate with its
+      statistical bound, and every miss by name. Five more projects test AI judgment, memory, and incident
+      operations to the same standard, and <b>every front page says where the design loses.</b></p>
+      <p class="ledger">skill-tripwire · A million randomized inputs: 0 crashes, 0 hangs, 0 false alarms on 450,360 synthetic benign files (fixed seed, reproducible; bounds false alarms on generated text, not in the wild)</p>
       <div class="links">
         <a class="primary" href="Lito-Biala-Resume.pdf">Resume (PDF)</a>
+        <a href="https://github.com/LZBiala/skill-tripwire">skill-tripwire (flagship)</a>
         <a href="walkthrough.html">Guided tour</a>
-        <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>
         <a href="https://github.com/LZBiala">GitHub</a>
-        <a href="game.html">Play: AI Quest 🎮</a>
-        <a href="mailto:lzbiala@gmail.com">Email</a>
+        <a href="https://www.linkedin.com/in/lzbiala/">LinkedIn</a>
       </div>
+      <p class="startline">Three minutes? <a href="https://github.com/LZBiala/skill-tripwire/blob/master/eval/REPORT.md">the eval report, every miss named</a> · <a href="tools/MUTATION-LEDGER.md">the published correction</a> · <a href="https://lzbiala.github.io/adversarial-chambers/docs/">the flip test, true by construction</a></p>
     </div>
     <img class="face" src="images/Profile.jpg" alt="Portrait of Lito Zarate Biala" onerror="this.remove()">
   </div>
@@ -292,10 +296,10 @@
   <p class="lead">These six projects aren't a pile of demos - they're a stack. Each layer
   answers a different form of one question: <em>how do we know it works - and that it's safe
   to run?</em> Every one runs in seconds with zero API keys (nothing to sign up for or pay
-  for), and every one ships a click-through tour you can hand to any stakeholder.</p>
+  for), and every one ships a click-through tour you can hand to any stakeholder. Not an engineer? The <a href="walkthrough.html">guided tour</a> explains five of the six the way I'd brief a decision-maker.</p>
   <div class="cards">
-    <div class="card">
-      <div class="layer">Safety</div>
+    <div class="card lead">
+      <div class="layer">01 · Safety</div>
       <h3><a href="https://github.com/LZBiala/skill-tripwire">skill-tripwire</a></h3>
       <p class="pitch">A tripwire for poisoned skill files. Agents now load skills, tool
       descriptions, and config files shared online - and a poisoned one carries hidden
@@ -303,25 +307,26 @@
       file: invisible characters, download-and-run one-liners, over-broad shell grants,
       read-and-exfiltrate lines. It fails closed, ships as a CLI and an MCP server, and states
       its own limits in numbers.</p>
-      <div class="num">A million randomized inputs: 0 crashes, 0 hangs, 0 false alarms on 450,360 benign files (reproducible from a fixed seed)</div>
-      <div class="loss">Static detection is a triage floor, not a boundary - it publishes its own misses and says so</div>
+      <div class="num">A million randomized inputs: 0 crashes, 0 hangs, 0 false alarms on 450,360 synthetic benign files (fixed seed, reproducible; bounds false alarms on generated text, not in the wild)</div>
+      <div class="loss">Static detection is a triage floor, not a boundary. Its catch rate is an upper bound (one person wrote the rules and the samples); every miss is named in the report, and a corpus written by someone else is the top open item</div>
       <div class="go"><a href="https://github.com/LZBiala/skill-tripwire#readme">walkthrough</a>
         <a href="https://github.com/LZBiala/skill-tripwire">source</a></div>
     </div>
     <div class="card">
-      <div class="layer">Memory</div>
-      <h3><a href="https://github.com/LZBiala/wiki-memory-lab">wiki-memory-lab</a></h3>
-      <p class="pitch">This AI keeps its memory in a wiki of plain-text pages anyone can
-      read. It checks an index and pulls only the pages it needs, adds to old pages before
-      making new ones, and must write a reason before deleting anything. A paper trail for
-      what your AI believes.</p>
-      <div class="num">Pulling only the pages it needs costs 0.61× of loading everything</div>
-      <div class="loss">With a small, constantly-used set of notes, loading everything wins (1.27×)</div>
-      <div class="go"><a href="https://lzbiala.github.io/wiki-memory-lab/docs/">walkthrough</a>
-        <a href="https://github.com/LZBiala/wiki-memory-lab">source</a></div>
+      <div class="layer">02 · Operations</div>
+      <h3><a href="https://github.com/LZBiala/oncall-router-mcp">oncall-router-mcp</a></h3>
+      <p class="pitch">The first ten minutes of an incident are eaten by three questions: who
+      owns this, who do I wake and by when, and what does the runbook say to try first. This
+      answers them to an AI assistant as MCP tools - plus the one most tools get wrong, where
+      we stand on the clock, measured from when impact started rather than from when somebody
+      opened a ticket. It reads one local file. No network, no keys.</p>
+      <div class="num">Five tools over one local file: owner, escalation path, first move, the impact clock, and a timeline review - zero runtime dependencies</div>
+      <div class="loss">No live integrations, by design: it does not read your incident tool, your rotation, or your monitoring - you feed it one file</div>
+      <div class="go"><a href="https://github.com/LZBiala/oncall-router-mcp#readme">walkthrough</a>
+        <a href="https://github.com/LZBiala/oncall-router-mcp">source</a></div>
     </div>
     <div class="card">
-      <div class="layer">Evaluation</div>
+      <div class="layer">03 · Evaluation</div>
       <h3><a href="https://github.com/LZBiala/agent-mutation-lab">agent-mutation-lab</a></h3>
       <p class="pitch">I test AI code reviewers the way you'd test a proofreader: plant one
       known mistake, mix in clean copies, and only count a catch at the planted
@@ -334,7 +339,7 @@
         <a href="https://github.com/LZBiala/agent-mutation-lab">source</a></div>
     </div>
     <div class="card">
-      <div class="layer">Judgment</div>
+      <div class="layer">04 · Judgment</div>
       <h3><a href="https://github.com/LZBiala/adversarial-chambers">adversarial-chambers</a></h3>
       <p class="pitch">A courtroom for AI claims: one AI argues, a second's only job is to
       attack, a third judges - nobody plays two roles. Every rejected claim gets a written
@@ -346,7 +351,19 @@
         <a href="https://github.com/LZBiala/adversarial-chambers">source</a></div>
     </div>
     <div class="card">
-      <div class="layer">The improvement loop</div>
+      <div class="layer">05 · Memory</div>
+      <h3><a href="https://github.com/LZBiala/wiki-memory-lab">wiki-memory-lab</a></h3>
+      <p class="pitch">This AI keeps its memory in a wiki of plain-text pages anyone can
+      read. It checks an index and pulls only the pages it needs, adds to old pages before
+      making new ones, and must write a reason before deleting anything. A paper trail for
+      what your AI believes.</p>
+      <div class="num">Pulling only the pages it needs costs 0.61× of loading everything</div>
+      <div class="loss">With a small, constantly-used set of notes, loading everything wins (1.27×)</div>
+      <div class="go"><a href="https://lzbiala.github.io/wiki-memory-lab/docs/">walkthrough</a>
+        <a href="https://github.com/LZBiala/wiki-memory-lab">source</a></div>
+    </div>
+    <div class="card">
+      <div class="layer">06 · The improvement loop</div>
       <h3><a href="https://github.com/LZBiala/memory-repair-lab">memory-repair-lab</a></h3>
       <p class="pitch">The AI never changes - its notebook does. Every miss gets filed as a
       labeled note about what went wrong, every fix names the miss it repairs, and progress
@@ -357,68 +374,14 @@
       <div class="go"><a href="https://lzbiala.github.io/memory-repair-lab/docs/">walkthrough</a>
         <a href="https://github.com/LZBiala/memory-repair-lab">source</a></div>
     </div>
-    <div class="card">
-      <div class="layer">Operations</div>
-      <h3><a href="https://github.com/LZBiala/oncall-router-mcp">oncall-router-mcp</a></h3>
-      <p class="pitch">The first ten minutes of an incident are eaten by three questions: who
-      owns this, who do I wake and by when, and what does the runbook say to try first. This
-      answers them to an AI assistant as MCP tools - plus the one most tools get wrong, where
-      we stand on the clock, measured from when impact started rather than from when somebody
-      opened a ticket. It reads one local file. No network, no keys.</p>
-      <div class="num">Five tools over one local file: owner, escalation path, first move, the impact clock, and a timeline review - zero runtime dependencies</div>
-      <div class="loss">No live integrations, by design: it does not read your incident tool, your rotation, or your monitoring - you feed it one file</div>
-      <div class="go"><a href="https://github.com/LZBiala/oncall-router-mcp#readme">walkthrough</a>
-        <a href="https://github.com/LZBiala/oncall-router-mcp">source</a></div>
-    </div>
   </div>
   <p class="cardnote">Every number above regenerates from scratch on each repo's automated
   build, on Windows and Linux - if a fresh run disagrees with the published claim, the
   build fails. (skill-tripwire's million-input figure is fixed-seed reproducible rather than
   run on every build - a million scans is too slow for CI - but a smaller run of it is gated
   there.) The bundled agents are deliberately simple scripts, so these numbers prove the
-  measuring instruments, never any AI model's intelligence.</p>
+  measuring instruments, never any AI model's intelligence. No number on this page comes from a live model yet; the instruments are built so the first live-model run can be published the same way, with its caveats, and that run is the next measurement.</p>
 
-  <div class="tour">
-    <p><b>Want the guided tour?</b> Every project explained the way I'd brief a
-    decision-maker - precise analogies (sealed exam envelopes, sugar pills, smoke alarms),
-    a working vocabulary for terms like <em>best-of-k</em> and <em>unhobbling</em>, and
-    the questions I'd genuinely love to be asked about each project.</p>
-    <a class="tourcta" href="walkthrough.html">Take the tour →</a>
-  </div>
-</div></section>
-
-<section id="gamesec"><div class="wrap">
-  <h2>⚔️ Play the portfolio - AI Quest: SEV-1</h2>
-  <p class="lead">An 8-bit adventure where AI engineering is the magic and the final boss
-  is a major outage. Recruit a roster of eight and field every one of them at once - four of the
-  companions are projects from above, the rest are their own people - spend the reps you earn
-  down one of three growth roads, and run the incident bridge that takes down the five-headed
-  Hydra. Clear everything and a post-credits finale opens: THE GRAND STAGE, a live industry
-  exercise where the team is measured, not crowned, WORLD CLASS. The balance came out of a
-  simulator you can run yourself: <a href="tools/BALANCE-LEDGER.md">the ledger</a>
-  shows which numbers are checkable from this repo and which are only asserted.</p>
-  <p class="lead">The game ships its own test suite - the title screen runs every check live
-  in your browser, so the count is shown, never quoted - which only tells you they passed. So I
-  broke it on purpose: 250 real defects, seeded one at a time, to find out whether the tests
-  would notice. Then I wrote seven guards to close the gaps that found - and measured them
-  against a second batch of 107 defects sealed before those guards existed. On the gaps they
-  were pointed at they scored 55%. On the sealed batch, <b>5.6%</b>. The hardening did not
-  generalise, and the sealed envelope is the only reason I know it.
-  <a href="tools/MUTATION-LEDGER.md">The ledger</a> carries that result, a correction to an
-  earlier version of this number that compared training-set performance against a held-out
-  score, the confounds I can name, and all 151 defects still uncaught. You can re-derive
-  every figure in your own browser from
-  <a href="tools/mutation-lab.html">the mutation lab</a>.</p>
-  <div class="gamecard">
-    <div class="gc-left">
-      <div>&gt; THE SEV-1 HYDRA rises!</div>
-      <div>&gt; You cast FIVE-WHY… the root cause is exposed!</div>
-      <div>&gt; Grade: S - think you can beat it?</div>
-    </div>
-    <a class="gc-play" href="game.html">▶ PLAY NOW</a>
-  </div>
-  <p class="cardnote">one sitting, and the game times and grades your run · saves at the inn · gear, shops, a growth tree &amp; a roster of eight ·
-  speedrun grading · plays on your phone · one static file, no sign-ups, no downloads.</p>
 </div></section>
 
 <section id="how"><div class="wrap">
@@ -445,14 +408,54 @@
     <div class="law"><h3>Hard things get explained simply.</h3>
       <p>Recipe boxes, smoke alarms, courtrooms, sealed envelopes: if I can't explain
       the system to the person who depends on it, the system isn't finished.</p></div>
+    <div class="law"><h3>The challenge set comes from outside.</h3>
+      <p>A catalogue I wrote measures my imagination, not the tool: skill-tripwire publishes its
+      catch rate as an upper bound for exactly that reason, and a corpus written by someone else is
+      its stated top open item. The same rule sealed the game's second batch of defects before the
+      guards existed.</p></div>
   </div>
+  <h3 class="exhibit">I broke my own tests on purpose</h3>
+  <p class="lead">The game ships its own test suite - the title screen runs every check live
+  in your browser, so the count is shown, never quoted - which only tells you they passed. So I
+  broke it on purpose: 250 real defects, seeded one at a time, to find out whether the tests
+  would notice. Then I wrote seven guards to close the gaps that found - and measured them
+  against a second batch of 107 defects sealed before those guards existed. On the gaps they
+  were pointed at they scored 55%. On the sealed batch, <b>5.6%</b>. The hardening did not
+  generalise, and the sealed envelope is the only reason I know it.
+  <a href="tools/MUTATION-LEDGER.md">The ledger</a> carries that result, a correction to an
+  earlier version of this number that compared training-set performance against a held-out
+  score, the confounds I can name, and all 151 defects still uncaught. You can re-derive
+  every figure in your own browser from
+  <a href="tools/mutation-lab.html">the mutation lab</a>.</p>
 </div></section>
+<section id="gamesec"><div class="wrap">
+  <h2>⚔️ Play the portfolio - AI Quest: SEV-1</h2>
+  <p class="lead">An 8-bit adventure where AI engineering is the magic and the final boss
+  is a major outage. Recruit a roster of eight and field every one of them at once - four of the
+  companions are projects from above, the rest are their own people - spend the reps you earn
+  down one of three growth roads, and run the incident bridge that takes down the five-headed
+  Hydra. Clear everything and a post-credits finale opens: THE GRAND STAGE, a live industry
+  exercise where the team is measured, not crowned, WORLD CLASS. The balance came out of a
+  simulator you can run yourself: <a href="tools/BALANCE-LEDGER.md">the ledger</a>
+  shows which numbers are checkable from this repo and which are only asserted.</p>
+  <div class="gamecard">
+    <div class="gc-left">
+      <div>&gt; THE SEV-1 HYDRA rises!</div>
+      <div>&gt; You cast FIVE-WHY… the root cause is exposed!</div>
+      <div>&gt; Grade: S - think you can beat it?</div>
+    </div>
+    <a class="gc-play" href="game.html">▶ PLAY NOW</a>
+  </div>
+  <p class="cardnote">one sitting, and the game times and grades your run · saves at the inn · gear, shops, a growth tree &amp; a roster of eight ·
+  speedrun grading · plays on your phone · one static file, no sign-ups, no downloads.</p>
+</div></section>
+
 
 <section id="background"><div class="wrap">
   <h2>Background</h2>
   <div class="bg2">
     <div>
-      <p>I'm a technology leader at Wells Fargo - 12+ years of leadership, 5+ years across
+      <p>Optimistic Systems Thinker. Site Reliability Engineer &amp; Creative Agentic Builder. I get to the heart of an issue: find the bottleneck under the symptom, fix it at the foundation, and prove the core of the business runs better. I'm a technology leader at Wells Fargo - 12+ years of leadership, 5+ years across
       site reliability and incident management for critical banking applications:
       monitoring built to catch trouble before customers feel it, root-cause discipline,
       platform work through cloud migrations, and distributed teams across the US and

@@ -285,13 +285,26 @@ if cat_path.exists():
 
 # The project count in the prose must match the shipped cards - the four-vs-five drift
 # of 2026-08-31 showed a count with no gate quietly forks across meta/og/thesis/about.
-_cards = index.count('<div class="card"')
+_cards = len(re.findall(r'<div class="card(?: lead)?">', index))   # the lead card carries a second class
 _words = {"four": 4, "five": 5, "six": 6, "seven": 7}
 _claims = re.findall(r"\b(Four|Five|Six|Seven|four|five|six|seven) open-source projects", index)
 check("the copy states the project count somewhere", bool(_claims))
 check("every project-count word matches the shipped cards",
       all(_words[w.lower()] == _cards for w in _claims),
       f"copy says {sorted(set(_claims))}, cards: {_cards}")
+
+# One figure, one string, gated: the hero's ledger row hoists the flagship card's measured
+# number, and the two must be byte-identical - a number that lives in two places will
+# eventually disagree with itself.
+_ledger = re.search(r'<p class="ledger">(.*?)</p>', index, re.S)
+_lead_num = re.search(r'<div class="card lead">.*?<div class="num">(.*?)</div>', index, re.S)
+check("the hero ledger row exists", bool(_ledger))
+check("the flagship lead card exists with a measured number", bool(_lead_num))
+if _ledger and _lead_num:
+    _hoisted = re.sub(r"\s+", " ", _ledger.group(1).split("·", 1)[-1]).strip()
+    _card = re.sub(r"\s+", " ", _lead_num.group(1)).strip()
+    check("the hero ledger row equals the flagship card's number byte for byte", _hoisted == _card,
+          f"hero: {_hoisted[:70]}... | card: {_card[:70]}...")
 
 print()
 if FAILS:
